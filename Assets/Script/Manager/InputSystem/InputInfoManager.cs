@@ -866,9 +866,6 @@ public class InputInfoManager : SingleMonoAutoBehavior<InputInfoManager>
         }
 
         string actionKey = action.ToString();
-        // 兼容Move动作：映射到Up/Down/Left/Right的回调（优先取Up）
-        if (action == E_InputAction.Move)
-            actionKey = "Up";
 
         if (actionEventMapDic.TryGetValue(actionKey, out var callbacksList))
         {
@@ -913,10 +910,8 @@ public class InputInfo
         KeyNameList.Clear();
 
         // 方向键（对应WASD）
-        KeyInfoDict.Add("up", "<Keyboard>/w");
-        KeyInfoDict.Add("down", "<Keyboard>/s");
-        KeyInfoDict.Add("left", "<Keyboard>/a");
-        KeyInfoDict.Add("right", "<Keyboard>/d");
+        KeyInfoDict.Add("LeftMove", "<Keyboard>/a");
+        KeyInfoDict.Add("RightMove", "<Keyboard>/d");
         // 核心动作
         KeyInfoDict.Add("Attack", "<Mouse>/leftButton");
         KeyInfoDict.Add("Jump", "<Keyboard>/space");
@@ -1051,9 +1046,6 @@ public class InputInfo
 
     }
     #endregion
-
-
-
 }
 
 /// <summary>
@@ -1061,9 +1053,11 @@ public class InputInfo
 /// </summary>
 public enum E_InputAction
 {
-    Move,    // 移动（映射Up/Down/Left/Right）
+    LeftMove,//左移
+    RightMove,//右移
     Attack,  // 攻击
     Jump,    // 跳跃
     Interact,// 交互
     DialogueSkip// 跳过对话
+
 }

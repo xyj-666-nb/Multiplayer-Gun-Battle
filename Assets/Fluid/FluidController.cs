@@ -1,18 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class FluidController : MonoBehaviour
+public class FluidController : SingleMonoAutoBehavior<FluidController>
 {
-    private static FluidController instance;
-    public static FluidController Instance
-    {
-        get
-        {
-            return instance;
-        }
-    }
+ 
     public RenderTexture colorTexture;
     public RenderTexture velocityTexture;
     public RenderTexture obstacleTexture;
@@ -48,11 +40,6 @@ public class FluidController : MonoBehaviour
         public float velocityRadius; // 速度场的绘制半径
         public VelocityType velocityType; // 新增速度类型字段
     }
-
-    //public void SetFloowPlayer(Player player)
-    //{
-    //    followObject = player.gameObject;
-    //}
 
     // 绘制请求队列
     private List<DrawRequest> drawRequests = new List<DrawRequest>(1000);
@@ -262,20 +249,12 @@ public class FluidController : MonoBehaviour
         }
     }
 
-    private void Awake()
+    protected override void Awake()
     {
-        if (instance != null && instance != this)
-        {
-            Debug.LogError("场景中已存在FluidController实例，销毁当前实例");
-            Destroy(this.gameObject);
-            return;
-        }
-
-        instance = this;
+        base.Awake();
         DontDestroyOnLoad(this.gameObject);
     }
 
-    // Update is called once per frame
     void Update()
     {
         // return;
@@ -828,5 +807,6 @@ public class FluidController : MonoBehaviour
         // 释放命令缓冲区
         cmd.Release();
     }
+
 }
 

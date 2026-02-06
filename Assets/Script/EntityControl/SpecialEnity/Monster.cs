@@ -39,7 +39,7 @@ public class Monster : Base_Entity
     }
     #endregion
 
-    public override void Update()
+    public  void Update()
     {
         CheckFilp();//¼ì²é·­×ª
     }

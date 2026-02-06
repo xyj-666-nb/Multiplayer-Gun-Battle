@@ -19,7 +19,7 @@ public class BaseEntityState
     public virtual void Enter()
     {
         TriggerCalled = false;
-        Entity.MyAnimator.SetBool(StateName, true);
+     //   Entity.MyAnimator.SetBool(StateName, true);
     }
 
     public virtual void update()
@@ -29,7 +29,7 @@ public class BaseEntityState
 
     public virtual void Exit()
     {
-        Entity.MyAnimator.SetBool(StateName, false);
+     //   Entity.MyAnimator.SetBool(StateName, false);
     }
     public void AnimatorFinish()
     {

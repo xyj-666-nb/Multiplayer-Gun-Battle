@@ -15,11 +15,11 @@ public class EntityAnimatorTrigger : MonoBehaviour
 
     public void OnAnimatorTrigger()
     {
-        Entity.AnimatorFinish();
+    //    Entity.AnimatorFinish();
     }
     public void OnAnimatorTriggerHit()
     {
-        Entity.AnimatorFinish();
+       // Entity.AnimatorFinish();
     }
 
     public void Destoryme()

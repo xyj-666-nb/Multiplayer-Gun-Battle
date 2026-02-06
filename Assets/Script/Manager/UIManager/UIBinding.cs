@@ -24,7 +24,7 @@ public class UIBinding : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     private void InitTargetInputAction()
     {
         // 根据枚举找到对应的 InputAction
-        string actionName = m_InputAction == E_InputAction.Move ? "Up" : m_InputAction.ToString();
+        string actionName =  m_InputAction.ToString();
         _targetInputAction = InputInfoManager.Instance.playerInput.actions.FindAction(actionName);
 
     }
