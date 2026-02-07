@@ -1,7 +1,7 @@
 using Mirror;
 using UnityEngine;
 
-public class playerHandControl : MonoBehaviour//玩家手部控制
+public class playerHandControl : NetworkBehaviour//玩家手部控制
 {
     [SyncVar(hook = nameof(OnRotationValueSynced))]
     public float CurrentRotationValue_Z = 0f;//目标旋转角度
