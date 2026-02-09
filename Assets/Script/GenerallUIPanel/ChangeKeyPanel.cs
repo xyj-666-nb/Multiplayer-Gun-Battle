@@ -9,7 +9,7 @@ using UnityEngine.UI;
 /// <summary>
 /// 改键面板，这里的按钮按键包取名有讲究，名字要取成和PlayInput文档里面的一样
 /// </summary>
-public class ChangeKeyPanel : BasePanel
+public class ChangeKeypanel : BasePanel
 {
     public List<ChangeKeyPack> KeyPackList;
 
@@ -28,7 +28,7 @@ public class ChangeKeyPanel : BasePanel
     {
         base.ClickButton(controlName);
         if (controlName == "ExitButton")
-            UImanager.Instance.HidePanel<ChangeKeyPanel>();
+            UImanager.Instance.HidePanel<ChangeKeypanel>();
         else if (controlName == "SetDefaultButton")
         {
             InputInfoManager.Instance.inputInfo.ReturnDefaultKeyInfo();//重置信息

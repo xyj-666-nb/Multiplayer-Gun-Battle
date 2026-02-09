@@ -3,229 +3,323 @@ using UnityEngine;
 
 public class Player : Base_Entity
 {
-    // 单例引用
-    public static Player instance => Instance;
-    public static Player Instance;
+    public static Player LocalPlayer { get; private set; }
 
-    // 自身状态组件
-    private playerStats Mystats;
-    private MyPlayerInput MyInputSystem;
+    [Header("核心组件")]
+    public playerStats myStats;
+    private MyPlayerInput myInputSystem;
 
-    // 同步速度字段
-    [SyncVar(hook = nameof(OnVelocitySynced))]
-    private Vector2 _syncVelocity;
+    [Header("枪械挂载")]
+    public Transform playerHandPos;
+    [SyncVar(hook = nameof(OnGunChanged))]
+    public BaseGun currentGun;
 
-    // 速度属性
-    public Vector2 MyVelocity
-    {
-        get => MyRigdboby != null ? MyRigdboby.velocity : Vector2.zero;
-        set
-        {
-            if (!isServer)
-            {
-                Debug.LogWarning("客户端禁止直接修改刚体速度！请通过Command请求服务器");
-                return;
-            }
-            // 服务器端先钳制速度，再赋值
-            Vector2 clampedVel = ClampVelocity(value);
-            MyRigdboby.velocity = clampedVel;
-            _syncVelocity = clampedVel;
-        }
-    }
+    [Header("当前玩家触碰到的枪械")]
+    public BaseGun CurrentTouchGun;
 
-    #region 缩放插值核心变量
-    private float _currentYScale;
-    private float _targetYStretch;
-    [Header("缩放插值配置")]
-    public float MainLerpSpeed = 2f;
-    public float MaxLerpSpeed = 15f;
-    private Vector2 _baseScale;
+    #region 缩放动画配置
+    private float currentYScale;
+    private float targetYStretch;
+    public float mainLerpSpeed = 2f;
+    public float maxLerpSpeed = 15f;
+    private Vector2 baseScale;
     #endregion
 
-    #region Mirror核心本地回调
+    #region Mirror生命周期
+    public override void OnStartServer()
+    {
+        base.OnStartServer();
+        MyRigdboby = GetComponent<Rigidbody2D>();
+        if (MyRigdboby == null)
+        {
+            Debug.LogError($"[服务器] 玩家{gameObject.name}缺少Rigidbody2D组件！", this);
+            return;
+        }
+
+        MyRigdboby.bodyType = RigidbodyType2D.Dynamic;
+        MyRigdboby.drag = 0.3f;
+        MyRigdboby.gravityScale = 1f;
+        Debug.Log($"[服务器] 初始化玩家{gameObject.name}刚体为Dynamic");
+    }
+
     public override void OnStartLocalPlayer()
     {
         base.OnStartLocalPlayer();
-        if (Instance == null)
+        LocalPlayer = this;
+        Debug.Log($"[本地客户端] 初始化本地玩家：{gameObject.name}");
+
+        myStats = GetComponent<playerStats>();
+        myInputSystem = GetComponent<MyPlayerInput>();
+
+        UImanager.Instance.ShowPanel<PlayerPanel>();//显示UI
+        Debug.Log("显示玩家UI");
+        //开始摄像机跟随
+        MyCameraControl.Instance.SetCameraMode_FollowPlayerMode(this.gameObject,true);
+
+        if (myInputSystem != null)
         {
-            Instance = this;
-            if (Mystats != null) Mystats.TriggerBinding();
-            if (MyInputSystem != null) MyInputSystem.TriggerBinding();
+            myInputSystem.Initialize(this, myStats);
+            Debug.Log("Player：本地玩家输入系统初始化完成！");
         }
-        else
-            Destroy(gameObject);
     }
 
     public override void OnStopLocalPlayer()
     {
         base.OnStopLocalPlayer();
-        if (Instance == this) Instance = null;
+        if (LocalPlayer == this)
+            LocalPlayer = null;
     }
     #endregion
 
+    #region 初始化
     public override void Awake()
     {
         base.Awake();
-
-        Mystats = GetComponent<playerStats>();
-        if (Mystats == null)
-        {
-            Debug.LogError("Player.Awake：未挂载playerStats组件！拉伸和速度限制会失效");
-        }
-        MyInputSystem = GetComponent<MyPlayerInput>();
-
-        // 初始化缩放变量
-        _baseScale = transform.localScale;
-        _currentYScale = _baseScale.y;
-
-        //物理信息打印
-        if (RigidbodyGUITestManager.Instance != null)
-            RigidbodyGUITestManager.Instance.AddRigInfoShow_2D(MyRigdboby, "玩家");
+        baseScale = transform.localScale;
+        currentYScale = baseScale.y;
+        MyRigdboby = GetComponent<Rigidbody2D>();
     }
+    #endregion
 
-    public override void DestroyMe(float Time = 0)
+    #region 动画更新
+    private void Update()
     {
-        base.DestroyMe(Time);
-    }
-
-    private void FixedUpdate()
-    {
-        if (!isServer || MyRigdboby == null || Mystats == null) return;
-
-        // 服务器端实时钳制刚体速度（不管是AddForce还是其他方式修改，都能被限制）
-        Vector2 clampedVel = ClampVelocity(MyRigdboby.velocity);
-        if (MyRigdboby.velocity != clampedVel)
+        if (isLocalPlayer)
         {
-            MyRigdboby.velocity = clampedVel;
-            _syncVelocity = clampedVel; // 同步钳制后的速度到客户端
-            Debug.Log($"服务器钳制速度：X={clampedVel.x:F2}, Y={clampedVel.y:F2}");
+            PlayerMoveStretchAnima();
         }
     }
+    #endregion
 
-    public void Update()
+    #region 缩放动画
+    public void PlayerMoveStretchAnima()
     {
-        playerMoveStretchAnima();
-    }
+        float currentXVel = MyRigdboby.velocity.x;
+        float currentYVel = MyRigdboby.velocity.y;
 
-    #region 运动拉伸动画
-    #region 运动拉伸动画
-    /// <summary>
-    /// 垂直拉伸（跳跃）+ 移动抖动（地面移动）二合一逻辑
-    /// 状态1：Y速度小（-0.1~0.1）+ X有速度 → 移动抖动
-    /// 状态2：Y速度≥0.1/≤-0.1 → 跳跃垂直拉伸
-    /// 状态3：无速度 → 回到基础缩放
-    /// </summary>
-    public void playerMoveStretchAnima()
-    {
-        if (Mystats == null || MyRigdboby == null) return;
+        bool isGroundMove = Mathf.Abs(currentYVel) < 0.1f && Mathf.Abs(currentXVel) > 0.1f;
+        bool isJumpStretch = Mathf.Abs(currentYVel) >= 0.1f;
 
-        Vector2 clampedVel = ClampVelocity(MyVelocity);
-        float currentYVel = clampedVel.y;
-        float currentXVel = clampedVel.x;
-        // Y速度阈值（-0.1 ~ 0.1）：判断是否为地面移动状态
-        bool isGroundMoveState = Mathf.Abs(currentYVel) < 0.1f && Mathf.Abs(currentXVel) > 0.1f;
-        // 跳跃拉伸状态：Y速度超出阈值
-        bool isJumpStretchState = Mathf.Abs(currentYVel) >= 0.1f;
-
-        if (isGroundMoveState)
+        if (isGroundMove)
         {
-            float bumpyOffset = Mathf.Sin(Time.time * Mystats.MoveBumpySpeed) * Mystats.MoveBumpyRange;
-            _targetYStretch = _baseScale.y + bumpyOffset;
-
-            float bumpyLerpSpeed = 5f;
-            _currentYScale = Mathf.Lerp(_currentYScale, _targetYStretch, bumpyLerpSpeed * Time.deltaTime);
+            float bumpyOffset = Mathf.Sin(Time.time * myStats.MoveBumpySpeed) * myStats.MoveBumpyRange;
+            targetYStretch = baseScale.y + bumpyOffset;
+            currentYScale = Mathf.Lerp(currentYScale, targetYStretch, 5f * Time.deltaTime);
         }
-        else if (isJumpStretchState)
+        else if (isJumpStretch)
         {
-            float ySpeedAbs = Mathf.Abs(currentYVel);
-            float ySpeedRatio = ySpeedAbs / Mystats.MaxYSpeed;
-            _targetYStretch = _baseScale.y + ySpeedRatio * Mystats.MaxYStretch;
+            float ySpeedRatio = Mathf.Abs(currentYVel) / myStats.MaxYSpeed;
+            targetYStretch = baseScale.y + ySpeedRatio * myStats.MaxYStretch;
 
-            float scaleDelta = Mathf.Abs(_targetYStretch - _currentYScale);
-            float speedRatio = Mathf.Clamp01(ySpeedAbs / Mystats.MaxYSpeed);
-            float dynamicLerpSpeed = Mathf.Lerp(MainLerpSpeed, MaxLerpSpeed, speedRatio);
-            dynamicLerpSpeed = Mathf.Lerp(MainLerpSpeed, MaxLerpSpeed, speedRatio + scaleDelta * 2f);
-
-            _currentYScale = Mathf.Lerp(_currentYScale, _targetYStretch, dynamicLerpSpeed * Time.deltaTime);
-            // 边界保护：不小于基础缩放的80%
-            _currentYScale = Mathf.Max(_currentYScale, _baseScale.y * 0.8f);
+            float scaleDelta = Mathf.Abs(targetYStretch - currentYScale);
+            float dynamicLerpSpeed = Mathf.Lerp(mainLerpSpeed, maxLerpSpeed, ySpeedRatio + scaleDelta * 2f);
+            currentYScale = Mathf.Lerp(currentYScale, targetYStretch, dynamicLerpSpeed * Time.deltaTime);
+            currentYScale = Mathf.Max(currentYScale, baseScale.y * 0.8f);
         }
         else
         {
-            _targetYStretch = _baseScale.y;
-            // 慢插值回正，避免突变
-            _currentYScale = Mathf.Lerp(_currentYScale, _targetYStretch, 2f * Time.deltaTime);
+            targetYStretch = baseScale.y;
+            currentYScale = Mathf.Lerp(currentYScale, targetYStretch, 2f * Time.deltaTime);
         }
 
-        transform.localScale = new Vector3(
-            _baseScale.x,
-            _currentYScale,
-            transform.localScale.z
-        );
-
-        string state = isGroundMoveState ? "移动抖动" : (isJumpStretchState ? "跳跃拉伸" : "无速度");
-        Debug.Log($"状态：{state} | Y速度：{currentYVel:F2} | X速度：{currentXVel:F2} | 当前Y缩放：{_currentYScale:F2}");
+        transform.localScale = new Vector3(transform.localScale.x, currentYScale, transform.localScale.z);
     }
     #endregion
-    #endregion
 
-    #region 速度同步+钳制核心方法
-    private void OnVelocitySynced(Vector2 oldVel, Vector2 newVel)
+    #region 枪械管理
+    // 钩子仅做「挂载/解挂载」，刚体状态由BaseGun的SyncVar钩子自动同步
+    private void OnGunChanged(BaseGun oldGun, BaseGun newGun)
     {
-        if (MyRigdboby == null || Mystats == null) 
+        if (!isClient || playerHandPos == null)
             return;
-        Vector2 clampedNewVel = ClampVelocity(newVel);
-        MyRigdboby.velocity = Vector2.Lerp(MyRigdboby.velocity, clampedNewVel, Time.deltaTime * 10f);
+
+        if (oldGun != null)
+        {
+            oldGun.transform.SetParent(null); // 仅解挂载
+            EventCenter.Instance.TriggerEvent(E_EventType.E_playerLoseGun, this);
+        }
+
+        if (newGun != null)
+        {
+            newGun.transform.SetParent(playerHandPos); // 仅挂载
+            newGun.transform.localPosition = Vector3.zero;
+            newGun.transform.localRotation = Quaternion.identity;
+            EventCenter.Instance.TriggerEvent(E_EventType.E_playerGetGun, this);
+        }
     }
 
-    // 客户端请求服务器施加跳跃力
-    [Command]
-    public void CmdAddJumpForce(float jumpPower)
+    public void PickUpSceneGun()
     {
-        if (MyRigdboby == null || Mystats == null)
+        if (!isLocalPlayer) 
             return;
-        MyRigdboby.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
+        if (CurrentTouchGun == null)
+            return;
+
+        CurrentTouchGun.transform.SetParent(playerHandPos);
+        CurrentTouchGun.transform.localPosition = Vector3.zero;
+        CurrentTouchGun.transform.localRotation = Quaternion.identity;
+
+
+        NetworkIdentity gunNetId = CurrentTouchGun.GetComponent<NetworkIdentity>();
+        if (gunNetId == null) 
+            return;
+
+        LocalPlayer.CmdPickUpSceneGun(gunNetId.netId);
+        CurrentTouchGun = null;
+        
     }
 
-    // 客户端请求服务器施加移动力
     [Command]
-    public void CmdAddMoveForce(float movePower, int dir)
+    private void CmdPickUpSceneGun(uint gunNetId)
     {
-        if (MyRigdboby == null || Mystats == null) return;
-        float forceX = dir * movePower;
-        // 增强控制力的逻辑
-        if ((dir < 0 && MyRigdboby.velocity.x < 0) || (dir > 0 && MyRigdboby.velocity.x > 0))
+        if (!isServer)
+            return;
+        if (!NetworkServer.spawned.TryGetValue(gunNetId, out NetworkIdentity gunNetIdentity)) return;
+
+        GameObject gunObj = gunNetIdentity.gameObject;
+        BaseGun targetGun = gunObj.GetComponent<BaseGun>();
+        if (targetGun == null)
         {
-            forceX *= 2f;
+            NetworkServer.Destroy(gunObj);
+            return;
         }
-        MyRigdboby.AddForce(new Vector2(forceX, 0));
+
+        if (!gunNetIdentity.isOwned)
+        {
+            gunNetIdentity.AssignClientAuthority(connectionToClient);
+        }
+
+        ServerHandlePickUpGun(gunObj);
+    }
+
+    public void SpawnAndPickGun(string gunName)
+    {
+        if (!isLocalPlayer)
+            return;
+        if (GunManager.Instance == null) 
+            return;
+
+        LocalPlayer.CmdSpawnAndPickGun(gunName);
+        if (UImanager.Instance.GetPanel<PlayerPanel>() != null)
+        {
+            UImanager.Instance.ShowPanel<PlayerPanel>().ShowGunBackGround();
+        }
     }
 
     [Command]
-    public void CmdUpdateVelocity(Vector2 targetVel)
+    private void CmdSpawnAndPickGun(string gunName)
     {
-        MyVelocity = targetVel;
+        if (!isServer || GunManager.Instance == null) return;
+
+        GameObject gunPrefab = GunManager.Instance.GetGun(gunName);
+        if (gunPrefab == null) return;
+
+        GameObject gunObj = Instantiate(gunPrefab);
+        NetworkServer.Spawn(gunObj, connectionToClient);
+
+        ServerHandlePickUpGun(gunObj);
     }
 
-    private Vector2 ClampVelocity(Vector2 velocity)
+    private void ServerHandlePickUpGun(GameObject gunObj)
     {
-        if (Mystats == null)
+        if (!isServer || gunObj == null || playerHandPos == null) return;
+
+        BaseGun newGun = gunObj.GetComponent<BaseGun>();
+        if (newGun == null)
         {
-            Debug.LogError("Player.ClampVelocity：playerStats组件未挂载，无法钳制速度！");
-            return velocity;
+            NetworkServer.Destroy(gunObj);
+            return;
         }
 
-        float clampedX = Mathf.Clamp(velocity.x, -Mystats.MaxXSpeed, Mystats.MaxXSpeed);
-        float clampedY = Mathf.Clamp(velocity.y, -Mystats.MaxYSpeed, Mystats.MaxYSpeed);
+        if (currentGun != null)
+        {
+            ServerHandleDropGun(currentGun.gameObject);
+        }
 
-        return new Vector2(clampedX, clampedY);
+        gunObj.transform.SetParent(playerHandPos);
+        gunObj.transform.localPosition = Vector3.zero;
+        gunObj.transform.localRotation = Quaternion.identity;
+
+        newGun.isInPlayerHand = true;
+        currentGun = newGun;
+        newGun.ownerPlayer = this;
+
+       
+        newGun.SafeServerOnGunPicked();
+        //UI更新
+        if (UImanager.Instance.GetPanel<PlayerPanel>() != null)
+        {
+            UImanager.Instance.ShowPanel<PlayerPanel>().ShowGunBackGround();
+        }
+    }
+
+    public void DropCurrentGun()
+    {
+        if (!isLocalPlayer || currentGun == null)
+            return;
+        LocalPlayer.CmdDropCurrentGun();
+        if (UImanager.Instance.GetPanel<PlayerPanel>() != null)
+        {
+            UImanager.Instance.ShowPanel<PlayerPanel>().HideGunBackGround();//关闭UI显示
+        }
+    }
+
+    [Command]
+    private void CmdDropCurrentGun()
+    {
+        if (!isServer || currentGun == null) return;
+        ServerHandleDropGun(currentGun.gameObject);
+        currentGun = null;
+    }
+
+    private void ServerHandleDropGun(GameObject gunObj)
+    {
+        if (!isServer || gunObj == null)
+            return;
+
+        NetworkIdentity gunNetId = gunObj.GetComponent<NetworkIdentity>();
+        if (gunNetId != null && gunNetId.connectionToClient != null)
+        {
+            gunNetId.RemoveClientAuthority();
+        }
+
+        gunObj.transform.SetParent(null);
+
+        BaseGun gun = gunObj.GetComponent<BaseGun>();
+        if (gun != null)
+        {
+            gun.isInPlayerHand = false;
+        }
+
+
+        RpcResetGunTransform(gunNetId?.netId ?? 0, gunObj.transform.position, gunObj.transform.eulerAngles.z);
+        gunObj.GetComponent<BaseGun>().SafeServerOnGunDropped();
+    }
+
+    [ClientRpc]
+    private void RpcResetGunTransform(uint gunNetId, Vector3 worldPos, float rotZ)
+    {
+        if (!NetworkClient.spawned.TryGetValue(gunNetId, out NetworkIdentity gunNetIdentity)) return;
+
+        GameObject gunObj = gunNetIdentity.gameObject;
+        // 直接设置位置，无插值（消除延迟）
+        gunObj.transform.position = worldPos;
+        gunObj.transform.rotation = Quaternion.Euler(0, 0, rotZ);
     }
     #endregion
 
-    // 对外暴露转向方法
-    [Command]
-    public void CmdFlip()
+    #region 辅助方法
+    public override void DestroyMe(float time = 0)
     {
-        Flip(); // 假设Flip是父类Base_Entity的转向方法
+        if (isServer)
+        {
+            Invoke(nameof(ServerDestroy), time);
+        }
     }
+
+    private void ServerDestroy()
+    {
+        NetworkServer.Destroy(gameObject);
+    }
+    #endregion
 }

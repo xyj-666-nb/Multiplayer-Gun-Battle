@@ -321,10 +321,10 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
         //     DrawAtPoint(worldPoint.Value, Color.white, Vector2.zero, 1f);
         // }
 
-        if (Input.GetKey(KeyCode.R))
-        {
-            ClearTexture();
-        }
+        //if (Input.GetKey(KeyCode.R))
+        //{
+        //    ClearTexture();
+        //}
 
         FluidDomainOffset = (this.transform.position - previousPosition);// 0.03333f;
         FluidDomainOffset = new Vector2(

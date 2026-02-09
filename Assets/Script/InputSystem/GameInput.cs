@@ -145,6 +145,33 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Reload"",
+                    ""type"": ""Button"",
+                    ""id"": ""fb7fef70-e2ba-4c80-8790-4e4d76080a88"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""PickUpGun"",
+                    ""type"": ""Button"",
+                    ""id"": ""0ec7dd72-b3c3-49a3-9e3e-2755268ae332"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DiscardGun"",
+                    ""type"": ""Button"",
+                    ""id"": ""c00775fa-64ff-4085-a577-823df5704429"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -213,6 +240,39 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""action"": ""RightMove"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d2e00923-1717-4b67-9c39-87650fe7d35c"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Reload"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1fd3028f-8795-4fec-a4c2-6ba3fdaaf0f8"",
+                    ""path"": ""<Keyboard>/h"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PickUpGun"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""68ccde6a-b860-4429-9c9c-79513a29cb48"",
+                    ""path"": ""<Keyboard>/t"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DiscardGun"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -227,6 +287,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         m_Player_DialogueSkip = m_Player.FindAction("DialogueSkip", throwIfNotFound: true);
         m_Player_LeftMove = m_Player.FindAction("LeftMove", throwIfNotFound: true);
         m_Player_RightMove = m_Player.FindAction("RightMove", throwIfNotFound: true);
+        m_Player_Reload = m_Player.FindAction("Reload", throwIfNotFound: true);
+        m_Player_PickUpGun = m_Player.FindAction("PickUpGun", throwIfNotFound: true);
+        m_Player_DiscardGun = m_Player.FindAction("DiscardGun", throwIfNotFound: true);
     }
 
     ~@GameInput()
@@ -313,6 +376,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_DialogueSkip;
     private readonly InputAction m_Player_LeftMove;
     private readonly InputAction m_Player_RightMove;
+    private readonly InputAction m_Player_Reload;
+    private readonly InputAction m_Player_PickUpGun;
+    private readonly InputAction m_Player_DiscardGun;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -348,6 +414,18 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/RightMove".
         /// </summary>
         public InputAction @RightMove => m_Wrapper.m_Player_RightMove;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Reload".
+        /// </summary>
+        public InputAction @Reload => m_Wrapper.m_Player_Reload;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/PickUpGun".
+        /// </summary>
+        public InputAction @PickUpGun => m_Wrapper.m_Player_PickUpGun;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/DiscardGun".
+        /// </summary>
+        public InputAction @DiscardGun => m_Wrapper.m_Player_DiscardGun;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -392,6 +470,15 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @RightMove.started += instance.OnRightMove;
             @RightMove.performed += instance.OnRightMove;
             @RightMove.canceled += instance.OnRightMove;
+            @Reload.started += instance.OnReload;
+            @Reload.performed += instance.OnReload;
+            @Reload.canceled += instance.OnReload;
+            @PickUpGun.started += instance.OnPickUpGun;
+            @PickUpGun.performed += instance.OnPickUpGun;
+            @PickUpGun.canceled += instance.OnPickUpGun;
+            @DiscardGun.started += instance.OnDiscardGun;
+            @DiscardGun.performed += instance.OnDiscardGun;
+            @DiscardGun.canceled += instance.OnDiscardGun;
         }
 
         /// <summary>
@@ -421,6 +508,15 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @RightMove.started -= instance.OnRightMove;
             @RightMove.performed -= instance.OnRightMove;
             @RightMove.canceled -= instance.OnRightMove;
+            @Reload.started -= instance.OnReload;
+            @Reload.performed -= instance.OnReload;
+            @Reload.canceled -= instance.OnReload;
+            @PickUpGun.started -= instance.OnPickUpGun;
+            @PickUpGun.performed -= instance.OnPickUpGun;
+            @PickUpGun.canceled -= instance.OnPickUpGun;
+            @DiscardGun.started -= instance.OnDiscardGun;
+            @DiscardGun.performed -= instance.OnDiscardGun;
+            @DiscardGun.canceled -= instance.OnDiscardGun;
         }
 
         /// <summary>
@@ -503,5 +599,26 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnRightMove(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Reload" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnReload(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "PickUpGun" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPickUpGun(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "DiscardGun" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDiscardGun(InputAction.CallbackContext context);
     }
 }

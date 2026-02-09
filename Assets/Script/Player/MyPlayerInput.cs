@@ -1,26 +1,46 @@
+using Mirror;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static InputInfoManager;
 
-public class MyPlayerInput : MonoBehaviour
+public class MyPlayerInput : NetworkBehaviour
 {
-    //玩家控制器
     private Player Myplayer;
     private playerStats MyStats;
 
     private void Awake()
     {
         MyStats = GetComponent<playerStats>();
-        //开始注册玩家行为
-        InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.Jump, Jump_Start, null, Jump_End, Jump_Continue);
-        InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.RightMove, move_Start, null, move_End, Move_Right_Continue); // 修正方法名
-        InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.LeftMove, move_Start, null, move_End, Move_Left_Continue);
-        InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.Attack, null, null, null, Shoot_Continue);
+    }
+
+    // 新的初始化方法，由Player调用
+    public void Initialize(Player player, playerStats stats)
+    {
+        this.Myplayer = player;
+        this.MyStats = stats;
+        TriggerBinding();
     }
 
     public void TriggerBinding()
     {
-        Myplayer = Player.instance;
+        if (Myplayer == null)
+        {
+            Debug.LogError("MyPlayerInput.TriggerBinding：本地玩家实例为null，无法绑定输入！");
+            return;
+        }
+
+        if (Myplayer.isLocalPlayer)
+        {
+            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.Jump, Jump_Start, null, Jump_End, Jump_Continue);
+            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.RightMove, null, null, null, Move_Right_Continue);
+            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.LeftMove, null, null, null, Move_Left_Continue);
+            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.Attack, Shoot_Start, null, null, Shoot_Continue);
+            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.Reload, Reload_start, null, null);
+            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.PickUpGun, PickUpGnn_Start, null, null);
+            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.DiscardGun, DiscardGun_Start, null, null);
+            Debug.Log("MyPlayerInput：本地玩家输入事件绑定成功！");
+        }
     }
 
     #region 跳跃逻辑
@@ -28,35 +48,37 @@ public class MyPlayerInput : MonoBehaviour
     private bool IsJumpCheck = false;
     public void Jump_Start(InputAction.CallbackContext Content)
     {
-        if (!Myplayer.isLocalPlayer || !IsCanJump)
+        if (!isLocalPlayer || !IsCanJump)
             return;
 
-        Debug.Log("请求服务器跳跃");
+        Myplayer.MyRigdboby.AddForce(new Vector2(0, MyStats.JumpPower), ForceMode2D.Impulse);
 
-        Myplayer.CmdAddJumpForce(MyStats.JumpPower);//客户端请求服务器加力
         IsCanJump = false;
         CountDownManager.Instance.CreateTimer(false, 100, () => { IsJumpCheck = true; });
     }
 
     public void Jump_Continue(CustomInputContext Content)
     {
-        if (!Myplayer.isLocalPlayer)
+        if (!isLocalPlayer)
             return;
-
-        // 重力缩放修改也需请求服务器（可选：简单场景可客户端临时改，服务器同步）
-        if (Myplayer.MyRigdboby.velocity.y > 0)
+        if (Myplayer.MyRigdboby != null && Myplayer.MyRigdboby.velocity.y > 0)
             Myplayer.MyRigdboby.gravityScale = 0.75f;
     }
 
     public void Jump_End(InputAction.CallbackContext Content)
     {
-        if (!Myplayer.isLocalPlayer)
+        if (!isLocalPlayer)
             return;
-        Myplayer.MyRigdboby.gravityScale = 1f;
+
+        if (Myplayer.MyRigdboby != null)
+            Myplayer.MyRigdboby.gravityScale = 1f;
     }
 
     public void IsCanJumpCheck()
     {
+        if (!isLocalPlayer)
+            return;
+
         if (Myplayer.IsGroundDetected())
         {
             IsCanJump = true;
@@ -66,55 +88,106 @@ public class MyPlayerInput : MonoBehaviour
     #endregion
 
     #region 移动相关
-    public void move_Start(InputAction.CallbackContext Content)
-    {
-        if (!Myplayer.isLocalPlayer)
-            return;
-
-        Debug.Log("开始移动");
-    }
-
-    public void move_End(InputAction.CallbackContext Content)
-    {
-        if (!Myplayer.isLocalPlayer)
-            return;
-
-        Debug.Log("移动结束");
-    }
-
-    // 左移（修正方法名+逻辑）
+    // 左移
     public void Move_Left_Continue(CustomInputContext Content)
     {
-        if (!Myplayer.isLocalPlayer)
+        if (!isLocalPlayer)
             return;
 
+        if (Myplayer.MyRigdboby.velocity.x > 0)//快速减速
+        {
+            Myplayer.MyRigdboby.AddForce(new Vector2(-MyStats.movePower * 2, 0), ForceMode2D.Impulse);
+        }
+        else
+            Myplayer.MyRigdboby.AddForce(new Vector2(-MyStats.movePower, 0), ForceMode2D.Impulse);
 
-        // 请求服务器施加左移力
-        Myplayer.CmdAddMoveForce(MyStats.movePower, -1);
-        // 请求服务器转向
+        if (Math.Abs(Myplayer.MyRigdboby.velocity.x) > MyStats.MaxXSpeed)
+            Myplayer.MyRigdboby.velocity = new Vector2(-MyStats.MaxXSpeed, Myplayer.MyRigdboby.velocity.y);
+
         if (Myplayer.FacingDir != -1)
-            Myplayer.CmdFlip();
+            Myplayer.CmdRequestFlip();
     }
 
-    // 右移（修正力的方向+请求服务器）
+    // 右移
     public void Move_Right_Continue(CustomInputContext Content)
     {
-        if (!Myplayer.isLocalPlayer)
+        if (!isLocalPlayer)
             return;
 
-        // 请求服务器施加右移力
-        Myplayer.CmdAddMoveForce(MyStats.movePower, 1);
-        // 请求服务器转向
+        if (Myplayer.MyRigdboby.velocity.x < 0)//快速减速
+        {
+            Myplayer.MyRigdboby.AddForce(new Vector2(MyStats.movePower * 2, 0), ForceMode2D.Impulse);
+        }
+        else
+            Myplayer.MyRigdboby.AddForce(new Vector2(MyStats.movePower, 0), ForceMode2D.Impulse);
+
+        if (Math.Abs(Myplayer.MyRigdboby.velocity.x) > MyStats.MaxXSpeed)
+            Myplayer.MyRigdboby.velocity = new Vector2(MyStats.MaxXSpeed, Myplayer.MyRigdboby.velocity.y);
+
         if (Myplayer.FacingDir != 1)
-            Myplayer.CmdFlip();
+            Myplayer.CmdRequestFlip();
     }
     #endregion
 
     #region 射击相关
+    public void Shoot_Start(InputAction.CallbackContext Content)
+    {
+        if (!isLocalPlayer)
+            return;
+        Debug.Log("开始射击");
+    }
+
     public void Shoot_Continue(CustomInputContext Content)
     {
-        if (!Myplayer.isLocalPlayer)
+        if (!isLocalPlayer || Myplayer.currentGun == null)
             return;
+
+        //判断射击条件,如果是连发枪就自动检测并自动触发射击
+        if (Myplayer.currentGun.gunInfo.IsCanContinuousShoot && Myplayer.currentGun.IsCanShoot())
+        {
+            Myplayer.currentGun.TriggerSingleShoot();//触发射击
+        }
+    }
+    #endregion
+
+    #region 换弹相关
+    public void Reload_start(InputAction.CallbackContext Content)//开始换弹
+    {
+        if (!isLocalPlayer || Myplayer.currentGun == null)
+            return;
+
+        //判断当前换弹条件
+        if (Myplayer.currentGun.IsCanReload())
+            Myplayer.currentGun.TriggerReload();//调用换弹
+    }
+    #endregion
+
+    #region 拾取枪械控制逻辑
+    public void PickUpGnn_Start(InputAction.CallbackContext Content)
+    {
+        if (!isLocalPlayer)
+            return;
+
+        //判断条件
+        if (Myplayer.CurrentTouchGun != null)
+        {
+            Myplayer.PickUpSceneGun();
+        }
+    }
+    #endregion
+
+    #region 丢弃枪械控制逻辑
+    public void DiscardGun_Start(InputAction.CallbackContext Content)
+    {
+        if (!isLocalPlayer)
+            return;
+
+        Debug.Log("正在判断丢弃条件");
+        if (Myplayer.currentGun != null && !Myplayer.currentGun.IsInReload && !Myplayer.currentGun.IsInShoot)
+        {
+            //触发丢弃
+            Myplayer.DropCurrentGun();//丢弃当前的枪械
+        }
     }
     #endregion
 

@@ -23,7 +23,7 @@ public class playerStats : CharacterStats
 
     public void TriggerBinding()
     {
-        MyMonster = Player.instance;
+        MyMonster = Player.LocalPlayer;
     }
 
 

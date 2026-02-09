@@ -486,7 +486,8 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
     /// <param name="sequence">目标面板的动画序列</param>
     /// <param name="isShow">显示/隐藏</param>
     /// <param name="callBack">动画完成回调</param>
-    public void CommonFadeDefaultAnima(CanvasGroup canvasGroup, ref Sequence sequence, bool isShow, UnityAction callBack)
+    /// <param name="IsNeedSetActive">是否跳过SetActive操作（默认true：跳过，物体始终激活；false：执行激活/失活）</param>
+    public void CommonFadeDefaultAnima(CanvasGroup canvasGroup, ref Sequence sequence, bool isShow, UnityAction callBack, bool IsNeedSetActive = true)
     {
         // 空值校验
         if (canvasGroup == null)
@@ -502,8 +503,11 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
 
         if (isShow)
         {
-            // 通用淡入逻辑：激活面板 → 透明度0→1
-            canvasGroup.gameObject.SetActive(true);
+
+            if (!IsNeedSetActive)
+            {
+                canvasGroup.gameObject.SetActive(true);
+            }
             canvasGroup.alpha = 0;
 
             sequence.Append(
@@ -521,8 +525,8 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
         }
         else
         {
-            // 通用淡出逻辑：确保面板激活 → 透明度1→0→ 隐藏
-            if (!canvasGroup.gameObject.activeSelf)
+
+            if (!IsNeedSetActive && !canvasGroup.gameObject.activeSelf)
             {
                 canvasGroup.gameObject.SetActive(true);
             }
@@ -536,8 +540,8 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
             )
             .OnComplete(() =>
             {
-                canvasGroup.alpha = 0; // 兜底
-                if (canvasGroup.gameObject.activeSelf)
+                canvasGroup.alpha = 0; 
+                if (!IsNeedSetActive && canvasGroup.gameObject.activeSelf)
                 {
                     canvasGroup.gameObject.SetActive(false);
                 }

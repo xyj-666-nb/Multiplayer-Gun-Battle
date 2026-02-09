@@ -78,40 +78,40 @@ public class Monster : Base_Entity
     #region 生物翻转检测
     public void CheckFilp()
     {
-        if (IsWallDetected())//撞墙直接转向
-            Flip();
+        //if (IsWallDetected())//撞墙直接转向
+        //    Flip();
 
-        //首先是这里，对于玩家的检查的范围是有距离限度的
-        if(Mathf.Abs( Player.transform.position.x - AttackCheck_Far.position.x)> AttackDistance_Far * 1.5f||Player==null)//距离过远就进入常规的巡航
-        {
-            if (Time.time > lastFlipTime + FlipTime)
-            {
-                 Flip();
-                lastFlipTime = Time.time;
-            }
-        }
-        else//近距离再瞄准玩家
-        {
-            if (IsNeedImmed)
-            {
-                if ((Player.transform.position.x - AttackCheck_Far.position.x) > 0 && FacingDir != 1)
-                    Flip();
-                else if ((Player.transform.position.x - AttackCheck_Far.position.x) < 0 && FacingDir != -1)
-                    Flip();
-                return;
-            }
-            else
-            {
-                if (Time.time > lastFlipTime + FlipTime )
-                {
-                    if ((Player.transform.position.x - AttackCheck_Far.position.x) > 0 && FacingDir != 1)
-                        Flip();
-                    else if ((Player.transform.position.x - AttackCheck_Far.position.x) < 0 && FacingDir != -1)
-                        Flip();
-                    lastFlipTime = Time.time;
-                }
-            }     
-        }
+        ////首先是这里，对于玩家的检查的范围是有距离限度的
+        //if(Mathf.Abs( Player.transform.position.x - AttackCheck_Far.position.x)> AttackDistance_Far * 1.5f||Player==null)//距离过远就进入常规的巡航
+        //{
+        //    if (Time.time > lastFlipTime + FlipTime)
+        //    {
+        //         Flip();
+        //        lastFlipTime = Time.time;
+        //    }
+        //}
+        //else//近距离再瞄准玩家
+        //{
+        //    if (IsNeedImmed)
+        //    {
+        //        if ((Player.transform.position.x - AttackCheck_Far.position.x) > 0 && FacingDir != 1)
+        //            Flip();
+        //        else if ((Player.transform.position.x - AttackCheck_Far.position.x) < 0 && FacingDir != -1)
+        //            Flip();
+        //        return;
+        //    }
+        //    else
+        //    {
+        //        if (Time.time > lastFlipTime + FlipTime )
+        //        {
+        //            if ((Player.transform.position.x - AttackCheck_Far.position.x) > 0 && FacingDir != 1)
+        //                Flip();
+        //            else if ((Player.transform.position.x - AttackCheck_Far.position.x) < 0 && FacingDir != -1)
+        //                Flip();
+        //            lastFlipTime = Time.time;
+        //        }
+        //    }     
+        //}
 
        
 

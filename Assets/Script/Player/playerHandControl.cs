@@ -4,7 +4,7 @@ using UnityEngine;
 public class playerHandControl : NetworkBehaviour//玩家手部控制
 {
     [SyncVar(hook = nameof(OnRotationValueSynced))]
-    public float CurrentRotationValue_Z = 0f;//目标旋转角度
+    public float CurrentRotationValue_Z = 0f;//目标旋转角度,这个值就有本地申请服务器更改
     public float RotateSpeed = 100f;//手部旋转速度
 
     private void OnRotationValueSynced(float oldFloat, float newFloat)
@@ -19,10 +19,10 @@ public class playerHandControl : NetworkBehaviour//玩家手部控制
 
     void Update()
     {
+
         float currentEulerZ = transform.eulerAngles.z;
 
-
-        float targetEulerZ = CurrentRotationValue_Z;
+        float targetEulerZ = CurrentRotationValue_Z;//本地逻辑持续处理旋转的的方向
         float newEulerZ = Mathf.MoveTowardsAngle(
             currentEulerZ,       // 当前角度
             targetEulerZ,        // 目标角度

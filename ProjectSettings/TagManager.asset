@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - Ground
+  - Gun
+  - cartridgeCase
+  - BackGround
   layers:
   - Default
   - TransparentFX
@@ -13,10 +16,10 @@ TagManager:
   - Water
   - UI
   - Fluid Obstacle
-  - 
-  - 
-  - 
-  - 
+  - Gun
+  - Player
+  - cartridgeCase
+  - BackGround
   - 
   - 
   - 
@@ -41,4 +44,7 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Fluid
+    uniqueID: 1115925733
     locked: 0

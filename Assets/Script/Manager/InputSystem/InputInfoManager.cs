@@ -917,6 +917,10 @@ public class InputInfo
         KeyInfoDict.Add("Jump", "<Keyboard>/space");
         KeyInfoDict.Add("Interact", "<Keyboard>/f");
         KeyInfoDict.Add("DialogueSkip", "<Keyboard>/tab");
+        //枪械动作
+        KeyInfoDict.Add("Reload", "<Keyboard>/r");
+        KeyInfoDict.Add("PickUpGun", "<Keyboard>/h");
+        KeyInfoDict.Add("DiscardGun", "<Keyboard>/t");
 
         // 更新名字列表（用于ChangeKey替换占位符）
         foreach (string keyName in KeyInfoDict.Keys)
@@ -1058,6 +1062,8 @@ public enum E_InputAction
     Attack,  // 攻击
     Jump,    // 跳跃
     Interact,// 交互
-    DialogueSkip// 跳过对话
-
+    DialogueSkip,// 跳过对话
+    Reload,//换弹
+    PickUpGun,//捡起枪械
+    DiscardGun,//丢弃枪械
 }
