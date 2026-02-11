@@ -318,7 +318,20 @@ public class BaseGun : NetworkBehaviour
     private void RpcPlaySingleShootVFX() => PlaySingleShootVFX();
 
     [ClientRpc]
-    private void RpcSpawnHitEffect(Vector2 hitPos, Vector2 hitNormal) => Debug.Log("播放打击特效");
+    private void RpcSpawnHitEffect(Vector2 hitPos, Vector2 hitNormal)
+    {
+        if (hitwalleffect == null)
+        {
+            Debug.LogError("[打击特效] hitwalleffect 预制体未赋值！");
+            return;
+        }
+        GameObject hitEffectObj = Instantiate(
+            hitwalleffect,
+            hitPos,
+            Quaternion.LookRotation(Vector3.forward, hitNormal) 
+        );
+
+    }
 
     /// <summary>
     /// 同步所有客户端绘制子弹小线段
