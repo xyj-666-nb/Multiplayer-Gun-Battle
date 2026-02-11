@@ -365,7 +365,7 @@ GameObject:
   - component: {fileID: 776563983}
   - component: {fileID: 776563982}
   - component: {fileID: 776563981}
-  m_Layer: 3
+  m_Layer: 11
   m_Name: Square
   m_TagString: Ground
   m_Icon: {fileID: 0}
@@ -494,7 +494,7 @@ GameObject:
   m_Component:
   - component: {fileID: 784793875}
   - component: {fileID: 784793874}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Square
   m_TagString: BackGround
   m_Icon: {fileID: 0}
@@ -564,6 +564,59 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -6.67, y: -7.1759, z: 0}
   m_LocalScale: {x: 43.312916, y: 15.064282, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &956321645
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 956321647}
+  - component: {fileID: 956321646}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &956321646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 956321645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7439f4c32cad27141a7680c19ba88afe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bloodOnBackground: {fileID: 1170039278035515541, guid: f1379ee76bf134640a34519379343bd9, type: 3}
+  bloodOnWall: {fileID: 1170039278035515541, guid: 4ad4ed90fb2f17d498cbf62170e890e9, type: 3}
+  bloodParticle: {fileID: 1170039278035515541, guid: 2c266efabc1cfa143a1a2d8285f34f2e, type: 3}
+  bloodsOnBackground:
+  - {fileID: 21300000, guid: 51db7a80fa7d33d4298f326c9280bdb6, type: 3}
+  - {fileID: 21300000, guid: 90af7bc3e5adb3048b0a3b5cd5a034ff, type: 3}
+  bloodsOnWall:
+  - {fileID: 21300000, guid: c6caa4d237d1ce146923b9abaf3a65e6, type: 3}
+  - {fileID: 21300000, guid: 2a86eb16124e0e344abf61fa01cbd06a, type: 3}
+--- !u!4 &956321647
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 956321645}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1289,3 +1342,4 @@ SceneRoots:
   - {fileID: 776563983}
   - {fileID: 784793875}
   - {fileID: 4999022022365739917}
+  - {fileID: 956321647}

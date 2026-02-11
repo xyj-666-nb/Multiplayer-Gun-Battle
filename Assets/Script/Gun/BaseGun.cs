@@ -35,6 +35,7 @@ public class BaseGun : NetworkBehaviour
     public GunInfo gunInfo; // 枪械属性配置
 
     [Header("射击特效")]
+
     public Transform firePoint;        // 射击点
     public GameObject cartridgeCasePrefab;  // 弹壳预制体
     public Transform cartridgeEjectPoint;   // 抛壳点
