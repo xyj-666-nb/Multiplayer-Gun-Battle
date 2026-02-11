@@ -25,7 +25,6 @@ MonoBehaviour:
   BulletSpeed: 0
   Recoil: 1.7
   Recoil_Enemy: 0
-  IsCanContinuousShoot: 1
   GunBodySprite: {fileID: 0}
   ShootAudio: {fileID: 8300000, guid: 6930ef35da1319842b0e4dc7c57e67c1, type: 3}
   BulletFill: {fileID: 0}
@@ -36,7 +35,7 @@ MonoBehaviour:
   shotgunBatchInterval: 0.05
   shotgunScatterAngle: 15
   smokeColor: {r: 1, g: 1, b: 1, a: 1}
-  smokeSizeMin: 0.0017
-  smokeSizeMax: 0.001
+  smokeSizeMin: 0.0007
+  smokeSizeMax: 0.005
   smokeDuration: 0.03
   smokeDecaySpeed: 200

@@ -2,6 +2,7 @@ using DG.Tweening;
 using Mirror;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class GunWorldInfoShow : NetworkBehaviour
@@ -80,6 +81,19 @@ public class GunWorldInfoShow : NetworkBehaviour
 
     private void Update()
     {
+
+        //持续保证显示让玩家查看
+        if(isUiShowing)
+        {
+            //持续保证当前的x缩放正负等于父对象的
+            if (math.sign(CurrentGun.transform.localScale.x) != math.sign(transform.localScale.x))
+            {
+                var UIScale = transform.localScale;
+                UIScale.x *= -1;
+                transform.localScale = UIScale;
+            }
+
+        }
         // 功能关闭时，直接返回，不执行任何逻辑
         if (!_isGunActive)
             return;
@@ -148,6 +162,9 @@ public class GunWorldInfoShow : NetworkBehaviour
     /// <summary>
     /// 拾取权玩家变更钩子（仅同步拾取权状态，不影响UI显示）
     /// </summary>
+    /// <summary>
+    /// 拾取权玩家变更钩子（仅同步拾取权状态，不影响UI显示）
+    /// </summary>
     private void OnCurrentPlayerChanged(Player OldValue, Player NewValue)
     {
         // 功能关闭时，不执行任何拾取权逻辑
@@ -159,6 +176,24 @@ public class GunWorldInfoShow : NetworkBehaviour
             OldValue.CurrentTouchGun = null;
             if (isDebug)
                 Debug.Log($"[SyncVar] {gameObject.name} 拾取权从 {OldValue.name} 移除");
+        }
+
+        if (isClient)
+        {
+            // 如果新的拾取权玩家是本地玩家，就把当前枪械赋值给本地玩家的 CurrentTouchGun
+            if (NewValue != null && NewValue.isLocalPlayer)
+            {
+                NewValue.CurrentTouchGun = CurrentGun;
+                if (isDebug)
+                    Debug.Log($"[客户端] 本地玩家 {NewValue.name} 的 CurrentTouchGun 已设置为 {CurrentGun.name}");
+            }
+            // 如果旧的拾取权玩家是本地玩家，就清空本地玩家的 CurrentTouchGun
+            else if (OldValue != null && OldValue.isLocalPlayer)
+            {
+                OldValue.CurrentTouchGun = null;
+                if (isDebug)
+                    Debug.Log($"[客户端] 本地玩家 {OldValue.name} 的 CurrentTouchGun 已清空");
+            }
         }
 
         // 标记是否有玩家拥有拾取权

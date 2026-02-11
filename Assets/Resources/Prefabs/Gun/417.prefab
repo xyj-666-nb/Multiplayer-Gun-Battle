@@ -434,7 +434,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 100
   m_TargetDisplay: 0
 --- !u!114 &3157957628710125442
 MonoBehaviour:
@@ -844,7 +844,9 @@ MonoBehaviour:
   bulletSegmentLength: 0.2
   bulletLineWidth: 0.03
   bulletFlySpeed: 80
-  bulletShowDuration: 0.5
+  bulletShowDuration: 0.1
+  bulletSegmentPrefab: {fileID: 0}
+  applyAutoEjectCartridge: 1
   originalWorldScale: {x: 0, y: 0, z: 0}
   ownerPlayer: {fileID: 0}
   isInPlayerHand: 0

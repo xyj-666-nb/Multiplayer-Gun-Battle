@@ -316,7 +316,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &7581573521739317301
 Transform:
   m_ObjectHideFlags: 0
@@ -814,8 +814,9 @@ MonoBehaviour:
   bulletSegmentLength: 0.2
   bulletLineWidth: 0.03
   bulletFlySpeed: 80
-  bulletShowDuration: 0.5
+  bulletShowDuration: 0.15
   bulletSegmentPrefab: {fileID: 0}
+  applyAutoEjectCartridge: 1
   originalWorldScale: {x: 0, y: 0, z: 0}
   ownerPlayer: {fileID: 0}
   isInPlayerHand: 0

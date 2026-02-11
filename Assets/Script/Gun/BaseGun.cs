@@ -557,7 +557,7 @@ public class BaseGun : NetworkBehaviour
     }
 
     /// <summary>
-    /// 获取子弹线段模板（统一对外提供模板引用）
+    /// 获取子弹线段模板
     /// </summary>
     private GameObject GetBulletSegmentTemplate()
     {
@@ -664,7 +664,7 @@ public class BulletSegmentFly : MonoBehaviour
     }
 
     /// <summary>
-    /// 回收时重置所有状态（对象池复用关键）
+    /// 回收时重置所有状态
     /// </summary>
     private void OnDisable()
     {

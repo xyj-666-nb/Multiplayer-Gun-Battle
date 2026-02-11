@@ -54,7 +54,7 @@ public class Player : Base_Entity
         UImanager.Instance.ShowPanel<PlayerPanel>();//显示UI
         Debug.Log("显示玩家UI");
         //开始摄像机跟随
-        MyCameraControl.Instance.SetCameraMode_FollowPlayerMode(this.gameObject,true);
+        MyCameraControl.Instance.SetCameraMode_FollowPlayerMode(this.gameObject, true);
 
         if (myInputSystem != null)
         {
@@ -84,10 +84,7 @@ public class Player : Base_Entity
     #region 动画更新
     private void Update()
     {
-        if (isLocalPlayer)
-        {
-            PlayerMoveStretchAnima();
-        }
+        PlayerMoveStretchAnima();
     }
     #endregion
 
@@ -141,6 +138,11 @@ public class Player : Base_Entity
 
         if (newGun != null)
         {
+            // 客户端：强制枪械X缩放为负
+            Vector3 gunScale = newGun.transform.localScale;
+            gunScale.x = -Mathf.Abs(gunScale.x); // 核心：强制X轴为负
+            newGun.transform.localScale = gunScale;
+
             newGun.transform.SetParent(playerHandPos); // 仅挂载
             newGun.transform.localPosition = Vector3.zero;
             newGun.transform.localRotation = Quaternion.identity;
@@ -150,7 +152,7 @@ public class Player : Base_Entity
 
     public void PickUpSceneGun()
     {
-        if (!isLocalPlayer) 
+        if (!isLocalPlayer)
             return;
         if (CurrentTouchGun == null)
             return;
@@ -159,14 +161,12 @@ public class Player : Base_Entity
         CurrentTouchGun.transform.localPosition = Vector3.zero;
         CurrentTouchGun.transform.localRotation = Quaternion.identity;
 
-
         NetworkIdentity gunNetId = CurrentTouchGun.GetComponent<NetworkIdentity>();
-        if (gunNetId == null) 
+        if (gunNetId == null)
             return;
 
         LocalPlayer.CmdPickUpSceneGun(gunNetId.netId);
         CurrentTouchGun = null;
-        
     }
 
     [Command]
@@ -174,7 +174,11 @@ public class Player : Base_Entity
     {
         if (!isServer)
             return;
-        if (!NetworkServer.spawned.TryGetValue(gunNetId, out NetworkIdentity gunNetIdentity)) return;
+        if (!NetworkServer.spawned.TryGetValue(gunNetId, out NetworkIdentity gunNetIdentity))
+            return;
+        //把当前的权限转移给这个玩家
+        gunNetIdentity.RemoveClientAuthority();
+        gunNetIdentity.AssignClientAuthority(connectionToClient);
 
         GameObject gunObj = gunNetIdentity.gameObject;
         BaseGun targetGun = gunObj.GetComponent<BaseGun>();
@@ -196,7 +200,7 @@ public class Player : Base_Entity
     {
         if (!isLocalPlayer)
             return;
-        if (GunManager.Instance == null) 
+        if (GunManager.Instance == null)
             return;
 
         LocalPlayer.CmdSpawnAndPickGun(gunName);
@@ -222,7 +226,8 @@ public class Player : Base_Entity
 
     private void ServerHandlePickUpGun(GameObject gunObj)
     {
-        if (!isServer || gunObj == null || playerHandPos == null) return;
+        if (!isServer || gunObj == null || playerHandPos == null)
+            return;
 
         BaseGun newGun = gunObj.GetComponent<BaseGun>();
         if (newGun == null)
@@ -236,6 +241,12 @@ public class Player : Base_Entity
             ServerHandleDropGun(currentGun.gameObject);
         }
 
+        // 服务器：强制枪械X缩放为负
+        Vector3 gunScale = gunObj.transform.localScale;
+        gunScale.x = -Mathf.Abs(gunScale.x); // 核心：强制X轴为负
+        gunObj.transform.localScale = gunScale;
+
+        // 再处理父对象、位置、旋转
         gunObj.transform.SetParent(playerHandPos);
         gunObj.transform.localPosition = Vector3.zero;
         gunObj.transform.localRotation = Quaternion.identity;
@@ -244,7 +255,6 @@ public class Player : Base_Entity
         currentGun = newGun;
         newGun.ownerPlayer = this;
 
-       
         newGun.SafeServerOnGunPicked();
         //UI更新
         if (UImanager.Instance.GetPanel<PlayerPanel>() != null)
@@ -291,9 +301,9 @@ public class Player : Base_Entity
             gun.isInPlayerHand = false;
         }
 
-
         RpcResetGunTransform(gunNetId?.netId ?? 0, gunObj.transform.position, gunObj.transform.eulerAngles.z);
         gunObj.GetComponent<BaseGun>().SafeServerOnGunDropped();
+        gunNetId.RemoveClientAuthority();//移除权限
     }
 
     [ClientRpc]
@@ -316,6 +326,7 @@ public class Player : Base_Entity
             Invoke(nameof(ServerDestroy), time);
         }
     }
+
 
     private void ServerDestroy()
     {
