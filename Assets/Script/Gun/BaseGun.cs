@@ -55,6 +55,8 @@ public class BaseGun : NetworkBehaviour
     [Header("是否应用自动抛壳")]
     public bool applyAutoEjectCartridge = true;
 
+    public GameObject hitwalleffect;
+
     private GameObject _autoBulletSegmentTemplate;
     // 缓存模板名称
     private readonly string _bulletSegmentTemplateName = "Auto_BulletSegmentTemplate";
