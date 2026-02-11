@@ -35,7 +35,7 @@ public class BaseGun : NetworkBehaviour
     public GunInfo gunInfo; // 枪械属性配置
 
     [Header("射击特效")]
-    public Transform firePoint;        // 射击点（仅传递给全局管理器）
+    public Transform firePoint;        // 射击点
     public GameObject cartridgeCasePrefab;  // 弹壳预制体
     public Transform cartridgeEjectPoint;   // 抛壳点
     public float recoilForceScale = 1f;     // 后坐力缩放
@@ -193,7 +193,11 @@ public class BaseGun : NetworkBehaviour
     [Command(requiresAuthority = true)]
     public void CmdExecuteShootLogic()
     {
-        if (!isServer) { Debug.LogError($"[服务器] CmdExecuteShootLogic非服务器环境！"); return; }
+        if (!isServer)
+        {
+            Debug.LogError($"[服务器] CmdExecuteShootLogic非服务器环境！");
+            return;
+        }
 
         // 扣子弹
         _currentMagazineBulletCount = Mathf.Max(0, _currentMagazineBulletCount - 1);
@@ -206,7 +210,6 @@ public class BaseGun : NetworkBehaviour
 
             HashSet<string> ignoreTags = new HashSet<string>
             {
-                "Player",
                 "Gun",
                 "cartridgeCase"
             };
@@ -214,9 +217,39 @@ public class BaseGun : NetworkBehaviour
             // 执行基础射线检测
             RaycastHit2D hit = Physics2D.Raycast(firePoint.position, shootDir, gunInfo.Range);
 
+            // 忽略枪/弹壳标签的对象
             if (hit.collider != null && ignoreTags.Contains(hit.collider.tag))
             {
                 hit = new RaycastHit2D();
+            }
+
+            if (hit.collider != null)
+            {
+                // 优先判断击中玩家
+                if (hit.collider.CompareTag("Player"))
+                {
+                    CharacterStats hitTarget = hit.collider.GetComponent<playerStats>();
+                    if (hitTarget != null && !hitTarget.IsDead)
+                    {
+                        CharacterStats attackerStats = ownerPlayer.myStats;
+                        if (attackerStats == null)
+                        {
+                            Debug.LogError($"[BaseGun] 攻击者{ownerPlayer.name} 无myStats组件！");
+                            return;
+                        }
+
+                        hitTarget.ServerApplyDamage(gunInfo.Damage, hit.point, hit.normal, attackerStats);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[服务器-射击] 击中Tag为Player的对象，但无CharacterStats组件或已死亡：{hit.collider.gameObject.name}");
+                    }
+                }
+                // 击中Ground标签的墙壁/地面，播放特效
+                else if (hit.collider.CompareTag("Ground"))
+                {
+                    RpcSpawnHitEffect(hit.point, hit.normal);
+                }
             }
 
             // 计算子弹目标位置
@@ -225,16 +258,15 @@ public class BaseGun : NetworkBehaviour
             // 同步客户端绘制子弹小线段
             if (isDebug)
                 RpcDrawBulletSegment(firePoint.position, bulletTargetPos, shootDir);
-
-            // 仅在命中有效对象时触发打击特效
-            if (hit)
-                RpcSpawnHitEffect(hit.point, hit.normal);
+        }
+        else
+        {
+            Debug.LogError($"[BaseGun] 射击失败：firePoint={firePoint != null} | gunInfo={gunInfo != null} | ownerPlayer={ownerPlayer != null}");
         }
 
         // 同步客户端播放射击视觉特效
         RpcPlaySingleShootVFX();
     }
-
     [Command(requiresAuthority = true)]
     public void CmdFinishShoot()
     {
@@ -289,7 +321,7 @@ public class BaseGun : NetworkBehaviour
     private void RpcSpawnHitEffect(Vector2 hitPos, Vector2 hitNormal) => Debug.Log("播放打击特效");
 
     /// <summary>
-    /// 同步所有客户端绘制子弹小线段（无预制体自动创建模板）
+    /// 同步所有客户端绘制子弹小线段
     /// </summary>
     [ClientRpc]
     private void RpcDrawBulletSegment(Vector2 startPos, Vector2 targetPos, Vector2 shootDir)
@@ -487,7 +519,7 @@ public class BaseGun : NetworkBehaviour
         _gunWorldInfoShow = GetComponentInChildren<GunWorldInfoShow>() ?? GetComponent<GunWorldInfoShow>();
         GunInfoManager = _gunWorldInfoShow;
 
-        // 初始化子弹线段模板（无手动预制体则自动创建）
+        // 初始化子弹线段模板
         InitBulletSegmentTemplate();
 
         // 移除本地烟雾控制器依赖，改为调用全局管理器

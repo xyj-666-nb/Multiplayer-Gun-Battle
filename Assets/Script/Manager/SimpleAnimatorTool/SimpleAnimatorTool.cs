@@ -23,26 +23,29 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
     #region 1. Float插值滑动功能
     // 存储所有插值任务
     private List<FloatLerpTask> _lerpTasks = new List<FloatLerpTask>();
+    // Float插值任务唯一ID自增器（参考滚动文本的索引设计）
+    private int _nextFloatLerpTaskId = 1;
 
-    #region Float插值任务结构体
+    #region Float插值任务结构体（新增id字段）
     /// <summary>
     /// 单个float插值任务的状态
     /// </summary>
     private struct FloatLerpTask
     {
-        public float startValue;       // 起始值
-        public float targetValue;      // 目标值
-        public float totalDuration;    // 总时长
-        public float elapsedTime;      // 已流逝时间
-        public EaseType easeType;      // 缓动类型
-        public Action<float> onUpdate; // 插值更新回调
-        public Action onComplete;      // 插值完成回调
+        public int id;                   // 新增：任务唯一ID
+        public float startValue;         // 起始值
+        public float targetValue;        // 目标值
+        public float totalDuration;      // 总时长
+        public float elapsedTime;        // 已流逝时间
+        public EaseType easeType;        // 缓动类型
+        public Action<float> onUpdate;   // 插值更新回调
+        public Action onComplete;        // 插值完成回调
     }
     #endregion
 
-    #region 外部接口：启动Float插值
+    #region 外部接口：启动Float插值（返回唯一ID）
     /// <summary>
-    /// 启动float插值,这里可以在Update里面获取剩余时间
+    /// 启动float插值,返回任务唯一ID（用于停止指定任务）
     /// </summary>
     /// <param name="startValue">起始值</param>
     /// <param name="targetValue">目标值</param>
@@ -50,24 +53,32 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
     /// <param name="onUpdate">插值更新回调</param>
     /// <param name="onComplete">插值完成回调）</param>
     /// <param name="easeType">缓动类型</param>
-    public void StartFloatLerp(float startValue, float targetValue, float totalDuration, Action<float> onUpdate, Action onComplete = null, EaseType easeType = EaseType.Linear)
+    /// <returns>任务唯一ID（停止时使用）</returns>
+    public int StartFloatLerp(float startValue, float targetValue, float totalDuration, Action<float> onUpdate, Action onComplete = null, EaseType easeType = EaseType.Linear)
     {
         if (onUpdate == null)
         {
             Debug.LogError("插值更新回调 onUpdate 不能为空！");
-            return;
+            return -1; // 返回无效ID
         }
         if (totalDuration <= 0)
         {
             // 时长为0，直接返回目标值并触发完成
             onUpdate.Invoke(targetValue);
             onComplete?.Invoke();
-            return;
+            return -1; // 返回无效ID
         }
+
+        // 生成唯一任务ID
+        int taskId = _nextFloatLerpTaskId++;
+        // 防止ID溢出（可选）
+        if (_nextFloatLerpTaskId > int.MaxValue - 1000)
+            _nextFloatLerpTaskId = 1;
 
         // 创建插值任务，加入任务列表
         FloatLerpTask newTask = new FloatLerpTask
         {
+            id = taskId,                  // 赋值唯一ID
             startValue = startValue,
             targetValue = targetValue,
             totalDuration = totalDuration,
@@ -77,6 +88,43 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
             onComplete = onComplete
         };
         _lerpTasks.Add(newTask);
+
+        return taskId; // 返回唯一ID
+    }
+    #endregion
+
+    #region 外部接口：停止指定ID的Float插值任务
+    /// <summary>
+    /// 根据唯一ID停止指定的Float插值任务
+    /// </summary>
+    /// <param name="taskId">启动插值时返回的唯一ID</param>
+    /// <param name="invokeComplete">是否触发onComplete回调（默认false）</param>
+    public void StopFloatLerpById(int taskId, bool invokeComplete = false)
+    {
+        if (taskId <= 0) // 无效ID直接返回
+        {
+            Debug.LogWarning($"停止Float插值失败：无效的任务ID {taskId}");
+            return;
+        }
+
+        // 倒序查找并移除指定ID的任务
+        for (int i = _lerpTasks.Count - 1; i >= 0; i--)
+        {
+            FloatLerpTask task = _lerpTasks[i];
+            if (task.id == taskId)
+            {
+                // 可选：触发完成回调
+                if (invokeComplete)
+                    task.onComplete?.Invoke();
+                // 移除任务
+                _lerpTasks.RemoveAt(i);
+                Debug.Log($"成功停止Float插值任务，ID：{taskId}");
+                return;
+            }
+        }
+
+        // 未找到任务
+        Debug.LogWarning($"未找到ID为 {taskId} 的Float插值任务，可能已完成或不存在");
     }
     #endregion
 
@@ -144,6 +192,7 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
     public void StopAllFloatLerp()
     {
         _lerpTasks.Clear();
+        Debug.Log("已停止所有Float插值任务");
     }
     #endregion
 

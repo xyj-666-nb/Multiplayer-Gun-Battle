@@ -41,6 +41,9 @@ public class GunInfo : ScriptableObject
     [Header("枪械对屏幕的震动")]
     public float ShackStrength;
     public float ShackTime;
+    [Header("枪械对敌人的屏幕震动")]
+    public float ShackStrength_Enemy;
+    public float ShackTime_Enemy;
 
     [Header("散弹枪的专属信息")]
     public int ShotgunBulletAmount;//散弹的弹丸量

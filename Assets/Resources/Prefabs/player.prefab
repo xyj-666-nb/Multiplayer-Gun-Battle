@@ -268,11 +268,10 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  maxHealth: 0
-  Currenthealth: 0
+  maxHealth: 1000
+  CurrentHealth: 0
   IsDead: 0
-  MyentityFX: {fileID: 0}
-  MyboxCollider: {fileID: 0}
+  MyMonster: {fileID: 7290517828809082464}
   MaxYSpeed: 4
   MaxXSpeed: 4
   MaxYStretch: 0.3

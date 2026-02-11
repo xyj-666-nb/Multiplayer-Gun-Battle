@@ -2,90 +2,164 @@ using Mirror;
 using UnityEngine;
 using UnityEngine.Events;
 
-public abstract class  CharacterStats : NetworkBehaviour
+public abstract class CharacterStats : NetworkBehaviour
 {
     [Header("角色基础属性")]
     [Space(5)]
-    public float maxHealth;//最大生命值
+    public float maxHealth = 100f;//最大生命值
 
     [Header("当前玩家的状态")]
     [Space(5)]
-    public float Currenthealth;
-
-    private Rigidbody2D _rb2D;
+    [SyncVar(hook = nameof(OnCurrentHealthChanged))]
+    public float CurrentHealth;
 
     [Header("是否死亡")]
-    [HideInInspector] public bool IsDead = false;
+    [HideInInspector]
+    [SyncVar(hook = nameof(OnIsDeadChanged))]
+    public bool IsDead = false;
 
     [Header("受伤事件")]
-    public UnityAction EntityWoundEvent;//在外部进行关联对应的受伤事件
+    public UnityAction EntityWoundEvent;//外部关联受伤事件
     [Header("死亡事件")]
-    public UnityAction EntityDeathEvent;//在外部进行关联对应的受伤事件
+    public UnityAction EntityDeathEvent;//外部关联死亡事件
+
+    #region 组件与配置
+    private Rigidbody2D _rb2D;
+    private bool _hasTriggeredDeath = false;
+    #endregion
+
+    #region 生命周期
     public virtual void Awake()
     {
-        Currenthealth = maxHealth;
-        MyentityFX = gameObject.GetComponent<EntityFX>();
-        MyboxCollider = gameObject.GetComponent<BoxCollider2D>();
+        _rb2D = GetComponent<Rigidbody2D>();
+        if (_rb2D == null)
+            Debug.LogError($"[{gameObject.name}] CharacterStats 缺少 Rigidbody2D 组件！", this);
 
-        _rb2D = gameObject.GetComponent<Rigidbody2D>();
-    }
-
-
-    /// <summary>
-    /// 受到伤害
-    /// </summary>
-    /// <param name="FinalDamage">传入基础伤害</param>
-    /// <param name="Attacker">攻击者</param>
-    /// <param name="defender">防御者</param>
-    /// <param name="IsCritical">是否暴击，默认为false，有的游戏没有就忽略</param>
-    public virtual void Wound(float FinalDamage, bool IsCritical=false, CharacterStats Attacker = null, CharacterStats defender = null)
-    {
-        Currenthealth -= FinalDamage;//减去伤害
-        if (Currenthealth <= 0)
+        if (isLocalPlayer)
         {
-            Death();
+            CurrentHealth = maxHealth;
         }
-        HandleSpecialBothsides(Attacker, defender);
-        //专属效果
-        SpecialWoundEffect();
-
-        EntityWoundEvent?.Invoke();//进行特殊触发
     }
 
-    #region 特殊受伤效果
-    /// <summary>
-    /// 专属受伤效果，击退，爆金币等等
-    /// </summary>
-    public abstract void SpecialWoundEffect();//如果没有就可以空放着
-
-    public abstract void HandleSpecialBothsides(CharacterStats Attacker, CharacterStats defender);//对双方的特殊处理,没有就空着
-
-
-    public virtual void Death()
+    public override void OnStartServer()
     {
-        IsDead = true;
-        EntityDeathEvent?.Invoke();
+        base.OnStartServer();
+        CurrentHealth = maxHealth;
+        IsDead = false;
+        _hasTriggeredDeath = false;
     }
     #endregion
 
-    #region 受伤闪光效果
+    #region 网络同步钩子
+    private void OnCurrentHealthChanged(float oldValue, float newValue)
+    {
+        newValue = Mathf.Clamp(newValue, 0, maxHealth);
+        CurrentHealth = newValue;
 
-    [Header("受伤闪光设置")]
-    protected float WoundFlashDuration = 0.3f;
-    protected float WoundFlashSpeed = 0.03f;
-    [HideInInspector] public EntityFX MyentityFX;
-    [HideInInspector] public BoxCollider2D MyboxCollider;
+        if(isLocalPlayer)
+          HealthUI.Instance?.SetValue(newValue / Mathf.Max(maxHealth, 1f));
+        if (oldValue >= newValue)
+            EntityWoundEvent?.Invoke();
+    }
 
+    private void OnIsDeadChanged(bool oldValue, bool newValue)
+    {
+        if (newValue && !oldValue && !_hasTriggeredDeath)
+        {
+            ClientHandleDeathVisual();
+            EntityDeathEvent?.Invoke();
+        }
+    }
+    #endregion
+
+    #region 核心血量操作
+    /// <summary>
+    /// [Command] 客户端请求服务器修改自身血量
+    /// </summary>
+    [Command] 
+    public void CmdChangeHealth(float value, Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
+    {
+        if (IsDead) return;
+
+        float newHealth = CurrentHealth + value;
+        newHealth = Mathf.Clamp(newHealth, 0, maxHealth);
+
+        if (value < 0)
+        {
+            Wound(Mathf.Abs(value), ColliderPoint, hitNormal, attacker);
+        }
+        else
+        {
+            CurrentHealth = newHealth;
+        }
+    }
 
     /// <summary>
-    /// 设置受伤闪烁效果
+    /// 服务器直接扣血
     /// </summary>
-    /// <param name="_Duration"></param>
-    /// <param name="_Speed"></param>
-    public void Set_WoundFlash(float _Duration, float _Speed)
+    [Server]
+    public void ServerApplyDamage(float damage, Vector2 hitPoint, Vector2 hitNormal, CharacterStats attacker)
     {
-        WoundFlashDuration = _Duration;
-        WoundFlashSpeed = _Speed;
+        if (IsDead)
+        {
+            return;
+        }
+
+        float healthBefore = CurrentHealth;
+        CurrentHealth = Mathf.Max(CurrentHealth - damage, 0);
+        Debug.Log($"[ServerApplyDamage] {gameObject.name} 扣血：{healthBefore} → {CurrentHealth}（伤害：{damage}）");
+
+        Wound(damage, hitPoint, hitNormal, attacker);
+    }
+
+    [Server]
+    public virtual void Wound(float finalDamage, Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
+    {
+        if (IsDead)
+        {
+            return;
+        }
+
+        float healthBefore = CurrentHealth;
+        CurrentHealth = Mathf.Max(CurrentHealth - finalDamage, 0);
+
+        RpcPlayWoundEffect(ColliderPoint, hitNormal, attacker);
+
+        if (CurrentHealth <= 0 && !_hasTriggeredDeath)
+        {
+            Debug.Log($"[Wound] {gameObject.name} 血量扣至0，触发死亡！");
+            Death(attacker);
+        }
+    }
+
+    [Server]
+    public virtual void Death(CharacterStats killer)
+    {
+        if (IsDead || _hasTriggeredDeath)
+            return;
+
+        IsDead = true;
+        _hasTriggeredDeath = true;
+
+        if (_rb2D != null)
+        {
+            _rb2D.velocity = Vector2.zero;
+            _rb2D.isKinematic = true;
+        }
+    }
+    #endregion
+
+    #region 网络特效调用
+    [ClientRpc]
+    public virtual void RpcPlayWoundEffect(Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
+    {
+        // 喷血特效逻辑
+    }
+    #endregion
+
+    #region 客户端视觉表现
+    protected virtual void ClientHandleDeathVisual()
+    {
     }
     #endregion
 }

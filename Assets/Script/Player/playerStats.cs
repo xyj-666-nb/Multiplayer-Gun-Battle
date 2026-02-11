@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class playerStats : CharacterStats
 {
-    private Player MyMonster;// 自身Player组件引用
+    public Player MyMonster;// 自身Player组件引用
     [Header("移动相关")]
     public float MaxYSpeed=6f; // 最大Y轴速度
     public float MaxXSpeed=8f; // 最大X轴速度
@@ -21,31 +21,35 @@ public class playerStats : CharacterStats
         base.Awake();
     }
 
-    public void TriggerBinding()
+    protected override void ClientHandleDeathVisual()//死亡视觉效果（也是通过钩子在所有的客户端执行）
     {
-        MyMonster = Player.LocalPlayer;
+        base.ClientHandleDeathVisual();
     }
 
-
-    //特殊双方逻辑
-    public override void HandleSpecialBothsides(CharacterStats Attacker, CharacterStats defender)
+    /// <summary>
+    /// 受伤特效（也是通过钩子在所有的客户端执行）
+    /// </summary>
+    /// <param name="ColliderPoint">击中的点</param>
+    /// <param name="hitNormal">受击的方向</param>
+    /// <param name="attacker">攻击者</param>
+    public override void RpcPlayWoundEffect(Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)//受伤触发的函数（所有客户端都会执行）
     {
-        
-    }
+        base.RpcPlayWoundEffect(ColliderPoint, hitNormal, attacker);
+        //进行喷血
 
-    //特殊受伤效果
-    public override void SpecialWoundEffect()
-    {
-       
-    }
 
-    public override void Death()
-    {
-        base.Death();
-    }
+        //执行受击击退力
+        if (attacker != null)
+        {
+            var attacker_= attacker as playerStats;
+            float knockbackDirection = Mathf.Sign(transform.position.x - attacker.transform.position.x);
+            MyMonster.MyRigdboby.AddForce(new Vector2(knockbackDirection * attacker_.MyMonster.currentGun.gunInfo.Recoil_Enemy,0), ForceMode2D.Impulse);//设置击退力
 
-    public override void Wound(float FinalDamage, bool IsCritical = false, CharacterStats Attacker = null, CharacterStats defender = null)
-    {
-        base.Wound(FinalDamage, IsCritical, Attacker, defender);
+            //本地进行震屏
+            if (isLocalPlayer)
+            {
+                MyCameraControl.Instance.AddTimeBasedShake(attacker_.MyMonster.currentGun.gunInfo.ShackStrength_Enemy, attacker_.MyMonster.currentGun.gunInfo.ShackTime_Enemy);//对自己进行震动
+            }
+        }
     }
-}
+}  
