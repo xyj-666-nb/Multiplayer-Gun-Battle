@@ -35,6 +35,7 @@ public class BaseGun : NetworkBehaviour
     public GunInfo gunInfo; // 枪械属性配置
 
     [Header("射击特效")]
+    public GameObject hitwalleffect;//击中墙壁粒子效果；
     public Transform firePoint;        // 射击点（仅传递给全局管理器）
     public GameObject cartridgeCasePrefab;  // 弹壳预制体
     public Transform cartridgeEjectPoint;   // 抛壳点
@@ -286,7 +287,20 @@ public class BaseGun : NetworkBehaviour
     private void RpcPlaySingleShootVFX() => PlaySingleShootVFX();
 
     [ClientRpc]
-    private void RpcSpawnHitEffect(Vector2 hitPos, Vector2 hitNormal) => Debug.Log("播放打击特效");
+    private void RpcSpawnHitEffect(Vector2 hitPos, Vector2 hitNormal)
+    {
+        if (hitwalleffect == null)
+        {
+            Debug.LogError("[打击特效] hitwalleffect 预制体未赋值！");
+            return;
+        }
+        GameObject hitEffectObj = Instantiate(
+            hitwalleffect,
+            hitPos,
+            Quaternion.LookRotation(Vector3.forward, hitNormal) 
+        );
+
+    }
 
     /// <summary>
     /// 同步所有客户端绘制子弹小线段（无预制体自动创建模板）
