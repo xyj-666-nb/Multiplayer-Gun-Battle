@@ -1,0 +1,59 @@
+using UnityEngine.Events;
+
+public class RoomPanel : BasePanel
+{
+    public override void Awake()
+    {
+        base.Awake();
+    }
+
+    public override void ClickButton(string controlName)
+    {
+        base.ClickButton(controlName);
+        switch (controlName)
+        {
+            case "Button_CreateRoom":
+                UImanager.Instance.ShowPanel<CreateRoomPanel>();
+                UImanager.Instance.HidePanel<RoomPanel>();
+                break;
+            case "Button_EnterRoom":
+                UImanager.Instance.ShowPanel<EnterRoomPanel>();
+                UImanager.Instance.HidePanel<RoomPanel>();
+                break;
+            case "ExitButton":
+
+                break;
+        }
+
+    }
+
+    public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
+    {
+        base.HideMe(callback, isNeedDefaultAnimator);
+    }
+
+    public override void ShowMe(bool isNeedDefaultAnimator = true)
+    {
+        base.ShowMe(isNeedDefaultAnimator);
+    }
+
+    public override void Start()
+    {
+        base.Start();
+    }
+
+    protected override void SpecialAnimator_Hide()
+    {
+
+    }
+
+    protected override void SpecialAnimator_Show()
+    {
+
+    }
+
+    protected override void Update()
+    {
+        base.Update();
+    }
+}

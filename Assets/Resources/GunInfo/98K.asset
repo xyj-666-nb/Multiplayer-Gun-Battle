@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e6a33053f598ef408bb636a0534ad41, type: 3}
+  m_Name: 98K
+  m_EditorClassIdentifier: 
+  Name: 98K
+  type: 0
+  description: 
+  Bullet_capacity: 5
+  AllBulletAmount: 30
+  RateOfFires: 0
+  Accuracy: 12.5
+  Damage: 32.8
+  Range: 206
+  ReloadTime: 0
+  BulletSpeed: 0
+  Recoil: 1.7
+  Recoil_Enemy: 0
+  GunBodySprite: {fileID: 0}
+  ShootAudio: {fileID: 8300000, guid: 5d89a9ae93979604a9e6c6a7362a8751, type: 3}
+  BulletFill: {fileID: 0}
+  GunSprite: {fileID: 21300000, guid: 2dd625dc248d58e4b9d858b031ccd7c9, type: 3}
+  ShackStrength: 1
+  ShackTime: 0.3
+  ShotgunBulletAmount: 0
+  shotgunBatchInterval: 0.05
+  shotgunScatterAngle: 15
+  smokeColor: {r: 1, g: 1, b: 1, a: 1}
+  smokeSizeMin: 0.002
+  smokeSizeMax: 0.001
+  smokeDuration: 0.03
+  smokeDecaySpeed: 200

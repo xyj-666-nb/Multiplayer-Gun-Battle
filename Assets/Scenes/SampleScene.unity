@@ -156,20 +156,6 @@ MonoBehaviour:
   debugLog: 0
   statisticsGUI: 0
   statisticsLog: 0
---- !u!114 &464497359
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 464497355}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6442dc8070ceb41f094e44de0bf87274, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  offsetX: 0
-  offsetY: 0
 --- !u!114 &464497360
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -207,6 +193,9 @@ MonoBehaviour:
   - {fileID: 527552312434959365, guid: 9d1a9d38c521dc1438cc7bc9bd76ec97, type: 3}
   - {fileID: 1482035268917753946, guid: b721e66c3fe7a6e4aa2095b33635905f, type: 3}
   - {fileID: 4510920658087047655, guid: e15cf7d0fcb58ac4f8154ea84d4c01e5, type: 3}
+  - {fileID: 4958869702410040120, guid: 6e9c272311baeb549abd98db98e520e8, type: 3}
+  - {fileID: 6102976931771197045, guid: 9e5f131db97e80447b3e914ab36cdc23, type: 3}
+  - {fileID: 3347391349394437254, guid: a1b7fc23e5142bc4999f696adbd98889, type: 3}
   exceptionsDisconnect: 1
   snapshotSettings:
     bufferTimeMultiplier: 2
@@ -222,6 +211,31 @@ MonoBehaviour:
   evaluationMethod: 0
   evaluationInterval: 3
   timeInterpolationGui: 1
+--- !u!114 &464497363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 464497355}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c74ab00507a2f1f44be28019e01d868d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableActiveDiscovery: 1
+  BroadcastAddress: 
+  serverBroadcastListenPort: 47777
+  ActiveDiscoveryInterval: 3
+  transport: {fileID: 464497358}
+  OnServerFound:
+    m_PersistentCalls:
+      m_Calls: []
+  secretHandshake: -6263810036406501405
+  roomName: Room
+  playerCount: 1
+  maxPlayers: 8
+  playerName: Host
 --- !u!1 &702137046
 GameObject:
   m_ObjectHideFlags: 0
@@ -815,7 +829,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7884197409869309439, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
       propertyPath: GunsPrefabsList.Array.size
-      value: 7
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 7884197409869309439, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
       propertyPath: GunsPrefabsList.Array.data[2]
@@ -837,6 +851,18 @@ PrefabInstance:
       propertyPath: GunsPrefabsList.Array.data[6]
       value: 
       objectReference: {fileID: 4510920658087047655, guid: e15cf7d0fcb58ac4f8154ea84d4c01e5, type: 3}
+    - target: {fileID: 7884197409869309439, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
+      propertyPath: GunsPrefabsList.Array.data[7]
+      value: 
+      objectReference: {fileID: 4958869702410040120, guid: 6e9c272311baeb549abd98db98e520e8, type: 3}
+    - target: {fileID: 7884197409869309439, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
+      propertyPath: GunsPrefabsList.Array.data[8]
+      value: 
+      objectReference: {fileID: 6102976931771197045, guid: 9e5f131db97e80447b3e914ab36cdc23, type: 3}
+    - target: {fileID: 7884197409869309439, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
+      propertyPath: GunsPrefabsList.Array.data[9]
+      value: 
+      objectReference: {fileID: 3347391349394437254, guid: a1b7fc23e5142bc4999f696adbd98889, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1023,10 +1049,10 @@ PrefabInstance:
       addedObject: {fileID: 464497360}
     - targetCorrespondingSourceObject: {fileID: 5813983028759857948, guid: 16e6170257f9fad47956c9bfb23a065a, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 464497359}
+      addedObject: {fileID: 464497358}
     - targetCorrespondingSourceObject: {fileID: 5813983028759857948, guid: 16e6170257f9fad47956c9bfb23a065a, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 464497358}
+      addedObject: {fileID: 464497363}
   m_SourcePrefab: {fileID: 100100000, guid: 16e6170257f9fad47956c9bfb23a065a, type: 3}
 --- !u!114 &7076439708918025936
 MonoBehaviour:

@@ -31,8 +31,6 @@ public class GunInfo : ScriptableObject
     [Header("枪械后坐力和枪械对敌人的后坐力")]
     public float Recoil;//自身枪械的后座力
     public float Recoil_Enemy;//打到敌人身上的后坐力
-    [Header("是否可以连射")]
-    public bool IsCanContinuousShoot = true;
 
     [Header("枪械的自身贴图")]
     public Sprite GunBodySprite;

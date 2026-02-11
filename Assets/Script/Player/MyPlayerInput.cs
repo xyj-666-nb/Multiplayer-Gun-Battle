@@ -51,7 +51,10 @@ public class MyPlayerInput : NetworkBehaviour
         if (!isLocalPlayer || !IsCanJump)
             return;
 
-        Myplayer.MyRigdboby.AddForce(new Vector2(0, MyStats.JumpPower), ForceMode2D.Impulse);
+        if (Myplayer.currentGun != null && Myplayer.currentGun.IsInShoot)
+            Myplayer.MyRigdboby.AddForce(new Vector2(0, MyStats.JumpPower / 2), ForceMode2D.Impulse);//跳跃力变小
+        else
+            Myplayer.MyRigdboby.AddForce(new Vector2(0, MyStats.JumpPower), ForceMode2D.Impulse);
 
         IsCanJump = false;
         CountDownManager.Instance.CreateTimer(false, 100, () => { IsJumpCheck = true; });
@@ -88,44 +91,61 @@ public class MyPlayerInput : NetworkBehaviour
     #endregion
 
     #region 移动相关
-    // 左移
-    public void Move_Left_Continue(CustomInputContext Content)
+    /// <summary>
+    /// 通用移动逻辑处理
+    /// </summary>
+    /// <param name="moveDirection">移动方向：-1=左，1=右</param>
+    /// <param name="targetFacingDir">目标朝向：-1=左，1=右</param>
+    private void HandleMoveLogic(float moveDirection, int targetFacingDir)
     {
         if (!isLocalPlayer)
             return;
 
-        if (Myplayer.MyRigdboby.velocity.x > 0)//快速减速
+        float finalMovePower = MyStats.movePower;
+        if (Myplayer.currentGun != null && Myplayer.currentGun.IsInShoot)
         {
-            Myplayer.MyRigdboby.AddForce(new Vector2(-MyStats.movePower * 2, 0), ForceMode2D.Impulse);
+            finalMovePower /= 4;
         }
-        else
-            Myplayer.MyRigdboby.AddForce(new Vector2(-MyStats.movePower, 0), ForceMode2D.Impulse);
 
-        if (Math.Abs(Myplayer.MyRigdboby.velocity.x) > MyStats.MaxXSpeed)
-            Myplayer.MyRigdboby.velocity = new Vector2(-MyStats.MaxXSpeed, Myplayer.MyRigdboby.velocity.y);
+        float applyPower = finalMovePower;
+        if (Myplayer.MyRigdboby.velocity.x * moveDirection < 0)
+        {
+            applyPower *= 2;
+        }
 
-        if (Myplayer.FacingDir != -1)
+        Myplayer.MyRigdboby.AddForce(new Vector2(moveDirection * applyPower, 0), ForceMode2D.Impulse);
+
+        float currentXVelocity = Myplayer.MyRigdboby.velocity.x;
+        float dynamicMaxSpeed = MyStats.MaxXSpeed;
+        // 射击状态 → 最大速度减半
+        if (Myplayer.currentGun != null && Myplayer.currentGun.IsInShoot)
+        {
+            dynamicMaxSpeed /= 2;
+        }
+        // 用动态最大速度限制
+        if (Math.Abs(currentXVelocity) > dynamicMaxSpeed)
+        {
+            Myplayer.MyRigdboby.velocity = new Vector2(targetFacingDir * dynamicMaxSpeed, Myplayer.MyRigdboby.velocity.y);
+        }
+
+        if (Myplayer.FacingDir != targetFacingDir)
+        {
             Myplayer.CmdRequestFlip();
+        }
+    }
+
+    // 左移
+    public void Move_Left_Continue(CustomInputContext Content)
+    {
+        // 左移：方向=-1，目标朝向=-1
+        HandleMoveLogic(-1, -1);
     }
 
     // 右移
     public void Move_Right_Continue(CustomInputContext Content)
     {
-        if (!isLocalPlayer)
-            return;
-
-        if (Myplayer.MyRigdboby.velocity.x < 0)//快速减速
-        {
-            Myplayer.MyRigdboby.AddForce(new Vector2(MyStats.movePower * 2, 0), ForceMode2D.Impulse);
-        }
-        else
-            Myplayer.MyRigdboby.AddForce(new Vector2(MyStats.movePower, 0), ForceMode2D.Impulse);
-
-        if (Math.Abs(Myplayer.MyRigdboby.velocity.x) > MyStats.MaxXSpeed)
-            Myplayer.MyRigdboby.velocity = new Vector2(MyStats.MaxXSpeed, Myplayer.MyRigdboby.velocity.y);
-
-        if (Myplayer.FacingDir != 1)
-            Myplayer.CmdRequestFlip();
+        // 右移：方向=1，目标朝向=1
+        HandleMoveLogic(1, 1);
     }
     #endregion
 
@@ -143,7 +163,7 @@ public class MyPlayerInput : NetworkBehaviour
             return;
 
         //判断射击条件,如果是连发枪就自动检测并自动触发射击
-        if (Myplayer.currentGun.gunInfo.IsCanContinuousShoot && Myplayer.currentGun.IsCanShoot())
+        if(Myplayer.currentGun.IsCanShoot())
         {
             Myplayer.currentGun.TriggerSingleShoot();//触发射击
         }
