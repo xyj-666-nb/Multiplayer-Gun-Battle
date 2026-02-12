@@ -13,8 +13,10 @@ MonoBehaviour:
   m_Name: UZI
   m_EditorClassIdentifier: 
   Name: UZI
-  type: 0
-  description: 
+  type: 1
+  description: "\u56FD\u5BB6 / \u5E74\u4EE3\uFF1A \u4EE5\u8272\u5217\uFF0C1950 \u5E74\u4EE3\n\u6B66\u5668\u7C7B\u578B\uFF1A
+    \u51B2\u950B\u67AA\n\u8BBE\u8BA1\u76EE\u7684\uFF1A \u4E3A\u7279\u52E4\u4E0E\u57CE\u5E02\u4F5C\u6218\u63D0\u4F9B\u8F7B\u4FBF\u6B66\u5668\n\u6280\u672F\u7279\u70B9\uFF1A
+    \u5957\u7B52\u5F0F\u77ED\u673A\u5323\u8BA9\u67AA\u4F53\u7D27\u51D1\uFF0C\u63A7\u5236\u5BB9\u6613\uFF0C\u9002\u7528\u4E8E\u8FD1\u8DDD\u79BB\u9AD8\u673A\u52A8\u6218\u6597\u3002"
   Bullet_capacity: 32
   AllBulletAmount: 120
   RateOfFires: 0
@@ -25,13 +27,14 @@ MonoBehaviour:
   BulletSpeed: 0
   Recoil: 1
   Recoil_Enemy: 0
-  IsCanContinuousShoot: 1
-  GunBodySprite: {fileID: 0}
+  GunBodySprite: {fileID: -962476680, guid: e85247ffb7d44cd41be1734bfe754593, type: 3}
   ShootAudio: {fileID: 8300000, guid: 4660bc5873c3c92479516235e851c941, type: 3}
   BulletFill: {fileID: 0}
   GunSprite: {fileID: 21300000, guid: e77a1cb82d3b32f43847f093dd713cfc, type: 3}
   ShackStrength: 0.4
   ShackTime: 0.1
+  ShackStrength_Enemy: 0
+  ShackTime_Enemy: 0
   ShotgunBulletAmount: 0
   shotgunBatchInterval: 0.05
   shotgunScatterAngle: 15

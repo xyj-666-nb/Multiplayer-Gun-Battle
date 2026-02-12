@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e6a33053f598ef408bb636a0534ad41, type: 3}
+  m_Name: AUG
+  m_EditorClassIdentifier: 
+  Name: AUG
+  type: 0
+  description: "\u56FD\u5BB6 / \u5E74\u4EE3\uFF1A \u5965\u5730\u5229\uFF0C1970 \u5E74\u4EE3\n\u6B66\u5668\u7C7B\u578B\uFF1A
+    \u73B0\u4EE3\u65E0\u6258\u6A21\u5757\u5316\u7A81\u51FB\u6B65\u67AA\n\u8BBE\u8BA1\u76EE\u7684\uFF1A
+    \u6253\u9020\u7D27\u51D1\u4FBF\u643A\u3001\u901A\u7528\u591A\u80FD\u3001\u4EBA\u673A\u5DE5\u6548\u4F18\u5F02\u7684\u5236\u5F0F\u6B65\u67AA\uFF0C\u6EE1\u8DB3\u673A\u68B0\u5316\u6B65\u5175\u4E0E\u591A\u573A\u666F"
+  Bullet_capacity: 35
+  AllBulletAmount: 120
+  RateOfFires: 0
+  Accuracy: 12.5
+  Damage: 32.8
+  Range: 206
+  ReloadTime: 0
+  BulletSpeed: 0
+  Recoil: 1.7
+  Recoil_Enemy: 0.2
+  GunBodySprite: {fileID: -624436773, guid: 208d54308bb633647a8d60fb60d09a14, type: 3}
+  ShootAudio: {fileID: 8300000, guid: 9d27c1f3f9281144cada1fe874d71742, type: 3}
+  BulletFill: {fileID: 0}
+  GunSprite: {fileID: 21300000, guid: 70af494637a6c564bab888bef4856a86, type: 3}
+  ShackStrength: 0.7
+  ShackTime: 0.2
+  ShackStrength_Enemy: 0
+  ShackTime_Enemy: 0
+  ShotgunBulletAmount: 0
+  shotgunBatchInterval: 0.05
+  shotgunScatterAngle: 15
+  smokeColor: {r: 1, g: 1, b: 1, a: 1}
+  smokeSizeMin: 0.0007
+  smokeSizeMax: 0.005
+  smokeDuration: 0.03
+  smokeDecaySpeed: 200

@@ -13,8 +13,10 @@ MonoBehaviour:
   m_Name: Vector-45
   m_EditorClassIdentifier: 
   Name: Vector-45
-  type: 0
-  description: 
+  type: 1
+  description: "\u56FD\u5BB6 / \u5E74\u4EE3\uFF1A \u7F8E\u56FD\uFF0C2006 \u5E74\n\u6B66\u5668\u7C7B\u578B\uFF1A
+    \u9AD8\u7A33\u5B9A\u6027\u51B2\u950B\u67AA\n\u8BBE\u8BA1\u76EE\u7684\uFF1A \u6539\u5584\u8FD1\u6218\u8FDE\u7EED\u5C04\u51FB\u7684\u53EF\u63A7\u6027\n\u6280\u672F\u7279\u70B9\uFF1A
+    \u72EC\u7279\u7684\u540E\u5750\u529B\u5411\u4E0B\u504F\u79FB\u7CFB\u7EDF\u663E\u8457\u964D\u4F4E\u67AA\u53E3\u4E0A\u626C\uFF0C\u8FDE\u5C04\u63A7\u5236\u6781\u5F3A\u3002"
   Bullet_capacity: 32
   AllBulletAmount: 120
   RateOfFires: 0
@@ -25,12 +27,14 @@ MonoBehaviour:
   BulletSpeed: 0
   Recoil: 1
   Recoil_Enemy: 0
-  GunBodySprite: {fileID: 0}
+  GunBodySprite: {fileID: 1189338992, guid: 7c74a458270323c4b917726f8bd397c1, type: 3}
   ShootAudio: {fileID: 8300000, guid: f1fb518c132f7254988e89cc71490b0d, type: 3}
   BulletFill: {fileID: 0}
   GunSprite: {fileID: 21300000, guid: bd02a43cb740d3f45b4a1e1ebf922111, type: 3}
   ShackStrength: 0.2
   ShackTime: 0.13
+  ShackStrength_Enemy: 0
+  ShackTime_Enemy: 0
   ShotgunBulletAmount: 0
   shotgunBatchInterval: 0.05
   shotgunScatterAngle: 15

@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: AKM
   type: 0
-  description: 
+  description: "\u56FD\u5BB6 / \u5E74\u4EE3\uFF1A \u82CF\u8054\uFF0C1947 \u5E74\n\u6B66\u5668\u7C7B\u578B\uFF1A
+    \u7A81\u51FB\u6B65\u67AA\n\u8BBE\u8BA1\u76EE\u7684\uFF1A \u5927\u89C4\u6A21\u88C5\u5907\u4E0B\u7684\u53EF\u9760\u57FA\u7840\u6B65\u5175\u6B66\u5668\n\u6280\u672F\u7279\u70B9\uFF1A
+    \u957F\u884C\u7A0B\u6D3B\u585E\u7ED3\u6784\u5F3A\u5316\u53EF\u9760\u6027\uFF0C\u5728\u6781\u7AEF\u73AF\u5883\u4E0B\u4F9D\u65E7\u80FD\u6B63\u5E38\u8FD0\u4F5C\u3002"
   Bullet_capacity: 30
   AllBulletAmount: 120
   RateOfFires: 0
@@ -25,13 +27,14 @@ MonoBehaviour:
   BulletSpeed: 0
   Recoil: 2
   Recoil_Enemy: 0
-  IsCanContinuousShoot: 1
-  GunBodySprite: {fileID: 0}
+  GunBodySprite: {fileID: -1474025342, guid: da1250ab6de1d3b45898cfa230c2f2cf, type: 3}
   ShootAudio: {fileID: 8300000, guid: 156b3abf0012dc848adf6c1056778e67, type: 3}
   BulletFill: {fileID: 0}
   GunSprite: {fileID: 21300000, guid: 1855f298bbdc8474bb671ad36b50a311, type: 3}
   ShackStrength: 0.9
   ShackTime: 0.3
+  ShackStrength_Enemy: 0
+  ShackTime_Enemy: 0
   ShotgunBulletAmount: 0
   shotgunBatchInterval: 0.05
   shotgunScatterAngle: 15

@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: P90
   m_EditorClassIdentifier: 
   Name: P90
-  type: 0
-  description: 
+  type: 1
+  description: "\u56FD\u5BB6 / \u5E74\u4EE3\uFF1A \u6BD4\u5229\u65F6\uFF0C1990 \u5E74\n\u6B66\u5668\u7C7B\u578B\uFF1A
+    \u4E2A\u4EBA\u9632\u536B\u6B66\u5668\uFF08PDW\uFF09\n\u8BBE\u8BA1\u76EE\u7684\uFF1A
+    \u4E3A\u8F66\u8F86\u4E58\u5458\u3001\u652F\u63F4\u4EBA\u5458\u63D0\u4F9B\u7D27\u51D1\u800C\u5177\u7A7F\u7532\u80FD\u529B\u7684\u6B66\u5668\n\u6280\u672F\u7279\u70B9\uFF1A
+    \u6C34\u5E73\u900F\u660E\u5F39\u5323\u3001\u9AD8\u5C04\u901F\u3001\u5C0F\u53E3\u5F84\u9AD8\u901F\u5F39\uFF0C\u8BA9\u5176\u5728\u8FD1\u4E2D\u8DDD\u79BB\u5E94\u5BF9\u529B\u6781\u5F3A\u3002"
   Bullet_capacity: 35
   AllBulletAmount: 120
   RateOfFires: 0
@@ -25,12 +28,14 @@ MonoBehaviour:
   BulletSpeed: 0
   Recoil: 0.8
   Recoil_Enemy: 0
-  GunBodySprite: {fileID: 0}
+  GunBodySprite: {fileID: 736023393, guid: f903074fba20ebf42af25fff2e61267e, type: 3}
   ShootAudio: {fileID: 8300000, guid: 78b15d76911d5fd4a9e9ac19c48e3b70, type: 3}
   BulletFill: {fileID: 0}
   GunSprite: {fileID: 21300000, guid: ac39f9f7b7e79634fb866f304f640297, type: 3}
   ShackStrength: 0.5
   ShackTime: 0.1
+  ShackStrength_Enemy: 0
+  ShackTime_Enemy: 0
   ShotgunBulletAmount: 0
   shotgunBatchInterval: 0.05
   shotgunScatterAngle: 15

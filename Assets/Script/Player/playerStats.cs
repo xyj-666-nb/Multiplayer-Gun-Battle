@@ -36,23 +36,6 @@ public class playerStats : CharacterStats
     public override void RpcPlayWoundEffect(Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)//受伤触发的函数（所有客户端都会执行）
     {
         base.RpcPlayWoundEffect(ColliderPoint, hitNormal, attacker);
-        //进行喷血
-        if (BloodParticleGenerator.Instance != null)
-        {
-            // 1. 生成背景静态血迹
-            BloodParticleGenerator.Instance.GenerateBloodOnBackground(ColliderPoint);
-
-            // 2. 循环生成多个血粒子
-            for (int i = 0; i < 30; i++)
-            {
-                // 随机喷血方向
-                Vector2 bloodDir = (hitNormal + new Vector2(Random.Range(-0.5f, 0.5f), Random.Range(0.2f, 0.8f))).normalized;
-                // 随机喷血速度
-                float bloodSpeed = Random.Range(8f, 16f);
-                // 生成粒子
-                BloodParticleGenerator.Instance.GenerateBloodParticle(ColliderPoint, bloodDir * bloodSpeed);
-            }
-        }
 
         //执行受击击退力
         if (attacker != null)

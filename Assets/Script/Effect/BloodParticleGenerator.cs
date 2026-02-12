@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class BloodParticleGenerator : Singleton<BloodParticleGenerator>
@@ -35,7 +33,7 @@ public class BloodParticleGenerator : Singleton<BloodParticleGenerator>
         if (direction == -1) size.x *= -1;
         blood.transform.localScale = new Vector3(size.x, size.y, 1);
 
-        //设置血液图片（从预设数组里随机挑一张）
+        //设置血液图片
         Sprite sprite = null;
         sprite = bloodsOnBackground[Random.Range(0, bloodsOnBackground.Length)];
         blood.GetComponent<SpriteRenderer>().sprite = sprite;
@@ -49,7 +47,7 @@ public class BloodParticleGenerator : Singleton<BloodParticleGenerator>
         //生成物体（需要一小段Z轴位移，保证在地形前方）
         GameObject blood = Instantiate(bloodOnWall, position + new Vector3(0, 0, -0.6f), Quaternion.Euler(0, 0, angle), transform);
 
-        //设置血液图片（从预设数组里随机挑一张）
+        //设置血液图片
         Sprite sprite = null;
         sprite = bloodsOnWall[Random.Range(0, bloodsOnWall.Length)];
         blood.GetComponent<SpriteRenderer>().sprite = sprite;

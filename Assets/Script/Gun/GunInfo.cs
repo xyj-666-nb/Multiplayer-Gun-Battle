@@ -58,13 +58,3 @@ public class GunInfo : ScriptableObject
     public float smokeDuration = 0.3f; // 烟雾总持续时间
     public float smokeDecaySpeed = 10f; // 烟雾衰减速度系数
 }
-
-[System.Serializable]
-public enum GunType
-{
-    Rifle,
-    Charge,
-    Snipe,
-    Shotgun,
-    DMR,//射手步枪
-}

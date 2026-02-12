@@ -23,6 +23,10 @@ public abstract class CharacterStats : NetworkBehaviour
     [Header("死亡事件")]
     public UnityAction EntityDeathEvent;//外部关联死亡事件
 
+    [Header("血液飞溅参数")]
+    public float MaxBllomSpeed = 2f;//血液飞溅的最大速度
+    public float MinBllomSpeed = 4f;//血液飞溅的最小速度
+    public float BllomAmount = 20;//血液飞溅的数量
     #region 组件与配置
     private Rigidbody2D _rb2D;
     private bool _hasTriggeredDeath = false;
@@ -154,6 +158,24 @@ public abstract class CharacterStats : NetworkBehaviour
     public virtual void RpcPlayWoundEffect(Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
     {
         // 喷血特效逻辑
+        //进行喷血
+        if (BloodParticleGenerator.Instance != null)
+        {
+            // 生成背景静态血迹
+            BloodParticleGenerator.Instance.GenerateBloodOnBackground(ColliderPoint);
+
+            // 循环生成多个血粒子
+            for (int i = 0; i < BllomAmount; i++)
+            {
+                // 随机喷血方向
+                Vector2 bloodDir = (hitNormal + new Vector2(Random.Range(-0.5f, 0.5f), Random.Range(0.2f, 0.8f))).normalized;
+                // 随机喷血速度
+                float bloodSpeed = Random.Range(MaxBllomSpeed, MinBllomSpeed);
+                // 生成粒子
+                BloodParticleGenerator.Instance.GenerateBloodParticle(ColliderPoint, bloodDir * bloodSpeed);
+            }
+        }
+
     }
     #endregion
 

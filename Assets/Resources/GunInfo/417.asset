@@ -14,7 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: 417
   type: 0
-  description: 
+  description: "\u56FD\u5BB6 / \u5E74\u4EE3\uFF1A \u5FB7\u56FD\uFF0C2000 \u5E74\u4EE3\n\u6B66\u5668\u7C7B\u578B\uFF1A
+    \u73B0\u4EE3\u6A21\u5757\u5316\u7A81\u51FB\u6B65\u67AA\n\u8BBE\u8BA1\u76EE\u7684\uFF1A
+    \u63D0\u4F9B\u4E00\u6B3E\u6BD4\u4F20\u7EDF AR \u66F4\u53EF\u9760\u3001\u9002\u5E94\u6027\u66F4\u5F3A\u7684\u6B65\u67AA\n\u6280\u672F\u7279\u70B9\uFF1A
+    \u91C7\u7528\u77ED\u884C\u7A0B\u6D3B\u585E\u7CFB\u7EDF\uFF0C\u7EF4\u62A4\u9700\u6C42\u4F4E\uFF0C\u7CBE\u5EA6\u7A33\u5B9A\uFF0C\u9002\u5408\u7A81\u51FB\u4E0E\u4E2D\u8DDD\u79BB\u5C04\u51FB\u4EFB\u52A1\u3002"
   Bullet_capacity: 35
   AllBulletAmount: 120
   RateOfFires: 0
@@ -25,12 +28,14 @@ MonoBehaviour:
   BulletSpeed: 0
   Recoil: 1.7
   Recoil_Enemy: 0
-  GunBodySprite: {fileID: 0}
+  GunBodySprite: {fileID: -853166479, guid: 98f2c18782c10594e988cff6870612d4, type: 3}
   ShootAudio: {fileID: 8300000, guid: 6930ef35da1319842b0e4dc7c57e67c1, type: 3}
   BulletFill: {fileID: 0}
   GunSprite: {fileID: 21300000, guid: 6e9018e8fb6489d45a0cd67f8897de3c, type: 3}
   ShackStrength: 0.7
   ShackTime: 0.2
+  ShackStrength_Enemy: 0
+  ShackTime_Enemy: 0
   ShotgunBulletAmount: 0
   shotgunBatchInterval: 0.05
   shotgunScatterAngle: 15

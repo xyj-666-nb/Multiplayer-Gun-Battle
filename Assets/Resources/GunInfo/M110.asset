@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: M110
   m_EditorClassIdentifier: 
   Name: M110
-  type: 0
-  description: 
+  type: 4
+  description: "\u56FD\u5BB6 / \u5E74\u4EE3\uFF1A \u7F8E\u56FD\uFF0C2000 \u5E74\u4EE3\n\u6B66\u5668\u7C7B\u578B\uFF1A
+    \u534A\u81EA\u52A8\u72D9\u51FB / \u7CBE\u786E\u5C04\u624B\u6B65\u67AA\n\u8BBE\u8BA1\u76EE\u7684\uFF1A
+    \u63D0\u4F9B\u6BD4\u6813\u52A8\u72D9\u51FB\u67AA\u66F4\u9AD8\u7684\u6301\u7EED\u706B\u529B\n\u6280\u672F\u7279\u70B9\uFF1A
+    7.62mm \u53E3\u5F84\u4FDD\u8BC1\u5A01\u529B\uFF0C\u534A\u81EA\u52A8\u7ED3\u6784\u63D0\u5347\u5C04\u901F\uFF0C\u9002\u7528\u4E8E\u673A\u52A8\u72D9\u51FB\u4E0E\u652F\u63F4\u706B\u529B\u3002"
   Bullet_capacity: 10
   AllBulletAmount: 40
   RateOfFires: 0
@@ -25,12 +28,14 @@ MonoBehaviour:
   BulletSpeed: 0
   Recoil: 2
   Recoil_Enemy: 0
-  GunBodySprite: {fileID: 0}
+  GunBodySprite: {fileID: 1086061370, guid: 087fa61e2f30c52489f46a3b9059ea6e, type: 3}
   ShootAudio: {fileID: 8300000, guid: e8b6c1f7237d37f43ac6daf2e226e4e8, type: 3}
   BulletFill: {fileID: 0}
   GunSprite: {fileID: 21300000, guid: ecc078d72d5db0746b9735e0b1164edf, type: 3}
   ShackStrength: 0.7
   ShackTime: 0.2
+  ShackStrength_Enemy: 0
+  ShackTime_Enemy: 0
   ShotgunBulletAmount: 0
   shotgunBatchInterval: 0.05
   shotgunScatterAngle: 15

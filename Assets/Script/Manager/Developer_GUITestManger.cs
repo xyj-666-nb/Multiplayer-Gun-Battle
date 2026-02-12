@@ -5,7 +5,7 @@ using UnityEngine;
 /// <summary>
 /// 调试GUI管理器
 /// 注册调试按钮、按组分类展示、独立折叠/展开每组按钮
-/// 1. 先注册组；2. 注册按钮时指定组名（不填=默认组）；3. 总开关控制是否显示
+/// 1. 先注册组(不注册也会自动注册)；2. 注册按钮时指定组名（不填=默认组）；3. 总开关控制是否显示
 /// </summary>
 public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestManger>
 {
@@ -206,7 +206,7 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
 
                         if (GUILayout.Button(showName, GUILayout.Height(35)))
                         {
-                            twoWayBtn.isTriggered = !twoWayBtn.isTriggered;     
+                            twoWayBtn.isTriggered = !twoWayBtn.isTriggered;
                             if (twoWayBtn.isTriggered)
                             {
                                 twoWayBtn.onTrigger?.Invoke(); // 触发开启逻辑
@@ -235,21 +235,27 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
 
     #region 内部辅助方法
     /// <summary>
-    /// 校验并获取有效的组名（空值/不存在→默认组）
+    /// 校验并获取有效的组名
     /// </summary>
     /// <param name="inputGroupName">输入的组名</param>
     /// <returns>有效的组名</returns>
     private string GetValidGroupName(string inputGroupName)
     {
+        // 空组名 → 归默认组
         if (string.IsNullOrEmpty(inputGroupName))
         {
             return DEFAULT_GROUP_NAME;
         }
-        if (!_groupButtonDict.ContainsKey(inputGroupName) && inputGroupName != DEFAULT_GROUP_NAME)
+
+        // 组名存在 → 直接返回
+        if (_groupButtonDict.ContainsKey(inputGroupName))
         {
-            Debug.LogWarning($"组[{inputGroupName}]不存在，按钮自动归入默认组！");
-            return DEFAULT_GROUP_NAME;
+            return inputGroupName;
         }
+
+        // 核心修改：非空且不存在的组名 → 自动创建该组
+        Debug.Log($"组[{inputGroupName}]不存在，已自动创建该组！");
+        RegisterGroup(inputGroupName);
         return inputGroupName;
     }
 
@@ -342,11 +348,6 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
         }
 
         string targetGroupName = GetValidGroupName(groupName);
-        // 自动创建不存在的组
-        if (!_groupButtonDict.ContainsKey(targetGroupName))
-        {
-            RegisterGroup(targetGroupName);
-        }
         // 避免同组重复注册同名按钮
         foreach (var btnInfo in _groupButtonDict[targetGroupName])
         {
@@ -367,19 +368,19 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
     /// 注册双向切换按钮
     /// </summary>
     /// <param name="ButtonTriggerName">开启态名称</param>
-    /// <param name="ButtonCancelName">关闭态名称param>
+    /// <param name="ButtonCancelName">关闭态名称</param>
     /// <param name="triggerAction">开启逻辑</param>
-    /// <param name="CancelAction">关闭逻辑param>
-    /// <param name="groupName">归属组名param>
+    /// <param name="CancelAction">关闭逻辑</param>
+    /// <param name="groupName">归属组名</param>
     public void RegisterGuiButton_TwoWay(string ButtonTriggerName, string ButtonCancelName, Action triggerAction, Action CancelAction, string groupName = DEFAULT_GROUP_NAME)
     {
+        if (string.IsNullOrEmpty(ButtonTriggerName) || string.IsNullOrEmpty(ButtonCancelName) || triggerAction == null || CancelAction == null)
+        {
+            Debug.LogError("注册双向按钮失败：名称/回调不能为空！");
+            return;
+        }
 
         string targetGroupName = GetValidGroupName(groupName);
-        // 自动初始化双向按钮存储
-        if (!_groupTwoWayButtonDict.ContainsKey(targetGroupName))
-        {
-            _groupTwoWayButtonDict.Add(targetGroupName, new List<GuiTwoWayButtonInfo>());
-        }
         // 避免同组重复注册相同双向按钮
         string btnUniqueKey = $"{ButtonTriggerName}_{ButtonCancelName}";
         foreach (var twoWayBtn in _groupTwoWayButtonDict[targetGroupName])
@@ -393,6 +394,7 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
         }
         // 添加双向按钮到目标组
         _groupTwoWayButtonDict[targetGroupName].Add(new GuiTwoWayButtonInfo(ButtonTriggerName, ButtonCancelName, triggerAction, CancelAction));
+        Debug.Log($"双向按钮[{btnUniqueKey}]已注册到组[{targetGroupName}]");
     }
     #endregion
 
@@ -432,25 +434,23 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
     }
     #endregion
 
-    #region 通一打开所有的调试信息(FPS调试，物理信息调试。输入系统的调试)
+    #region 统一打开所有的调试信息(FPS调试，物理信息调试。输入系统的调试)
     public void IsShowAllInfo(bool IsShow)
     {
-        if(IsShow)
+        if (IsShow)
         {
             InputInfoManager.Instance.SetKeyCheckState(true);
             FPSDisplayPanel.Instance.ShowFPS();
             RigidbodyGUITestManager.Instance.IsActiveInfo(true);
-        }    
+        }
         else
         {
             RigidbodyGUITestManager.Instance.IsActiveInfo(false);
             InputInfoManager.Instance.SetKeyCheckState(false);
             FPSDisplayPanel.Instance.HideFPS();
         }
-      
+
     }
-
-
     #endregion
     #endregion
 }
