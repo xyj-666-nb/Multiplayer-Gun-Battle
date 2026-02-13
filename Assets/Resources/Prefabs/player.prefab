@@ -217,6 +217,7 @@ MonoBehaviour:
   FacingDir: 1
   myStats: {fileID: 8487535142233067111}
   playerHandPos: {fileID: 2830158952220042674}
+  MyHandControl: {fileID: 0}
   currentGun: {fileID: 0}
   CurrentTouchGun: {fileID: 0}
   mainLerpSpeed: 2
@@ -271,6 +272,9 @@ MonoBehaviour:
   maxHealth: 1000
   CurrentHealth: 0
   IsDead: 0
+  MaxBllomSpeed: 2
+  MinBllomSpeed: 4
+  BllomAmount: 20
   MyMonster: {fileID: 7290517828809082464}
   MaxYSpeed: 4
   MaxXSpeed: 4
@@ -280,6 +284,12 @@ MonoBehaviour:
   MoveBumpySpeed: 8
   movePower: 2
   JumpPower: 8
+  AimMovePower: 0.5
+  AimMoveMaxSpeed: 1.5
+  AimJumpPower: 3
+  AimAccuracyBonus: 0.5
+  AimRecoilBonus: 0.3
+  AimViewBonus: 0.3
 --- !u!114 &737475669566120648
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -354,6 +364,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2830158952220042674}
+  - component: {fileID: 4571149557039848035}
   m_Layer: 8
   m_Name: Hand
   m_TagString: Untagged
@@ -370,9 +381,51 @@ Transform:
   m_GameObject: {fileID: 7450103223888738144}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.01, z: 0}
+  m_LocalPosition: {x: 0.15, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6646141899914246321}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4571149557039848035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7450103223888738144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a15a55605608ab49a6c41fbe8dad1da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  RotateSpeed: 100
+  AimStateTransform_X: 0.4
+  EnterAimDuration: 0.5
+  aimEaseCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

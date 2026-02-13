@@ -17,6 +17,19 @@ public class playerStats : CharacterStats
     [Header("跳跃力")]
     public float　JumpPower;//跳跃力
 
+    [Header("瞄准状态的数值")]
+    [Header("瞄准移动相关")]
+    public float AimMovePower;//瞄准状态的移动力
+    public float AimMoveMaxSpeed;//瞄准状态的最大移动速度
+    [Header("瞄准跳跃相关")]
+    public float AimJumpPower;//瞄准状态的跳跃力
+
+    [Header("瞄准对于枪械精度的提升")]
+    public float AimAccuracyBonus=0.3f;//瞄准状态对于枪械精度的提升(百分之30左右)
+    public float AimRecoilBonus = 0.3f;//瞄准状态对于枪械后坐力的削弱(百分之30左右)
+    public float AimViewBonus = 0.3f; //瞄准状态对于当前枪械的视野的提升(百分之30左右)
+
+
     public override void Awake()
     {
         base.Awake();

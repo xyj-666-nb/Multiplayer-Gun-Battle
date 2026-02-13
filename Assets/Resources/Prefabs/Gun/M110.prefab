@@ -293,7 +293,7 @@ Transform:
   m_GameObject: {fileID: 1380917830605708716}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 1, w: 0}
-  m_LocalPosition: {x: 0.0351, y: 0.0523, z: 0}
+  m_LocalPosition: {x: 0.1462, y: 0.0199, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -428,7 +428,7 @@ Transform:
   m_GameObject: {fileID: 3430015812162939801}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: -0.575, y: 0.049, z: 0}
+  m_LocalPosition: {x: -0.6023, y: 0.049, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -801,6 +801,10 @@ MonoBehaviour:
   _canShoot: 1
   _currentMagazineBulletCount: 0
   _allReserveBulletCount: 0
+  IsEnterAimState: 0
+  shootRaycastLayers:
+    serializedVersion: 2
+    m_Bits: 280
   timelineDirector_Reload: {fileID: 911605710912852933}
   timelineDirector_Shoot: {fileID: 8032541082859310364}
   gunInfo: {fileID: 11400000, guid: 30d894ae6efe3704a884b7bce1daf0b8, type: 2}
@@ -822,6 +826,10 @@ MonoBehaviour:
   ownerPlayer: {fileID: 0}
   isInPlayerHand: 0
   GunInfoManager: {fileID: 0}
+  Duration: 0.5
+  _localRecoil: 0
+  _localViewRange: 0
+  _localAccuracy: 0
 --- !u!60 &2009968095541003134
 PolygonCollider2D:
   m_ObjectHideFlags: 0

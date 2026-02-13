@@ -61,9 +61,9 @@ public class ArmamentPanel : BasePanel
         base.Awake();
 
         // 注册主分类按钮（枪械、投掷物、护甲）
-        RadioGroupManager.Instance.AddButtonToGroup(ButtonGroupRegisterName_ArmamentType, Gun_Button, CreateAndRegisterArmamentButton);
-        RadioGroupManager.Instance.AddButtonToGroup(ButtonGroupRegisterName_ArmamentType, ThrowObj_Button);
-        RadioGroupManager.Instance.AddButtonToGroup(ButtonGroupRegisterName_ArmamentType, Armor_Button);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup(ButtonGroupRegisterName_ArmamentType, Gun_Button, CreateAndRegisterArmamentButton);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup(ButtonGroupRegisterName_ArmamentType, ThrowObj_Button);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup(ButtonGroupRegisterName_ArmamentType, Armor_Button);
     }
 
     public override void Start()
@@ -75,9 +75,9 @@ public class ArmamentPanel : BasePanel
     {
         base.OnDestroy();
         // 销毁时清理所有创建的分组
-        RadioGroupManager.Instance.DestroyRadioGroup(ButtonGroupRegisterName_Armament);
-        RadioGroupManager.Instance.DestroyRadioGroup(ButtonGroupRegisterName_SpecialArmament);
-        RadioGroupManager.Instance.DestroyRadioGroup(ButtonGroupRegisterName_ArmamentType);
+        ButtonGroupManager.Instance.DestroyRadioGroup(ButtonGroupRegisterName_Armament);
+        ButtonGroupManager.Instance.DestroyRadioGroup(ButtonGroupRegisterName_SpecialArmament);
+        ButtonGroupManager.Instance.DestroyRadioGroup(ButtonGroupRegisterName_ArmamentType);
     }
 
     #endregion
@@ -92,7 +92,7 @@ public class ArmamentPanel : BasePanel
         foreach (var obj in CreatedArmamentButtons)
         {
             var btn = obj.GetComponent<Button>();
-            RadioGroupManager.Instance.RemoveButtonFromGroup(ButtonGroupRegisterName_Armament, btn);
+            ButtonGroupManager.Instance.RemoveRadioButtonFromGroup(ButtonGroupRegisterName_Armament, btn);
             PoolManage.Instance.PushObj(TypeButtonPrefab, obj);
         }
         CreatedArmamentButtons.Clear();
@@ -118,7 +118,7 @@ public class ArmamentPanel : BasePanel
             buttonText.text = GunManager.Instance.getChineseGunTypeName(gunType);
 
             // 注册到单选组（无默认回调，因为自动选中时会触发 onClick 模拟）
-            RadioGroupManager.Instance.AddButtonToGroup(ButtonGroupRegisterName_Armament, button);
+            ButtonGroupManager.Instance.AddRadioButtonToGroup(ButtonGroupRegisterName_Armament, button);
 
             // 添加点击监听：切换特殊装备列表
             button.onClick.AddListener(() =>
@@ -128,7 +128,7 @@ public class ArmamentPanel : BasePanel
             });
         }
 
-        RadioGroupManager.Instance.SelectFirstButtonInGroup(ButtonGroupRegisterName_Armament, true);
+        ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(ButtonGroupRegisterName_Armament, true);
     }
 
     #endregion
@@ -143,7 +143,7 @@ public class ArmamentPanel : BasePanel
         foreach (var obj in CreatedSpecialArmamentButtons)
         {
             var btn = obj.GetComponent<Button>();
-            RadioGroupManager.Instance.RemoveButtonFromGroup(ButtonGroupRegisterName_SpecialArmament, btn);
+            ButtonGroupManager.Instance.RemoveRadioButtonFromGroup(ButtonGroupRegisterName_SpecialArmament, btn);
             PoolManage.Instance.PushObj(SpecialArmamentButtonPrefab, obj);
         }
         CreatedSpecialArmamentButtons.Clear();
@@ -170,7 +170,7 @@ public class ArmamentPanel : BasePanel
             buttonObj.transform.GetChild(1).GetComponent<Image>().sprite = gunInfo.GunSprite;
 
             // 注册到单选组
-            RadioGroupManager.Instance.AddButtonToGroup(ButtonGroupRegisterName_SpecialArmament, button);
+            ButtonGroupManager.Instance.AddRadioButtonToGroup(ButtonGroupRegisterName_SpecialArmament, button);
 
             // 添加点击监听：更新界面信息
             button.onClick.AddListener(() =>
@@ -179,7 +179,7 @@ public class ArmamentPanel : BasePanel
             });
         }
 
-        RadioGroupManager.Instance.SelectFirstButtonInGroup(ButtonGroupRegisterName_SpecialArmament, true);
+        ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(ButtonGroupRegisterName_SpecialArmament, true);
     }
 
     #endregion

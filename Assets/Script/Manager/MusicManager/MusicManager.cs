@@ -2,22 +2,26 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-
 /// <summary>
 /// 音效/背景音乐管理器
 /// 功能：统一管理背景音乐播放、音效播放（2D/3D）、音量控制、对象池回收
+/// 支持音效音量放大（特殊音量可>1），可配置最大放大倍数防止失真
 /// </summary>
 public class MusicManager : SingleMonoAutoBehavior<MusicManager>
 {
-    #region 背景音乐管理
+    #region 新增：音效放大配置（可在Inspector面板调整）
+    [Header("音效放大设置")]
+    [Tooltip("特殊音量最大放大倍数（默认2倍，建议不超过3倍避免严重失真）")]
+    [SerializeField] private float MaxEffectAmplification = 2f;
+    #endregion
 
+    #region 背景音乐管理
     #region 背景音乐相关变量
     private AudioSource backgroundAudioSource; // 背景音乐AudioSource
     private string currentBgmPath; // 当前播放的背景音乐路径
     private float bgmGlobalVolume = 0.5f; // 背景音乐全局音量
     private readonly Dictionary<string, float> specificBgmVolumes = new Dictionary<string, float>(); // 特定BGM的音量配置
     private GameObject backgroundMusicObj; // 背景音乐载体物体
-
     #endregion
 
     #region 初始化背景音乐播放器
@@ -38,7 +42,6 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         }
     }
     #endregion
-
 
     #region 对当前背景音乐进行播放，暂停，停止等操作
     /// <summary>
@@ -118,8 +121,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
     #endregion
 
-    #region 背景音乐音量控制(包含独立音量控制)
-
+    #region 背景音乐音量控制
     /// <summary>
     /// 修改背景音乐全局音量
     /// </summary>
@@ -146,7 +148,6 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         return bgmGlobalVolume;
     }
 
-
     /// <summary>
     /// 设置指定背景音乐的独立音量
     /// </summary>
@@ -170,22 +171,19 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
             backgroundAudioSource.volume = volume * bgmGlobalVolume;
     }
     #endregion
-
     #endregion
 
     #region 音效管理
-
     #region 音效相关变量以及配置
     [Header("音效配置")]
     [SerializeField] private List<AudioSource> activeEffectSources = new List<AudioSource>(); // 活跃音效列表
     [SerializeField] private GameObject effectPrefab; // 音效预制体（需挂载AudioSource或动态添加）
 
     private float effectGlobalVolume = 0.8f; // 音效全局音量（0-1）
-    private readonly Dictionary<string, float> specificEffectVolumes = new Dictionary<string, float>(); // 特定音效音量配置
+    private readonly Dictionary<string, float> specificEffectVolumes = new Dictionary<string, float>(); // 特定音效的音量配置
     private const float DefaultMin3dDistance = 1f; // 3D音效默认最小无衰减距离
     private const float DefaultMax3dDistance = 10f; // 3D音效默认最大衰减距离
     private GameObject _dynamicEffectRoot; // 动态创建的音效根物体（无预制体时使用）
-
     #endregion
 
     #region 初始化音效系统
@@ -213,15 +211,15 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
             Debug.LogWarning("MonoMange.Instance为空，无法注册音效清理回调！", this);
         }
     }
-
     #endregion
 
     #region 私有的(3D)音效播放核心逻辑
     /// <summary>
-    /// 音效播放核心逻辑
+    /// 音效播放核心逻辑（支持音量放大）
     /// </summary>
     /// <param name="clip">要播放的音频剪辑</param>
     /// <param name="is3d">是否启用3D音效</param>
+    /// <param name="SpecialVolume">特殊音量（可>1放大，受MaxEffectAmplification限制）</param>
     /// <param name="max3dDistance">3D音效最大衰减距离</param>
     /// <param name="min3dDistance">3D音效最小无衰减距离</param>
     /// <param name="owner">音效跟随的父物体</param>
@@ -230,6 +228,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     private void PlayEffectCore(
         AudioClip clip,
         bool is3d,
+        float SpecialVolume = 1f,
         float max3dDistance = DefaultMax3dDistance,
         float min3dDistance = DefaultMin3dDistance,
         Transform owner = null,
@@ -242,6 +241,20 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
             callback?.Invoke(null);
             return;
         }
+
+        // 核心修改：支持放大音量并限制最大值
+        float clampedVolume = Mathf.Clamp(SpecialVolume, 0f, MaxEffectAmplification);
+        if (SpecialVolume > MaxEffectAmplification)
+        {
+            Debug.LogWarning($"特殊音量{SpecialVolume}超过最大放大倍数{MaxEffectAmplification}，已自动限制");
+        }
+        else if (SpecialVolume > 1f)
+        {
+            Debug.Log($"为音效【{clip.name}】设置放大音量：{clampedVolume}倍");
+        }
+
+        // 自动设置特殊音量（支持放大）
+        SetSpecificEffectVolume(clip.name, clampedVolume);
 
         GameObject effectObj = null;
         bool isDynamicObj = false; // 是否是动态创建的物体（无预制体）
@@ -287,8 +300,10 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
             audioSource = effectObj.AddComponent<AudioSource>();
         }
 
+        // 音量计算：特殊音量(可>1) * 全局音量(0-1)
         float specificVol = specificEffectVolumes.TryGetValue(clip.name, out float vol) ? vol : 1f;
         float finalVolume = specificVol * effectGlobalVolume;
+        Debug.Log($"音效【{clip.name}】最终音量：{finalVolume} (特殊音量{specificVol} × 全局音量{effectGlobalVolume})");
 
         if (is3d)
             Configure3dEffect(effectObj, audioSource, max3dDistance, min3dDistance, owner);
@@ -348,7 +363,11 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     /// <summary>
     /// 播放2D音效（传资源路径）
     /// </summary>
-    public void PlayEffect(string clipPath, bool isLoop = false, UnityAction<AudioSource> callback = null)
+    /// <param name="clipPath">音效资源路径</param>
+    /// <param name="SpecialVolume">特殊音量（可>1放大，默认1f）</param>
+    /// <param name="isLoop">是否循环播放</param>
+    /// <param name="callback">播放完成回调</param>
+    public void PlayEffect(string clipPath, float SpecialVolume = 1f, bool isLoop = false, UnityAction<AudioSource> callback = null)
     {
         if (string.IsNullOrEmpty(clipPath))
         {
@@ -359,15 +378,23 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
 
         ResourcesManager.Instance.LoadAsync<AudioClip>(clipPath, (clip) =>
         {
-            PlayEffectCore(clip, false, 0, 0, null, isLoop, callback);
+            PlayEffectCore(clip, false, SpecialVolume, 0, 0, null, isLoop, callback);
         });
     }
 
     /// <summary>
     /// 播放3D音效（传资源路径）
     /// </summary>
+    /// <param name="clipPath">音效资源路径</param>
+    /// <param name="SpecialVolume">特殊音量（可>1放大，默认1f）</param>
+    /// <param name="maxDistance">3D音效最大衰减距离</param>
+    /// <param name="minDistance">3D音效最小无衰减距离</param>
+    /// <param name="owner">音效跟随的父物体</param>
+    /// <param name="isLoop">是否循环播放</param>
+    /// <param name="callback">播放完成回调</param>
     public void PlayEffect3D(
         string clipPath,
+        float SpecialVolume = 1f,
         float maxDistance = DefaultMax3dDistance,
         float minDistance = DefaultMin3dDistance,
         Transform owner = null,
@@ -383,36 +410,52 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
 
         ResourcesManager.Instance.LoadAsync<AudioClip>(clipPath, (clip) =>
         {
-            PlayEffectCore(clip, true, maxDistance, minDistance, owner, isLoop, callback);
+            PlayEffectCore(clip, true, SpecialVolume, maxDistance, minDistance, owner, isLoop, callback);
         });
     }
 
     /// <summary>
     /// 播放2D音效（传AudioClip）
     /// </summary>
-    public void PlayEffect(AudioClip clip, bool isLoop = false, UnityAction<AudioSource> callback = null)
+    /// <param name="clip">音频剪辑</param>
+    /// <param name="SpecialVolume">特殊音量（可>1放大，默认1f）</param>
+    /// <param name="isLoop">是否循环播放</param>
+    /// <param name="callback">播放完成回调</param>
+    public void PlayEffect(AudioClip clip, float SpecialVolume = 1f, bool isLoop = false, UnityAction<AudioSource> callback = null)
     {
-        PlayEffectCore(clip, false, 0, 0, null, isLoop, callback);
+        PlayEffectCore(clip, false, SpecialVolume, 0, 0, null, isLoop, callback);
     }
 
     /// <summary>
     /// 播放3D音效（传AudioClip）
     /// </summary>
+    /// <param name="clip">音频剪辑</param>
+    /// <param name="SpecialVolume">特殊音量（可>1放大，默认1f）</param>
+    /// <param name="maxDistance">3D音效最大衰减距离</param>
+    /// <param name="minDistance">3D音效最小无衰减距离</param>
+    /// <param name="owner">音效跟随的父物体</param>
+    /// <param name="isLoop">是否循环播放</param>
+    /// <param name="callback">播放完成回调</param>
     public void PlayEffect3D(
         AudioClip clip,
+        float SpecialVolume = 1f,
         float maxDistance = DefaultMax3dDistance,
         float minDistance = DefaultMin3dDistance,
         Transform owner = null,
         bool isLoop = false,
         UnityAction<AudioSource> callback = null)
     {
-        PlayEffectCore(clip, true, maxDistance, minDistance, owner, isLoop, callback);
+        PlayEffectCore(clip, true, SpecialVolume, maxDistance, minDistance, owner, isLoop, callback);
     }
 
     /// <summary>
-    /// 使用外部AudioSource播放音效（复用已有组件）
+    /// 使用外部AudioSource播放音效（复用已有组件，支持音量放大）
     /// </summary>
-    public void PlayEffect(AudioSource externalSource, bool isLoop = false, UnityAction<AudioSource> callback = null)
+    /// <param name="externalSource">外部AudioSource组件</param>
+    /// <param name="SpecialVolume">特殊音量（可>1放大，默认1f）</param>
+    /// <param name="isLoop">是否循环播放</param>
+    /// <param name="callback">播放完成回调</param>
+    public void PlayEffect(AudioSource externalSource, float SpecialVolume = 1f, bool isLoop = false, UnityAction<AudioSource> callback = null)
     {
         if (externalSource == null)
         {
@@ -428,7 +471,11 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
             return;
         }
 
-        // 音量计算
+        // 支持放大音量并限制最大值
+        float clampedVolume = Mathf.Clamp(SpecialVolume, 0f, MaxEffectAmplification);
+        SetSpecificEffectVolume(externalSource.clip.name, clampedVolume);
+
+        // 音量计算：特殊音量(可>1) * 全局音量(0-1)
         float specificVol = specificEffectVolumes.TryGetValue(externalSource.clip.name, out float vol) ? vol : 1f;
         externalSource.volume = specificVol * effectGlobalVolume;
         externalSource.loop = isLoop;
@@ -445,7 +492,6 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     #endregion
 
     #region 对音效的管理操作
-
     /// <summary>
     /// 清理已播放完成的非循环音效
     /// </summary>
@@ -472,6 +518,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     /// <summary>
     /// 停止指定音效并归还/销毁物体
     /// </summary>
+    /// <param name="source">要停止的音效AudioSource</param>
     public void StopEffect(AudioSource source)
     {
         if (source == null || !activeEffectSources.Contains(source))
@@ -488,6 +535,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     /// <summary>
     /// 暂停/继续所有活跃音效
     /// </summary>
+    /// <param name="isPause">true=暂停，false=继续</param>
     public void PauseOrResumeAllEffects(bool isPause)
     {
         foreach (var source in activeEffectSources)
@@ -502,17 +550,17 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
     #endregion
 
-    #region 音效的音量全局以及特殊控制
-
+    #region 音效的音量全局以及特殊控制（支持放大）
     /// <summary>
     /// 设置音效全局音量
     /// </summary>
+    /// <param name="value">0-1的音量值（统一控制所有音效的基础音量）</param>
     public void SetEffectGlobalVolume(float value)
     {
         effectGlobalVolume = Mathf.Clamp01(value);
         Debug.Log($"音效全局音量已设置为：{effectGlobalVolume}，活跃音效数：{activeEffectSources.Count}");
 
-        // 批量更新所有活跃音效音量
+        // 批量更新所有活跃音效音量（保留放大效果）
         foreach (var source in activeEffectSources)
         {
             if (source == null || source.clip == null) continue;
@@ -523,14 +571,20 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         }
     }
 
+    /// <summary>
+    /// 获取音效全局音量
+    /// </summary>
+    /// <returns>0-1的音量值</returns>
     public float GetEffectGlobalVolume()
     {
         return effectGlobalVolume;
     }
 
     /// <summary>
-    /// 设置指定音效的独立音量
+    /// 设置指定音效的独立音量（支持>1放大，受MaxEffectAmplification限制）
     /// </summary>
+    /// <param name="effectName">音效名称（对应AudioClip.name）</param>
+    /// <param name="volume">音量值（0~MaxEffectAmplification）</param>
     public void SetSpecificEffectVolume(string effectName, float volume)
     {
         if (string.IsNullOrEmpty(effectName))
@@ -539,27 +593,38 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
             return;
         }
 
-        volume = Mathf.Clamp01(volume);
+        // 限制音量范围：0 ~ 最大放大倍数
+        float clampedVolume = Mathf.Clamp(volume, 0f, MaxEffectAmplification);
+        if (volume != clampedVolume)
+        {
+            Debug.Log($"音效【{effectName}】音量{volume}已限制在0~{MaxEffectAmplification}");
+        }
+
         if (specificEffectVolumes.ContainsKey(effectName))
-            specificEffectVolumes[effectName] = volume;
+            specificEffectVolumes[effectName] = clampedVolume;
         else
-            specificEffectVolumes.Add(effectName, volume);
+            specificEffectVolumes.Add(effectName, clampedVolume);
 
         // 实时更新活跃的该音效音量
         foreach (var source in activeEffectSources)
         {
             if (source != null && source.clip != null && source.clip.name == effectName)
             {
-                source.volume = volume * effectGlobalVolume;
+                source.volume = clampedVolume * effectGlobalVolume;
             }
         }
     }
 
+    /// <summary>
+    /// 批量设置所有活跃音效的音量（快速调节）
+    /// </summary>
+    /// <param name="volume">音量值（0~MaxEffectAmplification）</param>
     public void AddAllSpecificEffectVolume(float volume)
     {
-        foreach (var valume in activeEffectSources)
+        float clampedVolume = Mathf.Clamp(volume, 0f, MaxEffectAmplification);
+        foreach (var source in activeEffectSources)
         {
-            valume.volume = volume * effectGlobalVolume;
+            source.volume = clampedVolume * effectGlobalVolume;
         }
     }
     #endregion
@@ -580,6 +645,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     /// <summary>
     /// 将音效物体归还对象池（预制体）或销毁（动态创建）
     /// </summary>
+    /// <param name="audioSource">音效的AudioSource组件</param>
     private void ReturnEffectToPool(AudioSource audioSource)
     {
         if (audioSource == null) return;
@@ -615,7 +681,6 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     // 标记动态创建的音效物体
     private class DynamicEffectMarker : MonoBehaviour { }
     #endregion
-
     #endregion
 
     #region 生命周期
@@ -638,9 +703,24 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     #endregion
 
     #region 只读属性
+    /// <summary>
+    /// 背景音乐是否正在播放
+    /// </summary>
     public bool IsBgmPlaying => backgroundAudioSource != null && backgroundAudioSource.isPlaying;
+
+    /// <summary>
+    /// 当前背景音乐全局音量
+    /// </summary>
     public float CurrentBgmGlobalVolume => bgmGlobalVolume;
+
+    /// <summary>
+    /// 当前音效全局音量
+    /// </summary>
     public float CurrentEffectGlobalVolume => effectGlobalVolume;
+
+    /// <summary>
+    /// 活跃音效数量
+    /// </summary>
     public int ActiveEffectCount => activeEffectSources.Count;
     #endregion
 }

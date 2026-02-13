@@ -172,6 +172,15 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""GunAim"",
+                    ""type"": ""Button"",
+                    ""id"": ""7ba6d8d5-0624-4559-8ac6-1626dd614fd8"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -273,6 +282,17 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                     ""action"": ""DiscardGun"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2ed57c8e-45cd-4350-9741-be3c9931b03a"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""GunAim"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -290,6 +310,7 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         m_Player_Reload = m_Player.FindAction("Reload", throwIfNotFound: true);
         m_Player_PickUpGun = m_Player.FindAction("PickUpGun", throwIfNotFound: true);
         m_Player_DiscardGun = m_Player.FindAction("DiscardGun", throwIfNotFound: true);
+        m_Player_GunAim = m_Player.FindAction("GunAim", throwIfNotFound: true);
     }
 
     ~@GameInput()
@@ -379,6 +400,7 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Reload;
     private readonly InputAction m_Player_PickUpGun;
     private readonly InputAction m_Player_DiscardGun;
+    private readonly InputAction m_Player_GunAim;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -426,6 +448,10 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/DiscardGun".
         /// </summary>
         public InputAction @DiscardGun => m_Wrapper.m_Player_DiscardGun;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/GunAim".
+        /// </summary>
+        public InputAction @GunAim => m_Wrapper.m_Player_GunAim;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -479,6 +505,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @DiscardGun.started += instance.OnDiscardGun;
             @DiscardGun.performed += instance.OnDiscardGun;
             @DiscardGun.canceled += instance.OnDiscardGun;
+            @GunAim.started += instance.OnGunAim;
+            @GunAim.performed += instance.OnGunAim;
+            @GunAim.canceled += instance.OnGunAim;
         }
 
         /// <summary>
@@ -517,6 +546,9 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
             @DiscardGun.started -= instance.OnDiscardGun;
             @DiscardGun.performed -= instance.OnDiscardGun;
             @DiscardGun.canceled -= instance.OnDiscardGun;
+            @GunAim.started -= instance.OnGunAim;
+            @GunAim.performed -= instance.OnGunAim;
+            @GunAim.canceled -= instance.OnGunAim;
         }
 
         /// <summary>
@@ -620,5 +652,12 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnDiscardGun(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "GunAim" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnGunAim(InputAction.CallbackContext context);
     }
 }

@@ -71,7 +71,7 @@ public class EquipmentConfigurationPanel : BasePanel
             PoolManage.Instance.PushObj(SlotButtonPrefabs, child.gameObject);
         }
 
-        RadioGroupManager.Instance.DestroyRadioGroup(SlotButtonGroupName);
+        ButtonGroupManager.Instance.DestroyRadioGroup(SlotButtonGroupName);
 
         //开始注册槽位按钮的点击事件
         for (int i = 0; i < PlayerAndGameInfoManger.Instance.MaxSlotCount; i++)//注册4个槽位按钮，后续可以根据需要进行修改
@@ -86,10 +86,10 @@ public class EquipmentConfigurationPanel : BasePanel
             var textComp = Obj.GetComponentInChildren<TextMeshProUGUI>();
             textComp.text = (i + 1).ToString();//对TextMesh组件进行赋值
 
-            RadioGroupManager.Instance.AddButtonToGroup_Str(SlotButtonGroupName, Obj.GetComponent<Button>(), SlotButtonTriggerEvent);
+            ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(SlotButtonGroupName, Obj.GetComponent<Button>(), SlotButtonTriggerEvent);
         }
 
-        RadioGroupManager.Instance.SelectFirstButtonInGroup(SlotButtonGroupName, true);
+        ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(SlotButtonGroupName, true);
     }
 
     //槽位按钮点击事件
@@ -160,7 +160,7 @@ public class EquipmentConfigurationPanel : BasePanel
     public void RegisterArmamentButton()
     {
         // 先清空旧的装备按钮组
-        RadioGroupManager.Instance.DestroyRadioGroup(ArmamentButtonGroupName);
+        ButtonGroupManager.Instance.DestroyRadioGroup(ArmamentButtonGroupName);
 
         // 校验控件是否存在，避免空引用
         if (!controlDic.ContainsKey("Gun_Button") || controlDic["Gun_Button"] is not Button gunBtn)
@@ -185,13 +185,13 @@ public class EquipmentConfigurationPanel : BasePanel
         }
 
         // 注册装备按钮（使用兼容的带参方法）
-        RadioGroupManager.Instance.AddButtonToGroup_Str(ArmamentButtonGroupName, gunBtn, ArmamentButtonTriggerEvent);
-        RadioGroupManager.Instance.AddButtonToGroup_Str(ArmamentButtonGroupName, tac1Btn, ArmamentButtonTriggerEvent);
-        RadioGroupManager.Instance.AddButtonToGroup_Str(ArmamentButtonGroupName, tac2Btn, ArmamentButtonTriggerEvent);
-        RadioGroupManager.Instance.AddButtonToGroup_Str(ArmamentButtonGroupName, armorBtn, ArmamentButtonTriggerEvent);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, gunBtn, ArmamentButtonTriggerEvent);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, tac1Btn, ArmamentButtonTriggerEvent);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, tac2Btn, ArmamentButtonTriggerEvent);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, armorBtn, ArmamentButtonTriggerEvent);
 
         // 手动选中第一个装备按钮
-        RadioGroupManager.Instance.SelectFirstButtonInGroup(ArmamentButtonGroupName, true);
+        ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(ArmamentButtonGroupName, true);
     }
 
     //装备按钮点击事件

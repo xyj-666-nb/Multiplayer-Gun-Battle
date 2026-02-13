@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 动画音效控制器
 /// 支持10组音效轨道，可通过动画事件调用，支持2D/3D音效
-/// 【优化后】兼容MusicManager的effectPrefab未赋值场景
+/// 【适配新版MusicManager】支持音量放大（SpecialVolume可>1），修复参数传递错误
 /// </summary>
 public class AnimatorSoundController : MonoBehaviour
 {
@@ -42,15 +42,14 @@ public class AnimatorSoundController : MonoBehaviour
     [Header("=== 全局播放配置 ===")]
     [Tooltip("默认是否循环播放")]
     public bool DefaultIsLoop = false;
-    [Tooltip("默认音效音量缩放（0-1，叠加全局音量）")]
-    [Range(0f, 1f)] public float DefaultVolumeScale = 1f;
+    [Tooltip("默认音效音量缩放（可>1放大，叠加全局音量）")]
+    public float DefaultVolumeScale = 1f; // 移除0-1限制，支持放大
     [Tooltip("3D音效默认最大衰减距离")]
     public float Default3dMaxDistance = 10f;
     [Tooltip("3D音效默认最小无衰减距离")]
     public float Default3dMinDistance = 1f;
     [Tooltip("3D音效是否跟随当前物体")]
     public bool Is3dSoundFollowOwner = true;
-
     #endregion
 
     #region 初始化
@@ -80,6 +79,7 @@ public class AnimatorSoundController : MonoBehaviour
     #region 核心播放逻辑
     /// <summary>
     /// 播放2D音效（对外/动画事件调用）
+    /// 适配新版MusicManager：SpecialVolume参数优先，自动处理音量放大
     /// </summary>
     private void Play2DSound(AudioClip clip, int trackNumber, bool? isLoop = null, float? volumeScale = null)
     {
@@ -106,28 +106,23 @@ public class AnimatorSoundController : MonoBehaviour
         // 停止当前轨道已有音效
         StopSingleTrackSound(cacheIndex);
 
-        // 配置参数
+        // 配置参数（volumeScale支持>1放大）
         bool loop = isLoop ?? DefaultIsLoop;
-        float volScale = Mathf.Clamp01(volumeScale ?? DefaultVolumeScale);
-
-        // 调用MusicManager播放（提前设置音量缩放）
-        MusicManager.Instance.SetSpecificEffectVolume(clip.name, volScale);
-        MusicManager.Instance.PlayEffect(clip, loop, (source) =>
+        float volScale = volumeScale ?? DefaultVolumeScale; // 移除0-1限制，交给MusicManager限制
+        MusicManager.Instance.PlayEffect(clip, volScale, loop, (source) =>
         {
             if (source == null)
             {
                 Debug.LogWarning($"轨道{trackNumber}：音效播放回调返回空AudioSource", this);
                 return;
             }
-
-            // 确保音量正确（叠加全局音量）
-            source.volume = volScale * MusicManager.Instance.CurrentEffectGlobalVolume;
             _trackAudioSources[cacheIndex] = source;
         });
     }
 
     /// <summary>
     /// 播放3D音效
+    /// 适配新版MusicManager：修正PlayEffect3D参数顺序，支持音量放大
     /// </summary>
     private void Play3DSound(AudioClip clip, int trackNumber, float? max3dDistance = null, float? min3dDistance = null, bool? isLoop = null, float? volumeScale = null)
     {
@@ -154,29 +149,20 @@ public class AnimatorSoundController : MonoBehaviour
 
         // 配置参数
         bool loop = isLoop ?? DefaultIsLoop;
-        float volScale = Mathf.Clamp01(volumeScale ?? DefaultVolumeScale);
+        float volScale = volumeScale ?? DefaultVolumeScale; // 支持>1放大
         float maxDist = max3dDistance ?? Default3dMaxDistance;
         float minDist = min3dDistance ?? Default3dMinDistance;
+        Transform owner = Is3dSoundFollowOwner ? _selfTransform : null;
 
-        // 调用MusicManager播放3D音效（提前设置音量缩放）
-        MusicManager.Instance.SetSpecificEffectVolume(clip.name, volScale);
-        MusicManager.Instance.PlayEffect3D(
-            clip,
-            maxDist,
-            minDist,
-            Is3dSoundFollowOwner ? _selfTransform : null,
-            loop,
-            (source) =>
+        MusicManager.Instance.PlayEffect3D(clip, volScale, maxDist, minDist, owner, loop, (source) =>
+        {
+            if (source == null)
             {
-                if (source == null)
-                {
-                    Debug.LogWarning($"轨道{trackNumber}：3D音效播放回调返回空AudioSource", this);
-                    return;
-                }
-
-                source.volume = volScale * MusicManager.Instance.CurrentEffectGlobalVolume;
-                _trackAudioSources[cacheIndex] = source;
-            });
+                Debug.LogWarning($"轨道{trackNumber}：3D音效播放回调返回空AudioSource", this);
+                return;
+            }
+            _trackAudioSources[cacheIndex] = source;
+        });
     }
     #endregion
 
@@ -240,7 +226,7 @@ public class AnimatorSoundController : MonoBehaviour
     public void PlaySound9(bool isLoop = false) => Play2DSound(SoundClip9, 9, isLoop);
     public void PlaySound10(bool isLoop = false) => Play2DSound(SoundClip10, 10, isLoop);
 
-    // 带音量缩放的2D播放
+    // 带音量缩放的2D播放（支持>1放大）
     public void PlaySound1WithVolume(float volumeScale) => Play2DSound(SoundClip1, 1, DefaultIsLoop, volumeScale);
     public void PlaySound2WithVolume(float volumeScale) => Play2DSound(SoundClip2, 2, DefaultIsLoop, volumeScale);
     public void PlaySound3WithVolume(float volumeScale) => Play2DSound(SoundClip3, 3, DefaultIsLoop, volumeScale);
@@ -265,7 +251,7 @@ public class AnimatorSoundController : MonoBehaviour
     public void PlaySound9_3D(bool isLoop = false) => Play3DSound(SoundClip9, 9, null, null, isLoop);
     public void PlaySound10_3D(bool isLoop = false) => Play3DSound(SoundClip10, 10, null, null, isLoop);
 
-    // 自定义3D参数播放
+    // 自定义3D参数播放（支持音量放大）
     public void PlaySound1_3D(float max3dDistance, float min3dDistance, float volumeScale) => Play3DSound(SoundClip1, 1, max3dDistance, min3dDistance, DefaultIsLoop, volumeScale);
     public void PlaySound2_3D(float max3dDistance, float min3dDistance, float volumeScale) => Play3DSound(SoundClip2, 2, max3dDistance, min3dDistance, DefaultIsLoop, volumeScale);
     public void PlaySound3_3D(float max3dDistance, float min3dDistance, float volumeScale) => Play3DSound(SoundClip3, 3, max3dDistance, min3dDistance, DefaultIsLoop, volumeScale);
@@ -348,4 +334,4 @@ public class AnimatorSoundController : MonoBehaviour
         }
     }
     #endregion
-}
+} 

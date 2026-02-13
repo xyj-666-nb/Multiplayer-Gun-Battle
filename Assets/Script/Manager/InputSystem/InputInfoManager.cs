@@ -921,6 +921,8 @@ public class InputInfo
         KeyInfoDict.Add("Reload", "<Keyboard>/r");
         KeyInfoDict.Add("PickUpGun", "<Keyboard>/h");
         KeyInfoDict.Add("DiscardGun", "<Keyboard>/t");
+        KeyInfoDict.Add("GunAim", "<Mouse>/RightButton");
+
 
         // 更新名字列表（用于ChangeKey替换占位符）
         foreach (string keyName in KeyInfoDict.Keys)
@@ -1066,4 +1068,5 @@ public enum E_InputAction
     Reload,//换弹
     PickUpGun,//捡起枪械
     DiscardGun,//丢弃枪械
+    GunAim,//枪械瞄准
 }

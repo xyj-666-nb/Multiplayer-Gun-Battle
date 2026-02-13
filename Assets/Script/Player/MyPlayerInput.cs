@@ -39,6 +39,7 @@ public class MyPlayerInput : NetworkBehaviour
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.Reload, Reload_start, null, null);
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.PickUpGun, PickUpGnn_Start, null, null);
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.DiscardGun, DiscardGun_Start, null, null);
+            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.GunAim, GunAim_Start, null, GunAim_End);
             Debug.Log("MyPlayerInput：本地玩家输入事件绑定成功！");
         }
     }
@@ -51,10 +52,15 @@ public class MyPlayerInput : NetworkBehaviour
         if (!isLocalPlayer || !IsCanJump)
             return;
 
+        // 判断是否处于瞄准状态（防空指针）
+        float jumpPower = Myplayer.MyHandControl != null && Myplayer.MyHandControl.IsEnterAim
+            ? MyStats.AimJumpPower
+            : MyStats.JumpPower;
+
         if (Myplayer.currentGun != null && Myplayer.currentGun.IsInShoot)
-            Myplayer.MyRigdboby.AddForce(new Vector2(0, MyStats.JumpPower / 2), ForceMode2D.Impulse);//跳跃力变小
+            Myplayer.MyRigdboby.AddForce(new Vector2(0, jumpPower / 2), ForceMode2D.Impulse);//跳跃力变小
         else
-            Myplayer.MyRigdboby.AddForce(new Vector2(0, MyStats.JumpPower), ForceMode2D.Impulse);
+            Myplayer.MyRigdboby.AddForce(new Vector2(0, jumpPower), ForceMode2D.Impulse);
 
         IsCanJump = false;
         CountDownManager.Instance.CreateTimer(false, 100, () => { IsJumpCheck = true; });
@@ -101,7 +107,11 @@ public class MyPlayerInput : NetworkBehaviour
         if (!isLocalPlayer)
             return;
 
-        float finalMovePower = MyStats.movePower;
+        // 判断是否处于瞄准状态
+        float finalMovePower = Myplayer.MyHandControl != null && Myplayer.MyHandControl.IsEnterAim
+            ? MyStats.AimMovePower
+            : MyStats.movePower;
+
         if (Myplayer.currentGun != null && Myplayer.currentGun.IsInShoot)
         {
             finalMovePower /= 4;
@@ -116,7 +126,11 @@ public class MyPlayerInput : NetworkBehaviour
         Myplayer.MyRigdboby.AddForce(new Vector2(moveDirection * applyPower, 0), ForceMode2D.Impulse);
 
         float currentXVelocity = Myplayer.MyRigdboby.velocity.x;
-        float dynamicMaxSpeed = MyStats.MaxXSpeed;
+        // 判断是否处于瞄准状态
+        float dynamicMaxSpeed = Myplayer.MyHandControl != null && Myplayer.MyHandControl.IsEnterAim
+            ? MyStats.AimMoveMaxSpeed
+            : MyStats.MaxXSpeed;
+
         // 射击状态 → 最大速度减半
         if (Myplayer.currentGun != null && Myplayer.currentGun.IsInShoot)
         {
@@ -163,7 +177,7 @@ public class MyPlayerInput : NetworkBehaviour
             return;
 
         //判断射击条件,如果是连发枪就自动检测并自动触发射击
-        if(Myplayer.currentGun.IsCanShoot())
+        if (Myplayer.currentGun.IsCanShoot())
         {
             Myplayer.currentGun.TriggerSingleShoot();//触发射击
         }
@@ -199,7 +213,7 @@ public class MyPlayerInput : NetworkBehaviour
     #region 丢弃枪械控制逻辑
     public void DiscardGun_Start(InputAction.CallbackContext Content)
     {
-        if (!isLocalPlayer)
+        if (!isLocalPlayer || Myplayer.MyHandControl.IsEnterAim)
             return;
 
         Debug.Log("正在判断丢弃条件");
@@ -209,6 +223,47 @@ public class MyPlayerInput : NetworkBehaviour
             Myplayer.DropCurrentGun();//丢弃当前的枪械
         }
     }
+    #endregion
+
+    #region 枪械瞄准控制逻辑
+
+    private int ViewTaskID;//视野缩放任务ID
+    private float ChangeSpeed_View = 4;//缩放视野的速度
+    public void GunAim_Start(InputAction.CallbackContext Content)
+    {
+        if (!isLocalPlayer || Myplayer.currentGun == null)
+            return;
+
+        Debug.Log("进入瞄准状态");
+        //触发枪进入瞄准状态
+        Myplayer.currentGun.ChangeAimState(true);
+        //手动触发toggle按钮
+        ButtonGroupManager.Instance.ManualSelectToggleButton(PlayerPanel.GetAimButtonButtonGroupName());
+        //触发手部进入瞄准状态
+        Myplayer.MyHandControl.SetAimState(true);
+        //缩放视野
+        MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
+        ViewTaskID = MyCameraControl.Instance.AddZoomTask_ByPercent_TemporaryManual(1 + Myplayer.myStats.AimViewBonus, ChangeSpeed_View);//通过数据进行缩放
+
+    }
+
+    public void GunAim_End(InputAction.CallbackContext Content)
+    {
+        if (!isLocalPlayer || Myplayer.currentGun == null)
+            return;
+
+        Debug.Log("退出瞄准状态");
+        //触发枪退出瞄准状态
+        Myplayer.currentGun.ChangeAimState(false);
+        //手动退出触发toggle按钮
+        ButtonGroupManager.Instance.ManualCancelToggleButton(PlayerPanel.GetAimButtonButtonGroupName());
+        //触发手部退出瞄准状态
+        Myplayer.MyHandControl.SetAimState(false);
+        //停止任务
+        MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
+
+    }
+
     #endregion
 
     private void Update()

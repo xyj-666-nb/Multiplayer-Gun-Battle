@@ -21,13 +21,14 @@ MonoBehaviour:
   Bullet_capacity: 35
   AllBulletAmount: 120
   RateOfFires: 0
-  Accuracy: 12.5
+  Accuracy: 30
   Damage: 32.8
   Range: 206
   ReloadTime: 0
   BulletSpeed: 0
   Recoil: 0.8
   Recoil_Enemy: 0
+  ViewRange: 0
   GunBodySprite: {fileID: 736023393, guid: f903074fba20ebf42af25fff2e61267e, type: 3}
   ShootAudio: {fileID: 8300000, guid: 78b15d76911d5fd4a9e9ac19c48e3b70, type: 3}
   BulletFill: {fileID: 0}
