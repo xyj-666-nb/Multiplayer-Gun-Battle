@@ -18,7 +18,9 @@ public class ArmamentPack
 public class SlotInfoPack
 {
     public GunInfo CurrentGunInfo;//当前枪械信息
-    //然后就是战术道具1，2以及护甲信息类了(这里先放着)
+    //然后就是战术道具1，2以及护甲信息类了
+    public TacticInfo CurrentTactic_1Info;//当前战术道具1信息
+    public TacticInfo CurrentTactic_2Info;//当前战术道具2信息
 }
 
 public class EquipmentConfigurationPanel : BasePanel
@@ -102,7 +104,6 @@ public class EquipmentConfigurationPanel : BasePanel
         {
             Debug.Log($"从按钮名称解析：{ButtonName} → {slotNum}");
         }
-        // 方式2：名称解析失败，从按钮文本解析（兼容预制体名称问题）
         else
         {
             Debug.Log($"尝试从按钮文本解析数字（名称解析失败）");
@@ -202,12 +203,15 @@ public class EquipmentConfigurationPanel : BasePanel
         {
             case "Gun_Button":
                 //点击了枪械按钮，进行相应的逻辑处理
+                EquipmentDescriptionText.text = _currentSlotInfoPack.CurrentGunInfo.description;//更新描述文本
                 break;
             case "Tactic1_Button":
                 //点击了战术道具1按钮，进行相应的逻辑处理
+                EquipmentDescriptionText.text = _currentSlotInfoPack.CurrentTactic_1Info.Description;//更新描述文本
                 break;
             case "Tactic2_Button":
                 //点击了战术道具2按钮，进行相应的逻辑处理
+                EquipmentDescriptionText.text = _currentSlotInfoPack.CurrentTactic_2Info.Description;//更新描述文本
                 break;
             case "Armor_Button":
                 //点击了护甲按钮，进行相应的逻辑处理
@@ -237,6 +241,18 @@ public class EquipmentConfigurationPanel : BasePanel
         GunInfoPack.NameText.text = slotInfoPack.CurrentGunInfo.Name;//更新名称
         GunInfoPack.IconImage.sprite = slotInfoPack.CurrentGunInfo.GunSprite;//更新图标
         //更新战术道具
+        if (slotInfoPack.CurrentTactic_1Info != null)
+        {
+            Tactical_1_InfoPack.NameText.text = slotInfoPack.CurrentTactic_1Info.Name;
+            Tactical_1_InfoPack.IconImage.sprite = slotInfoPack.CurrentTactic_1Info.UISprite;
+        }
+
+        if (slotInfoPack.CurrentTactic_2Info != null)
+        {
+            Tactical_2_InfoPack.NameText.text = slotInfoPack.CurrentTactic_2Info.Name;
+            Tactical_2_InfoPack.IconImage.sprite = slotInfoPack.CurrentTactic_2Info.UISprite;
+        }
+
         //更新护甲
     }
 
@@ -246,7 +262,7 @@ public class EquipmentConfigurationPanel : BasePanel
         base.Awake();
         initArmamentPack();// 初始化信息包的描述文本引用
         RegisterSlotButton();//注册槽位按钮
-        RegisterArmamentButton();// 补充：注册装备按钮（原代码遗漏）
+        RegisterArmamentButton();//注册装备按钮
     }
 
     public override void Start()

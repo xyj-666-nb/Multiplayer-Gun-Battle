@@ -5,6 +5,9 @@ public class Player : Base_Entity
 {
     public static Player LocalPlayer { get; private set; }
 
+    [Header("自己的身体")]
+    public GameObject MyBody; // 只缩放这个物体
+
     [Header("核心组件")]
     public playerStats myStats;
     private MyPlayerInput myInputSystem;
@@ -18,12 +21,58 @@ public class Player : Base_Entity
     [Header("当前玩家触碰到的枪械")]
     public BaseGun CurrentTouchGun;
 
+    [Header("准备状态")]
+    [SyncVar]
+    public bool IsPrepara = false;
+
+    public void ChangePreparaState(bool State)
+    {
+        if (!isLocalPlayer) return;
+        CmdChangePreparaState(State);
+    }
+
+    [Command]
+    public void CmdChangePreparaState(bool State)
+    {
+        IsPrepara = State;
+
+        if (PlayerRespawnManager.Instance != null)
+        {
+            PlayerRespawnManager.Instance.ServerHandlePlayerPrepareChange(connectionToClient, State);
+        }
+    }
+
+    [SyncVar]
+    public string PlayerName;
+
+    [SyncVar]
+    public Team CurrentTeam;//当前队伍
+
+    [Command]
+    public void ChangeTeam()//改变队伍
+    {
+        string teaName = null;
+        if (CurrentTeam == Team.Red)
+        {
+            CurrentTeam = Team.Blue;
+            teaName = "蓝队";
+        }
+        else
+        {
+            CurrentTeam = Team.Red;
+            teaName = "红队";
+        }
+        //全局播报
+        PlayerRespawnManager.Instance.SendGlobalMessage(PlayerName + "加入" + teaName, 1f);//进行一下播报
+
+    }
+
     #region 缩放动画配置
-    private float currentYScale;
+    private float currentYScale; // 仅作用于MyBody的Y轴缩放
     private float targetYStretch;
     public float mainLerpSpeed = 2f;
     public float maxLerpSpeed = 15f;
-    private Vector2 baseScale;
+    private Vector2 baseBodyScale; // 改为记录MyBody的初始缩放
     #endregion
 
     #region Mirror生命周期
@@ -41,6 +90,12 @@ public class Player : Base_Entity
         MyRigdboby.drag = 0.3f;
         MyRigdboby.gravityScale = 1f;
         Debug.Log($"[服务器] 初始化玩家{gameObject.name}刚体为Dynamic");
+
+        if (string.IsNullOrEmpty(PlayerName))
+        {
+            PlayerName = $"玩家{connectionToClient.connectionId}";
+            Debug.Log($"[服务器] 玩家{connectionToClient.connectionId}名称兜底：{PlayerName}");
+        }
     }
 
     public override void OnStartLocalPlayer()
@@ -48,6 +103,13 @@ public class Player : Base_Entity
         base.OnStartLocalPlayer();
         LocalPlayer = this;
         Debug.Log($"[本地客户端] 初始化本地玩家：{gameObject.name}");
+
+        string localName = Main.PlayerName; // 你的本地名称
+        if (string.IsNullOrEmpty(localName))
+        {
+            localName = $"玩家{Random.Range(1000, 9999)}"; // 本地兜底
+        }
+        CmdSyncPlayerName(localName); // 同步到服务端
 
         myStats = GetComponent<playerStats>();
         myInputSystem = GetComponent<MyPlayerInput>();
@@ -63,6 +125,7 @@ public class Player : Base_Entity
             Debug.Log("Player：本地玩家输入系统初始化完成！");
         }
         MyHandControl = playerHandPos.GetComponent<playerHandControl>();
+        MyHandControl.ownerPlayer = LocalPlayer;
     }
 
     public override void OnStopLocalPlayer()
@@ -73,20 +136,48 @@ public class Player : Base_Entity
     }
     #endregion
 
+    #region 名称同步Command（核心新增）
+    /// <summary>
+    /// 客户端请求服务端同步玩家名称
+    /// </summary>
+    [Command(requiresAuthority = false)]
+    private void CmdSyncPlayerName(string newName)
+    {
+        // 服务端校验名称合法性
+        if (string.IsNullOrEmpty(newName))
+        {
+            newName = $"玩家{connectionToClient.connectionId}";
+        }
+        // 服务端修改SyncVar，自动同步到所有客户端
+        PlayerName = newName;
+        Debug.Log($"[服务器] 同步玩家{connectionToClient.connectionId}名称：{newName}");
+    }
+
+    private void Update()
+    {
+        PlayerMoveStretchAnima();//应用缩放动画
+    }
+    #endregion
+
     #region 初始化
     public override void Awake()
     {
         base.Awake();
-        baseScale = transform.localScale;
-        currentYScale = baseScale.y;
         MyRigdboby = GetComponent<Rigidbody2D>();
-    }
-    #endregion
 
-    #region 动画更新
-    private void Update()
-    {
-        PlayerMoveStretchAnima();
+        if (MyBody != null)
+        {
+            baseBodyScale = MyBody.transform.localScale;
+            currentYScale = baseBodyScale.y; // 初始Y轴缩放
+        }
+        else
+        {
+            Debug.LogError($"[Player] {gameObject.name} 的MyBody未赋值！", this);
+            baseBodyScale = Vector2.one;
+            currentYScale = 1f;
+        }
+
+        transform.localScale = Vector3.one;
     }
     #endregion
 
@@ -102,32 +193,33 @@ public class Player : Base_Entity
         if (isGroundMove)
         {
             float bumpyOffset = Mathf.Sin(Time.time * myStats.MoveBumpySpeed) * myStats.MoveBumpyRange;
-            targetYStretch = baseScale.y + bumpyOffset;
+            targetYStretch = baseBodyScale.y + bumpyOffset;
             currentYScale = Mathf.Lerp(currentYScale, targetYStretch, 5f * Time.deltaTime);
         }
         else if (isJumpStretch)
         {
             float ySpeedRatio = Mathf.Abs(currentYVel) / myStats.MaxYSpeed;
-            targetYStretch = baseScale.y + ySpeedRatio * myStats.MaxYStretch;
+            targetYStretch = baseBodyScale.y + ySpeedRatio * myStats.MaxYStretch;
 
             float scaleDelta = Mathf.Abs(targetYStretch - currentYScale);
             float dynamicLerpSpeed = Mathf.Lerp(mainLerpSpeed, maxLerpSpeed, ySpeedRatio + scaleDelta * 2f);
             currentYScale = Mathf.Lerp(currentYScale, targetYStretch, dynamicLerpSpeed * Time.deltaTime);
-            currentYScale = Mathf.Max(currentYScale, baseScale.y * 0.8f);
+            currentYScale = Mathf.Max(currentYScale, baseBodyScale.y * 0.8f);
         }
         else
         {
-            targetYStretch = baseScale.y;
+            targetYStretch = baseBodyScale.y;
             currentYScale = Mathf.Lerp(currentYScale, targetYStretch, 2f * Time.deltaTime);
         }
 
-        transform.localScale = new Vector3(transform.localScale.x, currentYScale, transform.localScale.z);
+        Vector3 bodyScale = MyBody.transform.localScale;
+        bodyScale.x = Mathf.Sign(bodyScale.x) * Mathf.Abs(baseBodyScale.x);
+        bodyScale.y = currentYScale; // 动态修改Y轴缩放
+        MyBody.transform.localScale = bodyScale;
     }
     #endregion
 
     #region 枪械管理
-    // 钩子仅做「挂载/解挂载」，刚体状态由BaseGun的SyncVar钩子自动同步
-
     private int ViewTaskID = -1;//当前视野提升任务ID
     private float ChangeSpeed_View = 4;//视野变化速度
     private void OnGunChanged(BaseGun oldGun, BaseGun newGun)
@@ -145,15 +237,16 @@ public class Player : Base_Entity
         {
             // 客户端：强制枪械X缩放为负
             Vector3 gunScale = newGun.transform.localScale;
-            gunScale.x = -Mathf.Abs(gunScale.x); // 核心：强制X轴为负
+            gunScale.x = -Mathf.Abs(gunScale.x);
             newGun.transform.localScale = gunScale;
 
             newGun.transform.SetParent(playerHandPos); // 仅挂载
+            gunScale.x = -Mathf.Abs(gunScale.x);
+            newGun.transform.localScale = gunScale;
             newGun.transform.localPosition = Vector3.zero;
             newGun.transform.localRotation = Quaternion.identity;
             EventCenter.Instance.TriggerEvent(E_EventType.E_playerGetGun, this);
         }
-
 
         if (!isLocalPlayer) return;
 
@@ -231,7 +324,7 @@ public class Player : Base_Entity
     {
         if (!isLocalPlayer)
             return;
-        if (GunManager.Instance == null)
+        if (MilitaryManager.Instance == null)
             return;
 
         LocalPlayer.CmdSpawnAndPickGun(gunName);
@@ -244,9 +337,9 @@ public class Player : Base_Entity
     [Command]
     private void CmdSpawnAndPickGun(string gunName)
     {
-        if (!isServer || GunManager.Instance == null) return;
+        if (!isServer || MilitaryManager.Instance == null) return;
 
-        GameObject gunPrefab = GunManager.Instance.GetGun(gunName);
+        GameObject gunPrefab = MilitaryManager.Instance.GetGun(gunName);
         if (gunPrefab == null) return;
 
         GameObject gunObj = Instantiate(gunPrefab);
@@ -358,10 +451,41 @@ public class Player : Base_Entity
         }
     }
 
-
     private void ServerDestroy()
     {
         NetworkServer.Destroy(gameObject);
     }
     #endregion
+
+    public string GetDisplayName()
+    {
+        if (!string.IsNullOrEmpty(PlayerName))
+        {
+            return PlayerName;
+        }
+        if (isServer)
+        {
+            return $"玩家{connectionToClient?.connectionId ?? -1}";
+        }
+        else
+        {
+            return Main.PlayerName ?? $"玩家{Random.Range(1000, 9999)}";
+        }
+    }
+
+    public void RequestRefreshTeamUI()
+    {
+        if (!isLocalPlayer) return;
+        CmdTellServerToRefreshTeam();
+    }
+
+    [Command]
+    private void CmdTellServerToRefreshTeam()
+    {
+        // 服务器逻辑：直接让管理器刷新
+        if (PlayerRespawnManager.Instance != null)
+        {
+            PlayerRespawnManager.Instance.ServerUpdateTeamInfo();
+        }
+    }
 }

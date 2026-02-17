@@ -47,7 +47,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     /// <summary>
     /// 播放背景音乐
     /// </summary>
-    /// <param name="audioPath">背景音乐资源路径（null则继续播放当前音乐）</param>
+    /// <param name="audioPath">背景音乐资源路径</param>
     public void PlayBgm(string audioPath = null)
     {
         SetBgmGlobalVolume(1f);
@@ -225,6 +225,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     /// <param name="owner">音效跟随的父物体</param>
     /// <param name="isLoop">是否循环播放</param>
     /// <param name="callback">播放完成回调</param>
+    /// <param name="isDetach">是否分离播放（默认true：仅赋值位置，不跟随物体运动）</param>
     private void PlayEffectCore(
         AudioClip clip,
         bool is3d,
@@ -233,7 +234,8 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         float min3dDistance = DefaultMin3dDistance,
         Transform owner = null,
         bool isLoop = false,
-        UnityAction<AudioSource> callback = null)
+        UnityAction<AudioSource> callback = null,
+        bool isDetach = true) // 新增：是否分离播放参数
     {
         if (clip == null)
         {
@@ -242,7 +244,6 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
             return;
         }
 
-        // 核心修改：支持放大音量并限制最大值
         float clampedVolume = Mathf.Clamp(SpecialVolume, 0f, MaxEffectAmplification);
         if (SpecialVolume > MaxEffectAmplification)
         {
@@ -252,8 +253,6 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         {
             Debug.Log($"为音效【{clip.name}】设置放大音量：{clampedVolume}倍");
         }
-
-        // 自动设置特殊音量（支持放大）
         SetSpecificEffectVolume(clip.name, clampedVolume);
 
         GameObject effectObj = null;
@@ -306,7 +305,8 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         Debug.Log($"音效【{clip.name}】最终音量：{finalVolume} (特殊音量{specificVol} × 全局音量{effectGlobalVolume})");
 
         if (is3d)
-            Configure3dEffect(effectObj, audioSource, max3dDistance, min3dDistance, owner);
+            // 传递新增的isDetach参数
+            Configure3dEffect(effectObj, audioSource, max3dDistance, min3dDistance, owner, isDetach);
         else
             audioSource.spatialBlend = 0f;//2D音效：关闭3D空间混合
 
@@ -331,7 +331,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     /// <summary>
     /// 配置3D音效参数
     /// </summary>
-    private void Configure3dEffect(GameObject effectObj, AudioSource audioSource, float maxDistance, float minDistance, Transform owner)
+    private void Configure3dEffect(GameObject effectObj, AudioSource audioSource, float maxDistance, float minDistance, Transform owner, bool isDetach)
     {
         // 参数合法性校验
         minDistance = Mathf.Max(0.1f, minDistance);
@@ -343,18 +343,33 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         audioSource.maxDistance = maxDistance;
         audioSource.rolloffMode = AudioRolloffMode.Logarithmic; // 对数衰减（更自然）
 
-        // 2D游戏适配：固定Z轴为0
-        Vector3 pos = effectObj.transform.position;
-        pos.z = 0f;
-        effectObj.transform.position = pos;
-
-        // 父物体跟随逻辑
         if (owner != null)
         {
-            effectObj.transform.SetParent(owner);
-            Vector3 localPos = effectObj.transform.localPosition;
-            localPos.z = 0f;
-            effectObj.transform.localPosition = localPos;
+
+            effectObj.transform.position = owner.position;
+            Vector3 pos = effectObj.transform.position;
+            pos.z = 0f;
+            effectObj.transform.position = pos;
+
+            if (!isDetach)
+            {
+                effectObj.transform.SetParent(owner);
+                // 设为子对象后，本地位置Z轴也固定0
+                Vector3 localPos = effectObj.transform.localPosition;
+                localPos.z = 0f;
+                effectObj.transform.localPosition = localPos;
+            }
+            else
+            {
+                effectObj.transform.SetParent(null);
+            }
+        }
+        else
+        {
+            // 无owner时，固定Z轴为0
+            Vector3 pos = effectObj.transform.position;
+            pos.z = 0f;
+            effectObj.transform.position = pos;
         }
     }
     #endregion
@@ -392,6 +407,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     /// <param name="owner">音效跟随的父物体</param>
     /// <param name="isLoop">是否循环播放</param>
     /// <param name="callback">播放完成回调</param>
+    /// <param name="isDetach">是否分离播放（默认true：仅赋值位置，不跟随物体运动）</param>
     public void PlayEffect3D(
         string clipPath,
         float SpecialVolume = 1f,
@@ -399,7 +415,8 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         float minDistance = DefaultMin3dDistance,
         Transform owner = null,
         bool isLoop = false,
-        UnityAction<AudioSource> callback = null)
+        UnityAction<AudioSource> callback = null,
+        bool isDetach = true) // 新增：是否分离播放参数
     {
         if (string.IsNullOrEmpty(clipPath))
         {
@@ -410,7 +427,8 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
 
         ResourcesManager.Instance.LoadAsync<AudioClip>(clipPath, (clip) =>
         {
-            PlayEffectCore(clip, true, SpecialVolume, maxDistance, minDistance, owner, isLoop, callback);
+            // 传递isDetach参数
+            PlayEffectCore(clip, true, SpecialVolume, maxDistance, minDistance, owner, isLoop, callback, isDetach);
         });
     }
 
@@ -436,6 +454,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     /// <param name="owner">音效跟随的父物体</param>
     /// <param name="isLoop">是否循环播放</param>
     /// <param name="callback">播放完成回调</param>
+    /// <param name="isDetach">是否分离播放（默认true：仅赋值位置，不跟随物体运动）</param>
     public void PlayEffect3D(
         AudioClip clip,
         float SpecialVolume = 1f,
@@ -443,9 +462,10 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         float minDistance = DefaultMin3dDistance,
         Transform owner = null,
         bool isLoop = false,
-        UnityAction<AudioSource> callback = null)
+        UnityAction<AudioSource> callback = null,
+        bool isDetach = true) // 新增：是否分离播放参数
     {
-        PlayEffectCore(clip, true, SpecialVolume, maxDistance, minDistance, owner, isLoop, callback);
+        PlayEffectCore(clip, true, SpecialVolume, maxDistance, minDistance, owner, isLoop, callback, isDetach);
     }
 
     /// <summary>
@@ -581,7 +601,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
 
     /// <summary>
-    /// 设置指定音效的独立音量（支持>1放大，受MaxEffectAmplification限制）
+    /// 设置指定音效的独立音量
     /// </summary>
     /// <param name="effectName">音效名称（对应AudioClip.name）</param>
     /// <param name="volume">音量值（0~MaxEffectAmplification）</param>

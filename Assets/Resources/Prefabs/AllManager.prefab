@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5326477065670380877}
-  - component: {fileID: 7884197409869309439}
+  - component: {fileID: 4304282044621496677}
   m_Layer: 0
-  m_Name: GunManager
+  m_Name: MilitaryManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32,29 +32,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7581783425411039948}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7884197409869309439
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 8174484406913788005, guid: cd541ae192c2096498d00668537c610f, type: 3}
-  m_PrefabInstance: {fileID: 3838017315978040264}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3295339137330384401}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6bfd46c77f1248746b64665b7b95e148, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  GunsPrefabsList:
-  - {fileID: 4705358907229068263, guid: fead9ed91aadd8f439f8e1c44c2d9c60, type: 3}
-  - {fileID: 4499994771272735462, guid: 22be9f3fc596725449680dd4efb3c9c8, type: 3}
-  - {fileID: 4059803627240856160, guid: 58434604cfda31b4a9a9e42efad3a54b, type: 3}
-  - {fileID: 8559067242662709950, guid: f5eeaeb513e843f4980cb6c86f0deefb, type: 3}
-  - {fileID: 527552312434959365, guid: 9d1a9d38c521dc1438cc7bc9bd76ec97, type: 3}
-  - {fileID: 1482035268917753946, guid: b721e66c3fe7a6e4aa2095b33635905f, type: 3}
-  - {fileID: 4510920658087047655, guid: e15cf7d0fcb58ac4f8154ea84d4c01e5, type: 3}
-  - {fileID: 4958869702410040120, guid: 6e9c272311baeb549abd98db98e520e8, type: 3}
-  - {fileID: 6102976931771197045, guid: 9e5f131db97e80447b3e914ab36cdc23, type: 3}
-  - {fileID: 3347391349394437254, guid: a1b7fc23e5142bc4999f696adbd98889, type: 3}
 --- !u!1 &3408886700625227643
 GameObject:
   m_ObjectHideFlags: 0
@@ -143,6 +120,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 753b3d137f6aae44a9ff04e75978fe00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MaxSlotCount: 4
+  PlayerSlotInfoPacksList:
+  - CurrentGunInfo: {fileID: 11400000, guid: aebc0f97ab4b40c48a90f900a82e6ebe, type: 2}
+  - CurrentGunInfo: {fileID: 11400000, guid: 9d280bc40ec5a5c46abad595ca5c6e6a, type: 2}
+  - CurrentGunInfo: {fileID: 11400000, guid: a71db49042afc6346925d2c2546cc372, type: 2}
+  - CurrentGunInfo: {fileID: 11400000, guid: a0831fbee2a74df4f8d0604adf376611, type: 2}
 --- !u!1 &4182251023425853693
 GameObject:
   m_ObjectHideFlags: 0
@@ -465,6 +448,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4de22d096964dc41bc8bc343fa4fa61, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MaxEffectAmplification: 2
   activeEffectSources: []
   effectPrefab: {fileID: 5488308246482048509, guid: ffe283fa327d7d7468a930623253f06a, type: 3}
 --- !u!1001 &3838017315978040264
@@ -522,5 +506,35 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7325805745116759141, guid: cd541ae192c2096498d00668537c610f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4304282044621496677}
   m_SourcePrefab: {fileID: 100100000, guid: cd541ae192c2096498d00668537c610f, type: 3}
+--- !u!114 &4304282044621496677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3295339137330384401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e96815df2ce4a514c9255376cc8c8db5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GunsPrefabsList:
+  - {fileID: 3347391349394437254, guid: a1b7fc23e5142bc4999f696adbd98889, type: 3}
+  - {fileID: 8559067242662709950, guid: f5eeaeb513e843f4980cb6c86f0deefb, type: 3}
+  - {fileID: 4705358907229068263, guid: fead9ed91aadd8f439f8e1c44c2d9c60, type: 3}
+  - {fileID: 6677693599108175973, guid: 5d31929ce77af2c4f9e9d7036e9b3506, type: 3}
+  - {fileID: 4958869702410040120, guid: 6e9c272311baeb549abd98db98e520e8, type: 3}
+  - {fileID: 4499994771272735462, guid: 22be9f3fc596725449680dd4efb3c9c8, type: 3}
+  - {fileID: 6102976931771197045, guid: 9e5f131db97e80447b3e914ab36cdc23, type: 3}
+  - {fileID: 527552312434959365, guid: 9d1a9d38c521dc1438cc7bc9bd76ec97, type: 3}
+  - {fileID: 4059803627240856160, guid: 58434604cfda31b4a9a9e42efad3a54b, type: 3}
+  - {fileID: 4510920658087047655, guid: e15cf7d0fcb58ac4f8154ea84d4c01e5, type: 3}
+  - {fileID: 1482035268917753946, guid: b721e66c3fe7a6e4aa2095b33635905f, type: 3}
+  TacticPrefabsList:
+  - {fileID: 11400000, guid: c792d227da671bd45a8f4950ce238d46, type: 2}
+  - {fileID: 11400000, guid: 17ff3d3df5844b2428bec35fd5cd5f1e, type: 2}

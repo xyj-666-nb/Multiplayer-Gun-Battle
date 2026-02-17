@@ -1,9 +1,11 @@
+using DG.Tweening;
 using Mirror;
 using UnityEngine;
 using UnityEngine.Events;
 
 public abstract class CharacterStats : NetworkBehaviour
 {
+
     [Header("角色基础属性")]
     [Space(5)]
     public float maxHealth = 100f;//最大生命值
@@ -27,9 +29,14 @@ public abstract class CharacterStats : NetworkBehaviour
     public float MaxBllomSpeed = 2f;//血液飞溅的最大速度
     public float MinBllomSpeed = 4f;//血液飞溅的最小速度
     public float BllomAmount = 20;//血液飞溅的数量
+
     #region 组件与配置
     private Rigidbody2D _rb2D;
     private bool _hasTriggeredDeath = false;
+    private NetworkConnectionToClient _playerConn;
+
+    private string _killerName; // 击杀者名字
+    private string _killerGunName; // 击杀者使用的枪械名
     #endregion
 
     #region 生命周期
@@ -39,10 +46,8 @@ public abstract class CharacterStats : NetworkBehaviour
         if (_rb2D == null)
             Debug.LogError($"[{gameObject.name}] CharacterStats 缺少 Rigidbody2D 组件！", this);
 
-        if (isLocalPlayer)
-        {
-            CurrentHealth = maxHealth;
-        }
+        // 订阅死亡事件
+        EntityDeathEvent += OnEntityDeath;
     }
 
     public override void OnStartServer()
@@ -51,6 +56,19 @@ public abstract class CharacterStats : NetworkBehaviour
         CurrentHealth = maxHealth;
         IsDead = false;
         _hasTriggeredDeath = false;
+        _playerConn = connectionToClient; // 记录玩家连接
+
+        // 初始化击杀者信息
+        if (isServer)
+        {
+            _killerName = "未知";
+            _killerGunName = "未知";
+        }
+    }
+
+    private void OnDestroy()
+    {
+        EntityDeathEvent -= OnEntityDeath;
     }
     #endregion
 
@@ -60,8 +78,9 @@ public abstract class CharacterStats : NetworkBehaviour
         newValue = Mathf.Clamp(newValue, 0, maxHealth);
         CurrentHealth = newValue;
 
-        if(isLocalPlayer)
-          HealthUI.Instance?.SetValue(newValue / Mathf.Max(maxHealth, 1f));
+        if (isLocalPlayer)
+            HealthUI.Instance?.SetValue(newValue / Mathf.Max(maxHealth, 1f));
+
         if (oldValue >= newValue)
             EntityWoundEvent?.Invoke();
     }
@@ -71,19 +90,17 @@ public abstract class CharacterStats : NetworkBehaviour
         if (newValue && !oldValue && !_hasTriggeredDeath)
         {
             ClientHandleDeathVisual();
-            EntityDeathEvent?.Invoke();
+            EntityDeathEvent?.Invoke(); // 仅触发事件，不处理重生
         }
     }
     #endregion
 
     #region 核心血量操作
-    /// <summary>
-    /// [Command] 客户端请求服务器修改自身血量
-    /// </summary>
-    [Command] 
+    [Command]
     public void CmdChangeHealth(float value, Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
     {
-        if (IsDead) return;
+        if (IsDead)
+            return;
 
         float newHealth = CurrentHealth + value;
         newHealth = Mathf.Clamp(newHealth, 0, maxHealth);
@@ -98,16 +115,10 @@ public abstract class CharacterStats : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// 服务器直接扣血
-    /// </summary>
     [Server]
     public void ServerApplyDamage(float damage, Vector2 hitPoint, Vector2 hitNormal, CharacterStats attacker)
     {
-        if (IsDead)
-        {
-            return;
-        }
+        if (IsDead) return;
 
         float healthBefore = CurrentHealth;
         CurrentHealth = Mathf.Max(CurrentHealth - damage, 0);
@@ -119,19 +130,40 @@ public abstract class CharacterStats : NetworkBehaviour
     [Server]
     public virtual void Wound(float finalDamage, Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
     {
-        if (IsDead)
-        {
-            return;
-        }
+        if (IsDead) return;
 
         float healthBefore = CurrentHealth;
         CurrentHealth = Mathf.Max(CurrentHealth - finalDamage, 0);
+
+        if (CurrentHealth <= 0 && !_hasTriggeredDeath && attacker != null)
+        {
+            // 获取击杀者名字
+            if (attacker is playerStats attackerStats)
+            {
+                // 优先取攻击者的Main.PlayerName，无则取物体名
+                _killerName = Main.PlayerName ?? attacker.gameObject.name;
+
+                // 获取击杀者当前使用的枪械名
+                if (attackerStats.MyMonster != null && attackerStats.MyMonster.currentGun != null)
+                {
+                    _killerGunName = attackerStats.MyMonster.currentGun.gunInfo.name ?? "未知枪械";
+                }
+                else
+                {
+                    _killerGunName = "徒手";
+                }
+            }
+            else
+            {
+                _killerName = attacker?.gameObject.name ?? "未知";
+                _killerGunName = "未知";
+            }
+        }
 
         RpcPlayWoundEffect(ColliderPoint, hitNormal, attacker);
 
         if (CurrentHealth <= 0 && !_hasTriggeredDeath)
         {
-            Debug.Log($"[Wound] {gameObject.name} 血量扣至0，触发死亡！");
             Death(attacker);
         }
     }
@@ -139,8 +171,7 @@ public abstract class CharacterStats : NetworkBehaviour
     [Server]
     public virtual void Death(CharacterStats killer)
     {
-        if (IsDead || _hasTriggeredDeath)
-            return;
+        if (IsDead || _hasTriggeredDeath) return;
 
         IsDead = true;
         _hasTriggeredDeath = true;
@@ -158,30 +189,97 @@ public abstract class CharacterStats : NetworkBehaviour
     public virtual void RpcPlayWoundEffect(Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
     {
         // 喷血特效逻辑
-        //进行喷血
         if (BloodParticleGenerator.Instance != null)
         {
-            // 生成背景静态血迹
             BloodParticleGenerator.Instance.GenerateBloodOnBackground(ColliderPoint);
-
-            // 循环生成多个血粒子
             for (int i = 0; i < BllomAmount; i++)
             {
-                // 随机喷血方向
                 Vector2 bloodDir = (hitNormal + new Vector2(Random.Range(-0.5f, 0.5f), Random.Range(0.2f, 0.8f))).normalized;
-                // 随机喷血速度
                 float bloodSpeed = Random.Range(MaxBllomSpeed, MinBllomSpeed);
-                // 生成粒子
                 BloodParticleGenerator.Instance.GenerateBloodParticle(ColliderPoint, bloodDir * bloodSpeed);
             }
         }
 
+        // 本地玩家击退+屏幕震动
+        if (isLocalPlayer && attacker != null && _rb2D != null)
+        {
+            var Attacker = attacker as playerStats;
+            float knockbackDir = Mathf.Sign(ColliderPoint.x - attacker.transform.position.x);
+            _rb2D.AddForce(new Vector2(knockbackDir * Attacker.MyMonster.currentGun.gunInfo.Recoil_Enemy, 0), ForceMode2D.Impulse);
+            MyCameraControl.Instance.AddTimeBasedShake(Attacker.MyMonster.currentGun.gunInfo.ShackStrength_Enemy, Attacker.MyMonster.currentGun.gunInfo.ShackTime_Enemy);
+            Debug.Log("触发屏幕震动");
+        }
     }
     #endregion
 
     #region 客户端视觉表现
     protected virtual void ClientHandleDeathVisual()
     {
+        if (isLocalPlayer)
+        {
+            Debug.Log("[ClientHandleDeathVisual] 本地玩家死亡，清理输入/摄像机");
+        }
+    }
+    #endregion
+
+    #region 死亡回调
+    private void OnEntityDeath()
+    {
+        if (isLocalPlayer)
+        {
+            CmdActiveCurrentPlayer(false);
+            CmdRequestRespawn();
+        }
+    }
+
+    [Command]
+    private void CmdRequestRespawn()
+    {
+        if (PlayerRespawnManager.Instance != null)
+        {
+            string finalKillerName = string.IsNullOrEmpty(_killerName) ? "未知" : _killerName;
+            string finalKillerGunName = string.IsNullOrEmpty(_killerGunName) ? "未知" : _killerGunName;
+
+            PlayerRespawnManager.Instance.TargetShowDeathPanel(_playerConn, PlayerRespawnManager.Instance.respawnDelay, finalKillerName, finalKillerGunName);
+            PlayerRespawnManager.Instance.RespawnPlayer(_playerConn);
+        }
+        else
+        {
+            Debug.LogError("[CharacterStats] PlayerRespawnManager未初始化！");
+        }
+    }
+
+    [Command]
+    public void CmdActiveCurrentPlayer(bool IsActive)
+    {
+        RPCActiveCurrentPlayer(IsActive);
+    }
+
+    [ClientRpc]
+    public void RPCActiveCurrentPlayer(bool IsActive)
+    {
+        if (IsActive)
+        {
+            gameObject.SetActive(true);
+            gameObject.GetComponentInChildren<SpriteRenderer>().DOFade(1, 0.2f);
+            if (_rb2D != null)
+            {
+                _rb2D.isKinematic = false;
+                _rb2D.simulated = true;
+            }
+        }
+        else
+        {
+            gameObject.GetComponentInChildren<SpriteRenderer>().DOFade(0, 0.2f)
+                .OnComplete(() => { gameObject.SetActive(false); });
+
+            //这里还没写强制丢枪的逻辑，后续可以在这里添加
+            //// 强制丢枪（示例）
+            //if (this is playerStats playerStats && playerStats.CurrentGun != null)
+            //{
+            //    playerStats.DropCurrentGun();
+            //}
+        }
     }
     #endregion
 }

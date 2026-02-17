@@ -32,7 +32,7 @@ public class CreateRoomPanel : BasePanel
                 // 防止为空，给个默认（获取当前的信息）
                 var roomName = string.IsNullOrWhiteSpace(CurrentRoomName) ? "Room" : CurrentRoomName;
                 var hostName = string.IsNullOrWhiteSpace(CurrentPlayerName) ? "Host" : CurrentPlayerName;
-                Main.PlayerName = hostName;
+                Main.PlayerName = hostName;//赋值当前的名字
                 Debug.Log(Main.PlayerName);
 
                 Host.CreateRoom(roomName, hostName); // 传房间名、房主名,人数（后面还需要传入游戏模式等等）

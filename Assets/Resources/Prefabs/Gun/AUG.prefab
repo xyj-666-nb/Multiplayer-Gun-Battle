@@ -599,7 +599,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: -1.1, y: 1.3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 9205161704967887078}
@@ -730,7 +730,7 @@ MonoBehaviour:
   IsEnterAimState: 0
   shootRaycastLayers:
     serializedVersion: 2
-    m_Bits: 280
+    m_Bits: 264
   timelineDirector_Reload: {fileID: 5344617123904300012}
   timelineDirector_Shoot: {fileID: 8844295949706402078}
   gunInfo: {fileID: 11400000, guid: 9207a28773c95d84f88cee3c39293f61, type: 2}

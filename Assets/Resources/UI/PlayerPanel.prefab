@@ -518,7 +518,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -335, y: 225}
+  m_AnchoredPosition: {x: -309, y: 176}
   m_SizeDelta: {x: 150, y: 150}
   m_Pivot: {x: 1, y: 0}
 --- !u!222 &4659559073497577742
@@ -1248,7 +1248,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '>'
+  m_text: <
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2017,6 +2017,7 @@ GameObject:
   - component: {fileID: 2351839942972139129}
   - component: {fileID: 7305171727181806107}
   - component: {fileID: 482659771845091328}
+  - component: {fileID: 8849171522362778216}
   m_Layer: 5
   m_Name: ShootButton
   m_TagString: Untagged
@@ -2139,6 +2140,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_InputAction: 2
+--- !u!114 &8849171522362778216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4308589900213791342}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55a1f287324c26c498c94d5d54595e17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DefaultIcon: {fileID: 21300000, guid: c544fdfc27c0b1347a4b7f4efb1ef21f, type: 3}
+  IconImage: {fileID: 3315084160596151928}
 --- !u!1 &5058796613149273671
 GameObject:
   m_ObjectHideFlags: 0
@@ -2304,7 +2319,7 @@ GameObject:
   - component: {fileID: 2663702486684835810}
   - component: {fileID: 1081319721408195205}
   m_Layer: 5
-  m_Name: Button
+  m_Name: OpenButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2914,6 +2929,10 @@ MonoBehaviour:
   BulletAmount: {fileID: 4322641211427105778}
   GunName: {fileID: 521462842339751168}
   GunBackGround: {fileID: 5839877165107361033}
+  BuffPrefabs: {fileID: 6292043181648826561, guid: a99b99fe0ccb8c74590babda11136b83, type: 3}
+  BuffUIParent: {fileID: 4426226380530357236}
+  BuffObjList: []
+  shootButton: {fileID: 8849171522362778216}
 --- !u!1 &7548854532069692505
 GameObject:
   m_ObjectHideFlags: 0
@@ -3080,6 +3099,7 @@ RectTransform:
   - {fileID: 4602312227214683730}
   - {fileID: 1269814592568482421}
   - {fileID: 4425144730223200843}
+  - {fileID: 4426226380530357236}
   m_Father: {fileID: 3000184960118245842}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
@@ -3099,6 +3119,7 @@ GameObject:
   - component: {fileID: 6401664416935804684}
   - component: {fileID: 1016690332583350895}
   - component: {fileID: 7655869779393986644}
+  - component: {fileID: 5793810211559849733}
   m_Layer: 5
   m_Name: ThrowObjButton
   m_TagString: Untagged
@@ -3210,6 +3231,29 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5793810211559849733
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7908844602347849061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98611604cb1ca7b49ac9b9800c3279fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CurrentTacticButton: {fileID: 7655869779393986644}
+  ExpendButton: {fileID: 1081319721408195205}
+  ExtraTacticButton: {fileID: 7442684140676702004}
+  tacticImage: {fileID: 9026840569475321967}
+  ExtratacticImage: {fileID: 5193556706844494594}
+  CurrentTactInfo: {fileID: 0}
+  ExtraTactInfo: {fileID: 0}
+  SelectScale: 1.05
+  AnimationDuration: 0.2
+  SelectColor: {r: 0, g: 1, b: 0, a: 1}
+  NormalColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &8183444190876958385
 GameObject:
   m_ObjectHideFlags: 0
@@ -3344,6 +3388,68 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &8190204363558305411
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4426226380530357236}
+  - component: {fileID: 376741883421399959}
+  m_Layer: 5
+  m_Name: BuffermanagerArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &4426226380530357236
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8190204363558305411}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 641577887970980652}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -32.443, y: 65.2655}
+  m_SizeDelta: {x: -65.79001, y: 64.795}
+  m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &376741883421399959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8190204363558305411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 3
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &8422111951756658645
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,3 +1,4 @@
+using Mirror;
 using System.Collections.Concurrent;
 using UnityEngine.Events;
 
@@ -6,11 +7,10 @@ using UnityEngine.Events;
 /// </summary>
 public class SendMessageManger : SingleBehavior<SendMessageManger>
 {
-    #region 核心字段（消息队列以及消息增加的事件）
+    #region 核心字段
     private ConcurrentQueue<MessagePack> _messagePackList = new ConcurrentQueue<MessagePack>();
     public UnityAction OnMessageAdded;
     #endregion
-
 
     #region 发送消息以及获取消息的方法
     // 入队消息
@@ -41,6 +41,7 @@ public class SendMessageManger : SingleBehavior<SendMessageManger>
         }
         return null;
     }
+
     #endregion
 }
 

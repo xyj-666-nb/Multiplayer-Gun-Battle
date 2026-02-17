@@ -913,7 +913,7 @@ public class InputInfo
         KeyInfoDict.Add("LeftMove", "<Keyboard>/a");
         KeyInfoDict.Add("RightMove", "<Keyboard>/d");
         // ºËÐÄ¶¯×÷
-        KeyInfoDict.Add("Attack", "<Mouse>/leftButton");
+        KeyInfoDict.Add("Attack", "<Mouse>/k");
         KeyInfoDict.Add("Jump", "<Keyboard>/space");
         KeyInfoDict.Add("Interact", "<Keyboard>/f");
         KeyInfoDict.Add("DialogueSkip", "<Keyboard>/tab");

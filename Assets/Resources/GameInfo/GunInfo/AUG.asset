@@ -26,7 +26,7 @@ MonoBehaviour:
   ReloadTime: 0
   BulletSpeed: 0
   Recoil: 1.7
-  Recoil_Enemy: 0.2
+  Recoil_Enemy: 1
   ViewRange: 0
   GunBodySprite: {fileID: -624436773, guid: 208d54308bb633647a8d60fb60d09a14, type: 3}
   ShootAudio: {fileID: 8300000, guid: 9d27c1f3f9281144cada1fe874d71742, type: 3}
@@ -34,8 +34,8 @@ MonoBehaviour:
   GunSprite: {fileID: 21300000, guid: 70af494637a6c564bab888bef4856a86, type: 3}
   ShackStrength: 0.7
   ShackTime: 0.2
-  ShackStrength_Enemy: 0
-  ShackTime_Enemy: 0
+  ShackStrength_Enemy: 0.7
+  ShackTime_Enemy: 0.2
   ShotgunBulletAmount: 0
   shotgunBatchInterval: 0.05
   shotgunScatterAngle: 15

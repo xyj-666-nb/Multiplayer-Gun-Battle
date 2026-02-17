@@ -9,6 +9,23 @@ public class MyPlayerInput : NetworkBehaviour
     private Player Myplayer;
     private playerStats MyStats;
 
+    #region 跳跃核心状态
+    private bool IsCanJump = true;       // 地面跳可用
+    public bool IsCanWallJump = false;   // 墙跳可用
+    private bool IsJumpCheck = false;    // 跳跃状态检测标记
+    #endregion
+
+    #region 水平移动控制
+    private bool IsCanHorizontalMove = true; // 是否可以水平移动
+    [Tooltip("墙跳后禁用水平移动的时间")]
+    public float WallJumpMoveLockTime = 0.2f; // 0.2秒禁用
+    #endregion
+
+    #region 视野缩放相关
+    private int ViewTaskID;//视野缩放任务ID
+    private float ChangeSpeed_View = 4;//缩放视野的速度
+    #endregion
+
     private void Awake()
     {
         MyStats = GetComponent<playerStats>();
@@ -44,54 +61,135 @@ public class MyPlayerInput : NetworkBehaviour
         }
     }
 
+    #region 核心通用校验函数
+    /// <summary>
+    /// 输入触发通用前置校验
+    /// </summary>
+    /// <returns>true=满足通用条件，false=不满足</returns>
+    private bool CheckCommonTriggerCondition()
+    {
+        // 必须是本地玩家
+        if (!isLocalPlayer)
+        {
+            return false;
+        }
+
+        // 玩家实例不能为空
+        if (Myplayer == null)
+        {
+            Debug.LogWarning("[MyPlayerInput] 玩家实例为空，跳过输入触发");
+            return false;
+        }
+
+        // Rigidbody2D不能为空
+        if (Myplayer.MyRigdboby == null)
+        {
+            Debug.LogWarning("[MyPlayerInput] 玩家Rigidbody2D为空/已销毁，跳过输入触发");
+            return false;
+        }
+
+        // 所有通用条件满足
+        return true;
+    }
+    #endregion
+
     #region 跳跃逻辑
-    private bool IsCanJump = true;
-    private bool IsJumpCheck = false;
     public void Jump_Start(InputAction.CallbackContext Content)
     {
-        if (!isLocalPlayer || !IsCanJump)
+        // 第一步：通用校验
+        if (!CheckCommonTriggerCondition())
             return;
 
-        // 判断是否处于瞄准状态（防空指针）
-        float jumpPower = Myplayer.MyHandControl != null && Myplayer.MyHandControl.IsEnterAim
-            ? MyStats.AimJumpPower
-            : MyStats.JumpPower;
+        if (IsCanJump)
+        {
+            float jumpPower = Myplayer.MyHandControl != null && Myplayer.MyHandControl.IsEnterAim
+                ? MyStats.AimJumpPower
+                : MyStats.JumpPower;
 
-        if (Myplayer.currentGun != null && Myplayer.currentGun.IsInShoot)
-            Myplayer.MyRigdboby.AddForce(new Vector2(0, jumpPower / 2), ForceMode2D.Impulse);//跳跃力变小
-        else
-            Myplayer.MyRigdboby.AddForce(new Vector2(0, jumpPower), ForceMode2D.Impulse);
+            if (Myplayer.currentGun != null && Myplayer.currentGun.IsInShoot)
+                Myplayer.MyRigdboby.AddForce(new Vector2(0, jumpPower / 2), ForceMode2D.Impulse);
+            else
+                Myplayer.MyRigdboby.AddForce(new Vector2(0, jumpPower), ForceMode2D.Impulse);
 
-        IsCanJump = false;
-        CountDownManager.Instance.CreateTimer(false, 100, () => { IsJumpCheck = true; });
+            IsCanJump = false;
+            return; // 地面跳触发后，直接结束，不执行墙跳逻辑
+        }
+
+        if (IsCanWallJump)
+        {
+            float wallJumpHorizontal = MyStats.WallJumpPower_Side * -Myplayer.FacingDir;
+            float wallJumpVertical = MyStats.WallJumpPower_Up;
+
+            // 清空下落速度，保证墙跳高度稳定
+            Myplayer.MyRigdboby.velocity = new Vector2(Myplayer.MyRigdboby.velocity.x, 0);
+            // 施加墙跳力
+            Myplayer.MyRigdboby.AddForce(new Vector2(wallJumpHorizontal, wallJumpVertical), ForceMode2D.Impulse);
+
+            IsCanHorizontalMove = false;
+            // 启动计时器，0.2秒后恢复移动
+            Invoke(nameof(ResetHorizontalMove), WallJumpMoveLockTime);
+
+            // 墙跳后立即关闭，防止连续墙跳
+            IsCanWallJump = false;
+            //然后翻转玩家
+            Myplayer.CmdRequestFlip();
+        }
+
+        CountDownManager.Instance.CreateTimer(false, 50, () => { IsJumpCheck = true; });//0.2秒后才开启检测
+    }
+
+    /// <summary>
+    /// 恢复水平移动权限
+    /// </summary>
+    private void ResetHorizontalMove()
+    {
+        IsCanHorizontalMove = true;
     }
 
     public void Jump_Continue(CustomInputContext Content)
     {
-        if (!isLocalPlayer)
+        // 第一步：通用校验
+        if (!CheckCommonTriggerCondition())
             return;
-        if (Myplayer.MyRigdboby != null && Myplayer.MyRigdboby.velocity.y > 0)
+
+        // 第二步：自身特殊条件（原有逻辑完全不变）
+        if (Myplayer.MyRigdboby.velocity.y > 0)
             Myplayer.MyRigdboby.gravityScale = 0.75f;
     }
 
     public void Jump_End(InputAction.CallbackContext Content)
     {
-        if (!isLocalPlayer)
+        // 第一步：通用校验
+        if (!CheckCommonTriggerCondition())
             return;
 
-        if (Myplayer.MyRigdboby != null)
-            Myplayer.MyRigdboby.gravityScale = 1f;
+        // 第二步：自身特殊条件（原有逻辑完全不变）
+        Myplayer.MyRigdboby.gravityScale = 1f;
     }
 
+    /// <summary>
+    /// 跳跃状态检测
+    /// </summary>
     public void IsCanJumpCheck()
     {
-        if (!isLocalPlayer)
+        if (!Myplayer.IsGroundDetected() && Myplayer.IsWallDetected())
+            IsCanWallJump = true;
+        else
+            IsCanWallJump = false;
+
+        // 这里保留原有校验
+        if (!isLocalPlayer || !IsJumpCheck)
             return;
 
         if (Myplayer.IsGroundDetected())
         {
             IsCanJump = true;
+            IsCanWallJump = false;
             IsJumpCheck = false;
+            // 落地后立即恢复水平移动
+            IsCanHorizontalMove = true;
+            CancelInvoke(nameof(ResetHorizontalMove));
+            return;
         }
     }
     #endregion
@@ -104,7 +202,12 @@ public class MyPlayerInput : NetworkBehaviour
     /// <param name="targetFacingDir">目标朝向：-1=左，1=右</param>
     private void HandleMoveLogic(float moveDirection, int targetFacingDir)
     {
-        if (!isLocalPlayer)
+        // 第一步：通用校验
+        if (!CheckCommonTriggerCondition())
+            return;
+
+        // 第二步：自身特殊条件
+        if (!IsCanHorizontalMove)
             return;
 
         // 判断是否处于瞄准状态
@@ -166,14 +269,35 @@ public class MyPlayerInput : NetworkBehaviour
     #region 射击相关
     public void Shoot_Start(InputAction.CallbackContext Content)
     {
-        if (!isLocalPlayer)
+        if (!CheckCommonTriggerCondition())
             return;
+
+        //在这里触发战术设备的使用
+        if (Player.LocalPlayer.MyHandControl.CurrentThrowObj != null)
+        {
+            //在这里就触发投掷物的使用
+            Player.LocalPlayer.MyHandControl.LaunchCurrentThrowObj();//发射投掷物
+            return;
+        }
+
+        if (PlayerTacticControl.Instance.IsPrepararingInjection)//询问是否正在准备注射
+        {
+            PlayerTacticControl.Instance.triggerInjection();//触发注射器
+                                                            // 核心修改：触发后立即取消UI选中
+            PlayerTacticControl.Instance.CancelTactic();
+            // 额外保险：强制重置选中状态
+            PlayerTacticControl.Instance.SetIsChooseButton(false);
+        }
+
         Debug.Log("开始射击");
     }
 
     public void Shoot_Continue(CustomInputContext Content)
     {
-        if (!isLocalPlayer || Myplayer.currentGun == null)
+        if (!CheckCommonTriggerCondition())
+            return;
+
+        if (Myplayer.currentGun == null || Myplayer.MyHandControl.IsHolsterGun || Myplayer.MyHandControl._isHolsterAnimPlaying|| PlayerTacticControl.Instance.IsPrepararingInjection)//收枪就不允许射击
             return;
 
         //判断射击条件,如果是连发枪就自动检测并自动触发射击
@@ -187,7 +311,11 @@ public class MyPlayerInput : NetworkBehaviour
     #region 换弹相关
     public void Reload_start(InputAction.CallbackContext Content)//开始换弹
     {
-        if (!isLocalPlayer || Myplayer.currentGun == null)
+        // 第一步：通用校验
+        if (!CheckCommonTriggerCondition())
+            return;
+
+        if (Myplayer.currentGun == null || Myplayer.MyHandControl.IsHolsterGun)
             return;
 
         //判断当前换弹条件
@@ -199,10 +327,10 @@ public class MyPlayerInput : NetworkBehaviour
     #region 拾取枪械控制逻辑
     public void PickUpGnn_Start(InputAction.CallbackContext Content)
     {
-        if (!isLocalPlayer)
+        // 第一步：通用校验
+        if (!CheckCommonTriggerCondition())
             return;
 
-        //判断条件
         if (Myplayer.CurrentTouchGun != null)
         {
             Myplayer.PickUpSceneGun();
@@ -213,7 +341,11 @@ public class MyPlayerInput : NetworkBehaviour
     #region 丢弃枪械控制逻辑
     public void DiscardGun_Start(InputAction.CallbackContext Content)
     {
-        if (!isLocalPlayer || Myplayer.MyHandControl.IsEnterAim)
+        // 第一步：通用校验
+        if (!CheckCommonTriggerCondition())
+            return;
+
+        if (Myplayer.MyHandControl.IsEnterAim || Myplayer.MyHandControl.IsHolsterGun)
             return;
 
         Debug.Log("正在判断丢弃条件");
@@ -226,12 +358,13 @@ public class MyPlayerInput : NetworkBehaviour
     #endregion
 
     #region 枪械瞄准控制逻辑
-
-    private int ViewTaskID;//视野缩放任务ID
-    private float ChangeSpeed_View = 4;//缩放视野的速度
     public void GunAim_Start(InputAction.CallbackContext Content)
     {
-        if (!isLocalPlayer || Myplayer.currentGun == null)
+        // 第一步：通用校验
+        if (!CheckCommonTriggerCondition())
+            return;
+
+        if (Myplayer.currentGun == null)
             return;
 
         Debug.Log("进入瞄准状态");
@@ -244,12 +377,15 @@ public class MyPlayerInput : NetworkBehaviour
         //缩放视野
         MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
         ViewTaskID = MyCameraControl.Instance.AddZoomTask_ByPercent_TemporaryManual(1 + Myplayer.myStats.AimViewBonus, ChangeSpeed_View);//通过数据进行缩放
-
     }
 
     public void GunAim_End(InputAction.CallbackContext Content)
     {
-        if (!isLocalPlayer || Myplayer.currentGun == null)
+        // 第一步：通用校验
+        if (!CheckCommonTriggerCondition())
+            return;
+
+        if (Myplayer.currentGun == null)
             return;
 
         Debug.Log("退出瞄准状态");
@@ -261,14 +397,17 @@ public class MyPlayerInput : NetworkBehaviour
         Myplayer.MyHandControl.SetAimState(false);
         //停止任务
         MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
-
     }
-
     #endregion
 
     private void Update()
     {
         if (IsJumpCheck)
             IsCanJumpCheck();
+    }
+
+    private void OnDestroy()
+    {
+        CancelInvoke(nameof(ResetHorizontalMove));
     }
 }

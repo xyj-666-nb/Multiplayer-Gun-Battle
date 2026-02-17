@@ -27,7 +27,6 @@ public class BaseGun : NetworkBehaviour
     [SyncVar(hook = nameof(OnIsEnterAimState))]
     public bool IsEnterAimState = false;//是否进入瞄准状态
 
-    // ========== 新增：射线检测层掩码（关键修改1） ==========
     [Header("射线检测配置")]
     [Tooltip("射线仅检测这些层（Player和Ground）")]
     public LayerMask shootRaycastLayers;
@@ -244,17 +243,18 @@ public class BaseGun : NetworkBehaviour
         // 服务器射线检测
         if (firePoint != null && gunInfo != null && ownerPlayer != null)
         {
-            Vector2 baseDir = new Vector2(ownerPlayer.FacingDir, 0);
+            Vector2 firePointRightDir = firePoint.transform.right;
+            Vector2 baseDir = -firePointRightDir * ownerPlayer.FacingDir;
             Vector2 shootDir = CalculateBulletScattering(baseDir);
 
             RaycastHit2D hit = Physics2D.Raycast(
                 firePoint.position,
                 shootDir,
                 gunInfo.Range,
-                shootRaycastLayers 
+                shootRaycastLayers
             );
 
-           
+
 
             if (hit.collider != null)
             {
@@ -272,7 +272,6 @@ public class BaseGun : NetworkBehaviour
                         }
 
                         hitTarget.ServerApplyDamage(gunInfo.Damage, hit.point, hit.normal, attackerStats);
-                        Debug.Log("击中玩家");
                     }
                     else
                     {

@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -14,6 +15,14 @@ public class PlayerPanel : BasePanel
     public  BaseGun CurrentGun => Player.LocalPlayer.currentGun;
     [HideInInspector]
     public static string AimButtonButtonGroupName = "AimButton";
+
+    [Header("Buff预制体")]
+    public GameObject BuffPrefabs;
+    public Transform BuffUIParent;//BuffUI父物体
+    public List<GameObject> BuffObjList = new List<GameObject>();//BuffObj列表，方便后续管理
+
+    [Header("射击按钮")]
+    public ShootButton shootButton;//射击按钮脚本
 
     public static string GetAimButtonButtonGroupName()
     {
@@ -71,6 +80,7 @@ public class PlayerPanel : BasePanel
     protected override void OnDestroy()
     {
         base.OnDestroy();
+        ClearAllBuff();//销毁时清理一下BuffUI
     }
     #endregion
 
@@ -103,5 +113,29 @@ public class PlayerPanel : BasePanel
 
 
     #endregion
+
+    #region Buff显示
+    public void CreateBuff(Sprite BuffSprite,float Duration )
+    {
+       GameObject Pbj = Instantiate(BuffPrefabs, BuffUIParent);//生成BuffUI预制体
+       Pbj.transform.localPosition = Vector3.zero;//重置位置
+       BuffUI BuffUI = Pbj.GetComponent<BuffUI>();
+       BuffUI.SetBuff(BuffSprite, Duration);
+       BuffObjList.Add(Pbj);//添加到列表中，方便后续管理
+    }
+
+    public void ClearAllBuff()
+    {
+        for (int i = BuffObjList.Count-1; i >= 0; i--)
+        {
+            var obj = BuffObjList[i];
+            BuffObjList.Remove(obj);//从列表中移除
+            Destroy(obj);//销毁BuffUI对象
+        }
+    }
+
+    #endregion
+
+  
 
 }
