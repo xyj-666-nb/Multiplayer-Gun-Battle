@@ -1,6 +1,7 @@
-using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
+using System.Collections.Generic;
+using System.Linq;
 
 #region 震动信息包
 /// <summary>
@@ -74,7 +75,6 @@ public class CameraShakePack
     }
     #endregion
 }
-
 #endregion
 
 #region 缩放任务类
@@ -116,11 +116,9 @@ public enum ZoomTaskType
     TemporaryWithTime,   // 带停留时间，自动还原
     TemporaryManual      // 无固定时间，手动还原
 }
-
 #endregion
 
 #region 相机模式枚举及区域锁定包
-
 public enum CameraMode
 {
     //主要服务于2D横板游戏的相机模式
@@ -138,9 +136,8 @@ public class AreaLockingPack
 }
 #endregion
 
-
 /************************************************************************************
- * 脚本名称：CameraControl.cs
+ * 脚本名称：MyCameraControl.cs
  * 脚本作用：基于Unity Cinemachine插件实现的单例化相机控制核心脚本
  * 核心功能：
  *  1. 相机震动：支持时间驱动自动衰减震动、手动控制启停震动，且均支持距离衰减效果
@@ -154,13 +151,46 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     public Camera MainCamera;
 
     private CinemachineConfiner _confiner;
-
     private CinemachineFramingTransposer _framingTransposer;
+    private CinemachineBasicMultiChannelPerlin _noise;
 
     [Header("Cinemachine 缓动配置（生效所有模式）")]
     public float xDamping = 1f; // X轴跟随阻尼（越大跟随越慢）
     public float yDamping = 1f; // Y轴跟随阻尼
     public float zDamping = 0f; // Z轴阻尼（2D游戏设0）
+    #endregion
+
+    #region 缩放核心配置
+    private float _baseOrthographicSize;// 相机初始基准正交尺寸
+    private List<ZoomTask> _zoomTaskList = new List<ZoomTask>();// 所有未完成的缩放任务列表
+    private int _nextZoomTaskID = 0;    // 下一个任务的ID生成器
+    private const float _sizeErrorThreshold = 0.1f; // 尺寸判定误差阈值
+    #endregion
+
+    #region 震动相关字段
+    private float _totalShakeStrength = 0f;
+    [Header("震动消失的速度")]
+    [SerializeField] private float _shakeFadeSpeed = 5f;
+    [Header("震动随距离衰减的强度")]
+    public static float DistanceDecay;//距离衰减强度(每米削减百分之多少)
+
+    [Header("震动任务列表")]
+    private List<CameraShakePack> _timeBasedShakeList = new List<CameraShakePack>();
+    private List<CameraShakePack> _manualShakeList = new List<CameraShakePack>();
+    private static int IdCounter = 0;//震动任务ID计数器
+    #endregion
+
+    #region 相机模式相关字段
+    [Header("相机模式配置")]
+    public CameraMode CurrentCameraMode; // 当前相机模式
+    public Vector2 OffsetPos; // 相机偏移量
+    public AreaLockingPack areaLockingPack; // 区域锁定信息包
+
+    private Transform _cameraTarget; // 相机跟踪的目标Transform
+    private float _cameraHalfHeight; // 正交相机半高
+    private float _cameraHalfWidth; // 正交相机半宽
+    private PolygonCollider2D _boundaryCollider;
+    #endregion
 
     // 修改访问修饰符以匹配基类的定义
     protected override void Awake()
@@ -180,7 +210,6 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         UpdateZoomTasks();    // 处理所有缩放任务（核心）
         UpdateShakeLogic();   // 震动逻辑（保留）
     }
-    #endregion
 
     #region 初始化
     private void InitializeCameraComponents()
@@ -220,15 +249,6 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     #endregion
 
     #region 缩放方法以及逻辑处理
-    #region 缩放核心配置
-    private float _baseOrthographicSize;// 相机初始基准正交尺寸
-
-    private List<ZoomTask> _zoomTaskList = new List<ZoomTask>();// 所有未完成的缩放任务列表
-    private int _nextZoomTaskID = 0;    // 下一个任务的ID生成器
-    private const float _sizeErrorThreshold = 0.1f; // 尺寸判定误差阈值
-    #endregion
-
-    #region 添加带停留时间的临时缩放/无固定时间的临时缩放/百分比添加带时间的缩放任务的方法
     /// <summary>
     /// 添加带停留时间的临时缩放任务
     /// </summary>
@@ -263,20 +283,36 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     /// <summary>
     /// 按百分比添加带时间的缩放任务
     /// </summary>
-    /// <param name="percent">缩放百分比）</param>
+    /// <param name="percent">缩放百分比</param>
     /// <param name="stayTime">停留时间</param>
     /// <param name="speed">缩放速度</param>
     /// <returns>任务ID</returns>
     public int AddZoomTask_ByPercent(float percent, float stayTime, float speed)
     {
-        if (virtualCamera == null) return -1;
+        if (virtualCamera == null)
+            return -1;
 
-        float targetSize = virtualCamera.m_Lens.OrthographicSize * Mathf.Clamp01(percent);
+        float targetSize = virtualCamera.m_Lens.OrthographicSize * percent;
         return AddZoomTask_TemporaryWithTime(targetSize, stayTime, speed);
     }
-    #endregion
 
-    #region 手动还原指定ID的临时缩放任务/还原所有TemporaryManual类型的缩放任务（仅对TemporaryManual类型生效）
+    /// <summary>
+    /// 按百分比添加无固定时间的临时缩放任务（手动还原）
+    /// </summary>
+    /// <param name="percent">缩放百分比（支持任意正数）</param>
+    /// <param name="speed">缩放速度</param>
+    /// <returns>任务ID（用于后续手动还原）</returns>
+    public int AddZoomTask_ByPercent_TemporaryManual(float percent, float speed)
+    {
+        if (virtualCamera == null)
+            return -1;
+
+        // 计算目标尺寸：当前相机尺寸 * 百分比（支持>1的百分比）
+        float targetSize = virtualCamera.m_Lens.OrthographicSize * percent;
+        // 调用无固定时间的缩放任务方法，返回任务ID
+        return AddZoomTask_TemporaryManual(targetSize, speed);
+    }
+
     /// <summary>
     /// 手动还原指定ID的临时缩放任务
     /// </summary>
@@ -314,9 +350,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             }
         }
     }
-    #endregion
 
-    #region 强制清空所有缩放任务，立即还原到基准尺寸
     /// <summary>
     /// 强制清空所有缩放任务，立即还原到基准尺寸
     /// </summary>
@@ -326,11 +360,11 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         virtualCamera.m_Lens.OrthographicSize = _baseOrthographicSize;
         _nextZoomTaskID = 0;
     }
-    #endregion
 
     #region List缩放任务处理逻辑
-
-    #region 核心缩放任务更新方法
+    /// <summary>
+    /// 核心缩放任务更新方法
+    /// </summary>
     private void UpdateZoomTasks()
     {
         if (virtualCamera == null || _zoomTaskList.Count == 0)
@@ -351,9 +385,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         float finalTargetSize = CalculateFinalZoomTargetSize();
         ApplyFinalZoom(finalTargetSize);
     }
-    #endregion
 
-    #region 单个任务的生命周期更新
     /// <summary>
     /// 更新单个缩放任务的生命周期
     /// </summary>
@@ -390,34 +422,42 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             }
         }
     }
-    #endregion
 
-    #region 计算与应用最终缩放尺寸的方法
     /// <summary>
     /// 计算叠加后的最终目标尺寸
-    /// 规则可自定义：比如取最大尺寸/平均值，根据游戏需求调整
+    /// 修复逻辑：支持放大（百分比>1）和缩小（百分比<1）两种场景
+    /// - 若有任务要放大视野（targetSize > 基准），取最大的目标尺寸
+    /// - 若有任务要缩小视野（targetSize < 基准），取最小的目标尺寸
+    /// - 无任务时还原基准尺寸
     /// </summary>
     private float CalculateFinalZoomTargetSize()
     {
-        // 默认基准尺寸
-        float finalTarget = _baseOrthographicSize;
+        // 初始化：先收集所有有效任务的目标尺寸
+        List<float> validTaskTargets = new List<float>();
 
         foreach (var task in _zoomTaskList)
         {
             if (task.IsCompleted)
                 continue;
 
-            // 确定当前任务的目标尺寸
+            // 确定当前任务的目标尺寸：还原阶段取基准，否则取任务目标
             float taskTarget = task.IsZoomingBack ? _baseOrthographicSize : task.TargetSize;
-
-            // 叠加规则：取最小尺寸
-            if (taskTarget < finalTarget)
-            {
-                finalTarget = taskTarget;
-            }
+            validTaskTargets.Add(taskTarget);
         }
 
-        return finalTarget;
+        // 无有效任务 → 还原基准尺寸
+        if (validTaskTargets.Count == 0)
+            return _baseOrthographicSize;
+
+        // 有有效任务 → 计算最终目标：
+        float minTarget = validTaskTargets.Min();
+        float maxTarget = validTaskTargets.Max();
+
+        if (minTarget < _baseOrthographicSize)
+            return minTarget;
+        // 无缩小任务时，取最大
+        else
+            return maxTarget;
     }
 
     /// <summary>
@@ -426,6 +466,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     private void ApplyFinalZoom(float finalTargetSize)
     {
         float currentSize = virtualCamera.m_Lens.OrthographicSize;
+        // 误差阈值内直接返回，避免抖动
         if (Mathf.Abs(currentSize - finalTargetSize) < _sizeErrorThreshold)
             return;
 
@@ -440,33 +481,19 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         }
         maxSpeed = maxSpeed == 0 ? 1f : maxSpeed; // 兜底
 
-        // 稳定插值
+        // 稳定插值：无论放大还是缩小，都向finalTargetSize靠近
         float newSize = Mathf.MoveTowards(currentSize, finalTargetSize, maxSpeed * Time.deltaTime);
+        // 额外兜底：避免尺寸过小/过大（可选，根据你的游戏需求调整上下限）
+        newSize = Mathf.Clamp(newSize, _baseOrthographicSize * 0.1f, _baseOrthographicSize * 3f);
         virtualCamera.m_Lens.OrthographicSize = newSize;
     }
-    #endregion
-
     #endregion
     #endregion
 
     #region 震动逻辑
-    #region 震动相关字段
-    private CinemachineBasicMultiChannelPerlin _noise;
-    private float _totalShakeStrength = 0f;
-    [Header("震动消失的速度")]
-    [SerializeField] private float _shakeFadeSpeed = 5f;
-    [Header("震动随距离衰减的强度")]
-    public static float DistanceDecay;//距离衰减强度(每米削减百分之多少)
-
-    [Header("震动任务列表")]
-    private List<CameraShakePack> _timeBasedShakeList = new List<CameraShakePack>();
-    private List<CameraShakePack> _manualShakeList = new List<CameraShakePack>();
-    private static int IdCounter = 0;//震动任务ID计数器
-    #endregion
-
-    #region 添加震动任务的方法（包含手动和预定时间以及是否带有距离衰减的方法）
-
-    #region 添加带时间的震动任务，无距离衰减
+    /// <summary>
+    /// 添加带时间的震动任务，无距离衰减
+    /// </summary>
     public void AddTimeBasedShake(float strength, float duration)
     {
         if (float.IsNaN(strength) || float.IsInfinity(strength) ||
@@ -481,9 +508,10 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             Mathf.Clamp(duration, 0.1f, 10f)
         ));
     }
-    #endregion
 
-    #region 添加带时间的震动任务，带距离衰减
+    /// <summary>
+    /// 添加带时间的震动任务，带距离衰减
+    /// </summary>
     public void AddTimeBasedShake(float strength, float duration, Transform Target, Transform ShakeTransform)
     {
         if (float.IsNaN(strength) || float.IsInfinity(strength) ||
@@ -500,9 +528,10 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             Target
         ));
     }
-    #endregion
 
-    #region 添加不带时间的手动震动任务，无距离衰减
+    /// <summary>
+    /// 添加不带时间的手动震动任务，无距离衰减
+    /// </summary>
     public int AddManualShake(float strength)
     {
         if (float.IsNaN(strength) || float.IsInfinity(strength))
@@ -514,9 +543,10 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         _manualShakeList.Add(new CameraShakePack(Mathf.Clamp(strength, 0f, 10f), ID));
         return ID;//返还唯一任务ID
     }
-    #endregion
 
-    #region 添加不带时间的手动震动任务，带距离衰减
+    /// <summary>
+    /// 添加不带时间的手动震动任务，带距离衰减
+    /// </summary>
     public int AddManualShake(float strength, Transform Target, Transform ShakeTransform)
     {
         if (float.IsNaN(strength) || float.IsInfinity(strength))
@@ -528,10 +558,10 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         _manualShakeList.Add(new CameraShakePack(Mathf.Clamp(strength, 0f, 10f), ShakeTransform, Target, ID));
         return ID;//返还唯一任务ID
     }
-    #endregion
-    #endregion
 
-    #region 震动的更新处理
+    /// <summary>
+    /// 震动的更新处理
+    /// </summary>
     private void UpdateShakeLogic()
     {
         if (_noise == null)
@@ -572,9 +602,10 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
 
         _noise.m_AmplitudeGain = Mathf.Clamp(_totalShakeStrength, 0f, 10f);
     }
-    #endregion
 
-    #region 停止震动的方法（取消所有震动，单次取消某个手动震动任务，取消所有手动控制震动任务）
+    /// <summary>
+    /// 停止指定ID的手动震动任务
+    /// </summary>
     public void StopManualShake(int TaskID)
     {
         for (int i = _manualShakeList.Count - 1; i >= 0; i--)
@@ -587,8 +618,14 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         }
     }
 
+    /// <summary>
+    /// 停止所有手动震动任务
+    /// </summary>
     public void StopAllManualShake() => _manualShakeList.Clear();
 
+    /// <summary>
+    /// 重置所有震动（清空列表+立即停止震动）
+    /// </summary>
     public void ResetAllShake()
     {
         _timeBasedShakeList.Clear();
@@ -599,24 +636,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     }
     #endregion
 
-    #endregion
-
-    #region  相机模式切换以及控制
-
-    #region 相机模式相关字段
-    [Header("相机模式配置")]
-    public CameraMode CurrentCameraMode; // 当前相机模式
-    public Vector2 OffsetPos; // 相机偏移量
-    public AreaLockingPack areaLockingPack; // 区域锁定信息包
-
-    private Transform _cameraTarget; // 相机跟踪的目标Transform
-    private float _cameraHalfHeight; // 正交相机半高
-    private float _cameraHalfWidth; // 正交相机半宽
-
-    private PolygonCollider2D _boundaryCollider;
-    #endregion
-
-    #region 初始化摄像机
+    #region 相机模式切换以及控制
     /// <summary>
     /// 初始化相机尺寸参数
     /// </summary>
@@ -628,11 +648,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         _cameraHalfHeight = virtualCamera.m_Lens.OrthographicSize;
         _cameraHalfWidth = _cameraHalfHeight * MainCamera.aspect;
     }
-    #endregion
 
-    #region 设置摄像机模式
-
-    #region 设置相机模式 - 完全跟随玩家模式
     /// <summary>
     /// 设置相机模式 - 完全跟随玩家模式
     /// </summary>
@@ -670,9 +686,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             _framingTransposer.m_ZDamping = zDamping;
         }
     }
-    #endregion
 
-    #region 设置相机模式 - X轴跟随目标模式
     /// <summary>
     /// 设置相机模式 - X轴跟随目标模式
     /// </summary>
@@ -714,9 +728,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             _framingTransposer.m_YDamping = yDamping;
         }
     }
-    #endregion
 
-    #region 设置相机模式 - Y轴跟随目标模式
     /// <summary>
     /// 设置相机模式 - Y轴跟随目标模式
     /// </summary>
@@ -758,9 +770,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             _framingTransposer.m_YDamping = yDamping;
         }
     }
-    #endregion
 
-    #region 设置相机模式 - 区域锁定模式
     /// <summary>
     /// 设置相机模式 - 区域锁定模式
     /// </summary>
@@ -824,16 +834,11 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             Debug.LogWarning("区域锁定的区域小于相机视口，Cinemachine会自动固定到区域内！");
         }
     }
-    #endregion
-
-    #endregion
 
     #region 区域锁定模式的辅助方法
     /// <summary>
     /// 校验区域锁定的方形区域是否合法（左上X < 右下X，左上Y > 右下Y）
     /// </summary>
-    /// <param name="pack">区域信息包</param>
-    /// <returns>是否合法</returns>
     private bool ValidateAreaLockingRegion(AreaLockingPack pack)
     {
         float left = pack.LeftUpPos.position.x;
@@ -848,8 +853,6 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     /// <summary>
     /// 判断区域锁定的区域是否小于相机视口
     /// </summary>
-    /// <param name="pack">区域信息包</param>
-    /// <returns>是否更小</returns>
     private bool IsRegionSmallerThanCamera(AreaLockingPack pack)
     {
         // 区域宽度 = 右下X - 左上X，区域高度 = 左上Y - 右下Y
@@ -867,8 +870,6 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     /// <summary>
     /// 获取区域锁定的方形区域中心坐标
     /// </summary>
-    /// <param name="pack">区域信息包</param>
-    /// <returns>中心坐标（Vector2）</returns>
     private Vector2 GetRegionCenter(AreaLockingPack pack)
     {
         float centerX = (pack.LeftUpPos.position.x + pack.RightDownPos.position.x) / 2;
@@ -969,8 +970,5 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         }
     }
     #endregion
-
     #endregion
-
-
 }

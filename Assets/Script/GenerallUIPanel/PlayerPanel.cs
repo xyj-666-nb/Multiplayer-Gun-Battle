@@ -11,7 +11,14 @@ public class PlayerPanel : BasePanel
     public TextMeshProUGUI GunName;
     public CanvasGroup GunBackGround;//枪械背景
     private Sequence GunBackGroundSequence;
-    public BaseGun CurrentGun => Player.LocalPlayer.currentGun;
+    public  BaseGun CurrentGun => Player.LocalPlayer.currentGun;
+    [HideInInspector]
+    public static string AimButtonButtonGroupName = "AimButton";
+
+    public static string GetAimButtonButtonGroupName()
+    {
+        return AimButtonButtonGroupName;
+    }
 
     public void ShowGunBackGround()//捡起枪就更新一下
     {
@@ -46,6 +53,10 @@ public class PlayerPanel : BasePanel
     public override void Awake()
     {
         base.Awake();
+
+        //注册一下射击按钮单选按钮
+        ButtonGroupManager.Instance.AddToggleButtonToGroup(AimButtonButtonGroupName, controlDic[AimButtonButtonGroupName] as Button);//不需要事件。事件由输入系统管理器触发
+
     }
 
     public override void Start()

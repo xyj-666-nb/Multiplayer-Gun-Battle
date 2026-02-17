@@ -621,10 +621,13 @@ MonoBehaviour:
   _canShoot: 1
   _currentMagazineBulletCount: 0
   _allReserveBulletCount: 0
+  IsEnterAimState: 0
+  shootRaycastLayers:
+    serializedVersion: 2
+    m_Bits: 280
   timelineDirector_Reload: {fileID: 4004624657787412825}
   timelineDirector_Shoot: {fileID: 2999494638184496926}
   gunInfo: {fileID: 0}
-  hitwalleffect: {fileID: 2739873112441160463, guid: 1cc8778fdea79144c8d8d6a96f2e1d41, type: 3}
   firePoint: {fileID: 1819957440663555437}
   cartridgeCasePrefab: {fileID: 0}
   cartridgeEjectPoint: {fileID: 8462302234359539498}
@@ -638,10 +641,15 @@ MonoBehaviour:
   bulletShowDuration: 0.5
   bulletSegmentPrefab: {fileID: 0}
   applyAutoEjectCartridge: 1
+  hitwalleffect: {fileID: 2739873112441160463, guid: 1cc8778fdea79144c8d8d6a96f2e1d41, type: 3}
   originalWorldScale: {x: 0, y: 0, z: 0}
   ownerPlayer: {fileID: 0}
   isInPlayerHand: 0
   GunInfoManager: {fileID: 0}
+  Duration: 0.5
+  _localRecoil: 0
+  _localViewRange: 0
+  _localAccuracy: 0
 --- !u!1 &5471276903302263210
 GameObject:
   m_ObjectHideFlags: 0

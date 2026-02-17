@@ -2,7 +2,7 @@
 public class Gun_98K: BaseGun
 {
     //对98K的换弹特殊实现
-    private float EndAnimationTime = 3.6833f; //换弹结束动画时间(执行最后的拉枪击动画)
+    private float EndAnimationTime = 3.6833f; //换弹结束动画时间
     private int ReloadCount = 0;//当前换弹次数
 
     public  void Awake()
@@ -10,7 +10,7 @@ public class Gun_98K: BaseGun
         ReloadSuccessAction += getReloadCount;//获取当前需要的换弹次数
     }
 
-    public void CheckNeedReload()//检测是否需要继续换弹(每次换弹的时候Timeline调用)
+    public void CheckNeedReload()//检测是否需要继续换弹(
     {
         ReloadCount--;//换弹次数-1
         if(ReloadCount<=0)

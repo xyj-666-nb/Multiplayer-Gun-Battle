@@ -13,24 +13,30 @@ MonoBehaviour:
   m_Name: AWP
   m_EditorClassIdentifier: 
   Name: AWP
-  type: 0
-  description: 
+  type: 2
+  description: "\u56FD\u5BB6 / \u5E74\u4EE3\uFF1A \u82F1\u56FD\uFF0C1980 \u5E74\u4EE3\n\u6B66\u5668\u7C7B\u578B\uFF1A
+    \u9AD8\u7CBE\u5EA6\u6813\u52A8\u72D9\u51FB\u6B65\u67AA\n\u8BBE\u8BA1\u76EE\u7684\uFF1A
+    \u5728\u6076\u52A3\u73AF\u5883\u4E0B\u8FDB\u884C\u957F\u8DDD\u79BB\u7CBE\u51C6\u5C04\u51FB\n\u6280\u672F\u7279\u70B9\uFF1A
+    \u81EA\u7531\u6D6E\u52A8\u67AA\u7BA1\u4E0E\u6297\u4E25\u5BD2\u6750\u6599\u8BA9\u5176\u5177\u5907\u6781\u9AD8\u547D\u4E2D\u7387\uFF0C\u9002\u5408\u53CD\u72D9\u51FB\u4EFB\u52A1\u3002"
   Bullet_capacity: 5
   AllBulletAmount: 30
   RateOfFires: 0
-  Accuracy: 12.5
+  Accuracy: 90
   Damage: 32.8
   Range: 206
   ReloadTime: 0
   BulletSpeed: 0
   Recoil: 1.7
   Recoil_Enemy: 0
-  GunBodySprite: {fileID: 21300000, guid: ec6008200151ca14ab3e31d8b50a07d2, type: 3}
+  ViewRange: 0.2
+  GunBodySprite: {fileID: -890624115, guid: 15534c1a4afd7f644a03efad0883709d, type: 3}
   ShootAudio: {fileID: 8300000, guid: 184e98b177b3505429f2f172edc7592c, type: 3}
   BulletFill: {fileID: 0}
   GunSprite: {fileID: 21300000, guid: ec6008200151ca14ab3e31d8b50a07d2, type: 3}
   ShackStrength: 1
   ShackTime: 0.3
+  ShackStrength_Enemy: 0
+  ShackTime_Enemy: 0
   ShotgunBulletAmount: 0
   shotgunBatchInterval: 0.05
   shotgunScatterAngle: 15

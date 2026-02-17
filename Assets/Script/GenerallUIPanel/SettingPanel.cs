@@ -55,7 +55,7 @@ public class SettingPanel : BasePanel
         }
         if (controlDic[buttonName] is Button button)
         {
-            RadioGroupManager.Instance.AddButtonToGroup(groupName, button, chooseEvent, cancelEvent, scale, duration);
+            ButtonGroupManager.Instance.AddRadioButtonToGroup(groupName, button, chooseEvent, cancelEvent, scale, duration);
         }
         else
         {
@@ -210,9 +210,9 @@ public class SettingPanel : BasePanel
             _currentTypingWritingTask.StopTyping();
             _currentTypingWritingTask = null;
         }
-        if (RadioGroupManager.Instance != null)
+        if (ButtonGroupManager.Instance != null)
         {
-            RadioGroupManager.Instance.DestroyRadioGroup(_totalGroupName);
+            ButtonGroupManager.Instance.DestroyRadioGroup(_totalGroupName);
         }
         _isPanelInitialized = false;
     }

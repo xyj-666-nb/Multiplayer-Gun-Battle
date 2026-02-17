@@ -1,7 +1,6 @@
 using Mirror;
 using UnityEngine;
 using UnityEngine.Playables;
-using System.Collections.Generic;
 using UnityEngine.Events;
 
 public class BaseGun : NetworkBehaviour
@@ -25,6 +24,19 @@ public class BaseGun : NetworkBehaviour
     [SerializeField]
     [SyncVar(hook = nameof(OnAllReserveBulletChanged))]
     protected float _allReserveBulletCount = 0;      // 备用子弹
+    [SyncVar(hook = nameof(OnIsEnterAimState))]
+    public bool IsEnterAimState = false;//是否进入瞄准状态
+
+    // ========== 新增：射线检测层掩码（关键修改1） ==========
+    [Header("射线检测配置")]
+    [Tooltip("射线仅检测这些层（Player和Ground）")]
+    public LayerMask shootRaycastLayers;
+
+    [Command]
+    public void ChangeAimState(bool IsEnter)
+    {
+        IsEnterAimState = IsEnter;
+    }
 
     [Header("=== 枪械组件配置 ===")]
     [Header("Timeline动画")]
@@ -35,7 +47,6 @@ public class BaseGun : NetworkBehaviour
     public GunInfo gunInfo; // 枪械属性配置
 
     [Header("射击特效")]
-
     public Transform firePoint;        // 射击点
     public GameObject cartridgeCasePrefab;  // 弹壳预制体
     public Transform cartridgeEjectPoint;   // 抛壳点
@@ -51,7 +62,7 @@ public class BaseGun : NetworkBehaviour
     public float bulletFlySpeed = 80f;       // 子弹飞行速度
     public float bulletShowDuration = 0.5f;  // 子弹飞行完成后淡出时长
     [SerializeField]
-    public GameObject bulletSegmentPrefab;   // 可选：手动赋值预制体（不赋值则自动创建）
+    public GameObject bulletSegmentPrefab;
 
     [Header("是否应用自动抛壳")]
     public bool applyAutoEjectCartridge = true;
@@ -179,8 +190,32 @@ public class BaseGun : NetworkBehaviour
         {
             myRigidbody.velocity = Vector2.zero;
             myRigidbody.angularVelocity = 0;
+            InitLocalAimProperties();
+        }
+        else
+        {
+            StopAllAimLerp();
+            ResetLocalAimProperties();
         }
     }
+
+
+    private void OnIsEnterAimState(bool oldValue, bool newValue)
+    {
+        if (!isClient || gunInfo == null || ownerPlayer == null || ownerPlayer.myStats == null || SimpleAnimatorTool.Instance == null)
+        {
+            Debug.LogError("[瞄准状态] 执行条件不满足，跳过状态切换");
+            return;
+        }
+
+        if (newValue)
+            EnterAimState();//进入瞄准状态
+        else
+            ExitAimState();//退出瞄准状态（修正方法名）
+
+    }
+
+
     #endregion
 
     #region 核心Command方法
@@ -189,7 +224,8 @@ public class BaseGun : NetworkBehaviour
     {
         if (!isServer) { Debug.LogError($"[服务器] CmdStartShoot非服务器环境！"); return; }
         bool canShootServer = IsCanShoot();
-        if (!canShootServer) return;
+        if (!canShootServer)
+            return;
         IsInShoot = true;
     }
 
@@ -211,20 +247,14 @@ public class BaseGun : NetworkBehaviour
             Vector2 baseDir = new Vector2(ownerPlayer.FacingDir, 0);
             Vector2 shootDir = CalculateBulletScattering(baseDir);
 
-            HashSet<string> ignoreTags = new HashSet<string>
-            {
-                "Gun",
-                "cartridgeCase"
-            };
+            RaycastHit2D hit = Physics2D.Raycast(
+                firePoint.position,
+                shootDir,
+                gunInfo.Range,
+                shootRaycastLayers 
+            );
 
-            // 执行基础射线检测
-            RaycastHit2D hit = Physics2D.Raycast(firePoint.position, shootDir, gunInfo.Range);
-
-            // 忽略枪/弹壳标签的对象
-            if (hit.collider != null && ignoreTags.Contains(hit.collider.tag))
-            {
-                hit = new RaycastHit2D();
-            }
+           
 
             if (hit.collider != null)
             {
@@ -242,6 +272,7 @@ public class BaseGun : NetworkBehaviour
                         }
 
                         hitTarget.ServerApplyDamage(gunInfo.Damage, hit.point, hit.normal, attackerStats);
+                        Debug.Log("击中玩家");
                     }
                     else
                     {
@@ -252,6 +283,7 @@ public class BaseGun : NetworkBehaviour
                 else if (hit.collider.CompareTag("Ground"))
                 {
                     RpcSpawnHitEffect(hit.point, hit.normal);
+                    Debug.Log("击中墙壁");
                 }
             }
 
@@ -331,7 +363,7 @@ public class BaseGun : NetworkBehaviour
         GameObject hitEffectObj = Instantiate(
             hitwalleffect,
             hitPos,
-            Quaternion.LookRotation(Vector3.forward, hitNormal) 
+            Quaternion.LookRotation(Vector3.forward, hitNormal)
         );
 
     }
@@ -469,12 +501,12 @@ public class BaseGun : NetworkBehaviour
             return;
         }
 
-        Vector2 recoilForce = new Vector2(-ownerPlayer.FacingDir * gunInfo.Recoil * recoilForceScale, 0);
+        Vector2 recoilForce = new Vector2(-ownerPlayer.FacingDir * _localRecoil * recoilForceScale, 0);
         ownerPlayer.MyRigdboby.AddForce(recoilForce, ForceMode2D.Impulse);
 
         if (ownerPlayer.isLocalPlayer)
             MyCameraControl.Instance?.AddTimeBasedShake(gunInfo.ShackStrength, gunInfo.ShackTime);
-        MusicManager.Instance.PlayEffect3D(gunInfo.ShootAudio);
+        MusicManager.Instance.PlayEffect3D(gunInfo.ShootAudio, 2, 1, 10, this.transform);//播放射击音效
     }
     #endregion
 
@@ -483,8 +515,8 @@ public class BaseGun : NetworkBehaviour
     {
         if (gunInfo == null)
         { Debug.LogError($"[服务器] gunInfo未赋值！"); return centerDir; }
-        int baseAngle = 5;
-        float maxAngle = baseAngle * (1 - gunInfo.Accuracy / 100f);
+        int baseAngle = 20;
+        float maxAngle = baseAngle * (1 - _localAccuracy / 100f);
         float randomAngle = Random.Range(-maxAngle, maxAngle);
         return Quaternion.Euler(0, 0, randomAngle) * centerDir;
     }
@@ -501,7 +533,7 @@ public class BaseGun : NetworkBehaviour
     {
         CmdStartReload();
         ReloadSuccessAction?.Invoke();//触发事件
-     }
+    }
     #endregion
 
     #region Timeline回调
@@ -557,7 +589,7 @@ public class BaseGun : NetworkBehaviour
 
     #endregion
 
-    #region 枪械拾取/丢弃
+    #region 枪械拾取/丢弃（完全保留你原始的两个方法，未做任何修改）
     [Server]
     public void SafeServerOnGunPicked()
     {
@@ -610,15 +642,128 @@ public class BaseGun : NetworkBehaviour
     private GameObject GetBulletSegmentTemplate()
     {
         if (_autoBulletSegmentTemplate != null) return _autoBulletSegmentTemplate;
-        // 兜底：再次尝试初始化模板
         InitBulletSegmentTemplate();
         return _autoBulletSegmentTemplate;
     }
     #endregion
+
+    #region 进入瞄准状态
+    [Header("瞄准状态变量设置")]
+    public float Duration = 0.5f;//渐变的时间
+
+    private int AnimationID_Recoil = -1;
+    private int AnimationID_ViewRange = -1;
+    private int AnimationID_Accuracy = -1;
+
+    [Header("本地的瞄准属性")]
+    // 本地瞄准属性
+    public float _localRecoil;    // 本地后坐力
+    public float _localViewRange; // 本地视野
+    public float _localAccuracy;  // 本地精准度
+
+    /// <summary>
+    /// 初始化本地瞄准属性
+    /// </summary>
+    private void InitLocalAimProperties()
+    {
+        if (gunInfo == null) return;
+        _localRecoil = gunInfo.Recoil;
+        _localViewRange = gunInfo.ViewRange;
+        _localAccuracy = gunInfo.Accuracy;
+    }
+
+    /// <summary>
+    /// 重置本地瞄准属性到gunInfo原始值
+    /// </summary>
+    private void ResetLocalAimProperties()
+    {
+        if (gunInfo == null) return;
+        _localRecoil = gunInfo.Recoil;
+        _localViewRange = gunInfo.ViewRange;
+        _localAccuracy = gunInfo.Accuracy;
+    }
+
+    /// <summary>
+    /// 停止所有瞄准插值动画
+    /// </summary>
+    public void StopAllAimLerp()
+    {
+        if (SimpleAnimatorTool.Instance == null) return;
+
+        if (AnimationID_Recoil != -1)
+        {
+            SimpleAnimatorTool.Instance.StopFloatLerpById(AnimationID_Recoil);
+            AnimationID_Recoil = -1;
+        }
+        if (AnimationID_ViewRange != -1)
+        {
+            SimpleAnimatorTool.Instance.StopFloatLerpById(AnimationID_ViewRange);
+            AnimationID_ViewRange = -1;
+        }
+        if (AnimationID_Accuracy != -1)
+        {
+            SimpleAnimatorTool.Instance.StopFloatLerpById(AnimationID_Accuracy);
+            AnimationID_Accuracy = -1;
+        }
+    }
+
+    public void EnterAimState()
+    {
+        //调用新的停止方法
+        StopAllAimLerp();
+
+        // 修改数值
+        AnimationID_Recoil = SimpleAnimatorTool.Instance.StartFloatLerp(
+            _localRecoil,
+            _localRecoil * (1 - ownerPlayer.myStats.AimRecoilBonus),
+            Duration,
+            (value) => { _localRecoil = value; } // 改本地变量
+        );
+        AnimationID_ViewRange = SimpleAnimatorTool.Instance.StartFloatLerp(
+            _localViewRange,
+            _localViewRange * (1 + ownerPlayer.myStats.AimViewBonus),
+            Duration,
+            (value) => { _localViewRange = value; } // 改本地变量
+        );
+        AnimationID_Accuracy = SimpleAnimatorTool.Instance.StartFloatLerp(
+            _localAccuracy,
+            _localAccuracy * (1 + ownerPlayer.myStats.AimAccuracyBonus),
+            Duration,
+            (value) => { _localAccuracy = value; } // 改本地变量
+        );
+    }
+
+    public void ExitAimState()
+    {
+
+        StopAllAimLerp();
+
+        // 还原数值
+        AnimationID_Recoil = SimpleAnimatorTool.Instance.StartFloatLerp(
+            _localRecoil,
+            gunInfo.Recoil,
+            Duration,
+            (value) => { _localRecoil = value; }
+        );
+        AnimationID_ViewRange = SimpleAnimatorTool.Instance.StartFloatLerp(
+            _localViewRange,
+            gunInfo.ViewRange,
+            Duration,
+            (value) => { _localViewRange = value; }
+        );
+        AnimationID_Accuracy = SimpleAnimatorTool.Instance.StartFloatLerp(
+            _localAccuracy,
+            gunInfo.Accuracy,
+            Duration,
+            (value) => { _localAccuracy = value; }
+        );
+    }
+    #endregion
+
 }
 
 /// <summary>
-/// 让小线段整体向目标点飞行，始终朝向飞行方向（适配对象池）
+/// 让小线段整体向目标点飞行，始终朝向飞行方向
 /// </summary>
 public class BulletSegmentFly : MonoBehaviour
 {

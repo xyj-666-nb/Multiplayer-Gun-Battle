@@ -17,6 +17,7 @@ using static SimpleAnimatorTool;
 /// 4.提供通用渐变
 /// 5.提供滚动播放文本列表
 /// 6.提供循环渐变功能
+/// 7.提供数值滚动的方法
 /// </summary>
 public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
 {
@@ -124,7 +125,7 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
         }
 
         // 未找到任务
-        Debug.LogWarning($"未找到ID为 {taskId} 的Float插值任务，可能已完成或不存在");
+      //  Debug.LogWarning($"未找到ID为 {taskId} 的Float插值任务，可能已完成或不存在");
     }
     #endregion
 
@@ -672,6 +673,169 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
         }
         ScrollingTextTaskList.Clear();
     }
+    #endregion
+
+    #region 7. 数值滚动动画功能（基于FloatLerp）
+    // 数值滚动任务列表
+    private List<RollValueTask> _rollValueTasks = new List<RollValueTask>();
+    // 数值滚动任务唯一ID自增器
+    private int _nextRollValueTaskId = 1000; // 与FloatLerp ID段区分开
+    private bool _isDebugLog = true;// 调试日志开关
+
+    #region 外部接口：添加数值滚动任务
+    /// <summary>
+    /// 添加并启动数值滚动任务
+    /// </summary>
+    /// <param name="startValue">起始数值</param>
+    /// <param name="targetValue">目标数值</param>
+    /// <param name="duration">滚动总时长（秒）</param>
+    /// <param name="showText">显示数值的TMP组件</param>
+    /// <param name="format">数值格式化字符串（如"F0"整数、"F2"保留两位小数）</param>
+    /// <param name="easeType">缓动类型</param>
+    /// <param name="onComplete">滚动完成回调</param>
+    /// <returns>任务唯一ID（用于暂停/恢复/停止）</returns>
+    public int AddRollValueTask(float startValue, float targetValue, float duration, TextMeshProUGUI showText,
+                               string format = "F0", EaseType easeType = EaseType.Linear, Action onComplete = null)
+    {
+        // 前置校验
+        if (showText == null)
+        {
+            LogError("AddRollValueTask：显示文本的TMP组件不能为空！");
+            return -1;
+        }
+        if (duration <= 0)
+        {
+            LogWarning("AddRollValueTask：滚动时长不能≤0，已直接设置为目标值");
+            showText.text = targetValue.ToString(format);
+            onComplete?.Invoke();
+            return -1;
+        }
+
+        // 停止同目标的旧任务（避免叠加）
+        StopRollValueTaskByTarget(showText);
+
+        // 对象池获取任务对象
+        RollValueTask newTask = PoolManage.Instance.GetObj<RollValueTask>();
+        int taskId = _nextRollValueTaskId++;
+        // 初始化任务
+        newTask.Init(startValue, targetValue, duration, showText, format, easeType, taskId, onComplete);
+        // 添加到管理列表
+        _rollValueTasks.Add(newTask);
+        // 启动任务
+        newTask.StartTask(this);
+
+        Log($"数值滚动任务创建成功，ID：{taskId}，目标值：{targetValue.ToString(format)}");
+        return taskId;
+    }
+
+    #endregion
+
+    #region 外部接口：暂停/恢复/停止数值滚动任务
+    /// <summary>
+    /// 暂停指定ID的数值滚动任务
+    /// </summary>
+    /// <param name="taskId">任务唯一ID</param>
+    public void PauseRollValueTask(int taskId)
+    {
+        RollValueTask targetTask = _rollValueTasks.Find(t => t.TaskId == taskId);
+        if (targetTask != null)
+        {
+            targetTask.PauseTask();
+            Log($"数值滚动任务已暂停，ID：{taskId}");
+        }
+        else
+        {
+            LogWarning($"未找到ID为{taskId}的数值滚动任务，暂停失败");
+        }
+    }
+
+    /// <summary>
+    /// 恢复指定ID的数值滚动任务
+    /// </summary>
+    /// <param name="taskId">任务唯一ID</param>
+    public void ResumeRollValueTask(int taskId)
+    {
+        RollValueTask targetTask = _rollValueTasks.Find(t => t.TaskId == taskId);
+        if (targetTask != null)
+        {
+            targetTask.ResumeTask(this);
+            Log($"数值滚动任务已恢复，ID：{taskId}");
+        }
+        else
+        {
+            LogWarning($"未找到ID为{taskId}的数值滚动任务，恢复失败");
+        }
+    }
+
+    /// <summary>
+    /// 停止指定ID的数值滚动任务
+    /// </summary>
+    /// <param name="taskId">任务唯一ID</param>
+    /// <param name="setToTarget">是否直接设置为目标值（默认true）</param>
+    public void StopRollValueTask(int taskId, bool setToTarget = true)
+    {
+        RollValueTask targetTask = _rollValueTasks.Find(t => t.TaskId == taskId);
+        if (targetTask != null)
+        {
+            targetTask.StopTask(setToTarget);
+            _rollValueTasks.Remove(targetTask);
+            PoolManage.Instance.PushObj(targetTask);
+            Log($"数值滚动任务已停止，ID：{taskId}，是否设置为目标值：{setToTarget}");
+        }
+        else
+        {
+            LogWarning($"未找到ID为{taskId}的数值滚动任务，停止失败");
+        }
+    }
+
+    /// <summary>
+    /// 根据目标TMP组件停止数值滚动任务
+    /// </summary>
+    /// <param name="showText">目标TMP组件</param>
+    /// <param name="setToTarget">是否直接设置为目标值</param>
+    public void StopRollValueTaskByTarget(TextMeshProUGUI showText, bool setToTarget = false)
+    {
+        RollValueTask targetTask = _rollValueTasks.Find(t => t.ShowText == showText);
+        if (targetTask != null)
+        {
+            StopRollValueTask(targetTask.TaskId, setToTarget);
+        }
+    }
+
+    /// <summary>
+    /// 停止所有数值滚动任务
+    /// </summary>
+    public void StopAllRollValueTasks()
+    {
+        foreach (var task in _rollValueTasks)
+        {
+            task.StopTask(true);
+            PoolManage.Instance.PushObj(task);
+        }
+        _rollValueTasks.Clear();
+        Log("所有数值滚动任务已停止并回收");
+    }
+    #endregion
+
+    #region 内部工具方法
+    private void Log(string msg)
+    {
+        if (_isDebugLog) 
+            Debug.Log($"[SimpleAnimatorTool] {msg}");
+    }
+
+    private void LogWarning(string msg)
+    {
+        if (_isDebugLog) 
+            Debug.LogWarning($"[SimpleAnimatorTool] {msg}");
+    }
+
+    private void LogError(string msg)
+    {
+        Debug.LogError($"[SimpleAnimatorTool] {msg}");
+    }
+    #endregion
+
     #endregion
 
     #region 生命周期更新
@@ -1302,6 +1466,195 @@ public class SplineLerpTask//曲线运动任务包,沿曲线运动
             Obj.transform.rotation = Quaternion.LookRotation(crossVec, Vertical);
         }
     }
+    #endregion
+}
+#endregion
+
+#region 数值滚动任务类
+public class RollValueTask : IPoolObject
+{
+    // 核心配置参数
+    public int TaskId { get; private set; } // 任务唯一ID
+    public float StartValue { get; private set; } // 起始值
+    public float TargetValue { get; private set; } // 目标值
+    public float Duration { get; private set; } // 总时长
+    public TextMeshProUGUI ShowText { get; private set; } // 显示文本的TMP组件
+    public string Format { get; private set; } // 数值格式化字符串
+    public SimpleAnimatorTool.EaseType EaseType { get; private set; } // 缓动类型
+    public Action OnComplete { get; private set; } // 完成回调
+
+    // 运行时状态
+    private int _floatLerpTaskId = -1; // 关联的FloatLerp任务ID
+    private float _pauseValue = 0; // 暂停时的当前值
+    private bool _isPaused = false; // 是否暂停
+    private bool _isRunning = false; // 是否运行中
+
+    #region 初始化
+    /// <summary>
+    /// 初始化数值滚动任务
+    /// </summary>
+    /// <param name="startValue">起始值</param>
+    /// <param name="targetValue">目标值</param>
+    /// <param name="duration">总时长</param>
+    /// <param name="showText">显示文本的TMP组件</param>
+    /// <param name="format">数值格式化字符串</param>
+    /// <param name="easeType">缓动类型</param>
+    /// <param name="taskId">任务唯一ID</param>
+    /// <param name="onComplete">完成回调</param>
+    public void Init(float startValue, float targetValue, float duration, TextMeshProUGUI showText,
+                    string format, SimpleAnimatorTool.EaseType easeType, int taskId, Action onComplete = null)
+    {
+        // 重置原有状态
+        ResetTask();
+
+        // 赋值核心参数
+        TaskId = taskId;
+        StartValue = startValue;
+        TargetValue = targetValue;
+        Duration = duration;
+        ShowText = showText;
+        Format = format ?? "F0";
+        EaseType = easeType;
+        OnComplete = onComplete;
+
+        // 初始显示起始值
+        if (ShowText != null)
+        {
+            ShowText.text = startValue.ToString(Format);
+        }
+    }
+    #endregion
+
+    #region 任务控制：启动/暂停/恢复/停止
+    /// <summary>
+    /// 启动数值滚动任务
+    /// </summary>
+    /// <param name="animatorTool">SimpleAnimatorTool实例</param>
+    public void StartTask(SimpleAnimatorTool animatorTool)
+    {
+        if (animatorTool == null || ShowText == null) return;
+
+        _isRunning = true;
+        _isPaused = false;
+
+        // 启动FloatLerp驱动数值变化
+        _floatLerpTaskId = animatorTool.StartFloatLerp(
+            StartValue,
+            TargetValue,
+            Duration,
+            // 更新回调：实时刷新文本
+            (currentValue) =>
+            {
+                if (_isPaused) return;
+                _pauseValue = currentValue; // 记录当前值（用于暂停恢复）
+                ShowText.text = currentValue.ToString(Format);
+            },
+            // 完成回调
+            () =>
+            {
+                _isRunning = false;
+                ShowText.text = TargetValue.ToString(Format); // 兜底设置目标值
+                OnComplete?.Invoke();
+            },
+            EaseType
+        );
+    }
+
+    /// <summary>
+    /// 暂停数值滚动任务
+    /// </summary>
+    public void PauseTask()
+    {
+        if (!_isRunning || _isPaused) return;
+
+        _isPaused = true;
+        // 停止FloatLerp（保留当前值）
+        if (_floatLerpTaskId > 0)
+        {
+            SimpleAnimatorTool.Instance.StopFloatLerpById(_floatLerpTaskId);
+        }
+    }
+
+    /// <summary>
+    /// 恢复数值滚动任务
+    /// </summary>
+    /// <param name="animatorTool">SimpleAnimatorTool实例</param>
+    public void ResumeTask(SimpleAnimatorTool animatorTool)
+    {
+        if (!_isRunning || !_isPaused) return;
+
+        _isPaused = false;
+        // 计算剩余时长
+        float remainingDuration = Duration * (1 - (_pauseValue - StartValue) / (TargetValue - StartValue));
+        remainingDuration = Mathf.Max(0.01f, remainingDuration); // 避免时长为0
+
+        // 重新启动FloatLerp（从暂停值到目标值）
+        _floatLerpTaskId = animatorTool.StartFloatLerp(
+            _pauseValue,
+            TargetValue,
+            remainingDuration,
+            (currentValue) =>
+            {
+                if (_isPaused) return;
+                _pauseValue = currentValue;
+                ShowText.text = currentValue.ToString(Format);
+            },
+            () =>
+            {
+                _isRunning = false;
+                ShowText.text = TargetValue.ToString(Format);
+                OnComplete?.Invoke();
+            },
+            EaseType
+        );
+    }
+
+    /// <summary>
+    /// 停止数值滚动任务
+    /// </summary>
+    /// <param name="setToTarget">是否直接设置为目标值</param>
+    public void StopTask(bool setToTarget = true)
+    {
+        _isRunning = false;
+        _isPaused = false;
+
+        // 停止关联的FloatLerp任务
+        if (_floatLerpTaskId > 0)
+        {
+            SimpleAnimatorTool.Instance.StopFloatLerpById(_floatLerpTaskId);
+            _floatLerpTaskId = -1;
+        }
+
+        // 最终值设置
+        if (ShowText != null)
+        {
+            ShowText.text = setToTarget ? TargetValue.ToString(Format) : _pauseValue.ToString(Format);
+        }
+    }
+    #endregion
+
+    #region 重置
+    public void ReSetDate()
+    {
+        // 停止任务
+        StopTask(false);
+        // 重置所有状态
+        TaskId = -1;
+        StartValue = 0;
+        TargetValue = 0;
+        Duration = 0;
+        ShowText = null;
+        Format = "F0";
+        EaseType = SimpleAnimatorTool.EaseType.Linear;
+        OnComplete = null;
+        _floatLerpTaskId = -1;
+        _pauseValue = 0;
+        _isPaused = false;
+        _isRunning = false;
+    }
+
+    // 兼容IPoolObject的重置方法（别名）
+    public void ResetTask() => ReSetDate();
     #endregion
 }
 #endregion

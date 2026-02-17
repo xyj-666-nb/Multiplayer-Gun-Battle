@@ -86,6 +86,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "GunAim",
+                    "type": "Button",
+                    "id": "7ba6d8d5-0624-4559-8ac6-1626dd614fd8",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -185,6 +194,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "DiscardGun",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2ed57c8e-45cd-4350-9741-be3c9931b03a",
+                    "path": "<GunAim>",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "GunAim",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

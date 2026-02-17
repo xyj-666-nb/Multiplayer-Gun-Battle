@@ -11,6 +11,7 @@ public class Player : Base_Entity
 
     [Header("枪械挂载")]
     public Transform playerHandPos;
+    public playerHandControl MyHandControl;
     [SyncVar(hook = nameof(OnGunChanged))]
     public BaseGun currentGun;
 
@@ -61,6 +62,7 @@ public class Player : Base_Entity
             myInputSystem.Initialize(this, myStats);
             Debug.Log("Player：本地玩家输入系统初始化完成！");
         }
+        MyHandControl = playerHandPos.GetComponent<playerHandControl>();
     }
 
     public override void OnStopLocalPlayer()
@@ -125,6 +127,9 @@ public class Player : Base_Entity
 
     #region 枪械管理
     // 钩子仅做「挂载/解挂载」，刚体状态由BaseGun的SyncVar钩子自动同步
+
+    private int ViewTaskID = -1;//当前视野提升任务ID
+    private float ChangeSpeed_View = 4;//视野变化速度
     private void OnGunChanged(BaseGun oldGun, BaseGun newGun)
     {
         if (!isClient || playerHandPos == null)
@@ -147,6 +152,32 @@ public class Player : Base_Entity
             newGun.transform.localPosition = Vector3.zero;
             newGun.transform.localRotation = Quaternion.identity;
             EventCenter.Instance.TriggerEvent(E_EventType.E_playerGetGun, this);
+        }
+
+
+        if (!isLocalPlayer) return;
+
+        // 对视野进行设置
+        if (newGun != null)
+        {
+            Debug.Log($"[本地客户端] 玩家{gameObject.name}持有新枪械，调整视野");
+            if (ViewTaskID != -1)
+            {
+                MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
+                ViewTaskID = -1;
+            }
+            float zoomPercent = 1 + newGun.gunInfo.ViewRange;//负数会自动缩放，正数会放大
+            ViewTaskID = MyCameraControl.Instance.AddZoomTask_ByPercent_TemporaryManual(zoomPercent, ChangeSpeed_View);
+            Debug.Log($"[本地客户端] 枪械缩放任务ID：{ViewTaskID}，百分比：{zoomPercent}");
+        }
+        else
+        {
+            //没有枪械了，视野恢复默认
+            if (ViewTaskID != -1)
+            {
+                MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
+                ViewTaskID = -1;
+            }
         }
     }
 

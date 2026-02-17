@@ -196,6 +196,7 @@ MonoBehaviour:
   - {fileID: 4958869702410040120, guid: 6e9c272311baeb549abd98db98e520e8, type: 3}
   - {fileID: 6102976931771197045, guid: 9e5f131db97e80447b3e914ab36cdc23, type: 3}
   - {fileID: 3347391349394437254, guid: a1b7fc23e5142bc4999f696adbd98889, type: 3}
+  - {fileID: 6677693599108175973, guid: 5d31929ce77af2c4f9e9d7036e9b3506, type: 3}
   exceptionsDisconnect: 1
   snapshotSettings:
     bufferTimeMultiplier: 2
@@ -365,7 +366,7 @@ GameObject:
   - component: {fileID: 776563983}
   - component: {fileID: 776563982}
   - component: {fileID: 776563981}
-  m_Layer: 11
+  m_Layer: 3
   m_Name: Square
   m_TagString: Ground
   m_Icon: {fileID: 0}
@@ -494,9 +495,9 @@ GameObject:
   m_Component:
   - component: {fileID: 784793875}
   - component: {fileID: 784793874}
-  m_Layer: 10
+  m_Layer: 3
   m_Name: Square
-  m_TagString: BackGround
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -564,59 +565,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -6.67, y: -7.1759, z: 0}
   m_LocalScale: {x: 43.312916, y: 15.064282, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &956321645
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 956321647}
-  - component: {fileID: 956321646}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &956321646
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 956321645}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7439f4c32cad27141a7680c19ba88afe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  bloodOnBackground: {fileID: 1170039278035515541, guid: f1379ee76bf134640a34519379343bd9, type: 3}
-  bloodOnWall: {fileID: 1170039278035515541, guid: 4ad4ed90fb2f17d498cbf62170e890e9, type: 3}
-  bloodParticle: {fileID: 1170039278035515541, guid: 2c266efabc1cfa143a1a2d8285f34f2e, type: 3}
-  bloodsOnBackground:
-  - {fileID: 21300000, guid: 51db7a80fa7d33d4298f326c9280bdb6, type: 3}
-  - {fileID: 21300000, guid: 90af7bc3e5adb3048b0a3b5cd5a034ff, type: 3}
-  bloodsOnWall:
-  - {fileID: 21300000, guid: c6caa4d237d1ce146923b9abaf3a65e6, type: 3}
-  - {fileID: 21300000, guid: 2a86eb16124e0e344abf61fa01cbd06a, type: 3}
---- !u!4 &956321647
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 956321645}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1012,7 +960,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7884197409869309439, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
       propertyPath: GunsPrefabsList.Array.size
-      value: 10
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 7884197409869309439, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
       propertyPath: GunsPrefabsList.Array.data[2]
@@ -1046,6 +994,30 @@ PrefabInstance:
       propertyPath: GunsPrefabsList.Array.data[9]
       value: 
       objectReference: {fileID: 3347391349394437254, guid: a1b7fc23e5142bc4999f696adbd98889, type: 3}
+    - target: {fileID: 7884197409869309439, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
+      propertyPath: GunsPrefabsList.Array.data[10]
+      value: 
+      objectReference: {fileID: 6677693599108175973, guid: 5d31929ce77af2c4f9e9d7036e9b3506, type: 3}
+    - target: {fileID: 9078745099334897647, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
+      propertyPath: PlayerSlotInfoPacksList.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 9078745099334897647, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
+      propertyPath: PlayerSlotInfoPacksList.Array.data[0].CurrentGunInfo
+      value: 
+      objectReference: {fileID: 11400000, guid: aebc0f97ab4b40c48a90f900a82e6ebe, type: 2}
+    - target: {fileID: 9078745099334897647, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
+      propertyPath: PlayerSlotInfoPacksList.Array.data[1].CurrentGunInfo
+      value: 
+      objectReference: {fileID: 11400000, guid: 9d280bc40ec5a5c46abad595ca5c6e6a, type: 2}
+    - target: {fileID: 9078745099334897647, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
+      propertyPath: PlayerSlotInfoPacksList.Array.data[2].CurrentGunInfo
+      value: 
+      objectReference: {fileID: 11400000, guid: a71db49042afc6346925d2c2546cc372, type: 2}
+    - target: {fileID: 9078745099334897647, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
+      propertyPath: PlayerSlotInfoPacksList.Array.data[3].CurrentGunInfo
+      value: 
+      objectReference: {fileID: 11400000, guid: a0831fbee2a74df4f8d0604adf376611, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1342,4 +1314,3 @@ SceneRoots:
   - {fileID: 776563983}
   - {fileID: 784793875}
   - {fileID: 4999022022365739917}
-  - {fileID: 956321647}

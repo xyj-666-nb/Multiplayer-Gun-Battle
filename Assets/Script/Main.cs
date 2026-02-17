@@ -27,7 +27,10 @@ public class Main : SingleMonoAutoBehavior<Main>
         Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械AWP", () => { Player.LocalPlayer.SpawnAndPickGun("AWP"); }, "枪械获取");
         Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械M110", () => { Player.LocalPlayer.SpawnAndPickGun("M110"); }, "枪械获取");
         Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械98K", () => { Player.LocalPlayer.SpawnAndPickGun("98K"); }, "枪械获取");
-        Developer_GUITestManger.Instance.RegisterGuiButton_TwoWay("打开设置面板", "关闭设置面板", () => { UImanager.Instance.ShowPanel<SettingPanel>(); },() => { UImanager.Instance.HidePanel<SettingPanel>(); } );
+        Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械AUG", () => { Player.LocalPlayer.SpawnAndPickGun("AUG"); }, "枪械获取");
+        Developer_GUITestManger.Instance.RegisterGuiButton("打开军械库面板", () => { UImanager.Instance.ShowPanel<ArmamentPanel>(); },"面板测试");
+        Developer_GUITestManger.Instance.RegisterGuiButton("打开设置面板", () => { UImanager.Instance.ShowPanel<SettingPanel>(); }, "面板测试");
+        Developer_GUITestManger.Instance.RegisterGuiButton("打开战备配置面板", () => { UImanager.Instance.ShowPanel<EquipmentConfigurationPanel>(); }, "面板测试");
         Developer_GUITestManger.Instance.RegisterGuiButton_TwoWay("打开当前调试信息", "关闭当前调试信息", () => { Developer_GUITestManger.Instance.IsShowAllInfo(true); }, () => { Developer_GUITestManger.Instance.IsShowAllInfo(false); }); 
         Developer_GUITestManger.Instance.RegisterGuiButton("清理烟雾", () => { FluidController.Instance.ClearTexture(); });
     }
