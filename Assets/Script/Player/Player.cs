@@ -433,10 +433,11 @@ public class Player : Base_Entity
     [ClientRpc]
     private void RpcResetGunTransform(uint gunNetId, Vector3 worldPos, float rotZ)
     {
-        if (!NetworkClient.spawned.TryGetValue(gunNetId, out NetworkIdentity gunNetIdentity)) return;
+        if (!NetworkClient.spawned.TryGetValue(gunNetId, out NetworkIdentity gunNetIdentity))
+            return;
 
         GameObject gunObj = gunNetIdentity.gameObject;
-        // 直接设置位置，无插值（消除延迟）
+        // 直接设置位置，无插值
         gunObj.transform.position = worldPos;
         gunObj.transform.rotation = Quaternion.Euler(0, 0, rotZ);
     }
@@ -488,4 +489,16 @@ public class Player : Base_Entity
             PlayerRespawnManager.Instance.ServerUpdateTeamInfo();
         }
     }
+
+    #region 调用游戏开始
+
+    [Command]
+    public void CmdRequestStartGame()
+    {
+        if (PlayerRespawnManager.Instance != null)
+        {
+            PlayerRespawnManager.Instance.NoticePlayerGameStart();
+        }
+    }
+    #endregion
 }

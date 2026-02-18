@@ -5,9 +5,14 @@ using UnityEngine.Events;
 
 public class BaseGun : NetworkBehaviour
 {
+    #region 基础组件引用
     [Header("刚体组件")]
     public Rigidbody2D myRigidbody;
+    // 缓存NetworkIdentity
+    private NetworkIdentity _netIdentity;
+    #endregion
 
+    #region 网络同步状态（SyncVar）
     [Header("=== 枪械核心状态（服务器权威，SyncVar同步） ===")]
     [SerializeField]
     [SyncVar(hook = nameof(OnIsInReloadChanged))]
@@ -20,23 +25,27 @@ public class BaseGun : NetworkBehaviour
     protected bool _canShoot = true;    // 可射击状态
     [SerializeField]
     [SyncVar(hook = nameof(OnCurrentMagazineBulletChanged))]
-    protected float _currentMagazineBulletCount = 0; // 当前弹匣子弹
+    protected float _currentMagazineBulletCount = 0; //当前弹匣子弹
     [SerializeField]
     [SyncVar(hook = nameof(OnAllReserveBulletChanged))]
-    protected float _allReserveBulletCount = 0;      // 备用子弹
+    protected float _allReserveBulletCount = 0;     //备用子弹
     [SyncVar(hook = nameof(OnIsEnterAimState))]
     public bool IsEnterAimState = false;//是否进入瞄准状态
 
+    [Header("当前拾取玩家")]
+    [SyncVar]
+    public Player ownerPlayer;//全局的变量
+    [SyncVar(hook = nameof(OnIsInPlayerHandChanged))]
+    public bool isInPlayerHand = false; // 是否被玩家拾取
+    #endregion
+
+    #region 检测与输入配置
     [Header("射线检测配置")]
     [Tooltip("射线仅检测这些层（Player和Ground）")]
     public LayerMask shootRaycastLayers;
+    #endregion
 
-    [Command]
-    public void ChangeAimState(bool IsEnter)
-    {
-        IsEnterAimState = IsEnter;
-    }
-
+    #region 枪械组件与配置
     [Header("=== 枪械组件配置 ===")]
     [Header("Timeline动画")]
     public PlayableDirector timelineDirector_Reload; // 换弹动画
@@ -44,16 +53,25 @@ public class BaseGun : NetworkBehaviour
 
     [Header("枪械配置文件")]
     public GunInfo gunInfo; // 枪械属性配置
+    #endregion
 
+    #region 射击特效配置
     [Header("射击特效")]
     public Transform firePoint;        // 射击点
     public GameObject cartridgeCasePrefab;  // 弹壳预制体
     public Transform cartridgeEjectPoint;   // 抛壳点
     public float recoilForceScale = 1f;     // 后坐力缩放
     public Vector3 cartridgeFixedScale = new Vector3(0.2f, 0.2f, 1f);
+    public GameObject hitwalleffect;
 
+    [Header("是否应用自动抛壳")]
+    public bool applyAutoEjectCartridge = true;
+    #endregion
+
+    #region 调试与子弹视觉配置
     [Header("调试配置")]
     public bool isDebug = true; // 是否打印调试日志
+
     [Header("子弹小线段配置")]
     public Color bulletColor = new Color(0.83f, 0.68f, 0.22f); // 子弹黄铜色 #D4AF37
     public float bulletSegmentLength = 0.2f; // 子弹小线段的长度（可调节）
@@ -62,35 +80,24 @@ public class BaseGun : NetworkBehaviour
     public float bulletShowDuration = 0.5f;  // 子弹飞行完成后淡出时长
     [SerializeField]
     public GameObject bulletSegmentPrefab;
+    #endregion
 
-    [Header("是否应用自动抛壳")]
-    public bool applyAutoEjectCartridge = true;
-
-    public GameObject hitwalleffect;
-
+    #region 内部缓存字段
     private GameObject _autoBulletSegmentTemplate;
     // 缓存模板名称
     private readonly string _bulletSegmentTemplateName = "Auto_BulletSegmentTemplate";
 
-    // 缓存NetworkIdentity
-    private NetworkIdentity _netIdentity;
-
     [HideInInspector]
     public Vector3 originalWorldScale; // 存储枪械原始世界缩放
 
-    [Header("当前拾取玩家")]
-    [SyncVar]
-    public Player ownerPlayer;//全局的变量
-    [SyncVar(hook = nameof(OnIsInPlayerHandChanged))]
-    public bool isInPlayerHand = false; // 是否被玩家拾取
-
-    public UnityAction ReloadSuccessAction;// 换弹成功回调事件
-
     // 缓存枪械信息显示脚本
     private GunWorldInfoShow _gunWorldInfoShow;
+    #endregion
 
+    #region 事件与管理器引用
+    public UnityAction ReloadSuccessAction;// 换弹成功回调事件
     public GunWorldInfoShow GunInfoManager;
-
+    #endregion
 
     #region 公有属性封装
     public bool IsInReload
@@ -134,10 +141,9 @@ public class BaseGun : NetworkBehaviour
     // 对外暴露子弹数
     public float CurrentMagazineBulletCount => _currentMagazineBulletCount;
     public float AllReserveBulletCount => _allReserveBulletCount;
-
     #endregion
 
-    #region SyncVar钩子
+    #region SyncVar钩子（状态同步回调）
     private void OnIsInReloadChanged(bool oldValue, bool newValue)
     {
         if (!isClient) return;
@@ -163,6 +169,7 @@ public class BaseGun : NetworkBehaviour
     }
 
     private void OnCanShootChanged(bool oldValue, bool newValue) { }
+
     private void OnCurrentMagazineBulletChanged(float oldValue, float newValue)
     {
         //如果是当前玩家的枪械就更新一下UI
@@ -171,6 +178,7 @@ public class BaseGun : NetworkBehaviour
             UImanager.Instance.GetPanel<PlayerPanel>().UpdateGunBulletAmountText();//更新一下子弹信息
         }
     }
+
     private void OnAllReserveBulletChanged(float oldValue, float newValue)
     {
         //如果是当前玩家的枪械就更新一下UI
@@ -198,7 +206,6 @@ public class BaseGun : NetworkBehaviour
         }
     }
 
-
     private void OnIsEnterAimState(bool oldValue, bool newValue)
     {
         if (!isClient || gunInfo == null || ownerPlayer == null || ownerPlayer.myStats == null || SimpleAnimatorTool.Instance == null)
@@ -210,14 +217,17 @@ public class BaseGun : NetworkBehaviour
         if (newValue)
             EnterAimState();//进入瞄准状态
         else
-            ExitAimState();//退出瞄准状态（修正方法名）
-
+            ExitAimState();//退出瞄准状态
     }
-
-
     #endregion
 
-    #region 核心Command方法
+    #region 核心Command方法（客户端→服务器）
+    [Command]
+    public void ChangeAimState(bool IsEnter)
+    {
+        IsEnterAimState = IsEnter;
+    }
+
     [Command(requiresAuthority = true)]
     public void CmdStartShoot()
     {
@@ -253,8 +263,6 @@ public class BaseGun : NetworkBehaviour
                 gunInfo.Range,
                 shootRaycastLayers
             );
-
-
 
             if (hit.collider != null)
             {
@@ -301,6 +309,7 @@ public class BaseGun : NetworkBehaviour
         // 同步客户端播放射击视觉特效
         RpcPlaySingleShootVFX();
     }
+
     [Command(requiresAuthority = true)]
     public void CmdFinishShoot()
     {
@@ -347,7 +356,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region ClientRpc
+    #region ClientRpc（服务器→所有客户端）
     [ClientRpc]
     private void RpcPlaySingleShootVFX() => PlaySingleShootVFX();
 
@@ -364,7 +373,6 @@ public class BaseGun : NetworkBehaviour
             hitPos,
             Quaternion.LookRotation(Vector3.forward, hitNormal)
         );
-
     }
 
     /// <summary>
@@ -438,7 +446,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region 客户端视觉特效
+    #region 客户端视觉特效逻辑
     public void PlaySingleShootVFX()
     {
         if (applyAutoEjectCartridge)//如果不应用自己的抛壳逻辑就不执行了
@@ -491,7 +499,6 @@ public class BaseGun : NetworkBehaviour
         });
     }
 
-
     private void ApplyRecoil()
     {
         if (ownerPlayer == null || ownerPlayer.MyRigdboby == null || gunInfo == null)
@@ -535,7 +542,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region Timeline回调
+    #region Timeline动画回调
     public void OnShootFire_Timeline() => CmdExecuteShootLogic();
     public void OnShootEnd_Timeline() => CmdFinishShoot();
     public void OnReloadEnd_Timeline() => CmdFinishReloadLogic();
@@ -585,10 +592,9 @@ public class BaseGun : NetworkBehaviour
         }
         else Debug.LogError($"[服务器] 初始化子弹失败：gunInfo未赋值！");
     }
-
     #endregion
 
-    #region 枪械拾取/丢弃（完全保留你原始的两个方法，未做任何修改）
+    #region 枪械拾取/丢弃逻辑
     [Server]
     public void SafeServerOnGunPicked()
     {
@@ -604,7 +610,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region 子弹线段模板自动创建逻辑
+    #region 子弹线段模板管理
     /// <summary>
     /// 初始化子弹线段模板
     /// </summary>
@@ -646,7 +652,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region 进入瞄准状态
+    #region 瞄准状态逻辑
     [Header("瞄准状态变量设置")]
     public float Duration = 0.5f;//渐变的时间
 
@@ -734,7 +740,6 @@ public class BaseGun : NetworkBehaviour
 
     public void ExitAimState()
     {
-
         StopAllAimLerp();
 
         // 还原数值
@@ -758,14 +763,15 @@ public class BaseGun : NetworkBehaviour
         );
     }
     #endregion
-
 }
 
+#region 辅助类：子弹飞行逻辑
 /// <summary>
 /// 让小线段整体向目标点飞行，始终朝向飞行方向
 /// </summary>
 public class BulletSegmentFly : MonoBehaviour
 {
+    #region 字段声明
     private LineRenderer _lr;          // 子弹的LineRenderer
     private Vector2 _startPos;         // 发射起点
     private Vector2 _targetPos;        // 飞行目标点
@@ -778,7 +784,9 @@ public class BulletSegmentFly : MonoBehaviour
     private float _elapsedTime;        // 已飞行时间
     private bool _isReachTarget;       // 是否到达目标点
     private GameObject _prefab;        // 预制体引用（用于回收）
+    #endregion
 
+    #region 初始化方法
     /// <summary>
     /// 初始化子弹飞行参数（适配对象池）
     /// </summary>
@@ -804,7 +812,9 @@ public class BulletSegmentFly : MonoBehaviour
         // 初始化第一帧的小线段顶点位置
         UpdateBulletSegmentPos();
     }
+    #endregion
 
+    #region 生命周期与更新
     private void Update()
     {
         if (_isReachTarget)
@@ -831,6 +841,27 @@ public class BulletSegmentFly : MonoBehaviour
     }
 
     /// <summary>
+    /// 回收时重置所有状态
+    /// </summary>
+    private void OnDisable()
+    {
+        _elapsedTime = 0f;
+        _isReachTarget = false;
+        _currentCenterPos = Vector2.zero;
+
+        // 重置LineRenderer透明度
+        if (_lr != null)
+        {
+            Color resetColor = _lr.startColor;
+            resetColor.a = 1f;
+            _lr.startColor = resetColor;
+            _lr.endColor = resetColor;
+        }
+    }
+    #endregion
+
+    #region 内部逻辑方法
+    /// <summary>
     /// 更新小线段的两个顶点位置：始终以中心为基准，向飞行方向延伸固定长度
     /// </summary>
     private void UpdateBulletSegmentPos()
@@ -854,23 +885,6 @@ public class BulletSegmentFly : MonoBehaviour
         _lr.startColor = currentColor;
         _lr.endColor = currentColor;
     }
-
-    /// <summary>
-    /// 回收时重置所有状态
-    /// </summary>
-    private void OnDisable()
-    {
-        _elapsedTime = 0f;
-        _isReachTarget = false;
-        _currentCenterPos = Vector2.zero;
-
-        // 重置LineRenderer透明度
-        if (_lr != null)
-        {
-            Color resetColor = _lr.startColor;
-            resetColor.a = 1f;
-            _lr.startColor = resetColor;
-            _lr.endColor = resetColor;
-        }
-    }
+    #endregion
 }
+#endregion

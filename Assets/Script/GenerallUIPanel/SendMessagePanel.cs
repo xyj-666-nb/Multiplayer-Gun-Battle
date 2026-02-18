@@ -14,7 +14,7 @@ public class SendMessagePanel : BasePanel
     #region 变量声名
     public int CurrentMessageCount = 0;//当前显示的消息数量
     public GameObject MessagePrefab;//消息预制体
-    public int MaxMessageCount = 3;//最大能显示的消息数量
+    public int MaxMessageCount = 6;//最大能显示的消息数量
     public Dictionary<GameObject, MessagePack> MessageInfoDic = new Dictionary<GameObject, MessagePack>();
     private float StartPosY = -300;//消息起始位置
     private float EndPosX = -420;//消息结束位置X
@@ -163,7 +163,7 @@ public class SendMessagePanel : BasePanel
 
         var rt = message.GetComponent<RectTransform>();
         rt.anchoredPosition = new Vector2(0, StartPosY);
-        seq.Join(rt.DOAnchorPosY(-MessageInfoDic[message].CurrentIndex * 60, 1f))
+        seq.Join(rt.DOAnchorPosY(-MessageInfoDic[message].CurrentIndex * 40, 1f))
            .OnComplete(() =>
            {
                // 计时结束添加到待移除列表
@@ -258,7 +258,7 @@ public class SendMessagePanel : BasePanel
                 var rt = item.Key.GetComponent<RectTransform>();
                 if (rt != null)
                 {
-                    rt.DOAnchorPosY(-item.Value.CurrentIndex * 60, 0.5f)
+                    rt.DOAnchorPosY(-item.Value.CurrentIndex * 40, 0.5f)
                        .SetEase(Ease.OutQuad)
                        .OnComplete(() =>
                        {

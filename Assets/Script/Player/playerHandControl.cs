@@ -5,55 +5,102 @@ using UnityEngine;
 
 public class playerHandControl : NetworkBehaviour
 {
+    #region 基础配置与引用
     [Header("手臂旋转核心配置")]
-    [SyncVar(hook = nameof(OnRotationValueSynced))]
-    private float _currentRotationValue_Z = 0f;
     public float RotateSpeed = 500f;
     public float VerticalAngleLimit = 30f;
+    public float DefaultRotationZ = 0f;
 
     [Header("换弹归位配置")]
     public float ReloadResetRotateDuration = 0.2f;
-    public float DefaultRotationZ = 0f;
 
     [Header("瞄准状态配置")]
     public float AimStateTransform_X;
     public float EnterAimDuration = 0.5f;
     public AnimationCurve aimEaseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-    [SyncVar(hook = nameof(OnIsEnterAimChanged))]
-    private bool _isEnterAim = false;
-    public bool IsEnterAim => _isEnterAim;
-
-    [Header("依赖引用")]
-    public Camera mainCamera;
-    public Player ownerPlayer;
-    private BaseGun _currentGun;
-    public bool _isReloading = false;
-
-    [Header("朝向相关")]
-    private int _currentFacingDir = 1;
-
-    private Vector3 _originLocalPos;
-    private bool _isDebug = true;
-
-    [Header("收枪与拿出枪")]
-    [SyncVar(hook = nameof(OnIsHolsterGun))]
-    public bool IsHolsterGun = false;
-    public bool _isHolsterAnimPlaying = false;
+    [Header("收枪与拿出枪配置")]
     public Vector2 HolsterPosition;
     public float HolsterDuration = 0.3f;
     public float HolsterRotationZ = -100f;
 
-    [Header("战术设备管理")]
-    [SyncVar(hook = nameof(OnChangeInjection))]
-    public GameObject CurrentInjection;
-    [SyncVar(hook = nameof(OnChangeThrowObj))]
-    public GameObject CurrentThrowObj;
+    [Header("投掷物瞄准点配置")]
+    [SerializeField] private GameObject AimPointPrefab;
+    [SerializeField] private float AimPointDistance = 0.3f;
+    [SerializeField] private int AimPointCount = 5;
+    [SerializeField] private float LaunchForceBase = 10f;
 
-    [Header("战术道具位置")]
+    [Header("依赖引用")]
+    public Camera mainCamera;
+    public Player ownerPlayer;
     public Transform TacticRootTransform;
 
-    #region 收枪与拿枪核心逻辑
+    private BaseGun _currentGun;
+    private bool _isReloading = false;
+    private int _currentFacingDir = 1;
+    private Vector3 _originLocalPos;
+    private bool _isDebug = true;
+    public bool _isHolsterAnimaPlaying = false;
+    #endregion
+
+    #region 网络同步状态（SyncVar）
+    [SyncVar(hook = nameof(OnRotationValueSynced))]
+    private float _currentRotationValue_Z = 0f;
+
+    [SyncVar(hook = nameof(OnIsEnterAimChanged))]
+    private bool _isEnterAim = false;
+    public bool IsEnterAim => _isEnterAim;
+
+    [SyncVar(hook = nameof(OnIsHolsterGun))]
+    public bool IsHolsterGun = false;
+
+    [SyncVar(hook = nameof(OnChangeInjection))]
+    public GameObject CurrentInjection;
+
+    [SyncVar(hook = nameof(OnChangeThrowObj))]
+    public GameObject CurrentThrowObj;
+    #endregion
+
+    #region 战术道具冷却系统
+    public float tactic_1CoolTime;//战术道具1剩余冷却时间
+    public float tactic_2CoolTime;//战术道具2剩余冷却时间
+    public bool IsTrigger_tactic1 = false;//战术道具1触发
+    public bool IsTrigger_tactic2 = false;//战术道具2触发
+    public float tactic_1CoolTime_precent = 0;//剩余百分比时间
+    public float tactic_2CoolTime_precent = 0;//剩余百分比时间
+
+    private int tactic1taskID = 0;
+    private int tactic2taskID = 0;
+
+    public void SetTactic_1Trigger()//战术道具1触发
+    {
+        if (IsTrigger_tactic1 == true)
+            return;
+
+        SimpleAnimatorTool.Instance.StopFloatLerpById(tactic1taskID);
+        //赋值当前的冷却时间
+        var AllTime = PlayerAndGameInfoManger.Instance.GetCurrentTacticInfo(1).CoolTime;
+        tactic_1CoolTime = AllTime;
+        IsTrigger_tactic1 = true;
+        tactic1taskID = SimpleAnimatorTool.Instance.StartFloatLerp(tactic_1CoolTime, 0, tactic_1CoolTime, (v) => { tactic_1CoolTime = v; tactic_1CoolTime_precent = tactic_1CoolTime / AllTime; }, () => { IsTrigger_tactic1 = false; });
+    }
+
+    public void SetTactic_2Trigger()//战术道具2触发
+    {
+        if (IsTrigger_tactic2 == true)
+            return;
+
+        SimpleAnimatorTool.Instance.StopFloatLerpById(tactic2taskID);
+        IsTrigger_tactic2 = true;
+        //赋值当前的冷却时间
+        var AllTime = PlayerAndGameInfoManger.Instance.GetCurrentTacticInfo(2).CoolTime;
+        tactic_2CoolTime = AllTime;
+
+        tactic2taskID = SimpleAnimatorTool.Instance.StartFloatLerp(tactic_2CoolTime, 0, tactic_2CoolTime, (v) => { tactic_2CoolTime = v; tactic_2CoolTime_precent = tactic_2CoolTime / AllTime; }, () => { IsTrigger_tactic2 = false; });
+    }
+    #endregion
+
+    #region 收枪与拿枪逻辑
     [Command(requiresAuthority = true)]
     public void SetHolsterState(bool wantHolster)
     {
@@ -80,7 +127,7 @@ public class playerHandControl : NetworkBehaviour
         }
 
         if (isOwned)
-            _isHolsterAnimPlaying = true;
+            _isHolsterAnimaPlaying = true;
         transform.localRotation = Quaternion.Euler(0, 0, DefaultRotationZ);
         if (isOwned)
             SetRotationZ(DefaultRotationZ);
@@ -90,7 +137,7 @@ public class playerHandControl : NetworkBehaviour
         transform.DOLocalRotate(new Vector3(0, 0, HolsterRotationZ), HolsterDuration).SetEase(Ease.InCubic).SetUpdate(true).OnComplete(() => {
             if (isOwned)
             {
-                _isHolsterAnimPlaying = false;
+                _isHolsterAnimaPlaying = false;
                 if (_isDebug)
                     Debug.Log("[收枪] 动画完成", this);
             }
@@ -99,19 +146,20 @@ public class playerHandControl : NetworkBehaviour
 
     private void UnholsterGun()
     {
-        if (!isClient) return;
+        if (!isClient)
+            return;
         if (isOwned && _isDebug) Debug.Log($"[拿枪] 开始执行动画", this);
-        if (isOwned) _isHolsterAnimPlaying = true;
+        if (isOwned) _isHolsterAnimaPlaying = true;
 
         transform.DOKill(true);
         transform.DOLocalMove(_originLocalPos, HolsterDuration).SetEase(Ease.OutCubic).SetUpdate(true);
         transform.DOLocalRotate(new Vector3(0, 0, DefaultRotationZ), HolsterDuration).SetEase(Ease.OutCubic).SetUpdate(true).OnComplete(() => {
-            if (isOwned) { _isHolsterAnimPlaying = false; if (_isDebug) Debug.Log("[拿枪完成]", this); }
+            if (isOwned) { _isHolsterAnimaPlaying = false; if (_isDebug) Debug.Log("[拿枪完成]", this); }
         });
     }
     #endregion
 
-    #region SyncVar钩子
+    #region SyncVar钩子回调
     private void OnChangeThrowObj(GameObject OldObj, GameObject NewObj)
     {
         if (OldObj != null && OldObj != NewObj)
@@ -215,7 +263,7 @@ public class playerHandControl : NetworkBehaviour
 
         UpdateCurrentGunState();
 
-        if (IsHolsterGun || _isHolsterAnimPlaying)
+        if (IsHolsterGun || _isHolsterAnimaPlaying)
         {
             if (IsStartAim) HandleMouseAimAngle();
             UpdateThrowAimPoints();
@@ -264,7 +312,7 @@ public class playerHandControl : NetworkBehaviour
     }
     #endregion
 
-    #region 核心逻辑
+    #region 手臂旋转核心逻辑
     private void HandleMouseRotation_Bidirectional()
     {
         if (mainCamera == null || !mainCamera.orthographic)
@@ -308,10 +356,10 @@ public class playerHandControl : NetworkBehaviour
     }
     #endregion
 
-    #region 旋转同步
+    #region 旋转同步与换弹重置
     private void SyncHandRotation()
     {
-        if (IsHolsterGun || _isHolsterAnimPlaying || !isOwned) return;
+        if (IsHolsterGun || _isHolsterAnimaPlaying || !isOwned) return;
 
         float currentAngle = transform.eulerAngles.z;
         float targetAngle = _currentRotationValue_Z;
@@ -335,16 +383,42 @@ public class playerHandControl : NetworkBehaviour
     public void ResetRotationOnReload()
     {
         if (!isOwned) return;
-        if (IsHolsterGun || _isHolsterAnimPlaying) return;
+        if (IsHolsterGun || _isHolsterAnimaPlaying) return;
 
         transform.DOKill();
         transform.DORotate(new Vector3(0, 0, DefaultRotationZ), ReloadResetRotateDuration)
                  .SetEase(Ease.OutCubic)
                  .OnComplete(() => SetRotationZ(DefaultRotationZ));
     }
+
+    public void SetRotationZ(float targetZ)
+    {
+        if (IsHolsterGun || _isHolsterAnimaPlaying) return;
+        if (isServer) _currentRotationValue_Z = targetZ;
+        else if (isClient && isOwned) CmdSetRotationZ(targetZ);
+    }
+
+    [Command(requiresAuthority = true)]
+    private void CmdSetRotationZ(float targetZ)
+    {
+        _currentRotationValue_Z = targetZ;
+    }
     #endregion
 
-    #region 瞄准动画
+    #region 瞄准状态与动画
+    public void SetAimState(bool wantAim)
+    {
+        if (IsHolsterGun) return;
+        if (isServer) _isEnterAim = wantAim;
+        else if (isClient && isOwned) CmdSetAimState(wantAim);
+    }
+
+    [Command(requiresAuthority = true)]
+    private void CmdSetAimState(bool wantAim)
+    {
+        _isEnterAim = wantAim;
+    }
+
     public void EnterAimState()
     {
         if (IsHolsterGun || !isClient) return;
@@ -360,37 +434,7 @@ public class playerHandControl : NetworkBehaviour
     }
     #endregion
 
-    #region 旋转同步逻辑
-    public void SetRotationZ(float targetZ)
-    {
-        if (IsHolsterGun || _isHolsterAnimPlaying) return;
-        if (isServer) _currentRotationValue_Z = targetZ;
-        else if (isClient && isOwned) CmdSetRotationZ(targetZ);
-    }
-
-    [Command(requiresAuthority = true)]
-    private void CmdSetRotationZ(float targetZ)
-    {
-        _currentRotationValue_Z = targetZ;
-    }
-    #endregion
-
-    #region 瞄准状态设置
-    public void SetAimState(bool wantAim)
-    {
-        if (IsHolsterGun) return;
-        if (isServer) _isEnterAim = wantAim;
-        else if (isClient && isOwned) CmdSetAimState(wantAim);
-    }
-
-    [Command(requiresAuthority = true)]
-    private void CmdSetAimState(bool wantAim)
-    {
-        _isEnterAim = wantAim;
-    }
-    #endregion
-
-    #region 战术设备
+    #region 战术设备管理
     public void TriggerInjection(TacticType Type)
     {
         SetHolsterState(true);
@@ -463,12 +507,7 @@ public class playerHandControl : NetworkBehaviour
     }
     #endregion
 
-    #region 投掷物瞄准点
-    [Header("投掷物瞄准点配置")]
-    [SerializeField] private GameObject AimPointPrefab;
-    [SerializeField] private float AimPointDistance = 0.3f;
-    [SerializeField] private int AimPointCount = 5;
-    [SerializeField] private float LaunchForceBase = 10f;
+    #region 投掷物瞄准点系统
     private GameObject[] _aimPoints;
     public Vector2 LaunchForce;
     public float CurrentAimAngle;
@@ -627,10 +666,10 @@ public class playerHandControl : NetworkBehaviour
         CurrentThrowObj = null;
         SetHolsterState(false);
     }
-
     #endregion
 
-    // 对外暴露属性
+    #region 对外暴露属性
     public float CurrentRotationValue_Z => _currentRotationValue_Z;
     public bool IsReloading => _isReloading;
+    #endregion
 }

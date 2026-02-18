@@ -102,6 +102,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         Developer_GUITestManger.Instance.RegisterGuiButton("打开军械库面板", () => { UImanager.Instance.ShowPanel<ArmamentPanel>(); }, "面板测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("打开设置面板", () => { UImanager.Instance.ShowPanel<SettingPanel>(); }, "面板测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("打开战备配置面板", () => { UImanager.Instance.ShowPanel<EquipmentConfigurationPanel>(); }, "面板测试");
+        Developer_GUITestManger.Instance.RegisterGuiButton("打开地图选择面板", () => { UImanager.Instance.ShowPanel<MapChoosePanel>(); }, "面板测试");
 
         Developer_GUITestManger.Instance.RegisterGuiButton("使用绿针", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Green_injection); }, "战术设备测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("使用黄色针剂", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Yellow_injection); }, "战术设备测试");
@@ -112,6 +113,7 @@ public class Main : SingleMonoAutoBehavior<Main>
 
         Developer_GUITestManger.Instance.RegisterGuiButton("发送全局消息(持续两秒)", () => { PlayerRespawnManager.Instance.SendGlobalMessage("这是一条全局消息", 2f); }, "功能测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("发送个人消息(持续两秒)", () => { SendMessageManger.Instance.SendMessage("这是一条个人消息", 2f); }, "功能测试");
+        Developer_GUITestManger.Instance.RegisterGuiButton("获取当前的战备", () => { PlayerAndGameInfoManger.Instance.EquipCurrentSlot(); }, "功能测试");
         // 调试按钮
         Developer_GUITestManger.Instance.RegisterGuiButton_TwoWay("打开当前调试信息", "关闭当前调试信息", () => { Developer_GUITestManger.Instance.IsShowAllInfo(true); }, () => { Developer_GUITestManger.Instance.IsShowAllInfo(false); });
         Developer_GUITestManger.Instance.RegisterGuiButton_TwoWay("收起枪械", "拿起枪械", () => { Player.LocalPlayer.MyHandControl.SetHolsterState(true); }, () => { Player.LocalPlayer.MyHandControl.SetHolsterState(false); });

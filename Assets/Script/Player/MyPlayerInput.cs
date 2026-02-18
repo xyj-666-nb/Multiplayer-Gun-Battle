@@ -276,16 +276,16 @@ public class MyPlayerInput : NetworkBehaviour
         if (Player.LocalPlayer.MyHandControl.CurrentThrowObj != null)
         {
             //在这里就触发投掷物的使用
-            Player.LocalPlayer.MyHandControl.LaunchCurrentThrowObj();//发射投掷物
+            PlayerTacticControl.Instance.LaunchCurrentThrowObj();//发射投掷物
             return;
         }
 
         if (PlayerTacticControl.Instance.IsPrepararingInjection)//询问是否正在准备注射
         {
             PlayerTacticControl.Instance.triggerInjection();//触发注射器
-                                                            // 核心修改：触发后立即取消UI选中
+                                      
             PlayerTacticControl.Instance.CancelTactic();
-            // 额外保险：强制重置选中状态
+          
             PlayerTacticControl.Instance.SetIsChooseButton(false);
         }
 
@@ -297,7 +297,7 @@ public class MyPlayerInput : NetworkBehaviour
         if (!CheckCommonTriggerCondition())
             return;
 
-        if (Myplayer.currentGun == null || Myplayer.MyHandControl.IsHolsterGun || Myplayer.MyHandControl._isHolsterAnimPlaying|| PlayerTacticControl.Instance.IsPrepararingInjection)//收枪就不允许射击
+        if (Myplayer.currentGun == null || Myplayer.MyHandControl.IsHolsterGun || Myplayer.MyHandControl._isHolsterAnimaPlaying|| PlayerTacticControl.Instance.IsPrepararingInjection)//收枪就不允许射击
             return;
 
         //判断射击条件,如果是连发枪就自动检测并自动触发射击

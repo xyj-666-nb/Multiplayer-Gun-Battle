@@ -17,4 +17,5 @@ public class TacticInfo : ScriptableObject
     public Sprite GameBodySprite;//游戏中使用的图标
     public GameObject TacticPrefab;//效果预制体
     public TacticType tacticType;//战术道具类型
+    public float CoolTime=5;//冷却时间
 }

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
+#region 数据结构定义
 //战备的信息包
 [System.Serializable]
 public class ArmamentPack
@@ -22,9 +23,11 @@ public class SlotInfoPack
     public TacticInfo CurrentTactic_1Info;//当前战术道具1信息
     public TacticInfo CurrentTactic_2Info;//当前战术道具2信息
 }
+#endregion
 
 public class EquipmentConfigurationPanel : BasePanel
 {
+    #region UI引用与基础配置
     [Header("信息控件关联")]
     [Header("枪械区")]
     public ArmamentPack GunInfoPack;
@@ -37,7 +40,20 @@ public class EquipmentConfigurationPanel : BasePanel
     [Header("装备描述Text")]
     public TextMeshProUGUI EquipmentDescriptionText;
 
+    [Header("槽位按钮相关")]
+    public GameObject SlotButtonPrefabs;//槽位按钮预制体
+    public Transform SlotButtonParent;//槽位按钮生成的父物体(自动排列)
+    private string SlotButtonGroupName = "EquipmentSlotButtonGroup";//槽位按钮组名称
+    private string ArmamentButtonGroupName = "ArmamentButtonGroup";//装备按钮组名称
+    public int SlotButtonIndex = 1;//当前正在浏览的索引
+
+    [Header("当前槽位显示Text")]
+    public TextMeshProUGUI SlotIndexText;
+
     private SlotInfoPack _currentSlotInfoPack;
+    #endregion
+
+    #region 核心属性
     public SlotInfoPack CurrentSlotInfoPack
     {
         get => _currentSlotInfoPack;
@@ -51,12 +67,13 @@ public class EquipmentConfigurationPanel : BasePanel
             }
         }
     }
+    #endregion
 
-    [Header("槽位按钮相关")]
-    public GameObject SlotButtonPrefabs;//槽位按钮预制体
-    public Transform SlotButtonParent;//槽位按钮生成的父物体(自动排列)
-    private string SlotButtonGroupName = "EquipmentSlotButtonGroup";//槽位按钮组名称
-    private string ArmamentButtonGroupName = "ArmamentButtonGroup";//装备按钮组名称
+    #region 初始化与注册逻辑
+    public void UpdateSlotIndexText()
+    {
+        SlotIndexText.text = PlayerAndGameInfoManger.Instance.SlotCount.ToString();
+    }
 
     public void initArmamentPack()
     {
@@ -94,6 +111,46 @@ public class EquipmentConfigurationPanel : BasePanel
         ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(SlotButtonGroupName, true);
     }
 
+    //装备按钮按钮组注册
+    public void RegisterArmamentButton()
+    {
+        // 先清空旧的装备按钮组
+        ButtonGroupManager.Instance.DestroyRadioGroup(ArmamentButtonGroupName);
+
+        // 校验控件是否存在，避免空引用
+        if (!controlDic.ContainsKey("Gun_Button") || controlDic["Gun_Button"] is not Button gunBtn)
+        {
+            Debug.LogError("未找到Gun_Button控件！");
+            return;
+        }
+        if (!controlDic.ContainsKey("Tactic1_Button") || controlDic["Tactic1_Button"] is not Button tac1Btn)
+        {
+            Debug.LogError("未找到Tactic1_Button控件！");
+            return;
+        }
+        if (!controlDic.ContainsKey("Tactic2_Button") || controlDic["Tactic2_Button"] is not Button tac2Btn)
+        {
+            Debug.LogError("未找到Tactic2_Button控件！");
+            return;
+        }
+        if (!controlDic.ContainsKey("Armor_Button") || controlDic["Armor_Button"] is not Button armorBtn)
+        {
+            Debug.LogError("未找到Armor_Button控件！");
+            return;
+        }
+
+        // 注册装备按钮（使用兼容的带参方法）
+        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, gunBtn, ArmamentButtonTriggerEvent);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, tac1Btn, ArmamentButtonTriggerEvent);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, tac2Btn, ArmamentButtonTriggerEvent);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, armorBtn, ArmamentButtonTriggerEvent);
+
+        // 手动选中第一个装备按钮
+        ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(ArmamentButtonGroupName, true);
+    }
+    #endregion
+
+    #region 按钮事件处理
     //槽位按钮点击事件
     public void SlotButtonTriggerEvent(string ButtonName)
     {
@@ -140,7 +197,7 @@ public class EquipmentConfigurationPanel : BasePanel
 
         // 计算槽位索引
         int slotIndex = slotNum - 1;
-
+        SlotButtonIndex = slotNum;
         var slotList = PlayerAndGameInfoManger.Instance.PlayerSlotInfoPacksList;
         if (slotList == null)
         {
@@ -155,44 +212,6 @@ public class EquipmentConfigurationPanel : BasePanel
 
         // 安全更新槽位信息
         CurrentSlotInfoPack = slotList[slotIndex];
-    }
-
-    //装备按钮按钮组注册
-    public void RegisterArmamentButton()
-    {
-        // 先清空旧的装备按钮组
-        ButtonGroupManager.Instance.DestroyRadioGroup(ArmamentButtonGroupName);
-
-        // 校验控件是否存在，避免空引用
-        if (!controlDic.ContainsKey("Gun_Button") || controlDic["Gun_Button"] is not Button gunBtn)
-        {
-            Debug.LogError("未找到Gun_Button控件！");
-            return;
-        }
-        if (!controlDic.ContainsKey("Tactic1_Button") || controlDic["Tactic1_Button"] is not Button tac1Btn)
-        {
-            Debug.LogError("未找到Tactic1_Button控件！");
-            return;
-        }
-        if (!controlDic.ContainsKey("Tactic2_Button") || controlDic["Tactic2_Button"] is not Button tac2Btn)
-        {
-            Debug.LogError("未找到Tactic2_Button控件！");
-            return;
-        }
-        if (!controlDic.ContainsKey("Armor_Button") || controlDic["Armor_Button"] is not Button armorBtn)
-        {
-            Debug.LogError("未找到Armor_Button控件！");
-            return;
-        }
-
-        // 注册装备按钮（使用兼容的带参方法）
-        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, gunBtn, ArmamentButtonTriggerEvent);
-        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, tac1Btn, ArmamentButtonTriggerEvent);
-        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, tac2Btn, ArmamentButtonTriggerEvent);
-        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, armorBtn, ArmamentButtonTriggerEvent);
-
-        // 手动选中第一个装备按钮
-        ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(ArmamentButtonGroupName, true);
     }
 
     //装备按钮点击事件
@@ -221,7 +240,9 @@ public class EquipmentConfigurationPanel : BasePanel
                 break;
         }
     }
+    #endregion
 
+    #region UI更新逻辑
     public void UpdateCurrentSlotInfo(SlotInfoPack slotInfoPack)
     {
         if (slotInfoPack == null)
@@ -255,6 +276,7 @@ public class EquipmentConfigurationPanel : BasePanel
 
         //更新护甲
     }
+    #endregion
 
     #region 生命周期函数
     public override void Awake()
@@ -263,6 +285,7 @@ public class EquipmentConfigurationPanel : BasePanel
         initArmamentPack();// 初始化信息包的描述文本引用
         RegisterSlotButton();//注册槽位按钮
         RegisterArmamentButton();//注册装备按钮
+        UpdateSlotIndexText();//进行初始化
     }
 
     public override void Start()
@@ -281,12 +304,23 @@ public class EquipmentConfigurationPanel : BasePanel
     }
     #endregion
 
-    #region UI控件逻辑
+    #region UI交互逻辑
     public override void ClickButton(string controlName)
     {
         base.ClickButton(controlName);
         if (controlName == "ExitButton")
+        {
+
             UImanager.Instance.HidePanel<EquipmentConfigurationPanel>();
+        }
+        else if (controlName == "Button_SetCurrentSkot")
+        {
+            //玩家点击设置当前槽位
+            PlayerAndGameInfoManger.Instance.SetSlotInfoPack(SlotButtonIndex);
+            UpdateSlotIndexText();//更新一下
+            WarnTriggerManager.Instance.TriggerNoInteractionWarn(1, "设置成功");
+        }
+
     }
     #endregion
 

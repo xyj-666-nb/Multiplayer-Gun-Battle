@@ -27,7 +27,7 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
     // Float插值任务唯一ID自增器（参考滚动文本的索引设计）
     private int _nextFloatLerpTaskId = 1;
 
-    #region Float插值任务结构体（新增id字段）
+    #region Float插值任务结构体
     /// <summary>
     /// 单个float插值任务的状态
     /// </summary>
@@ -50,47 +50,46 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
     /// </summary>
     /// <param name="startValue">起始值</param>
     /// <param name="targetValue">目标值</param>
-    /// <param name="totalDuration">总插值时长）</param>
+    /// <param name="totalDuration">总插值时长</param>
     /// <param name="onUpdate">插值更新回调</param>
-    /// <param name="onComplete">插值完成回调）</param>
+    /// <param name="onComplete">【新增/确认】插值完成回调 (可选，默认为null)</param>
     /// <param name="easeType">缓动类型</param>
-    /// <returns>任务唯一ID（停止时使用）</returns>
+    /// <returns>任务唯一ID</returns>
     public int StartFloatLerp(float startValue, float targetValue, float totalDuration, Action<float> onUpdate, Action onComplete = null, EaseType easeType = EaseType.Linear)
     {
         if (onUpdate == null)
         {
             Debug.LogError("插值更新回调 onUpdate 不能为空！");
-            return -1; // 返回无效ID
+            return -1;
         }
         if (totalDuration <= 0)
         {
             // 时长为0，直接返回目标值并触发完成
             onUpdate.Invoke(targetValue);
             onComplete?.Invoke();
-            return -1; // 返回无效ID
+            return -1;
         }
 
         // 生成唯一任务ID
         int taskId = _nextFloatLerpTaskId++;
-        // 防止ID溢出（可选）
         if (_nextFloatLerpTaskId > int.MaxValue - 1000)
             _nextFloatLerpTaskId = 1;
 
         // 创建插值任务，加入任务列表
         FloatLerpTask newTask = new FloatLerpTask
         {
-            id = taskId,                  // 赋值唯一ID
+            id = taskId,
             startValue = startValue,
             targetValue = targetValue,
             totalDuration = totalDuration,
             elapsedTime = 0,
             easeType = easeType,
             onUpdate = onUpdate,
-            onComplete = onComplete
+            onComplete = onComplete // 【这里】确保赋值给了 newTask
         };
         _lerpTasks.Add(newTask);
 
-        return taskId; // 返回唯一ID
+        return taskId;
     }
     #endregion
 
@@ -137,24 +136,32 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
     {
         if (_lerpTasks.Count > 0)
         {
+            // 倒序遍历，防止移除报错
             for (int i = _lerpTasks.Count - 1; i >= 0; i--)
             {
                 FloatLerpTask task = _lerpTasks[i];
                 task.elapsedTime += Time.deltaTime;
+
                 if (task.elapsedTime >= task.totalDuration)
                 {
-                    task.onUpdate.Invoke(task.targetValue);//最后执行一次Update并把最终值传入进去
-                    task.onComplete?.Invoke();//检查是否有完成触发，存在就触发
-                    _lerpTasks.RemoveAt(i);//移除当前任务
+                    task.onUpdate.Invoke(task.targetValue);
+
+                    task.onComplete?.Invoke();
+
+                    // 3. 移除任务
+                    _lerpTasks.RemoveAt(i);
                     continue;
                 }
 
+                // 计算缓动比例
                 float t = task.elapsedTime / task.totalDuration;
                 t = ApplyEase(t, task.easeType);
 
+                // 计算当前值并回调
                 float currentValue = Mathf.Lerp(task.startValue, task.targetValue, t);
-                task.onUpdate.Invoke(currentValue);//传入当前的更新值
+                task.onUpdate.Invoke(currentValue);
 
+                // 回写结构体 (因为是值类型)
                 _lerpTasks[i] = task;
             }
         }

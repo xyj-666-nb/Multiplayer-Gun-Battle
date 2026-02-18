@@ -15,14 +15,30 @@ public class PlayerPreparaPanel : BasePanel
     public TextMeshProUGUI teamCompareText;
     public bool IsPrepara = false;
 
+    [Header("游戏开始按钮")]
+    public CanvasGroup GameStartCanvas;
+    private Sequence GameStartCanvasAnima;
+
     #region 生命周期
     public override void Awake()
     {
         MyRct = GetComponent<RectTransform>();
         base.Awake();
         ButtonGroupManager.Instance.AddToggleButtonToGroup(PreparaButtonFile, controlDic["PreparaButton"] as Button, "", playerPrepara, CancelPrePara);
-
+        //GameStartCanvas.interactable = false;
+        //GameStartCanvas.alpha = 0;
     }
+
+    public void IsActiveGameStartButton(bool IsActive)
+    {
+        if (!IsActive)
+            GameStartCanvas.interactable = false;//无法交互
+
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(GameStartCanvas,ref GameStartCanvasAnima, IsActive, () => {
+                if(IsActive)
+                    GameStartCanvas.interactable = true;//允许交互
+            });
+    }    
 
     public override void Start()
     {
@@ -101,7 +117,15 @@ public class PlayerPreparaPanel : BasePanel
             Player.LocalPlayer.RequestRefreshTeamUI();//更新UI
 
         }
+        else if(controlName == "GameStartButton")
+        {
+            //在这里触发游戏开始
+            //给全局发消息
+            Player.LocalPlayer.CmdRequestStartGame();
+        }
     }
+
+
     #endregion
 
     #region 面板的显隐以及特殊动画编写

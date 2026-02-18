@@ -8,16 +8,21 @@ using UnityEngine;
 /// </summary>
 public class PlayerRespawnManager : NetworkBehaviour
 {
+    #region 单例与基础配置
     // 服务端单例
     public static PlayerRespawnManager Instance { get; private set; }
+    private static bool _isManagerCreated = false;
 
     [Header("重生配置")]
     public float respawnDelay = 3f;
     public List<Transform> spawnPoints = new List<Transform>();
 
-    private static bool _isManagerCreated = false;
+    [Header("当前选择的地图信息")]
+    [SyncVar]
+    public MapInfo CurrentMapInfo;
+    #endregion
 
-    #region 玩家人数信息
+    #region 玩家人数与队伍同步
     // 同步玩家人数 
     [SyncVar(hook = nameof(OnPlayerCountChanged))]
     public int CurrentPlayerCount = 0;
@@ -34,8 +39,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     // Hook: 队伍人数变化
     private void OnTeamCountChanged(int oldVal, int newVal)
     {
-        if (!isClient)
-            return;
+        if (!isClient) return;
         var panel = UImanager.Instance?.GetPanel<PlayerPreparaPanel>();
         panel?.UpdateteamCompareText(RedPlayerCount, BluePlayerCount);
     }
@@ -49,8 +53,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     // Hook: 总人数变化
     private void OnPlayerCountChanged(int oldVal, int newVal)
     {
-        if (!isClient)
-            return;
+        if (!isClient) return;
         var panel = UImanager.Instance?.GetPanel<PlayerPreparaPanel>();
         panel?.UpdateRoomPlayerCount(newVal);
     }
@@ -58,12 +61,13 @@ public class PlayerRespawnManager : NetworkBehaviour
     // Hook: 准备人数变化
     private void OnPreparaCountChanged(int oldVal, int newVal)
     {
-        if (!isClient)
-            return;
+        if (!isClient) return;
         var panel = UImanager.Instance?.GetPanel<PlayerPreparaPanel>();
         panel?.UpdateRoomPlayerPreparaCount(newVal);
     }
+    #endregion
 
+    #region 玩家准备状态管理
     // 服务器专用：记录准备的玩家连接
     private HashSet<NetworkConnectionToClient> _preparedConnections = new HashSet<NetworkConnectionToClient>();
 
@@ -80,12 +84,17 @@ public class PlayerRespawnManager : NetworkBehaviour
         }
     }
 
+    [Command]
+    private void CmdChangePreparaCount(int Count)
+    {
+        CurrentpreparaCount += Count;
+    }
+
     // 【核心】由 Player 调用的准备逻辑
     [Server]
     public void ServerHandlePlayerPrepareChange(NetworkConnectionToClient conn, bool isPrepared)
     {
-        if (conn == null)
-            return;
+        if (conn == null) return;
 
         if (isPrepared)
         {
@@ -109,10 +118,9 @@ public class PlayerRespawnManager : NetworkBehaviour
         // 准备状态变更，自动更新队伍信息
         ServerUpdateTeamInfo();
     }
+    #endregion
 
-    // ==========================================
-    // 【核心修复】对外公开的刷新接口
-    // ==========================================
+    #region 队伍信息更新逻辑
     public void UpdateTeamInfo()
     {
         if (isServer)
@@ -127,7 +135,6 @@ public class PlayerRespawnManager : NetworkBehaviour
         }
     }
 
-    // 【新增】客户端请求服务器刷新的 Command
     [Command]
     private void CmdRequestUpdateTeamInfo()
     {
@@ -135,7 +142,6 @@ public class PlayerRespawnManager : NetworkBehaviour
         ServerUpdateTeamInfo();
     }
 
-    // 【核心逻辑】统计所有玩家的队伍信息
     [Server]
     public void ServerUpdateTeamInfo()
     {
@@ -165,12 +171,6 @@ public class PlayerRespawnManager : NetworkBehaviour
         Debug.Log($"[Room] 队伍统计更新 - 红队:{RedPlayerCount}, 蓝队:{BluePlayerCount}");
     }
 
-    [Command]
-    private void CmdChangePreparaCount(int Count)
-    {
-        CurrentpreparaCount += Count;
-    }
-
     // 刷新总人数
     [Server]
     public void UpdatePlayerCount()
@@ -179,7 +179,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     }
     #endregion
 
-    #region 网络生成核心逻辑
+    #region 网络生命周期与单例管理
     [Server]
     public static void SpawnRespawnManager()
     {
@@ -209,9 +209,7 @@ public class PlayerRespawnManager : NetworkBehaviour
             _isManagerCreated = false;
         }
     }
-    #endregion
 
-    #region 生命周期
     public override void OnStartServer()
     {
         base.OnStartServer();
@@ -334,7 +332,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     }
     #endregion
 
-    #region 消息分发和管理
+    #region 消息分发与游戏控制
     /// <summary>
     /// 对外公开的全局消息发送方法（客户端/服务器都能调用）
     /// </summary>
@@ -383,9 +381,7 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         SendMessageManger.Instance.SendMessage(content, duration);
     }
-    #endregion
 
-    // 【完善】玩家退出清理逻辑
     [Server]
     public void HandlePlayerDisconnected(NetworkConnectionToClient conn)
     {
@@ -404,7 +400,33 @@ public class PlayerRespawnManager : NetworkBehaviour
             Debug.Log($"[Room] 退出玩家未准备，无需处理准备人数");
         }
 
-        // 3. 玩家退出，重新统计队伍信息
         ServerUpdateTeamInfo();
     }
+
+    public void NoticePlayerGameStart()
+    {
+        if (isServer)
+        {
+            Debug.Log("[Respawn] 服务器开始广播游戏开始通知...");
+            RpcNoticePlayerGameStart();
+        }
+    }
+
+    [ClientRpc]
+    public void RpcNoticePlayerGameStart()
+    {
+        // 判空保护
+        if (UImanager.Instance == null)
+        {
+            Debug.LogError("[Respawn] UImanager 未找到！");
+            return;
+        }
+
+        UImanager.Instance.ShowPanel<CountDownPanel>().InitPanel(
+            "游戏即将开始请做好准备！",
+            40,
+            () => { }
+        );
+    }
+    #endregion
 }
