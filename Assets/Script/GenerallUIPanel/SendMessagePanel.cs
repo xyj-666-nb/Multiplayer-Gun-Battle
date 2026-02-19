@@ -8,7 +8,6 @@ using UnityEngine.UI;
 /// <summary>
 /// 发送消息面板
 /// </summary>
-
 public class SendMessagePanel : BasePanel
 {
     #region 变量声名

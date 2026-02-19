@@ -9,6 +9,8 @@ public class MyPlayerInput : NetworkBehaviour
     private Player Myplayer;
     private playerStats MyStats;
 
+    public bool IsCanControl = true;//玩家当前是否可以操作
+
     #region 跳跃核心状态
     private bool IsCanJump = true;       // 地面跳可用
     public bool IsCanWallJump = false;   // 墙跳可用
@@ -73,6 +75,11 @@ public class MyPlayerInput : NetworkBehaviour
         {
             return false;
         }
+
+        //如果关闭控制就不允许玩家进行控制
+        if (!IsCanControl)
+            return false;
+
 
         // 玩家实例不能为空
         if (Myplayer == null)

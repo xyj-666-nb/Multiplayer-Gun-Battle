@@ -88,6 +88,8 @@ public class PlayerPanel : BasePanel
     public override void ClickButton(string controlName)
     {
         base.ClickButton(controlName);
+        if (controlName == "SettingButton")
+            UImanager.Instance.ShowPanel<GamePausePanel>();//打开游戏暂停面板
     }
     #endregion
 

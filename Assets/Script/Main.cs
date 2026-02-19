@@ -10,8 +10,6 @@ public class Main : SingleMonoAutoBehavior<Main>
     public CustomNetworkManager customNetworkManager;
 
     public Team CurrentTeam;//当前的队伍
-
-
     protected override void Awake()
     {
         base.Awake();

@@ -254,6 +254,9 @@ MonoBehaviour:
   MyHandControl: {fileID: 4571149557039848035}
   currentGun: {fileID: 0}
   CurrentTouchGun: {fileID: 0}
+  IsPrepara: 0
+  PlayerName: 
+  CurrentTeam: 0
   mainLerpSpeed: 2
   maxLerpSpeed: 15
 --- !u!114 &8059884064042503429
@@ -288,6 +291,7 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
+  IsCanControl: 1
   IsCanWallJump: 0
   WallJumpMoveLockTime: 0.2
 --- !u!114 &8487535142233067111
@@ -483,8 +487,8 @@ MonoBehaviour:
   syncInterval: 0
   RotateSpeed: 100
   VerticalAngleLimit: 30
-  ReloadResetRotateDuration: 0.2
   DefaultRotationZ: 0
+  ReloadResetRotateDuration: 0.2
   AimStateTransform_X: 0.4
   EnterAimDuration: 0.5
   aimEaseCurve:
@@ -511,21 +515,26 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  mainCamera: {fileID: 0}
-  ownerPlayer: {fileID: 0}
-  _isReloading: 0
-  IsHolsterGun: 0
   HolsterPosition: {x: -0.5, y: 0}
   HolsterDuration: 0.3
   HolsterRotationZ: -100
-  CurrentInjection: {fileID: 0}
-  CurrentThrowObj: {fileID: 0}
-  TacticRootTransform: {fileID: 7398993641905889386}
-  Angle: 0
   AimPointPrefab: {fileID: 2983289832522296144, guid: cc8a4d10f9b1a59418ea8100664b7e7a, type: 3}
   AimPointDistance: 0.3
   AimPointCount: 8
   LaunchForceBase: 10
+  mainCamera: {fileID: 0}
+  ownerPlayer: {fileID: 0}
+  TacticRootTransform: {fileID: 7398993641905889386}
+  _isHolsterAnimaPlaying: 0
+  IsHolsterGun: 0
+  CurrentInjection: {fileID: 0}
+  CurrentThrowObj: {fileID: 0}
+  tactic_1CoolTime: 0
+  tactic_2CoolTime: 0
+  IsTrigger_tactic1: 0
+  IsTrigger_tactic2: 0
+  tactic_1CoolTime_precent: 0
+  tactic_2CoolTime_precent: 0
   LaunchForce: {x: 0, y: 0}
   CurrentAimAngle: 0
   IsStartAim: 0

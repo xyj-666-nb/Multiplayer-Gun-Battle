@@ -202,6 +202,22 @@ public abstract class BasePanel : MonoBehaviour
     protected abstract void SpecialAnimator_Show();//在这里对SpecialShowAnima进行编辑就够了
     #endregion
 
+    #region 简单面板显隐功能
+
+    private Sequence MyPanelSimpleAnima;
+    public void SimpleHidePanel()
+    {
+        canvasGroup.interactable = false; 
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(canvasGroup,ref MyPanelSimpleAnima, false, () => { });
+    }
+    public void SimpleShowPanel()
+    {
+        canvasGroup.interactable = true;
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(canvasGroup, ref MyPanelSimpleAnima, true, () => { });
+    }
+
+    #endregion
+
     #region 面板隐藏逻辑
     /// <summary>
     /// 隐藏面板
