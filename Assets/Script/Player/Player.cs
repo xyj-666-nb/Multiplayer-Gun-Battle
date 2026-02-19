@@ -500,5 +500,6 @@ public class Player : Base_Entity
             PlayerRespawnManager.Instance.NoticePlayerGameStart();
         }
     }
+
     #endregion
 }

@@ -14,5 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: "\u5730\u56FE1"
   Description: 111111
-  mapSprite_UI: {fileID: 0}
-  MapDetailPackList: []
+  mapSprite_UI: {fileID: 21300000, guid: f2e15c7b41b5b94439745444b12229fb, type: 3}
+  MapDetailPackList:
+  - mapSprite: {fileID: 21300000, guid: 10e6f4f62dc1213499911ce73ac2e239, type: 3}
+    mapDetailDescription: 2222222222222222222222222222222
+  - mapSprite: {fileID: 21300000, guid: 450fba469a6daf44daaac3c32ac99b45, type: 3}
+    mapDetailDescription: 4444444444444444444444444444

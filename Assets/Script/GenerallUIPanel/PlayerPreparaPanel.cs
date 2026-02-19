@@ -25,18 +25,26 @@ public class PlayerPreparaPanel : BasePanel
         MyRct = GetComponent<RectTransform>();
         base.Awake();
         ButtonGroupManager.Instance.AddToggleButtonToGroup(PreparaButtonFile, controlDic["PreparaButton"] as Button, "", playerPrepara, CancelPrePara);
-        //GameStartCanvas.interactable = false;
-        //GameStartCanvas.alpha = 0;
+        //隐藏当前的开始游戏按钮（人数和队伍达到条件才开始）
+        GameStartCanvas.interactable = false;
+        GameStartCanvas.alpha = 0;
     }
 
     public void IsActiveGameStartButton(bool IsActive)
     {
         if (!IsActive)
+        {
             GameStartCanvas.interactable = false;//无法交互
+            PlayerRespawnManager.Instance.SendGlobalMessage("对局开始条件不满足", 1);
+        }
 
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(GameStartCanvas,ref GameStartCanvasAnima, IsActive, () => {
-                if(IsActive)
-                    GameStartCanvas.interactable = true;//允许交互
+            if(IsActive)
+            {
+                GameStartCanvas.interactable = true;//允许交互
+                                                    //全局播报允许游戏开始
+                CountDownManager.Instance.CreateTimer(false, 300, () => { PlayerRespawnManager.Instance.SendGlobalMessage("对局开始条件达成，等待房主开始游戏", 1); });
+            }
             });
     }    
 
@@ -90,7 +98,8 @@ public class PlayerPreparaPanel : BasePanel
 
     public void CancelPrePara(string text)
     {
-        if (!IsPrepara) return;
+        if (!IsPrepara)
+            return;
         IsPrepara = false;
 
         if (Player.LocalPlayer != null)
