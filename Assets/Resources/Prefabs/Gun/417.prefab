@@ -665,7 +665,7 @@ Transform:
   m_GameObject: {fileID: 7508585326526402277}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: -0.3786, y: 0.025, z: 0}
+  m_LocalPosition: {x: -0.3605, y: 0.0275, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -832,6 +832,8 @@ MonoBehaviour:
   _currentMagazineBulletCount: 0
   _allReserveBulletCount: 0
   IsEnterAimState: 0
+  ownerPlayer: {fileID: 0}
+  isInPlayerHand: 0
   shootRaycastLayers:
     serializedVersion: 2
     m_Bits: 264
@@ -843,6 +845,8 @@ MonoBehaviour:
   cartridgeEjectPoint: {fileID: 8936482673067129000}
   recoilForceScale: 1
   cartridgeFixedScale: {x: 0.2, y: 0.2, z: 1}
+  hitwalleffect: {fileID: 2739873112441160463, guid: 1cc8778fdea79144c8d8d6a96f2e1d41, type: 3}
+  applyAutoEjectCartridge: 1
   isDebug: 1
   bulletColor: {r: 0.83, g: 0.68, b: 0.22, a: 1}
   bulletSegmentLength: 0.2
@@ -850,11 +854,7 @@ MonoBehaviour:
   bulletFlySpeed: 80
   bulletShowDuration: 0.1
   bulletSegmentPrefab: {fileID: 0}
-  applyAutoEjectCartridge: 1
-  hitwalleffect: {fileID: 2739873112441160463, guid: 1cc8778fdea79144c8d8d6a96f2e1d41, type: 3}
   originalWorldScale: {x: 0, y: 0, z: 0}
-  ownerPlayer: {fileID: 0}
-  isInPlayerHand: 0
   GunInfoManager: {fileID: 0}
   Duration: 0.5
   _localRecoil: 0

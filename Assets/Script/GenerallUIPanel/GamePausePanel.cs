@@ -1,13 +1,7 @@
-using TMPro;
 using UnityEngine.Events;
 
-public class GameScorePanel : BasePanel
+public class GamePausePanel : BasePanel
 {
-    public TextMeshProUGUI RedScoreText;
-    public TextMeshProUGUI BlueScoreText;
-    public TextMeshProUGUI TimeShowText;//时间显示文本
-    public TextMeshProUGUI KDText;//玩家Kd显示
-
     #region 生命周期
     public override void Awake()
     {
@@ -28,15 +22,32 @@ public class GameScorePanel : BasePanel
     }
     #endregion
 
-    #region UI控件逻辑编写
+    #region UI控件逻辑
 
     public override void ClickButton(string controlName)
     {
         base.ClickButton(controlName);
+        switch (controlName)
+        {
+            case "ReturnGameButton":
+                UImanager.Instance.HidePanel<GamePausePanel>();
+                break;
+            case "SettingButton":
+                UImanager.Instance.ShowPanel<SettingPanel>();//打开设置面板
+                break;
+            case "EnterEquipPanelButton":
+                UImanager.Instance.ShowPanel<EquipmentConfigurationPanel>();//打开战备选择
+                break;
+            case "ExitCurrentRoom":
+                //在这里退出链接
+                UImanager.Instance.HidePanel<GamePausePanel>();
+                break;
+        }
+
     }
     #endregion
 
-    #region 面板显隐以及特殊动画
+    #region 面板显隐特殊动画制作
 
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
     {
@@ -57,5 +68,7 @@ public class GameScorePanel : BasePanel
     {
 
     }
+
     #endregion
+
 }

@@ -586,11 +586,13 @@ public class BaseGun : NetworkBehaviour
         base.OnStartServer();
         if (gunInfo != null)
         {
-            _currentMagazineBulletCount = gunInfo.Bullet_capacity;
+            _currentMagazineBulletCount = 0;//最开始不需要满弹（获取枪械自动触发换弹）
             _allReserveBulletCount = gunInfo.AllBulletAmount;
             Debug.Log($"[服务器] 初始化子弹 → 弹匣:{_currentMagazineBulletCount} | 备用:{_allReserveBulletCount}");
         }
         else Debug.LogError($"[服务器] 初始化子弹失败：gunInfo未赋值！");
+        //等待1秒
+        CountDownManager.Instance.CreateTimer(false, 1000, () => { TriggerReload(); });//调用换弹(自动触发)
     }
     #endregion
 

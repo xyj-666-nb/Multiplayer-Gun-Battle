@@ -332,6 +332,7 @@ public class Player : Base_Entity
         {
             UImanager.Instance.ShowPanel<PlayerPanel>().ShowGunBackGround();
         }
+
     }
 
     [Command]

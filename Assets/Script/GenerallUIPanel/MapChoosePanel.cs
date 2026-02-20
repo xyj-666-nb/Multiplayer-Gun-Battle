@@ -63,7 +63,7 @@ public class MapChoosePanel : BasePanel
 
     [Header("面板持续时间")]
     public TextMeshProUGUI CountDownText;
-    public float Duration = 30;
+    public float Duration = 20;
 
     [Header("TimeLine")]
     public PlayableDirector TimeLine;
@@ -103,6 +103,11 @@ public class MapChoosePanel : BasePanel
         return null;
     }
 
+    public void TriggerMapAnima()
+    {
+        PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentChooseMap-1].TriggerAnima();//触发动画
+    }
+
     public void InitMapButton()
     {
         MapButton_1.Init();
@@ -111,6 +116,7 @@ public class MapChoosePanel : BasePanel
 
     public void RegisterAMapButton()
     {
+      
         ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(MapButtonFileName, controlDic["MapButton_1"] as Button, TriggerMapButton, null, 1.05f, 0.4f);
         ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(MapButtonFileName, controlDic["MapButton_2"] as Button, TriggerMapButton, null, 1.05f, 0.4f);
     }
@@ -175,6 +181,22 @@ public class MapChoosePanel : BasePanel
 
 
         });
+    }
+
+
+    //触发玩家传送
+    public void TriggerPlayerTransmit()
+    {
+        // 客户端发请求给服务端
+        if (PlayerRespawnManager.Instance != null)
+        {
+            PlayerRespawnManager.Instance.TeleportAllPlayersToMap();
+        }
+        else
+        {
+            Debug.LogError("[客户端] 重生管理器单例为空，无法发送传送请求！");
+        }
+        UImanager.Instance.HidePanel<PlayerPreparaPanel>();//关闭准备面板
     }
 
     public void TimeLineEnd()
@@ -332,7 +354,8 @@ public class MapChoosePanel : BasePanel
     /// </summary>
     private void ResetChooseButtonVisual()
     {
-        if (_chooseMapButton == null) return;
+        if (_chooseMapButton == null)
+            return;
 
         _chooseMapButton.image.DOKill();
         _chooseMapButton.transform.DOKill();

@@ -63,6 +63,23 @@ public class PlayerTacticControl : MonoBehaviour
 
     private bool _IsPrepararingInjection = false;
 
+
+    [Header("我的CanvasGroup")]
+    public CanvasGroup MyCanvasGroup;
+    private Sequence MyCanvasGroupAnima;
+
+    public void SetTacticControl(bool IsActive)
+    {
+        if(IsActive)
+            MyCanvasGroup.interactable = true;
+        else
+            MyCanvasGroup.interactable = false;
+        //是否激活当前的战术道具位
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(MyCanvasGroup, ref MyCanvasGroupAnima, IsActive, () => {
+        });
+
+    }
+
     public int CurrentMainTacticIndex => CurrentTactPack?.Index ?? 1;
 
     public bool IsPrepararingInjection
@@ -95,6 +112,7 @@ public class PlayerTacticControl : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        SetTacticControl(false);//初始化无法获取战术设备
 
         if (CurrentTacticButton != null)
         {
@@ -177,6 +195,8 @@ public class PlayerTacticControl : MonoBehaviour
 
         IsPrepararingInjection = false;
         IsChooseButton = false;
+
+        SetTacticControl(false);
     }
     #endregion
 

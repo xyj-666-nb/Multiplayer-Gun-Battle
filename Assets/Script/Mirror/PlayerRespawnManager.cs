@@ -471,38 +471,6 @@ public class PlayerRespawnManager : NetworkBehaviour
         StartCoroutine(ServerDelayedRespawnCoroutine(conn, respawnDelay));
     }
 
-    [Server]
-    private IEnumerator ServerDelayedRespawnCoroutine(NetworkConnectionToClient conn, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-
-        if (conn.identity != null)
-        {
-            NetworkServer.DestroyPlayerForConnection(conn);
-        }
-
-        Transform spawnPoint = GetRandomSpawnPoint();
-        Vector3 spawnPos = spawnPoint ? spawnPoint.position : Vector3.zero;
-        Quaternion spawnRot = spawnPoint ? spawnPoint.rotation : Quaternion.identity;
-
-        GameObject playerPrefab = NetworkManager.singleton.playerPrefab;
-        if (playerPrefab == null)
-        {
-            Debug.LogError($"[RespawnManager] NetworkManager未配置PlayerPrefab！");
-            yield break;
-        }
-
-        GameObject newPlayer = Instantiate(playerPrefab, spawnPos, spawnRot);
-        if (!NetworkServer.AddPlayerForConnection(conn, newPlayer))
-        {
-            Debug.LogError($"[RespawnManager] 重生失败：玩家{conn}已有绑定的玩家对象");
-            NetworkServer.Destroy(newPlayer);
-            yield break;
-        }
-
-        TargetHideDeathPanel(conn);
-        Debug.Log($"[RespawnManager] 玩家{conn}重生成功，新玩家生成于：{spawnPos}");
-    }
 
     [Server]
     public Transform GetRandomSpawnPoint()
@@ -642,12 +610,171 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         UImanager.Instance.ShowPanel<CountDownPanel>().InitPanel(
             "游戏即将开始请做好准备！",
-            40,
+            10,
             () => {
                 //所有人打开本地的地图选择面板
                 UImanager.Instance.ShowPanel<MapChoosePanel>();
             }
         );
+    }
+    #endregion
+
+    #region 地图传送与队伍出生点核心逻辑
+    /// <summary>
+    /// 获取当前选中地图的 MapManager
+    /// </summary>
+    [Server]
+    private MapManager GetCurrentMapManager()
+    {
+        if (PlayerAndGameInfoManger.Instance == null)
+        {
+            Debug.LogError("[传送] PlayerAndGameInfoManger 未初始化！");
+            return null;
+        }
+
+        if (CurrentMapIndex < 0 || CurrentMapIndex >= PlayerAndGameInfoManger.Instance.AllMapManagerList.Count)
+        {
+            Debug.LogError($"[传送] 地图索引 {CurrentMapIndex} 无效！请检查 AllMapManagerList 配置");
+            return null;
+        }
+
+        return PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentMapIndex];
+    }
+
+    /// <summary>
+    /// 【核心】根据玩家队伍获取当前地图的随机出生点
+    /// </summary>
+    [Server]
+    public Transform GetTeamSpawnPoint(Team playerTeam)
+    {
+        MapManager mapManager = GetCurrentMapManager();
+        if (mapManager == null)
+        {
+            Debug.LogWarning("[传送] 未找到当前地图管理器，使用默认出生点！");
+            return GetRandomSpawnPoint();
+        }
+
+        List<Transform> targetBornList = null;
+
+        // 根据队伍选择对应的出生点列表
+        if (playerTeam == Team.Red)
+        {
+            targetBornList = mapManager.teamBornPosList.RedTeamBornPosList;
+        }
+        else if (playerTeam == Team.Blue)
+        {
+            targetBornList = mapManager.teamBornPosList.BlueTeamBornPosList;
+        }
+
+        // 空值保护
+        if (targetBornList == null || targetBornList.Count == 0)
+        {
+            Debug.LogWarning($"[传送] {playerTeam}队在当前地图未配置出生点，使用默认出生点！");
+            return GetRandomSpawnPoint();
+        }
+
+        // 从列表中随机取一个出生点
+        return targetBornList[Random.Range(0, targetBornList.Count)];
+    }
+
+    /// <summary>
+    /// 【核心对外接口】批量传送所有玩家（服务端调用）
+    /// </summary>
+    [Server]
+    public void TeleportAllPlayersToMap()
+    {
+        if (CurrentMapIndex < 0)
+        {
+            Debug.LogError("[传送] 地图索引无效，无法传送！");
+            return;
+        }
+
+        Debug.Log($"[传送] 服务端开始批量通知所有客户端传送...");
+
+        // 服务端遍历所有连接，给每个客户端单独发消息
+        foreach (var conn in NetworkServer.connections.Values)
+        {
+            if (conn != null && conn.isReady && conn.identity != null)
+            {
+                // 获取玩家队伍和出生点
+                if (conn.identity.TryGetComponent<Player>(out Player playerScript))
+                {
+                    Transform spawnPoint = GetTeamSpawnPoint(playerScript.CurrentTeam);
+                    if (spawnPoint != null)
+                    {
+                        // 【核心】给这个客户端单独发TargetRpc，告诉他自己的出生点
+                        TargetTeleportPlayer(conn, spawnPoint.position, spawnPoint.rotation);
+                        Debug.Log($"[传送] 已通知玩家 {conn.connectionId} 传送到：{spawnPoint.position}");
+                    }
+                }
+            }
+        }
+
+        Debug.Log("[传送] 所有客户端传送通知发送完成！");
+    }
+
+    /// <summary>
+    /// 单独通知某个客户端，让他自己本地传送自己                    
+    /// </summary>
+    [TargetRpc]
+    private void TargetTeleportPlayer(NetworkConnectionToClient target, Vector3 spawnPos, Quaternion spawnRot)
+    {
+        // 这里是在目标客户端本地执行
+
+        // 获取自己的玩家对象
+        if (NetworkClient.localPlayer != null)
+        {
+            NetworkClient.localPlayer.transform.SetPositionAndRotation(spawnPos, spawnRot);
+            Debug.Log($"[客户端] 本地传送完成，新位置：{spawnPos}");
+            //先去除掉玩家控制面板
+            UImanager.Instance.GetPanel<PlayerPanel>().SimpleHidePanel();//简单视觉关闭面板
+
+        }
+        else
+        {
+            Debug.LogError("[客户端] 未找到自己的本地玩家对象，传送失败！");
+        }
+    }
+    #endregion
+
+    #region 修改原有重生逻辑，兼容新出生点
+    [Server]
+    private IEnumerator ServerDelayedRespawnCoroutine(NetworkConnectionToClient conn, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (conn.identity != null)
+        {
+            // 先获取旧玩家的队伍信息
+            Team oldPlayerTeam = Team.Red; // 默认值
+            if (conn.identity.TryGetComponent<Player>(out Player oldPlayer))
+            {
+                oldPlayerTeam = oldPlayer.CurrentTeam;
+            }
+
+            NetworkServer.DestroyPlayerForConnection(conn);
+            Transform spawnPoint = GetTeamSpawnPoint(oldPlayerTeam);
+            Vector3 spawnPos = spawnPoint ? spawnPoint.position : Vector3.zero;
+            Quaternion spawnRot = spawnPoint ? spawnPoint.rotation : Quaternion.identity;
+
+            GameObject playerPrefab = NetworkManager.singleton.playerPrefab;
+            if (playerPrefab == null)
+            {
+                Debug.LogError($"[RespawnManager] NetworkManager未配置PlayerPrefab！");
+                yield break;
+            }
+
+            GameObject newPlayer = Instantiate(playerPrefab, spawnPos, spawnRot);
+            if (!NetworkServer.AddPlayerForConnection(conn, newPlayer))
+            {
+                Debug.LogError($"[RespawnManager] 重生失败：玩家{conn}已有绑定的玩家对象");
+                NetworkServer.Destroy(newPlayer);
+                yield break;
+            }
+
+            TargetHideDeathPanel(conn);
+            Debug.Log($"[RespawnManager] 玩家{conn} ({oldPlayerTeam}队) 重生成功，新玩家生成于：{spawnPos}");
+        }
     }
     #endregion
 }

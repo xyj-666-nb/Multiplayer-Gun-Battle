@@ -14,6 +14,7 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
     [Header("当前的地图信息")]
     public List<MapInfo> AllMapInfoList = new List<MapInfo>();//所有的地图信息
+    public List <MapManager> AllMapManagerList=new List<MapManager> ();//所有的地图管理器
 
     public void SetSlotInfoPack(int Index)
     {
@@ -29,6 +30,8 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         Player.LocalPlayer.SpawnAndPickGun(CurrentSlotInfoPack.CurrentGunInfo.Name);//获取枪械
         //更新投掷物
         PlayerTacticControl.Instance?.UpdateCurrentTactic();//进行UI交互的更新
+        //触发战术道具的交互
+        PlayerTacticControl.Instance.SetTacticControl(true);
     }
 
     public GunInfo GetCurrentGunInfo()

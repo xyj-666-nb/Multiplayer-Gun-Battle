@@ -76,7 +76,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278190080
+    rgba: 0
   m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -645,6 +645,8 @@ MonoBehaviour:
     m_Signals:
     - {fileID: 11400000, guid: 8f2e91b35b93d284b8b1f49ee6264813, type: 2}
     - {fileID: 11400000, guid: 822cb667467ac7f478720276f6d2566f, type: 2}
+    - {fileID: 11400000, guid: 84413f9c652214e4bb1b23c06615d7d0, type: 2}
+    - {fileID: 11400000, guid: 8db0b384802ab1e4e9a8fa9b25ffe693, type: 2}
     m_Events:
     - m_PersistentCalls:
         m_Calls:
@@ -665,6 +667,34 @@ MonoBehaviour:
         - m_Target: {fileID: 3519687591619926694}
           m_TargetAssemblyTypeName: MapChoosePanel, Assembly-CSharp
           m_MethodName: TimeLineEnd
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+    - m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 3519687591619926694}
+          m_TargetAssemblyTypeName: MapChoosePanel, Assembly-CSharp
+          m_MethodName: TriggerPlayerTransmit
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+    - m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 3519687591619926694}
+          m_TargetAssemblyTypeName: MapChoosePanel, Assembly-CSharp
+          m_MethodName: TriggerMapAnima
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -2250,7 +2280,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 16777215
   m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -2677,7 +2707,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 0
   m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -3369,7 +3399,7 @@ MonoBehaviour:
   IntroduceMapImage: {fileID: 5525796213441578062}
   PanelPromptText: {fileID: 1093662101175004636}
   CountDownText: {fileID: 8438951803803328919}
-  Duration: 30
+  Duration: 15
   TimeLine: {fileID: 740530442694151506}
   MapName: {fileID: 1992580989781135779}
   gameMode: {fileID: 277184194022654662}
