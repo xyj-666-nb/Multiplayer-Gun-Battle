@@ -7,15 +7,21 @@ public class BigExplorion : MonoBehaviour
 
     void Update()
     {
-        FluidController.Instance.QueueDrawAtPoint(
-                this.transform.position,
-                new Color(1.0f * timeSpan * 5f, 1.0f * timeSpan * 5f, 1.0f * timeSpan * 5f, 1.2f),
-                Vector2.zero,
-                2.0f * timeSpan * 5f,
-                3.2f * timeSpan * 5f,
-                FluidController.VelocityType.Explore
-            );
-        flash.intensity = 3.0f * timeSpan * 5f;
+        // 保持原有流体绘制逻辑
+        if (FluidController.Instance != null)
+        {
+            FluidController.Instance.QueueDrawAtPoint(
+                    this.transform.position,
+                    new Color(1.0f * timeSpan * 5f, 1.0f * timeSpan * 5f, 1.0f * timeSpan * 5f, 1.2f),
+                    Vector2.zero,
+                    2.0f * timeSpan * 5f,
+                    3.2f * timeSpan * 5f,
+                    FluidController.VelocityType.Explore
+                );
+        }
+
+        if (flash != null) flash.intensity = 3.0f * timeSpan * 5f;
+
         timeSpan -= Time.deltaTime;
         if (timeSpan <= 0)
         {

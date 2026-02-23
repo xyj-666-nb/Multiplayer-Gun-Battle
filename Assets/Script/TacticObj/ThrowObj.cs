@@ -12,16 +12,32 @@ public class ThrowObj : NetworkBehaviour
     public bool IsThrown = false;
 
     private Rigidbody2D _rb;
-    public playerHandControl playerHandControl;
+
+    [SyncVar]
+    public playerHandControl HandControl;
+    public CharacterStats MyMonster;
+
+
+    [Header("通用配置")]
+    public float TriggerTime = 2; // 触发时间（手雷引信/烟雾弹生效延迟）
 
     [Header("烟雾配置")]
-    public float TriggerTime = 2;
     public float Duration = 8;
+
+    [Header("手雷爆炸配置")]
+    [Tooltip("爆炸影响半径")]
+    public float explosionRadius = 4f;
+    [Tooltip("爆炸中心点最大伤害")]
+    public int maxDamage = 100;
+    [Tooltip("爆炸中心点最大击退力")]
+    public float maxKnockbackForce = 10f;
+    [Tooltip("爆炸边缘最小击退力")]
+    public float minKnockbackForce = 3f;
 
     private double _serverStartTime;
     private bool _isDestroyed = false;
 
-    [Header("手雷爆炸物")]
+    [Header("预制体引用")]
     public GameObject ExplosionPrefab;
     public TacticType tacticType;
 
@@ -46,24 +62,23 @@ public class ThrowObj : NetworkBehaviour
     {
         if (_rb == null) return;
 
+        // 【修复2】删除这里的 GetComponentInParent，因为扔出去后已经没有父物体了
+
         if (oldValue == false && newValue == true)
         {
-            // 只有服务器记录时间 + 启动对应协程
             if (isServer)
             {
                 _serverStartTime = NetworkTime.time;
-                // 根据投掷物类型启动不同的协程
                 if (tacticType == TacticType.Grenade)
                 {
-                    StartCoroutine(ServerGrenadeExplodeCoroutine()); // 手雷爆炸协程
+                    StartCoroutine(ServerGrenadeExplodeCoroutine());
                 }
                 else if (tacticType == TacticType.Smoke)
                 {
-                    StartCoroutine(ServerSmokeEffectCoroutine()); // 烟雾弹专属协程
+                    StartCoroutine(ServerSmokeEffectCoroutine());
                 }
             }
 
-            // 所有客户端开启物理
             _rb.isKinematic = false;
             _rb.simulated = true;
         }
@@ -85,18 +100,17 @@ public class ThrowObj : NetworkBehaviour
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
-        // 初始强制关闭
         if (_rb != null)
         {
             _rb.simulated = false;
             _rb.isKinematic = true;
         }
 
-        // 空值检查：避免爆炸预制体未赋值
         if (ExplosionPrefab == null && tacticType == TacticType.Grenade)
         {
             Debug.LogError("[ThrowObj] 手雷的 ExplosionPrefab 未赋值！", this);
         }
+        CountDownManager.Instance.CreateTimer(false, 100, () => { MyMonster = HandControl.ownerPlayer.myStats; });
     }
 
     private void Update()
@@ -112,7 +126,7 @@ public class ThrowObj : NetworkBehaviour
     {
         _isDestroyed = true;
         if (ThrowObjTimeLine != null) ThrowObjTimeLine.Stop();
-        StopAllCoroutines(); // 停止所有协程
+        StopAllCoroutines();
     }
     #endregion
 
@@ -122,7 +136,6 @@ public class ThrowObj : NetworkBehaviour
     {
         double elapsedTime = NetworkTime.time - _serverStartTime;
 
-        // 仅在烟雾生效期间绘制烟雾
         if (elapsedTime > TriggerTime && elapsedTime < (TriggerTime + Duration))
         {
             Vector2 serverPos = transform.position;
@@ -132,22 +145,17 @@ public class ThrowObj : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// 烟雾弹专属协程：效果结束后自动销毁
-    /// </summary>
     [Server]
     private IEnumerator ServerSmokeEffectCoroutine()
     {
         if (tacticType != TacticType.Smoke || _isDestroyed) yield break;
 
-        // 等待烟雾效果完全结束（触发时间 + 持续时间）
         float totalLifeTime = TriggerTime + Duration;
         yield return new WaitForSeconds(totalLifeTime);
 
         if (_isDestroyed || !IsThrown) yield break;
 
         Debug.Log($"[烟雾弹] 效果结束，销毁对象：{gameObject.name}", this);
-        // 停止绘制烟雾并销毁自身
         RequestSelfDestruction();
     }
 
@@ -156,13 +164,13 @@ public class ThrowObj : NetworkBehaviour
     {
         if (tacticType != TacticType.Grenade || _isDestroyed) yield break;
 
-        float explodeWaitTime = TriggerTime; // 修正：手雷爆炸等待时间应为TriggerTime（触发时间）
-        yield return new WaitForSeconds(explodeWaitTime);
+        yield return new WaitForSeconds(TriggerTime);
 
         if (_isDestroyed || !IsThrown) yield break;
+
+        ServerProcessGrenadeExplosion();
         RpcTriggerExplosion();
 
-        // 爆炸后延迟销毁
         yield return new WaitForSeconds(0.5f);
         if (!_isDestroyed)
         {
@@ -170,18 +178,62 @@ public class ThrowObj : NetworkBehaviour
         }
     }
 
-    [ClientRpc]
-    private void RpcTriggerExplosion()
+    /// <summary>
+    /// 服务器端处理手雷伤害判定
+    /// </summary>
+    [Server]
+    private void ServerProcessGrenadeExplosion()
     {
-        if (_isDestroyed || ExplosionPrefab == null)
-            return;
+        Vector2 explosionPos = transform.position;
 
-        Debug.Log($"[爆炸触发] 客户端：{isClientOnly}，对象：{gameObject.name}");
-        // 修正：实例化爆炸预制体而不是直接激活原有对象
-        GameObject explosion = Instantiate(ExplosionPrefab, transform.position, Quaternion.identity);
-        explosion.SetActive(true);
-        // 自动销毁爆炸特效
-        Destroy(explosion, 2f);
+        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(explosionPos, explosionRadius, LayerMask.GetMask("Player"));
+
+        // 2. 获取攻击者数据
+        CharacterStats attackerStats = null;
+          attackerStats = HandControl.ownerPlayer.myStats;
+
+        foreach (Collider2D col in hitColliders)
+        {
+            Vector2 closestPointOnPlayer = col.ClosestPoint(explosionPos);
+            Vector2 dirToPlayer = (closestPointOnPlayer - explosionPos).normalized;
+            Vector2 rayOrigin = explosionPos + dirToPlayer * 0.1f;
+
+            // 3. 遮挡检测 (请确保这里的 "Ground" 与你项目中的层级名称一致)
+            RaycastHit2D hit = Physics2D.Raycast(
+                rayOrigin,
+                dirToPlayer,
+                explosionRadius,
+                LayerMask.GetMask("Ground")
+            );
+
+            float distanceToTarget = Vector2.Distance(rayOrigin, closestPointOnPlayer);
+            bool isBlocked = hit && hit.distance < distanceToTarget;
+
+            if (!isBlocked)
+            {
+                // 4. 计算实际距离
+                float distance = Vector2.Distance(explosionPos, closestPointOnPlayer);
+                // 防止除以0
+                if (distance < 0.1f) distance = 0.1f;
+
+                // 5. 计算伤害
+                int damage = Mathf.RoundToInt(maxDamage * (1 - distance / explosionRadius));
+                damage = Mathf.Max(damage, 10);
+
+                // 6. 计算击退力 (Lerp：距离越近力越大)
+                float forceMultiplier = 1 - (distance / explosionRadius);
+                float currentKnockbackAmount = Mathf.Lerp(minKnockbackForce, maxKnockbackForce, forceMultiplier);
+                Vector2 finalKnockbackForce = dirToPlayer * currentKnockbackAmount;
+
+                // 7. 应用伤害
+                Player targetPlayer = col.GetComponent<Player>();
+                if (targetPlayer != null && targetPlayer.myStats != null)
+                {
+                    Debug.Log($"[Server] 手雷命中 {targetPlayer.name}，伤害 {damage}，击退 {finalKnockbackForce}");
+                    targetPlayer.myStats.ServerApplyGrenadeDamage(damage, explosionPos, finalKnockbackForce, attackerStats);
+                }
+            }
+        }
     }
     #endregion
 
@@ -199,6 +251,18 @@ public class ThrowObj : NetworkBehaviour
             0.4f * sizeMultiplier,
             FluidController.VelocityType.Explore
         );
+    }
+
+    [ClientRpc]
+    private void RpcTriggerExplosion()
+    {
+        if (_isDestroyed || ExplosionPrefab == null)
+            return;
+
+        Debug.Log($"[爆炸特效] 客户端触发：{gameObject.name}");
+        GameObject explosion = Instantiate(ExplosionPrefab, transform.position, Quaternion.identity);
+        explosion.SetActive(true);
+        Destroy(explosion, 2f);
     }
     #endregion
 
@@ -261,7 +325,8 @@ public class ThrowObj : NetworkBehaviour
     {
         IsInAnimation = false;
         RequestSelfDestruction();
-        if (playerHandControl != null) playerHandControl.CurrentThrowObj = null;
+        if (HandControl != null)
+            HandControl.CurrentThrowObj = null;
     }
     #endregion
 
@@ -274,7 +339,7 @@ public class ThrowObj : NetworkBehaviour
     }
     #endregion
 
-    [ClientRpc] 
+    [ClientRpc]
     public void ServerLaunch(Vector2 velocity)
     {
         if (_isDestroyed) return;
@@ -290,4 +355,3 @@ public class ThrowObj : NetworkBehaviour
         }
     }
 }
-

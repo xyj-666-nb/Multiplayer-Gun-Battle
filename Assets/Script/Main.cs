@@ -101,6 +101,8 @@ public class Main : SingleMonoAutoBehavior<Main>
         Developer_GUITestManger.Instance.RegisterGuiButton("打开设置面板", () => { UImanager.Instance.ShowPanel<SettingPanel>(); }, "面板测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("打开战备配置面板", () => { UImanager.Instance.ShowPanel<EquipmentConfigurationPanel>(); }, "面板测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("打开地图选择面板", () => { UImanager.Instance.ShowPanel<MapChoosePanel>(); }, "面板测试");
+        Developer_GUITestManger.Instance.RegisterGuiButton("打开玩家准备面板", () => { UImanager.Instance.ShowPanel<PlayerPreparaPanel>(); }, "面板测试");
+        Developer_GUITestManger.Instance.RegisterGuiButton("打开自定义UI面板", () => { UImanager.Instance.ShowPanel<PlayerCustomPanel>(); }, "面板测试");
 
         Developer_GUITestManger.Instance.RegisterGuiButton("使用绿针", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Green_injection); }, "战术设备测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("使用黄色针剂", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Yellow_injection); }, "战术设备测试");

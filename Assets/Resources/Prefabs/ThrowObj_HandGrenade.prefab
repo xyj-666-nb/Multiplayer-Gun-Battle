@@ -233,6 +233,7 @@ MonoBehaviour:
   IsTackOut: 0
   IsThrown: 0
   playerHandControl: {fileID: 0}
+  MyMonster: {fileID: 0}
   TriggerTime: 2
   Duration: 1
   ExplosionPrefab: {fileID: 2734962017436586130}
@@ -377,6 +378,14 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6217748773970028681, guid: 161e9cddb7239fe46b859ddb889ec3b9, type: 3}
+      propertyPath: playerLayer.m_Bits
+      value: 256
+      objectReference: {fileID: 0}
+    - target: {fileID: 6217748773970028681, guid: 161e9cddb7239fe46b859ddb889ec3b9, type: 3}
+      propertyPath: obstacleLayer.m_Bits
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 6579870686202427379, guid: 161e9cddb7239fe46b859ddb889ec3b9, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.03
@@ -426,7 +435,8 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 1932194447929776520, guid: 161e9cddb7239fe46b859ddb889ec3b9, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 161e9cddb7239fe46b859ddb889ec3b9, type: 3}

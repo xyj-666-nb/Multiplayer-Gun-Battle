@@ -3,65 +3,122 @@ using UnityEngine;
 
 public class LanRoomHost : MonoBehaviour
 {
-    private CustomNetworkDiscovery discovery;//获取网络发现组件引用
-    [Header("更新房间信息的频率，单位毫秒(1000毫秒等于1秒)")]
-    public int UpdateAdvertiseServerTime = 200;//0.2秒一次
-    private int CurrentTimerIndex;//当前计时器的唯一ID
+    private CustomNetworkDiscovery discovery;
+    [Header("更新房间信息的频率，单位毫秒")]
+    public int UpdateAdvertiseServerTime = 200;
+    private int CurrentTimerIndex;
+
     private void Awake()
     {
-        discovery = CustomNetworkDiscovery.Instance;//获取单例
+        discovery = CustomNetworkDiscovery.Instance;
+        if (discovery == null)
+        {
+            discovery = FindObjectOfType<CustomNetworkDiscovery>();
+            if (discovery == null)
+            {
+                Debug.LogError("[LanRoomHost] 未找到CustomNetworkDiscovery组件！");
+                return;
+            }
+        }
     }
 
-    // 供创建房间按钮调用
-    public void CreateRoom(string roomName, string playerName,  int maxPlayers = 8)//获取玩家输入的房间名称、玩家名称和最大人数
+    public void CreateRoom(string roomName, string playerName, int GameTime, int GoalScore, int maxPlayers = 8)
     {
         Debug.Log("HOST: StartHost + AdvertiseServer()");
-        var nm = NetworkManager.singleton;
 
-        // 优先设置房间信息(对信息的判空)
-        discovery.roomName = string.IsNullOrWhiteSpace(roomName) ? "Room" : roomName;
-        discovery.playerName = string.IsNullOrWhiteSpace(playerName) ? "Host" : playerName;
-
-        discovery.maxPlayers = maxPlayers;
-        discovery.playerCount = 1; // 初始房主
-
-        // 启动 Host
-        nm.maxConnections = maxPlayers;
-        nm.StartHost();//启动服务器，等待客户端连接
-
-        discovery.AdvertiseServer();// 开始广播房间信息
-
-        Debug.Log("进行了广播，成功创建房间");
-        //打开持续广播，设置广播频率
-        CurrentTimerIndex= CountDownManager.Instance.CreateTimer_Permanent(false,200, UpdateAdvertiseServer);//创建一个永久的计时器，每200毫秒调用一次UpdateAdvertiseServer方法，确保房间信息持续更新并广播出去
-    }
-
-    public void UpdateAdvertiseServer()//更新房间信息，确保广播出去的房间信息是最新的
-    {
-        if (NetworkServer.active && discovery != null)
+        CustomNetworkManager nm = null;
+        if (CustomNetworkManager.Instance != null)
         {
-            int players = 0;
-            foreach (var kv in NetworkServer.connections)
+            nm = CustomNetworkManager.Instance;
+        }
+        else
+        {
+            nm = FindObjectOfType<CustomNetworkManager>();
+        }
+        if (nm == null)
+        {
+            nm = NetworkManager.singleton as CustomNetworkManager;
+        }
+
+        try
+        {
+            // 1. 预处理端口
+            int port = nm.PrepareForCreateRoom();
+            if (port == -1)
             {
-                if (kv.Value != null && kv.Value.isAuthenticated)
-                    players++;
+                Debug.LogError("[LanRoomHost] 端口分配失败，无法创建房间！");
+                return;
             }
-            discovery.playerCount = Mathf.Max(1, players);
+
+            // 2. 设置房间信息（修复port赋值问题）
+            discovery.roomName = string.IsNullOrWhiteSpace(roomName) ? "默认房间" : roomName;
+            discovery.playerName = string.IsNullOrWhiteSpace(playerName) ? "房主" : playerName;
+
+            // ========== 核心修复3：调用SetPort方法，避免直接赋值port字段 ==========
+            discovery.SetPort(port); // 用封装的方法处理类型转换，而非直接赋值discovery.port
+
+            discovery.maxPlayers = maxPlayers;
+            discovery.playerCount = 1;
+            discovery.gameTime = GameTime;
+            discovery.GoldScore = GoalScore;
+
+            // 3. 启动服务器
+            nm.maxConnections = maxPlayers;
+            nm.StartHost();
+
+            // 4. 广播房间信息
+            discovery.AdvertiseServer();
+
+            Debug.Log($"成功创建房间（端口：{port}），开始广播");
+
+            if (CountDownManager.Instance == null)
+            {
+                Debug.LogError("[LanRoomHost] CountDownManager.Instance 为空！");
+                return;
+            }
+            CurrentTimerIndex = CountDownManager.Instance.CreateTimer_Permanent(false, 200, UpdateAdvertiseServer);
         }
-    }
-
-    private void Update()
-    {
-     
-    }
-
-    public void StopRoom()//关闭房间，当房主离开房间以及正式开始游戏后调用
-    {
-        if (NetworkServer.active || NetworkClient.isConnected)
+        catch (System.Exception e)
         {
-            NetworkManager.singleton.StopHost();
-            //关闭永久计时器的调用
-            CountDownManager.Instance.StopTimer(CurrentTimerIndex);//传入唯一ID
+            Debug.LogError($"[LanRoomHost] 创建房间异常：{e.Message}\n{e.StackTrace}");
         }
+    }
+
+    public void UpdateAdvertiseServer()
+    {
+        if (!NetworkServer.active || discovery == null)
+        {
+            Debug.LogWarning("[LanRoomHost] 服务器未激活或discovery为空，跳过房间信息更新");
+            return;
+        }
+
+        int players = 0;
+        foreach (var kv in NetworkServer.connections)
+        {
+            if (kv.Value != null && kv.Value.isAuthenticated)
+                players++;
+        }
+        discovery.playerCount = Mathf.Max(1, players);
+    }
+
+    public void StopRoom()
+    {
+        if (CountDownManager.Instance != null)
+        {
+            CountDownManager.Instance.StopTimer(CurrentTimerIndex);
+        }
+        if (discovery != null)
+        {
+            discovery.StopDiscovery();
+        }
+        if (CustomNetworkManager.Instance != null)
+        {
+            CustomNetworkManager.Instance.ForceStopCurrentPort();
+        }
+    }
+
+    private void OnDestroy()
+    {
+        StopRoom();
     }
 }

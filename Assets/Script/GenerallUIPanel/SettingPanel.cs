@@ -37,8 +37,7 @@ public class SettingPanel : BasePanel
     {
         AddButtonToGroup(_totalGroupName, "Button_ChangeKey", ChooseButton_ChangeKey, CancelButton_ChangeKey);
         AddButtonToGroup(_totalGroupName, "Button_MusicSetting", ChooseButton_MusicSetting, CancelButton_MusicSetting);
-        AddButtonToGroup(_totalGroupName, "Button_PictureSetting", ChooseButton_PictureSetting, CancelButton_PictureSetting);
-        AddButtonToGroup(_totalGroupName, "Button_Language", ChooseButton_Language, CancelButton_Language);
+       // AddButtonToGroup(_totalGroupName, "Button_LnaguageSetting", ChooseButton_Language, CancelButton_Language);
     }
 
     private void AddButtonToGroup(string groupName, string buttonName, UnityAction chooseEvent, UnityAction cancelEvent, float scale = 1.1f, float duration = 0.2f)
@@ -67,12 +66,6 @@ public class SettingPanel : BasePanel
     #region 按钮选中/取消事件
     public void ChooseButton_ChangeKey()
     {
-        if (_currentTypingWritingTask != null)
-        {
-            _currentTypingWritingTask.StopTyping();
-            _currentTypingWritingTask = null;
-        }
-
         _currentTypingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask("操作设置", CurrentTopic);
         if (PanelParentObj != null && !PanelParentObj.gameObject.IsDestroyed())
         {
@@ -97,6 +90,7 @@ public class SettingPanel : BasePanel
             _currentTypingWritingTask.StopTyping();
             _currentTypingWritingTask = null;
         }
+
         try
         {
             UImanager.Instance.HidePanel<ChangeKeypanel>();
@@ -109,12 +103,6 @@ public class SettingPanel : BasePanel
 
     public void ChooseButton_MusicSetting()
     {
-        if (_currentTypingWritingTask != null)
-        {
-            _currentTypingWritingTask.StopTyping();
-            _currentTypingWritingTask = null;
-        }
-
         _currentTypingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask("音乐设置", CurrentTopic);
         if (PanelParentObj != null && !PanelParentObj.gameObject.IsDestroyed())
         {
@@ -134,11 +122,6 @@ public class SettingPanel : BasePanel
 
     public void CancelButton_MusicSetting()
     {
-        if (_currentTypingWritingTask != null)
-        {
-            _currentTypingWritingTask.StopTyping();
-            _currentTypingWritingTask = null;
-        }
         try
         {
             UImanager.Instance.HidePanel<MusicPanel>();
@@ -176,6 +159,21 @@ public class SettingPanel : BasePanel
             _currentTypingWritingTask = null;
         }
         _currentTypingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask("语言设置", CurrentTopic);
+        //// 【仅修改此处】语言面板改为和改键/音乐面板相同的挂载逻辑
+        //if (PanelParentObj != null && !PanelParentObj.gameObject.IsDestroyed())
+        //{
+        //    var languagePanel = UImanager.Instance.ShowPanel<Languepanel>();
+        //    if (languagePanel != null && !languagePanel.IsDestroyed())
+        //    {
+        //        languagePanel.transform.SetParent(PanelParentObj);
+        //        // 重置面板的 Left 和 Top 偏移
+        //        ResetPanelOffset(languagePanel.GetComponent<RectTransform>());
+        //    }
+        //    else
+        //    {
+        //        Debug.LogError("Languepanel 面板为空或已销毁");
+        //    }
+        //}
     }
 
     public void CancelButton_Language()
@@ -185,6 +183,7 @@ public class SettingPanel : BasePanel
             _currentTypingWritingTask.StopTyping();
             _currentTypingWritingTask = null;
         }
+
     }
     #endregion
 
@@ -245,9 +244,9 @@ public class SettingPanel : BasePanel
         base.ClickButton(controlName);
         if (controlName == "Button_ReturnGame")
             UImanager.Instance.HidePanel<SettingPanel>();
-        if(controlName == "Button_ExitGame")
+        if (controlName == "Button_ExitGame")
         {
-            //回到开始面板或者是怎么样
+            UImanager.Instance.HidePanel<SettingPanel>();
         }
     }
 

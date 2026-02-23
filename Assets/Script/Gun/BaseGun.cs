@@ -368,11 +368,15 @@ public class BaseGun : NetworkBehaviour
             Debug.LogError("[打击特效] hitwalleffect 预制体未赋值！");
             return;
         }
-        GameObject hitEffectObj = Instantiate(
-            hitwalleffect,
-            hitPos,
-            Quaternion.LookRotation(Vector3.forward, hitNormal)
-        );
+
+        GameObject hitEffectObj = PoolManage.Instance.GetObj(hitwalleffect);
+        if (hitEffectObj == null) 
+            return;
+        hitEffectObj.transform.position = hitPos;
+        hitEffectObj.transform.rotation = Quaternion.LookRotation(Vector3.forward, hitNormal);
+
+        //1秒后回收
+        CountDownManager.Instance.CreateTimer(false, 1000, () => { PoolManage.Instance.PushObj(hitwalleffect, hitEffectObj); });
     }
 
     /// <summary>
@@ -576,9 +580,6 @@ public class BaseGun : NetworkBehaviour
         // 初始化子弹线段模板
         InitBulletSegmentTemplate();
 
-        // 移除本地烟雾控制器依赖，改为调用全局管理器
-        if (GunInfoManager == null && isDebug) Debug.LogError($"未找到GunWorldInfoShow组件！");
-        if (gunInfo == null) Debug.LogError($"gunInfo配置文件未挂载！");
     }
 
     public override void OnStartServer()

@@ -33,6 +33,9 @@ public class MapManager : MonoBehaviour
         UImanager.Instance.GetPanel<PlayerPanel>().SimpleShowPanel();
         UImanager.Instance.ShowPanel<GameScorePanel>();//打开比分面板
         PlayerAndGameInfoManger.Instance.EquipCurrentSlot();//获取战备
+
+        //在这里触发初始化
+
     }
 
 }

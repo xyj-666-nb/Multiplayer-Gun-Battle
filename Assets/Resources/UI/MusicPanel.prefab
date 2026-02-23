@@ -412,6 +412,7 @@ MonoBehaviour:
   IsCanDestroy: 1
   IsUseRealTime: 0
   IsUseSpecialCanvas: 0
+  PriorityIndex: 0
   _canvasPixelPerfect: 0
   _canvasSortingOrder: 10
   _canvasSortingLayer: UI
@@ -1083,7 +1084,7 @@ GameObject:
   - component: {fileID: 2367933350864187515}
   - component: {fileID: 7140311201063138203}
   m_Layer: 5
-  m_Name: Slider_Music
+  m_Name: Slider_MusicEffect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1986,7 +1987,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.0000023099194, y: 0.000702202}
+  m_AnchoredPosition: {x: -0.0000023099194, y: 0.0002576649}
   m_SizeDelta: {x: -0.0003, y: 1080}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &7629977861219287873
@@ -2264,7 +2265,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 8609887229544181226}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.99596334
+  m_Size: 0.99963766
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

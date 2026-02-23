@@ -243,7 +243,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   WallCheck: {fileID: 7626114458909109324}
-  WallCheckDistance: 1.16
+  WallCheckDistance: 0.71
   Layer_Wall:
     serializedVersion: 2
     m_Bits: 8
@@ -312,9 +312,9 @@ MonoBehaviour:
   maxHealth: 1000
   CurrentHealth: 0
   IsDead: 0
-  MaxBllomSpeed: 2
-  MinBllomSpeed: 4
-  BllomAmount: 20
+  MaxBllomSpeed: 1
+  MinBllomSpeed: 2
+  BllomAmount: 10
   MyMonster: {fileID: 7290517828809082464}
   MaxYSpeed: 4
   MaxXSpeed: 4

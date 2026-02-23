@@ -58,7 +58,7 @@ public class MyPlayerInput : NetworkBehaviour
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.Reload, Reload_start, null, null);
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.PickUpGun, PickUpGnn_Start, null, null);
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.DiscardGun, DiscardGun_Start, null, null);
-            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.GunAim, GunAim_Start, null, GunAim_End);
+            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.GunAim, GunAim_Start, null, GunAim_End, GunAim_UpdateCheck);
             Debug.Log("MyPlayerInput：本地玩家输入事件绑定成功！");
         }
     }
@@ -365,15 +365,51 @@ public class MyPlayerInput : NetworkBehaviour
     #endregion
 
     #region 枪械瞄准控制逻辑
-    public void GunAim_Start(InputAction.CallbackContext Content)
+    private bool IsEnterAim=false;
+    private void GunAim_Start(InputAction.CallbackContext Content)
+    {
+        CheckAndHandleAim();
+    }
+    //统一封装方便给外部调用
+    public bool CheckAndHandleAim()
     {
         // 第一步：通用校验
         if (!CheckCommonTriggerCondition())
-            return;
+            return false;
 
-        if (Myplayer.currentGun == null)
-            return;
+        if (Myplayer.currentGun == null || Myplayer.currentGun.IsInReload)
+            return false;
 
+        IsEnterAim = true;
+        AimState_Enter();
+        return true;
+    }
+
+
+    //瞄准状态持续检测
+    private void GunAim_UpdateCheck(CustomInputContext Content)
+    {
+        UpdateCheckAimState();
+    }
+
+    public bool UpdateCheckAimState()
+    {
+        if (Myplayer.currentGun == null || Myplayer.currentGun.IsInReload)
+        {
+            if (IsEnterAim)
+            {
+                AimState_Exit();
+                IsEnterAim = false;
+                return true; // 成功退出瞄准状态
+            }
+            IsEnterAim = false;
+            return false;
+        }
+        return true;
+    }
+
+    private void AimState_Enter()
+    {
         Debug.Log("进入瞄准状态");
         //触发枪进入瞄准状态
         Myplayer.currentGun.ChangeAimState(true);
@@ -386,15 +422,23 @@ public class MyPlayerInput : NetworkBehaviour
         ViewTaskID = MyCameraControl.Instance.AddZoomTask_ByPercent_TemporaryManual(1 + Myplayer.myStats.AimViewBonus, ChangeSpeed_View);//通过数据进行缩放
     }
 
-    public void GunAim_End(InputAction.CallbackContext Content)
+
+    public bool AimStateExit()
     {
         // 第一步：通用校验
         if (!CheckCommonTriggerCondition())
-            return;
+            return false;
 
         if (Myplayer.currentGun == null)
-            return;
+            return false;
 
+        IsEnterAim = false;
+        AimState_Exit();
+        return true;
+    }
+
+    private void AimState_Exit()
+    {
         Debug.Log("退出瞄准状态");
         //触发枪退出瞄准状态
         Myplayer.currentGun.ChangeAimState(false);
@@ -404,6 +448,11 @@ public class MyPlayerInput : NetworkBehaviour
         Myplayer.MyHandControl.SetAimState(false);
         //停止任务
         MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
+    }
+
+    private void GunAim_End(InputAction.CallbackContext Content)
+    {
+        AimStateExit();
     }
     #endregion
 

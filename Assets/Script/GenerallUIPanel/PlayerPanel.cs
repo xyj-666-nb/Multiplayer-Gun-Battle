@@ -24,6 +24,8 @@ public class PlayerPanel : BasePanel
     [Header("射击按钮")]
     public ShootButton shootButton;//射击按钮脚本
 
+    public List<CustomUI> AllCustomUIList = new List<CustomUI>();
+
     public static string GetAimButtonButtonGroupName()
     {
         return AimButtonButtonGroupName;
@@ -46,6 +48,58 @@ public class PlayerPanel : BasePanel
             return;
 
         GunImage.sprite = CurrentGun.gunInfo.GunSprite;//赋值枪械UI图标
+        //判断当前的枪械做定制化的图标
+        if(CurrentGun.gunInfo.Name== "FAMAS")
+        {
+            GunImage.rectTransform.localScale = new Vector3(-1, 1.3f, 1f);
+            GunImage.rectTransform.anchoredPosition = new Vector3(0, 0, 0);
+        }
+        else if(CurrentGun.gunInfo.Name == "P90")
+        {
+            GunImage.rectTransform.localScale = new Vector3(-1.3f, 1.3f, 1f);
+            GunImage.rectTransform.anchoredPosition = new Vector3(-60, 0, 0);
+        }
+        else if (CurrentGun.gunInfo.Name == "UZI")
+        {
+            GunImage.rectTransform.localScale = new Vector3(-1.2f, 1f, 1f);
+            GunImage.rectTransform.anchoredPosition = new Vector3(-60, -8, 0);
+        }
+        else if (CurrentGun.gunInfo.Name == "AWP")
+        {
+            GunImage.rectTransform.localScale = new Vector3(-1.1f, 1f, 1f);
+            GunImage.rectTransform.anchoredPosition = new Vector3(-33, -12, 0);
+        }
+        else if (CurrentGun.gunInfo.Name == "M110")
+        {
+            GunImage.rectTransform.localScale = new Vector3(-1f, 1f, 1f);
+            GunImage.rectTransform.anchoredPosition = new Vector3(-20, -12, 0);
+        }
+        else if (CurrentGun.gunInfo.Name == "AUG")
+        {
+            GunImage.rectTransform.localScale = new Vector3(-0.8f, 0.8f, 1f);
+            GunImage.rectTransform.anchoredPosition = new Vector3(0, -7, 0);
+        }
+        else if (CurrentGun.gunInfo.Name == "98K")
+        {
+            GunImage.rectTransform.localScale = new Vector3(-1f, 1f, 1f);
+            GunImage.rectTransform.anchoredPosition = new Vector3(-16, -7, 0);
+        }
+        else if (CurrentGun.gunInfo.Name == "AKM")
+        {
+            GunImage.rectTransform.localScale = new Vector3(-1f, 1f, 1f);
+            GunImage.rectTransform.anchoredPosition = new Vector3(-20, 0, 0);
+        }
+        else if (CurrentGun.gunInfo.Name == "Vector-45")
+        {
+            GunImage.rectTransform.localScale = new Vector3(-0.9f, 0.9f, 1f);
+            GunImage.rectTransform.anchoredPosition = new Vector3(-11, 0, 0);
+        }
+        else
+        {
+            GunImage.rectTransform.localScale = new Vector3(-1f, 1f, 1f);
+            GunImage.rectTransform.anchoredPosition = new Vector3(-0, 0, 0);
+        }
+       
         GunName.text = CurrentGun.gunInfo.Name;
         UpdateGunBulletAmountText();//更新一下子弹数
     }
@@ -64,8 +118,7 @@ public class PlayerPanel : BasePanel
         base.Awake();
 
         //注册一下射击按钮单选按钮
-        ButtonGroupManager.Instance.AddToggleButtonToGroup(AimButtonButtonGroupName, controlDic[AimButtonButtonGroupName] as Button);//不需要事件。事件由输入系统管理器触发
-
+        ButtonGroupManager.Instance.AddToggleButtonToGroup(AimButtonButtonGroupName, controlDic[AimButtonButtonGroupName] as Button, isManualTrigger: true);//不需要事件。事件由输入系统管理器触发
     }
 
     public override void Start()
@@ -139,5 +192,12 @@ public class PlayerPanel : BasePanel
     #endregion
 
   
+    public void UpdateAllCustomUIInfo()
+    {
+        foreach (var UI in AllCustomUIList)
+        {
+            UI.ApplicationInfo();//更新一下信息
+        }
+    }
 
 }

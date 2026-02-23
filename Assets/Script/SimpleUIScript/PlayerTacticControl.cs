@@ -3,29 +3,58 @@ using UnityEngine.UI;
 using DG.Tweening;
 using TMPro;
 
-// 你定义的数据包类
+// 你定义的数据包类（新增空值防护）
 public class TacticPack
 {
     public TacticInfo tactInfo;
     public int Index = 0; // 道具位索引 (1 或 2)
-    public bool IsPlaying {
-        get {
-            if (Index == 1)
-                return Player.LocalPlayer.MyHandControl.IsTrigger_tactic1;
-            else
-                return Player.LocalPlayer.MyHandControl.IsTrigger_tactic2;
-        }
-    
-    }
-    public float CoolPrecent {
-    get
-        {
-            if (Index == 1)
-                return Player.LocalPlayer.MyHandControl.tactic_1CoolTime_precent;
-            else
-                return Player.LocalPlayer.MyHandControl.tactic_2CoolTime_precent;
-        }
 
+    // 修复：IsPlaying 属性增加全链路空值检查
+    public bool IsPlaying
+    {
+        get
+        {
+            // 1. 检查Player.LocalPlayer是否为空
+            if (Player.LocalPlayer == null)
+            {
+                Debug.LogWarning("[TacticPack] Player.LocalPlayer 为空！");
+                return false;
+            }
+            // 2. 检查MyHandControl是否为空
+            if (Player.LocalPlayer.MyHandControl == null)
+            {
+                Debug.LogWarning("[TacticPack] Player.LocalPlayer.MyHandControl 为空！");
+                return false;
+            }
+            // 3. 检查Index有效性
+            if (Index != 1 && Index != 2)
+            {
+                Debug.LogWarning($"[TacticPack] 无效的Index值：{Index}");
+                return false;
+            }
+
+            return Index == 1 ? Player.LocalPlayer.MyHandControl.IsTrigger_tactic1 : Player.LocalPlayer.MyHandControl.IsTrigger_tactic2;
+        }
+    }
+
+    // 修复：CoolPrecent 属性增加全链路空值检查
+    public float CoolPrecent
+    {
+        get
+        {
+            if (Player.LocalPlayer == null || Player.LocalPlayer.MyHandControl == null)
+            {
+                Debug.LogWarning("[TacticPack] Player或MyHandControl为空，冷却值返回0");
+                return 0f;
+            }
+            if (Index != 1 && Index != 2)
+            {
+                Debug.LogWarning($"[TacticPack] 无效的Index值：{Index}");
+                return 0f;
+            }
+
+            return Index == 1 ? Player.LocalPlayer.MyHandControl.tactic_1CoolTime_precent : Player.LocalPlayer.MyHandControl.tactic_2CoolTime_precent;
+        }
         private set { }
     }
 }
@@ -42,7 +71,6 @@ public class PlayerTacticControl : MonoBehaviour
     public Image ExtratacticImage;
 
     [Header("战术道具数据")]
-
     public TacticPack CurrentTactPack; // 主道具数据包
     public TacticPack ExtraTactPack;   // 额外道具数据包
 
@@ -63,21 +91,22 @@ public class PlayerTacticControl : MonoBehaviour
 
     private bool _IsPrepararingInjection = false;
 
-
     [Header("我的CanvasGroup")]
     public CanvasGroup MyCanvasGroup;
     private Sequence MyCanvasGroupAnima;
 
+    // 新增：标记是否启用Update逻辑（退出房间时禁用）
+    private bool _isLogicEnabled = true;
+
     public void SetTacticControl(bool IsActive)
     {
-        if(IsActive)
+        if (IsActive)
             MyCanvasGroup.interactable = true;
         else
             MyCanvasGroup.interactable = false;
         //是否激活当前的战术道具位
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(MyCanvasGroup, ref MyCanvasGroupAnima, IsActive, () => {
         });
-
     }
 
     public int CurrentMainTacticIndex => CurrentTactPack?.Index ?? 1;
@@ -123,6 +152,7 @@ public class PlayerTacticControl : MonoBehaviour
         else
         {
             Debug.LogError("CurrentTacticButton 未赋值！", this);
+            _isLogicEnabled = false; // 禁用逻辑，避免后续报错
             return;
         }
 
@@ -153,30 +183,39 @@ public class PlayerTacticControl : MonoBehaviour
             Debug.LogError("ExtraTacticButton 未赋值！", this);
         }
 
-        if (SelectScale <= 0) 
+        if (SelectScale <= 0)
             SelectScale = 1.05f;
         if (AnimationDuration <= 0)
             AnimationDuration = 0.2f;
     }
 
+    // 核心修复：Update方法增加多层空值检查 + 逻辑启用标记
     private void Update()
     {
-       if(CurrentTactPack.IsPlaying)
+        if (!_isLogicEnabled) return;
+
+        if (CurrentTactPack != null && CurrentTactPack.IsPlaying)
         {
-            //进行冷却更新
-            CoolImage_Tactic1.fillAmount = CurrentTactPack.CoolPrecent;
+            // 检查冷却图片是否为空
+            if (CoolImage_Tactic1 != null)
+                CoolImage_Tactic1.fillAmount = CurrentTactPack.CoolPrecent;
+            else
+                Debug.LogWarning("[PlayerTacticControl] CoolImage_Tactic1 未赋值！", this);
         }
-       if(ExtraTactPack.IsPlaying) 
-       {
-            //进行冷却更新
-            CoolImage_Tactic2.fillAmount = ExtraTactPack.CoolPrecent;
+
+        if (ExtraTactPack != null && ExtraTactPack.IsPlaying)
+        {
+            // 检查冷却图片是否为空
+            if (CoolImage_Tactic2 != null)
+                CoolImage_Tactic2.fillAmount = ExtraTactPack.CoolPrecent;
+            else
+                Debug.LogWarning("[PlayerTacticControl] CoolImage_Tactic2 未赋值！", this);
         }
     }
 
     private void Start()
     {
         Init();
-        
     }
 
     private void OnDestroy()
@@ -203,10 +242,17 @@ public class PlayerTacticControl : MonoBehaviour
     #region 初始化
     public void Init()
     {
+        // 初始化前先置空，避免脏数据
+        CurrentTactPack = null;
+        ExtraTactPack = null;
+
         UpdateCurrentTactic();
         UpdateTacticButtonIcons();
         IsChooseButton = false;
         IsPrepararingInjection = false;
+
+        // 初始化完成后启用逻辑
+        _isLogicEnabled = true;
     }
 
     public void UpdateCurrentTactic()
@@ -228,15 +274,17 @@ public class PlayerTacticControl : MonoBehaviour
         else
         {
             Debug.LogWarning("PlayerSlotInfoPacksList 为空，无法初始化战术道具信息", this);
+            // 初始化失败时禁用逻辑
+            _isLogicEnabled = false;
         }
     }
     #endregion
 
     #region 核心交互逻辑
-
-    #region 主按钮交互
     private void OnCurrentTacticButtonClick()
     {
+        if (!_isLogicEnabled) return; // 禁用逻辑时直接返回
+
         if (JudgeCanUseTactic())
         {
             Debug.Log("当前战术道具正在冷却中，无法使用");
@@ -292,10 +340,11 @@ public class PlayerTacticControl : MonoBehaviour
         else
             CancelTactic();
     }
-    #endregion
 
     private void OnExtraTacticButtonClick()
     {
+        if (!_isLogicEnabled) return; // 禁用逻辑时直接返回
+
         if (IsChooseButton)
         {
             Debug.LogWarning("主战术道具按钮已选中，禁止交换道具！", this);
@@ -307,7 +356,6 @@ public class PlayerTacticControl : MonoBehaviour
             Debug.LogWarning("主/额外战术道具数据为空，无法交换！", this);
             return;
         }
-
 
         TacticPack tempPack = CurrentTactPack;
         CurrentTactPack = ExtraTactPack;
@@ -341,7 +389,10 @@ public class PlayerTacticControl : MonoBehaviour
 
     #region UI更新逻辑
     private void UpdateTacticButtonIcons()
-    {        if (tacticImage != null && CurrentTactPack?.tactInfo != null)
+    {
+        if (!_isLogicEnabled) return; // 禁用逻辑时直接返回
+
+        if (tacticImage != null && CurrentTactPack?.tactInfo != null)
         {
             tacticImage.sprite = CurrentTactPack.tactInfo.UISprite;
             tacticImage.SetNativeSize();
@@ -378,7 +429,8 @@ public class PlayerTacticControl : MonoBehaviour
     #region 战术道具触发/取消逻辑
     public void TriggerTactic()
     {
-      
+        if (!_isLogicEnabled) return; // 禁用逻辑时直接返回
+
         if (CurrentTactPack?.tactInfo == null)
             return;
 
@@ -405,6 +457,8 @@ public class PlayerTacticControl : MonoBehaviour
 
     public void CancelTactic()
     {
+        if (!_isLogicEnabled) return; // 禁用逻辑时直接返回
+
         if (CurrentTactPack?.tactInfo == null) return;
 
         TacticBigType bigType = MilitaryManager.Instance.GetTacticBigType(CurrentTactPack.tactInfo.tacticType);
@@ -430,7 +484,9 @@ public class PlayerTacticControl : MonoBehaviour
 
     public void triggerInjection()
     {
-        if (CurrentTactPack?.tactInfo == null) 
+        if (!_isLogicEnabled) return; // 禁用逻辑时直接返回
+
+        if (CurrentTactPack?.tactInfo == null)
             return;
 
         TacticBigType bigType = MilitaryManager.Instance.GetTacticBigType(CurrentTactPack.tactInfo.tacticType);
@@ -455,6 +511,14 @@ public class PlayerTacticControl : MonoBehaviour
     //开启战术道具的冷却
     public void StartTacticCoolTime()
     {
+        if (!_isLogicEnabled) return; // 禁用逻辑时直接返回
+
+        if (Player.LocalPlayer?.MyHandControl == null)
+        {
+            Debug.LogError("[StartTacticCoolTime] Player.LocalPlayer.MyHandControl 为空！");
+            return;
+        }
+
         if (CurrentTactPack.Index == 1)
             Player.LocalPlayer.MyHandControl.SetTactic_1Trigger();
         else
@@ -463,22 +527,37 @@ public class PlayerTacticControl : MonoBehaviour
 
     public bool JudgeCanUseTactic()
     {
+        if (!_isLogicEnabled) return true; // 禁用逻辑时默认不可用
+
+        if (Player.LocalPlayer?.MyHandControl == null)
+        {
+            Debug.LogError("[JudgeCanUseTactic] Player.LocalPlayer.MyHandControl 为空！");
+            return true; // 返回true表示不可用
+        }
+
         //判断当前的战术道具索引
         if (CurrentTactPack.Index == 1)
         {
             return Player.LocalPlayer.MyHandControl.IsTrigger_tactic1;
         }
-        else if(CurrentTactPack.Index == 2)
+        else if (CurrentTactPack.Index == 2)
         {
             return Player.LocalPlayer.MyHandControl.IsTrigger_tactic2;
         }
         Debug.LogError("接收到未知的索引");
         return false;
-
     }
 
     public void LaunchCurrentThrowObj()
     {
+        if (!_isLogicEnabled) return; // 禁用逻辑时直接返回
+
+        if (Player.LocalPlayer?.MyHandControl == null)
+        {
+            Debug.LogError("[LaunchCurrentThrowObj] Player.LocalPlayer.MyHandControl 为空！");
+            return;
+        }
+
         Player.LocalPlayer.MyHandControl.LaunchCurrentThrowObj();
         //判断当前的战术道具索引
         StartTacticCoolTime();
@@ -501,6 +580,27 @@ public class PlayerTacticControl : MonoBehaviour
         {
             ExpendButton.GetComponentInChildren<TextMeshProUGUI>().text = "<";
         }
+    }
+
+    public void CleanupOnExitRoom()
+    {
+        _isLogicEnabled = false;
+
+        CurrentTactPack = null;
+        ExtraTactPack = null;
+
+        ForceCancelAllTacticState();
+
+        SetTacticControl(false);
+
+        if (_scaleTween != null) 
+            _scaleTween.Kill();
+        if (_colorTween != null)
+            _colorTween.Kill();
+        if (MyCanvasGroupAnima != null)
+            MyCanvasGroupAnima.Kill();
+
+        Debug.Log("[PlayerTacticControl] 退出房间清理完成，已禁用所有逻辑", this);
     }
     #endregion
 }

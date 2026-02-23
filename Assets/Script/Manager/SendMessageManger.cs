@@ -43,6 +43,8 @@ public class SendMessageManger : SingleBehavior<SendMessageManger>
     }
 
     #endregion
+
+
 }
 
 #region 消息数据包类

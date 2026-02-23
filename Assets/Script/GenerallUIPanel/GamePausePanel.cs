@@ -41,6 +41,12 @@ public class GamePausePanel : BasePanel
             case "ExitCurrentRoom":
                 //在这里退出链接
                 UImanager.Instance.HidePanel<GamePausePanel>();
+                PlayerRespawnManager.Instance.CleanupAndExitGame();//退出链接
+                UImanager.Instance.ShowPanel<RoomPanel>();
+                break;
+            case "OperationSettingButton":
+                //打开自定义UI面板
+                UImanager.Instance.ShowPanel<PlayerCustomPanel>();
                 break;
         }
 

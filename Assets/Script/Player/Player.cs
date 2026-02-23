@@ -10,7 +10,7 @@ public class Player : Base_Entity
 
     [Header("核心组件")]
     public playerStats myStats;
-    private MyPlayerInput myInputSystem;
+    public MyPlayerInput myInputSystem;
 
     [Header("枪械挂载")]
     public Transform playerHandPos;
@@ -47,6 +47,7 @@ public class Player : Base_Entity
 
     [SyncVar]
     public Team CurrentTeam;//当前队伍
+
 
     [Command]
     public void ChangeTeam()//改变队伍
@@ -126,6 +127,12 @@ public class Player : Base_Entity
         }
         MyHandControl = playerHandPos.GetComponent<playerHandControl>();
         MyHandControl.ownerPlayer = LocalPlayer;
+
+        if (PlayerRespawnManager.Instance.IsGameStart)
+        {
+            //重生后获取当前战备
+            PlayerAndGameInfoManger.Instance.EquipCurrentSlot();
+        }
     }
 
     public override void OnStopLocalPlayer()
@@ -248,11 +255,13 @@ public class Player : Base_Entity
             EventCenter.Instance.TriggerEvent(E_EventType.E_playerGetGun, this);
         }
 
-        if (!isLocalPlayer) return;
+        if (!isLocalPlayer)
+            return;
 
         // 对视野进行设置
         if (newGun != null)
         {
+            UImanager.Instance.ShowPanel<PlayerPanel>().ShowGunBackGround();//设置UI
             Debug.Log($"[本地客户端] 玩家{gameObject.name}持有新枪械，调整视野");
             if (ViewTaskID != -1)
             {
@@ -265,6 +274,7 @@ public class Player : Base_Entity
         }
         else
         {
+            UImanager.Instance.ShowPanel<PlayerPanel>().HideGunBackGround();//关闭UI显示
             //没有枪械了，视野恢复默认
             if (ViewTaskID != -1)
             {
@@ -328,11 +338,6 @@ public class Player : Base_Entity
             return;
 
         LocalPlayer.CmdSpawnAndPickGun(gunName);
-        if (UImanager.Instance.GetPanel<PlayerPanel>() != null)
-        {
-            UImanager.Instance.ShowPanel<PlayerPanel>().ShowGunBackGround();
-        }
-
     }
 
     [Command]
@@ -381,11 +386,6 @@ public class Player : Base_Entity
         newGun.ownerPlayer = this;
 
         newGun.SafeServerOnGunPicked();
-        //UI更新
-        if (UImanager.Instance.GetPanel<PlayerPanel>() != null)
-        {
-            UImanager.Instance.ShowPanel<PlayerPanel>().ShowGunBackGround();
-        }
     }
 
     public void DropCurrentGun()
@@ -393,10 +393,7 @@ public class Player : Base_Entity
         if (!isLocalPlayer || currentGun == null)
             return;
         LocalPlayer.CmdDropCurrentGun();
-        if (UImanager.Instance.GetPanel<PlayerPanel>() != null)
-        {
-            UImanager.Instance.ShowPanel<PlayerPanel>().HideGunBackGround();//关闭UI显示
-        }
+
     }
 
     [Command]
@@ -498,7 +495,10 @@ public class Player : Base_Entity
     {
         if (PlayerRespawnManager.Instance != null)
         {
-            PlayerRespawnManager.Instance.NoticePlayerGameStart();
+            var playerRespawnManager = PlayerRespawnManager.Instance;
+            playerRespawnManager.NoticePlayerGameStart();
+            //初始化游戏数据
+            playerRespawnManager.InitGameData();//初始化游戏数据记录队伍
         }
     }
 

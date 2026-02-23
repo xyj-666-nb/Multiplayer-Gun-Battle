@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class EnterRoomPanel : BasePanel
 {
-
     #region  核心变量
     [Header("预制体 & 挂点")]
     [SerializeField] private GameObject RoomObj;                 // 房间预制体
@@ -125,6 +124,8 @@ public class EnterRoomPanel : BasePanel
             maxPlayers: info.maxPlayers,
             _PlayerName: info.PlayerName,
             gameMode: info.GameMode,
+            GameTime: info.gameTime,
+            GameScore: info.GoldScore,
             uri: info.uri,
             onJoin: (uri) => lanRoomClientBrowser.JoinByUri(uri)
         );

@@ -22,14 +22,24 @@ public class SendMessagePanel : BasePanel
     private Dictionary<GameObject, Sequence> _messageAnimaSeqDic = new Dictionary<GameObject, Sequence>();
     private List<GameObject> WaitRemoveList = new List<GameObject>();
     private bool isAdjustingPos = false;
+
+    // 新增：核心防护 - 标记面板是否已销毁/无效
+    private bool _isPanelInvalid = false;
     #endregion
 
     #region 生命周期函数
     public override void Awake()
     {
         base.Awake();
-        // 订阅消息添加事件
-        SendMessageManger.Instance.OnMessageAdded += OnMessageAdded;
+        // 订阅消息添加事件（增加空值检查）
+        if (SendMessageManger.Instance != null)
+        {
+            SendMessageManger.Instance.OnMessageAdded += OnMessageAdded;
+        }
+        else
+        {
+            Debug.LogError("[SendMessagePanel] SendMessageManger.Instance 为空，无法订阅消息事件！");
+        }
         // 边界校验：最大数量不能小于1
         if (MaxMessageCount < 1)
             MaxMessageCount = 1;
@@ -42,15 +52,23 @@ public class SendMessagePanel : BasePanel
 
     protected override void Update()
     {
+        // 核心防护：面板无效时直接返回，不执行任何逻辑
+        if (_isPanelInvalid) return;
         base.Update();
     }
 
     protected override void OnDestroy()
     {
-        base.OnDestroy();
+        // 标记面板为无效，拦截所有后续逻辑
+        _isPanelInvalid = true;
+        Debug.Log("[SendMessagePanel] 面板已销毁，标记为无效");
+
         ClearAllMessages();
-        // 取消事件订阅，避免内存泄漏
-        SendMessageManger.Instance.OnMessageAdded -= OnMessageAdded;
+        // 取消事件订阅（增加空值检查）
+        if (SendMessageManger.Instance != null)
+        {
+            SendMessageManger.Instance.OnMessageAdded -= OnMessageAdded;
+        }
         // 清理所有动画
         foreach (var seq in _messageAnimaSeqDic.Values)
         {
@@ -59,12 +77,19 @@ public class SendMessagePanel : BasePanel
         _messageAnimaSeqDic.Clear();
         MessageInfoDic.Clear();
         WaitRemoveList.Clear();
+
+        base.OnDestroy();
     }
     #endregion
 
     #region 面板显隐
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
     {
+        if (_isPanelInvalid)
+        {
+            callback?.Invoke();
+            return;
+        }
         // 隐藏时清理所有消息
         ClearAllMessages();
         base.HideMe(callback, isNeedDefaultAnimator);
@@ -72,6 +97,7 @@ public class SendMessagePanel : BasePanel
 
     public override void ShowMe(bool isNeedDefaultAnimator = true)
     {
+        if (_isPanelInvalid) return;
         base.ShowMe(isNeedDefaultAnimator);
         // 显示面板时，尝试加载队列中的消息
         SendMessage();
@@ -86,39 +112,69 @@ public class SendMessagePanel : BasePanel
     #region 消息发送方法
     private void OnMessageAdded()
     {
-        if (!IsInAnimator)
-            SendMessage();
+        if (_isPanelInvalid || IsInAnimator)
+            return;
+        SendMessage();
     }
 
-    // 发送一条消息
+    // 发送一条消息（增加空值防护）
     public void SendMessage()
     {
-        if (CurrentMessageCount >= MaxMessageCount)
+        if (_isPanelInvalid || CurrentMessageCount >= MaxMessageCount)
             return;//超过最大消息数量，直接返回
         CreateMessage();
     }
     #endregion
 
-    #region 消息UI创建
+    #region 消息UI创建（全链路空值检查）
 
     // 创建消息UI
     public GameObject CreateMessage()
     {
+        // 核心防护：面板无效直接返回
+        if (_isPanelInvalid) return null;
+
+        // 空值检查：管理器为空
+        if (SendMessageManger.Instance == null)
+        {
+            Debug.LogError("[SendMessagePanel] SendMessageManger.Instance 为空，无法获取消息");
+            return null;
+        }
+
         var info = SendMessageManger.Instance.GetAMessage();
         if (info == null)//当前没有消息
             return null;
 
-        var messageObj = PoolManage.Instance.GetObj(MessagePrefab);
-        messageObj.transform.SetParent(this.transform);
-        if (messageObj == null)
+        // 空值检查：预制体为空
+        if (MessagePrefab == null)
         {
-            Debug.LogError("消息预制体获取失败！");
+            Debug.LogError("[SendMessagePanel] MessagePrefab 未赋值！");
             return null;
         }
+
+        var messageObj = PoolManage.Instance.GetObj(MessagePrefab);
+        // 空值检查：对象池获取失败
+        if (messageObj == null)
+        {
+            Debug.LogError("[SendMessagePanel] 消息预制体从对象池获取失败！");
+            return null;
+        }
+
+        // 核心防护：检查自身transform是否有效（解决第112行报错）
+        if (this == null || this.transform == null)
+        {
+            Debug.LogError("[SendMessagePanel] 面板transform已销毁，无法设置消息父物体");
+            PoolManage.Instance.PushObj(MessagePrefab, messageObj);
+            return null;
+        }
+
+        messageObj.transform.SetParent(this.transform);
+        messageObj.transform.localScale = Vector3.one; // 重置缩放，避免异常
+
         var textComp = messageObj.GetComponentInChildren<TextMeshProUGUI>(true);
         if (textComp == null)
         {
-            Debug.LogError("消息UI缺少TextMeshProUGUI组件！");
+            Debug.LogError("[SendMessagePanel] 消息UI缺少TextMeshProUGUI组件！");
             PoolManage.Instance.PushObj(MessagePrefab, messageObj);
             return null;
         }
@@ -136,12 +192,12 @@ public class SendMessagePanel : BasePanel
     }
     #endregion
 
-    #region 消息动画及位置调整
+    #region 消息动画及位置调整（增加空值防护）
 
     // 消息进入动画
     public void MessageEnterAnima(GameObject message)
     {
-        if (!MessageInfoDic.ContainsKey(message))
+        if (_isPanelInvalid || message == null || !MessageInfoDic.ContainsKey(message))
             return;
 
         if (_messageAnimaSeqDic.ContainsKey(message))
@@ -161,17 +217,26 @@ public class SendMessagePanel : BasePanel
         }
 
         var rt = message.GetComponent<RectTransform>();
+        if (rt == null)
+        {
+            Debug.LogError("[SendMessagePanel] 消息对象缺少RectTransform组件！");
+            return;
+        }
         rt.anchoredPosition = new Vector2(0, StartPosY);
         seq.Join(rt.DOAnchorPosY(-MessageInfoDic[message].CurrentIndex * 40, 1f))
            .OnComplete(() =>
            {
+               // 核心防护：面板/消息无效时直接返回
+               if (_isPanelInvalid || message == null || !MessageInfoDic.ContainsKey(message))
+                   return;
+
                // 计时结束添加到待移除列表
                var duration = MessageInfoDic[message].Duration * 1000;
                if (duration <= 0)
                    duration = 3000; // 默认显示3秒
                CountDownManager.Instance.CreateTimer(false, (int)duration, () =>
                {
-                   if (message != null && !WaitRemoveList.Contains(message))
+                   if (!_isPanelInvalid && message != null && !WaitRemoveList.Contains(message))
                    {
                        WaitRemoveList.Add(message);
                        // 若未在调整位置，立即处理待移除列表
@@ -187,7 +252,7 @@ public class SendMessagePanel : BasePanel
     // 消息退出动画
     public void MessageExitAnima(GameObject message)
     {
-        if (!MessageInfoDic.ContainsKey(message))
+        if (_isPanelInvalid || message == null || !MessageInfoDic.ContainsKey(message))
             return;
 
         // 清理旧动画
@@ -206,10 +271,15 @@ public class SendMessagePanel : BasePanel
         }
 
         var rt = message.GetComponent<RectTransform>();
+        if (rt == null)
+        {
+            Debug.LogError("[SendMessagePanel] 消息对象缺少RectTransform组件！");
+            return;
+        }
         seq.Join(rt.DOAnchorPosX(EndPosX, 1f))
            .OnComplete(() =>
            {
-               if (message != null)
+               if (!_isPanelInvalid && message != null)
                {
                    RemoveMessage(message);
                    // 重置回收标记
@@ -225,6 +295,11 @@ public class SendMessagePanel : BasePanel
     // 更新消息位置
     public void UpdateCurrentMessagePos(int removeIndex)
     {
+        if (_isPanelInvalid)
+        {
+            isAdjustingPos = false;
+            return;
+        }
         // 正在调整位置则直接返回，避免重复调整
         if (isAdjustingPos) return;
 
@@ -280,12 +355,12 @@ public class SendMessagePanel : BasePanel
     }
     #endregion
 
-    #region 消息移除/清除方法
+    #region 消息移除/清除方法（增加空值防护）
 
     // 移除消息
     public void RemoveMessage(GameObject message)
     {
-        if (!MessageInfoDic.ContainsKey(message))
+        if (_isPanelInvalid || message == null || !MessageInfoDic.ContainsKey(message))
             return;
 
         var removeIndex = MessageInfoDic[message].CurrentIndex;
@@ -294,7 +369,11 @@ public class SendMessagePanel : BasePanel
             _messageAnimaSeqDic[message]?.Kill();
             _messageAnimaSeqDic.Remove(message);
         }
-        PoolManage.Instance.PushObj(MessageInfoDic[message]);
+        // 空值检查：MessagePack是否有效
+        if (MessageInfoDic[message] != null)
+        {
+            PoolManage.Instance.PushObj(MessageInfoDic[message]);
+        }
         MessageInfoDic.Remove(message);
         CurrentMessageCount--;
         // 移除后从待移除列表删除
@@ -310,7 +389,7 @@ public class SendMessagePanel : BasePanel
     // 处理待移除消息列表
     public void ClearWaitRemoveMessage()
     {
-        if (WaitRemoveList.Count == 0 || isAdjustingPos) return;
+        if (_isPanelInvalid || WaitRemoveList.Count == 0 || isAdjustingPos) return;
 
         // 遍历待移除列表，执行退出动画
         List<GameObject> tempList = new List<GameObject>(WaitRemoveList); // 避免遍历中修改列表
@@ -326,20 +405,32 @@ public class SendMessagePanel : BasePanel
 
     private void ClearAllMessages()
     {
+        if (_isPanelInvalid) return;
+
         isAdjustingPos = false;
         WaitRemoveList.Clear();
 
         foreach (var item in MessageInfoDic.Keys)
         {
-            if (_messageAnimaSeqDic.ContainsKey(item))
+            if (item != null)
             {
-                _messageAnimaSeqDic[item]?.Kill();
+                if (_messageAnimaSeqDic.ContainsKey(item))
+                {
+                    _messageAnimaSeqDic[item]?.Kill();
+                }
+                PoolManage.Instance.PushObj(MessagePrefab, item);
             }
-            PoolManage.Instance.PushObj(MessagePrefab, item);
         }
         _messageAnimaSeqDic.Clear();
         MessageInfoDic.Clear();
         CurrentMessageCount = 0;
+    }
+
+    public void ForceCleanupOnExit()
+    {
+        _isPanelInvalid = true;
+        ClearAllMessages();
+        Debug.Log("[SendMessagePanel] 执行退出清理，强制置空所有引用");
     }
     #endregion
 }

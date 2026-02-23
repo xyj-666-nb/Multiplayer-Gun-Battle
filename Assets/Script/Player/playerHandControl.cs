@@ -43,6 +43,7 @@ public class playerHandControl : NetworkBehaviour
     public bool _isHolsterAnimaPlaying = false;
     #endregion
 
+
     #region 网络同步状态（SyncVar）
     [SyncVar(hook = nameof(OnRotationValueSynced))]
     private float _currentRotationValue_Z = 0f;
@@ -199,7 +200,8 @@ public class playerHandControl : NetworkBehaviour
 
     private void OnChangeInjection(GameObject OldInjection, GameObject NewInjection)
     {
-        if (!isClient) return;
+        if (!isClient)
+            return;
         if (OldInjection != null && OldInjection != NewInjection)
         {
             OldInjection.transform.SetParent(null);
@@ -225,21 +227,29 @@ public class playerHandControl : NetworkBehaviour
     private void OnRotationValueSynced(float oldFloat, float newFloat)
     {
         _currentRotationValue_Z = newFloat;
-        if (!isOwned) transform.rotation = Quaternion.Euler(0, 0, newFloat);
+        // 【修改】只有非拥有者才需要同步旋转
+        if (!isOwned)
+            transform.localRotation = Quaternion.Euler(0, 0, newFloat);
     }
 
     private void OnIsEnterAimChanged(bool oldValue, bool newValue)
     {
-        if (!isClient) return;
-        if (newValue) EnterAimState();
-        else ExitAimState();
+        if (!isClient)
+            return;
+        if (newValue)
+            EnterAimState();
+        else
+            ExitAimState();
     }
 
     private void OnIsHolsterGun(bool oldValue, bool newValue)
     {
-        if (!isClient) return;
-        if (newValue) HolsterGun();
-        else UnholsterGun();
+        if (!isClient)
+            return;
+        if (newValue)
+            HolsterGun();
+        else
+            UnholsterGun();
     }
     #endregion
 
@@ -273,7 +283,7 @@ public class playerHandControl : NetworkBehaviour
         if (!_isReloading) HandleMouseRotation_Bidirectional();
         else ResetRotationOnReload();
 
-        SyncHandRotation();
+        // 【修改】删除了原有的 SyncHandRotation，拥有者不再通过SyncVar平滑自己
     }
 
     public override void OnStartServer()
@@ -286,7 +296,7 @@ public class playerHandControl : NetworkBehaviour
     public override void OnStartClient()
     {
         base.OnStartClient();
-        transform.rotation = Quaternion.Euler(0, 0, _currentRotationValue_Z);
+        transform.localRotation = Quaternion.Euler(0, 0, _currentRotationValue_Z);
         if (_isDebug) Debug.Log($"[初始化] 初始角度：{_currentRotationValue_Z}°", this);
 
         if (isOwned && CurrentInjection != null && TacticRootTransform != null)
@@ -349,28 +359,16 @@ public class playerHandControl : NetworkBehaviour
         if (_currentFacingDir == -1)
         {
             targetAngle = -targetAngle;
-            if (_isDebug) Debug.Log($"[角度翻转] 朝左，原始角度：{rawAngle:F1}° → 翻转后：{targetAngle:F1}°", this);
         }
 
+        // 【修改】拥有者直接旋转自己的手臂（本地预测）
+        transform.localRotation = Quaternion.Euler(0, 0, targetAngle);
+        // 【修改】同步角度到服务器
         SetRotationZ(targetAngle);
     }
     #endregion
 
     #region 旋转同步与换弹重置
-    private void SyncHandRotation()
-    {
-        if (IsHolsterGun || _isHolsterAnimaPlaying || !isOwned) return;
-
-        float currentAngle = transform.eulerAngles.z;
-        float targetAngle = _currentRotationValue_Z;
-        float deltaAngle = Mathf.DeltaAngle(currentAngle, targetAngle);
-        if (Mathf.Abs(deltaAngle) > 0.1f)
-        {
-            float newAngle = Mathf.MoveTowardsAngle(currentAngle, targetAngle, RotateSpeed * Time.deltaTime);
-            transform.rotation = Quaternion.Euler(0, 0, newAngle);
-        }
-    }
-
     private void UpdateCurrentGunState()
     {
         if (ownerPlayer == null) { _isReloading = false; return; }
@@ -386,7 +384,7 @@ public class playerHandControl : NetworkBehaviour
         if (IsHolsterGun || _isHolsterAnimaPlaying) return;
 
         transform.DOKill();
-        transform.DORotate(new Vector3(0, 0, DefaultRotationZ), ReloadResetRotateDuration)
+        transform.DOLocalRotate(new Vector3(0, 0, DefaultRotationZ), ReloadResetRotateDuration)
                  .SetEase(Ease.OutCubic)
                  .OnComplete(() => SetRotationZ(DefaultRotationZ));
     }
@@ -394,8 +392,11 @@ public class playerHandControl : NetworkBehaviour
     public void SetRotationZ(float targetZ)
     {
         if (IsHolsterGun || _isHolsterAnimaPlaying) return;
-        if (isServer) _currentRotationValue_Z = targetZ;
-        else if (isClient && isOwned) CmdSetRotationZ(targetZ);
+        // 【修改】简化逻辑：服务器直接设值，客户端发命令
+        if (isServer)
+            _currentRotationValue_Z = targetZ;
+        else if (isClient && isOwned)
+            CmdSetRotationZ(targetZ);
     }
 
     [Command(requiresAuthority = true)]
@@ -465,14 +466,19 @@ public class playerHandControl : NetworkBehaviour
     public void CmdCreateThrowObj(TacticType Type)
     {
         Debug.Log($"[CmdCreateThrowObj] 服务器请求生成战术设备 → 类型：{Type}", this);
-        if (MilitaryManager.Instance == null) { Debug.LogError("[CmdCreateThrowObj] MilitaryManager.Instance 为 null！", this); return; }
+        if (MilitaryManager.Instance == null)
+        { Debug.LogError("[CmdCreateThrowObj] MilitaryManager.Instance 为 null！", this); return; }
         var throwObjPrefab = MilitaryManager.Instance.GetTactic(Type);
-        if (throwObjPrefab == null) { Debug.LogError($"[CmdCreateThrowObj] GetTactic({Type}) 返回 null！", this); return; }
-        if (throwObjPrefab.GetComponent<ThrowObj>() == null) { Debug.LogError($"[CmdCreateThrowObj] 预制体缺少 ThrowObj 脚本！", this); return; }
+        if (throwObjPrefab == null) 
+        { Debug.LogError($"[CmdCreateThrowObj] GetTactic({Type}) 返回 null！", this); return; }
+        if (throwObjPrefab.GetComponent<ThrowObj>() == null)
+        { Debug.LogError($"[CmdCreateThrowObj] 预制体缺少 ThrowObj 脚本！", this); return; }
 
         GameObject spawnedThrowObj = Instantiate(throwObjPrefab);
         NetworkServer.Spawn(spawnedThrowObj, connectionToClient);
         CurrentThrowObj = spawnedThrowObj;
+
+        CurrentThrowObj.GetComponent<ThrowObj>().HandControl = this;
     }
 
     public void TriggerThrowObj(TacticType Type)
@@ -488,7 +494,7 @@ public class playerHandControl : NetworkBehaviour
         var throwScript = CurrentThrowObj.GetComponent<ThrowObj>();
         if (throwScript != null)
         {
-            throwScript.playerHandControl = this;
+            throwScript.HandControl = this;
             throwScript.IsTackOut = false;
         }
         SetAimPointActive(false);

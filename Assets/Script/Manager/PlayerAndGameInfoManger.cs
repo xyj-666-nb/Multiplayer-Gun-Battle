@@ -16,6 +16,36 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
     public List<MapInfo> AllMapInfoList = new List<MapInfo>();//所有的地图信息
     public List <MapManager> AllMapManagerList=new List<MapManager> ();//所有的地图管理器
 
+    [Header("控制系统记录")]
+    public bool IsUseSinglePress_AimButton=false;//是否使用单击点击(瞄准按钮)
+
+    [Header("自定义面板的数据")]
+    public List<PlayerCustomUIInfo> playerCustomUIInfoList = new List<PlayerCustomUIInfo> ();//这个数是需要进行本地化保存的
+    public List<GameObject> AllCustomUIPrefabsList = new List<GameObject> ();//所有的自定义UI预制体
+
+    //增加数据
+    public void AddCustomUIInfoList(PlayerCustomUIInfo info)
+    {
+        if(GetPlayerCustomUIInfo(info.UIType,false)==null)//这里的作用不需要进行debug
+        {
+            //如果没有这个类型就进行注册
+            playerCustomUIInfoList.Add(info);
+        }
+    }
+
+    public PlayerCustomUIInfo GetPlayerCustomUIInfo(NeedCustomUIType Type,bool IsNeedDebug=true)
+    {
+        foreach(var Info in playerCustomUIInfoList)
+        {
+            if(Info.UIType== Type)
+                return Info;
+        }
+
+        if(IsNeedDebug)
+          Debug.LogError("未找到自定义UI的类型");
+        return null;
+    }
+
     public void SetSlotInfoPack(int Index)
     {
         var listIndex= Index-1;
@@ -33,6 +63,9 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         //触发战术道具的交互
         PlayerTacticControl.Instance.SetTacticControl(true);
     }
+
+   
+
 
     public GunInfo GetCurrentGunInfo()
     {

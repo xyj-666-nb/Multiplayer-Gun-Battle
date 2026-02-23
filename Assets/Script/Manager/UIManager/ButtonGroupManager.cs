@@ -181,6 +181,7 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
     /// <param name="changeDuration">动画时长（默认0.2）</param>
     /// <param name="chooseColor">选中颜色（默认浅绿色）</param>
     /// <param name="isDefaultSelected">是否默认选中（默认false）</param>
+    /// <param name="isManualTrigger">是否完全手动触发（true=不绑定点击事件，仅代码控制；false=正常绑定点击）</param>
     public ToggleButton AddToggleButtonToGroup(string groupName, Button button,
                                               string buttonCustomName = "",
                                               UnityAction<string> onActive = null,
@@ -188,7 +189,8 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
                                               float chooseScale = 1.05f,
                                               float changeDuration = 0.2f,
                                               Color? chooseColor = null,
-                                              bool isDefaultSelected = false)
+                                              bool isDefaultSelected = false,
+                                              bool isManualTrigger = false)
     {
         if (button == null)
         {
@@ -206,10 +208,11 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
         toggleButton.ChangeDuration = changeDuration;
         toggleButton.ChooseColor = chooseColor ?? new Color(0.2f, 0.8f, 0.2f);
 
-        // 公开方法设置默认状态
+        // 公开方法设置默认状态，手动模式下默认不触发事件
         toggleButton.SetSelectedState(isDefaultSelected, false);
 
-        group.AddToggleButton(toggleButton);
+        // 传递 isManualTrigger 参数给分组
+        group.AddToggleButton(toggleButton, isManualTrigger);
         return toggleButton;
     }
 
@@ -518,7 +521,9 @@ public class ToggleButtonGroupPack
     }
 
     /// <summary>添加已注册的Toggle按钮到组</summary>
-    public void AddToggleButton(ToggleButton toggleButton)
+    /// <param name="toggleButton">按钮实体</param>
+    /// <param name="isManualTrigger">是否完全手动触发</param>
+    public void AddToggleButton(ToggleButton toggleButton, bool isManualTrigger = false)
     {
         if (toggleButton?.ButtonComponent == null)
         {
@@ -533,8 +538,16 @@ public class ToggleButtonGroupPack
         }
 
         ToggleButtonList.Add(toggleButton);
-        // 仅绑定点击事件到传入的按钮
-        toggleButton.ButtonComponent.onClick.AddListener(() => toggleButton.ToggleSelectedState());
+
+        // 关键修改：只有非手动模式下，才绑定按钮的点击事件
+        if (!isManualTrigger)
+        {
+            toggleButton.ButtonComponent.onClick.AddListener(() => toggleButton.ToggleSelectedState());
+        }
+        else
+        {
+            Debug.Log($"[Toggle分组 {GroupName}] 按钮 {toggleButton.ButtonName} 已设为完全手动模式，点击事件未绑定。");
+        }
     }
 
     public void RemoveToggleButton(Button button)

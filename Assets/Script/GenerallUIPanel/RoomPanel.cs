@@ -1,3 +1,4 @@
+using Mirror.Transports.Encryption;
 using UnityEngine.Events;
 
 public class RoomPanel : BasePanel
@@ -5,6 +6,10 @@ public class RoomPanel : BasePanel
     public override void Awake()
     {
         base.Awake();
+        //本面板打开的时候清除残留面板
+
+        UImanager.Instance.HidePanel<PlayerPanel>();
+        UImanager.Instance.HidePanel<PlayerPreparaPanel>();
     }
 
     public override void ClickButton(string controlName)

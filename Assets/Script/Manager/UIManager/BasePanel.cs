@@ -204,13 +204,13 @@ public abstract class BasePanel : MonoBehaviour
 
     #region 简单面板显隐功能
 
-    private Sequence MyPanelSimpleAnima;
-    public void SimpleHidePanel()
+    private  Sequence MyPanelSimpleAnima;
+    public virtual void SimpleHidePanel()
     {
         canvasGroup.interactable = false; 
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(canvasGroup,ref MyPanelSimpleAnima, false, () => { });
     }
-    public void SimpleShowPanel()
+    public virtual void SimpleShowPanel()
     {
         canvasGroup.interactable = true;
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(canvasGroup, ref MyPanelSimpleAnima, true, () => { });

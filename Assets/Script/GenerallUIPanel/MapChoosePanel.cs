@@ -87,6 +87,8 @@ public class MapChoosePanel : BasePanel
         InitMapButton();
 
         _chooseMapButton = controlDic["ChooseMapButton"] as Button;
+
+        WinCondition.text = "先达到" + PlayerRespawnManager.Instance.GoalScoreCount + "分的队伍胜利";
     }
 
     public void GetMapInfo()
@@ -97,8 +99,10 @@ public class MapChoosePanel : BasePanel
 
     public MapButton getCurrentChooseMap()
     {
-        if (CurrentChooseMap == 1) return MapButton_1;
-        else if (CurrentChooseMap == 2) return MapButton_2;
+        if (CurrentChooseMap == 1) 
+            return MapButton_1;
+        else if (CurrentChooseMap == 2) 
+            return MapButton_2;
         Debug.Log("未找到对应的地图按钮信息");
         return null;
     }

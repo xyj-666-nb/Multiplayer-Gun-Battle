@@ -10,12 +10,16 @@ public class NetRoom : MonoBehaviour//房间列表中每一行的UI逻辑脚本，负责显示房间
     public TextMeshProUGUI PlayerName;//显示房主名称的文本组件
     public TextMeshProUGUI gameModeTMesh;//显示游戏模式的文本组件
     public Button EnterButton;//加入房间的按钮组件
+    public TextMeshProUGUI PlayerTime;
+    public TextMeshProUGUI PlayerScore;
 
-    public void Bind(string name, int playerCount, int maxPlayers, string _PlayerName, GameMode gameMode, Uri uri, System.Action<Uri> onJoin)
+    public void Bind(string name, int playerCount, int maxPlayers, string _PlayerName, GameMode gameMode, int GameTime,int GameScore, Uri uri, System.Action<Uri> onJoin)
     {
         RoomName.text = $"房间名：{name}";
         PlayerCount.text = $"人数：{playerCount}/{maxPlayers}";
         PlayerName.text = $"房主名称：{_PlayerName}";
+        PlayerTime.text = "对局上限时间:" + GameTime.ToString() + "分钟";
+        PlayerScore.text = "游戏目标分数:" + GameScore.ToString() + "分";
         string Name = "";
         switch (gameMode)
         {

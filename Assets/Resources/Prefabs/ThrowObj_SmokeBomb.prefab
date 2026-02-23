@@ -299,12 +299,18 @@ MonoBehaviour:
   IsTackOut: 0
   IsThrown: 0
   playerHandControl: {fileID: 0}
-  TriggerTime: 2
-  Duration: 8
-  ExplosionPrefab: {fileID: 0}
   tacticType: 3
-  IsInAnimation: 0
+  ExplosionPrefab: {fileID: 0}
   ThrowObjTimeLine: {fileID: 696864521768875056}
+  SmokeTriggerTime: 2
+  SmokeDuration: 8
+  BaseSmokeRadius: 0.4
+  BaseSmokeStrength: 0.29
+  SizeDecaySpeed: 0.258
+  MaxSizeMultiplier: 2.12
+  SmokeColor: {r: 1, g: 1, b: 1, a: 1.2}
+  DrawInterval: 0.05
+  IsInAnimation: 0
 --- !u!114 &-750005357372448155
 MonoBehaviour:
   m_ObjectHideFlags: 0

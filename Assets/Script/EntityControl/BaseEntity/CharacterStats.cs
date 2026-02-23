@@ -1,11 +1,11 @@
 using DG.Tweening;
 using Mirror;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
 public abstract class CharacterStats : NetworkBehaviour
 {
-
     [Header("角色基础属性")]
     [Space(5)]
     public float maxHealth = 100f;//最大生命值
@@ -37,6 +37,7 @@ public abstract class CharacterStats : NetworkBehaviour
 
     private string _killerName; // 击杀者名字
     private string _killerGunName; // 击杀者使用的枪械名
+
     #endregion
 
     #region 生命周期
@@ -118,7 +119,8 @@ public abstract class CharacterStats : NetworkBehaviour
     [Server]
     public void ServerApplyDamage(float damage, Vector2 hitPoint, Vector2 hitNormal, CharacterStats attacker)
     {
-        if (IsDead) return;
+        if (IsDead)
+            return;
 
         float healthBefore = CurrentHealth;
         CurrentHealth = Mathf.Max(CurrentHealth - damage, 0);
@@ -130,7 +132,8 @@ public abstract class CharacterStats : NetworkBehaviour
     [Server]
     public virtual void Wound(float finalDamage, Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
     {
-        if (IsDead) return;
+        if (IsDead) 
+            return;
 
         float healthBefore = CurrentHealth;
         CurrentHealth = Mathf.Max(CurrentHealth - finalDamage, 0);
@@ -181,6 +184,14 @@ public abstract class CharacterStats : NetworkBehaviour
             _rb2D.velocity = Vector2.zero;
             _rb2D.isKinematic = true;
         }
+
+        Player Deather= gameObject.GetComponent<Player>();//获取当前玩家身上的Player脚本
+        //记录死亡数，给对方增加击杀数
+        PlayerRespawnManager.Instance.AddPlayerDeath(Deather.connectionToClient);
+        //给击杀者增加击杀数
+        PlayerRespawnManager.Instance.AddPlayerKill(killer.gameObject.GetComponent<Player>().connectionToClient);
+        //增加击杀者的队伍比分
+        PlayerRespawnManager.Instance.AddScore(killer.gameObject.GetComponent<Player>().CurrentTeam);//增加比分
     }
     #endregion
 
@@ -279,6 +290,83 @@ public abstract class CharacterStats : NetworkBehaviour
             //{
             //    playerStats.DropCurrentGun();
             //}
+        }
+    }
+    #endregion
+
+    #region 手雷专属受伤逻辑
+    /// <summary>
+    /// 【服务器端】被手雷炸伤时调用
+    /// </summary>
+    /// <param name="damage">最终伤害值</param>
+    /// <param name="explosionCenter">爆炸中心点坐标</param>
+    /// <param name="knockbackForce">计算好的击退力矢量</param>
+    /// <param name="attacker">投掷手雷的攻击者</param>
+    [Server]
+    public void ServerApplyGrenadeDamage(float damage, Vector2 explosionCenter, Vector2 knockbackForce, CharacterStats attacker)
+    {
+        if (IsDead)
+            return;
+
+        float healthBefore = CurrentHealth;
+        CurrentHealth = Mathf.Max(CurrentHealth - damage, 0);
+        Debug.Log($"[ServerApplyGrenadeDamage] {gameObject.name} 被手雷炸中！血量: {healthBefore} -> {CurrentHealth}, 伤害: {damage}");
+
+        Vector2 hitDir = ((Vector2)transform.position - explosionCenter).normalized;
+        Vector2 hitPoint = (Vector2)transform.position;
+
+        if (CurrentHealth <= 0 && !_hasTriggeredDeath && attacker != null)
+        {
+            if (attacker is playerStats attackerStats)
+            {
+                _killerName = Main.PlayerName ?? attacker.gameObject.name;
+                _killerGunName = "手雷";
+            }
+            else
+            {
+                _killerName = attacker?.gameObject.name ?? "未知";
+                _killerGunName = "手雷";
+            }
+        }
+
+        // 【修改】传入计算好的 knockbackForce
+        RpcPlayGrenadeEffect(hitPoint, hitDir, explosionCenter, knockbackForce, attacker);
+
+        if (CurrentHealth <= 0 && !_hasTriggeredDeath)
+        {
+            Death(attacker);
+        }
+    }
+
+    /// <summary>
+    /// 【客户端】播放手雷爆炸的视觉/物理反馈
+    /// </summary>
+    [ClientRpc]
+    private void RpcPlayGrenadeEffect(Vector2 hitPoint, Vector2 hitDir, Vector2 explosionCenter, Vector2 knockbackForce, CharacterStats attacker)
+    {
+        if (BloodParticleGenerator.Instance != null)
+        {
+            BloodParticleGenerator.Instance.GenerateBloodOnBackground(hitPoint);
+            for (int i = 0; i < BllomAmount; i++)
+            {
+                Vector2 bloodDir = (hitDir + new Vector2(Random.Range(-0.4f, 0.4f), Random.Range(-0.4f, 0.4f))).normalized;
+                float bloodSpeed = Random.Range(MinBllomSpeed, MaxBllomSpeed);
+                BloodParticleGenerator.Instance.GenerateBloodParticle(hitPoint, bloodDir * bloodSpeed);
+            }
+        }
+
+        if (isLocalPlayer && _rb2D != null)
+        {
+            // 【修改】直接应用手雷传过来的力
+            _rb2D.velocity = Vector2.zero; // 先清零，防止叠加
+            _rb2D.AddForce(knockbackForce, ForceMode2D.Impulse);
+
+            // 屏幕震动依然保留在这里，因为这是客户端表现
+            float grenadeShakeStrength = 3;
+            float grenadeShakeTime = 0.4f;
+            MyCameraControl.Instance?.AddTimeBasedShake(grenadeShakeStrength, grenadeShakeTime);
+
+            Debug.Log($"本地玩家被手雷炸飞！受力: {knockbackForce}");
         }
     }
     #endregion

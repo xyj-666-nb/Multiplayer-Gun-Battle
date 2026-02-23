@@ -2,6 +2,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Playables;
 
 public class DeathPanel : BasePanel
 {
@@ -15,6 +16,8 @@ public class DeathPanel : BasePanel
     public TextMeshProUGUI DeathTime;//死亡时间文本
     public TextMeshProUGUI Killer;//击杀者文本
     public TextMeshProUGUI KillersGun;//击杀者武器文本
+
+    public PlayableDirector TimeLine;
 
     #region 生命周期
     protected override void Update()
@@ -38,6 +41,13 @@ public class DeathPanel : BasePanel
                 IsStartCountDown = false;
                 UImanager.Instance.HidePanel<DeathPanel>();
             }
+        }
+
+        if (PlayerRespawnManager.Instance._isGameEnded)
+        {
+            UImanager.Instance.HidePanel<DeathPanel>();
+            TimeLine.Stop();//停止
+           
         }
     }
     #endregion
