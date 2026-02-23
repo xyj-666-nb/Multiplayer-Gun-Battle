@@ -910,69 +910,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 707979665538375726, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.24726312
-      objectReference: {fileID: 0}
-    - target: {fileID: 707979665538375726, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.22269422
-      objectReference: {fileID: 0}
-    - target: {fileID: 707979665538375726, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0.0033
-      objectReference: {fileID: 0}
-    - target: {fileID: 707979665538375726, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.8076
-      objectReference: {fileID: 0}
-    - target: {fileID: 1494717577317627147, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_ApplyToSortingLayers.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1494717577317627147, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_ApplyToSortingLayers.Array.data[0]
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1494717577317627147, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_ApplyToSortingLayers.Array.data[1]
-      value: 1115925733
-      objectReference: {fileID: 0}
-    - target: {fileID: 4303110987690750780, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 4533309539083133747, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_Color.a
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6522259326327428066, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
       propertyPath: m_Name
       value: Light
-      objectReference: {fileID: 0}
-    - target: {fileID: 8430976413920956772, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_Intensity
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 8430976413920956772, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_ApplyToSortingLayers.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8430976413920956772, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_ApplyToSortingLayers.Array.data[0]
-      value: 1115925733
-      objectReference: {fileID: 0}
-    - target: {fileID: 8430976413920956772, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_ApplyToSortingLayers.Array.data[1]
-      value: 1115925733
-      objectReference: {fileID: 0}
-    - target: {fileID: 8773325416462923426, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 69e2139ef5e985e41bd750a5626af9bc, type: 3}
-    - target: {fileID: 8773325416462923426, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
-      propertyPath: m_WasSpriteAssigned
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9087706399123147454, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1015,8 +955,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 4439155606951814134, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1455b4d0b0c249f4e8010e56ffaf3055, type: 3}
