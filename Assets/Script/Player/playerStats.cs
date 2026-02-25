@@ -182,4 +182,13 @@ public class playerStats : CharacterStats
             });
         });
     }
+
+    public override void Death(CharacterStats killer)
+    {
+        base.Death(killer);
+        if(MyMonster.currentGun!=null)
+        {
+            MyMonster.currentGun.CmdForceDiscardGun();
+        }
+    }
 }

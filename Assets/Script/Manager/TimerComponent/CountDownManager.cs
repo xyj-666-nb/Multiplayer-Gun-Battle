@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq; // 必须添加，用于 ToList()
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -8,19 +9,16 @@ using UnityEngine.Events;
 /// </summary>
 public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
 {
-
     #region 变量声明
     private int COUNTDOWN_KEY = 0;
 
-    private Dictionary<int, TimerItem> TimerDic = new Dictionary<int, TimerItem>();//会受到Time.timeScale的影响
-    private Dictionary<int, TimerItem> TimerDic_RealTime = new Dictionary<int, TimerItem>();//使用真实时间
-    private List<TimerItem> DelayRemoveTimerList = new List<TimerItem>();//等待移除列表
+    private Dictionary<int, TimerItem> TimerDic = new Dictionary<int, TimerItem>();
+    private Dictionary<int, TimerItem> TimerDic_RealTime = new Dictionary<int, TimerItem>();
 
     private Coroutine CountDown;
     private Coroutine CountDown_RealTime;
-    private const float intervalTime = 0.1f;//计时器固定间隔时间计时
+    private const float intervalTime = 0.1f;
 
-    //性能优化
     private WaitForSecondsRealtime waitForSecondsRealtime;
     private WaitForSeconds waitForSeconds;
     #endregion
@@ -28,28 +26,26 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
     #region 开启/停止计时器
     protected void Start()
     {
-        // 初始化等待对象（避免重复创建）
         waitForSecondsRealtime = new WaitForSecondsRealtime(intervalTime);
         waitForSeconds = new WaitForSeconds(intervalTime);
 
-        // 改用自身的协程（避免依赖未定义的MonoMange）
         CountDown = StartCoroutine(StartTiming(false, TimerDic));
         CountDown_RealTime = StartCoroutine(StartTiming(true, TimerDic_RealTime));
     }
 
-    //关闭计时器
     public void Stop()
     {
-        if (CountDown != null)
-            StopCoroutine(CountDown);
-        if (CountDown_RealTime != null)
-            StopCoroutine(CountDown_RealTime);
+        if (CountDown != null) StopCoroutine(CountDown);
+        if (CountDown_RealTime != null) StopCoroutine(CountDown_RealTime);
     }
     #endregion
 
     #region 计时器主逻辑
     IEnumerator StartTiming(bool IsUseRealTime, Dictionary<int, TimerItem> TimerDic)
     {
+        // 【修复2】在协程内部定义局部延迟列表，每个协程独立使用
+        List<TimerItem> localDelayRemoveList = new List<TimerItem>();
+
         while (true)
         {
             if (IsUseRealTime)
@@ -57,10 +53,15 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
             else
                 yield return waitForSeconds;
 
-            foreach (var timer in TimerDic.Values)
+            // 【修复3】遍历前先复制一份 Values 的副本（ToList()）
+            // 这样即使原字典被添加/移除元素，遍历也不会报错
+            List<TimerItem> timersSnapshot = TimerDic.Values.ToList();
+
+            foreach (var timer in timersSnapshot)
             {
-                if (!timer.IsRuning)
-                    continue;
+                // 双重保险：检查计时器是否还在原字典中（可能已被其他逻辑移除）
+                if (!TimerDic.ContainsKey(timer.keyID)) continue;
+                if (!timer.IsRuning) continue;
 
                 if (timer.ScheduleOverCallBack != null && timer.MaxIntervalTime > 0)
                 {
@@ -68,7 +69,7 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
                     if (timer.intervalTime <= 0)
                     {
                         timer.ScheduleOverCallBack.Invoke();
-                        timer.intervalTime = timer.MaxIntervalTime;//重置间隔时间
+                        timer.intervalTime = timer.MaxIntervalTime;
                     }
                 }
 
@@ -80,35 +81,29 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
                         timer.AllTime = 0;
                         timer.OverCallBack?.Invoke();
                         timer.IsRuning = false;
-                        DelayRemoveTimerList.Add(timer);
+                        // 【修复4】添加到局部列表，而不是全局列表
+                        localDelayRemoveList.Add(timer);
                     }
                 }
             }
 
-            for (int i = 0; i < DelayRemoveTimerList.Count; i++)
+            // 处理局部延迟移除列表
+            for (int i = 0; i < localDelayRemoveList.Count; i++)
             {
-                var timer = DelayRemoveTimerList[i];
+                var timer = localDelayRemoveList[i];
                 if (TimerDic.ContainsKey(timer.keyID))
                 {
                     TimerDic.Remove(timer.keyID);
                     PoolManage.Instance.PushObj(timer);
                 }
             }
-            DelayRemoveTimerList.Clear();
+            // 清空局部列表
+            localDelayRemoveList.Clear();
         }
     }
     #endregion
 
     #region 创建单个计时器
-    /// <summary>
-    /// 创建单个计时器
-    /// </summary>
-    /// <param name="IsUseRealTime">是否使用真实时间（不受Time.timeScale影响）</param>
-    /// <param name="AllTime">总时间（毫秒,毫秒:1秒等于1000毫秒）</param>
-    /// <param name="OverCallback">时间结束回调</param>
-    /// <param name="intervalTime">间隔触发时间（毫秒，0则不触发,毫秒:1秒等于1000毫秒）</param>
-    /// <param name="Callback">间隔触发回调</param>
-    /// <returns>计时器唯一ID</returns>
     public int CreateTimer(bool IsUseRealTime, int AllTime, UnityAction OverCallback, int intervalTime = 0, UnityAction Callback = null)
     {
         if (AllTime <= 0)
@@ -125,7 +120,6 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
         TimerItem timer = PoolManage.Instance.GetObj<TimerItem>();
         timer.InitInfo(KeyID, AllTime, OverCallback, Callback, intervalTime);
 
-        // 添加到对应字典
         if (IsUseRealTime)
             TimerDic_RealTime.Add(KeyID, timer);
         else
@@ -134,17 +128,8 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
         return KeyID;
     }
 
-    /// <summary>
-    /// 创建永久间隔触发器
-    /// </summary>
-    /// <param name="IsUseRealTime">是否使用真实时间（不受Time.timeScale影响）</param>
-    /// <param name="OverCallback">时间结束回调</param>
-    /// <param name="intervalTime">间隔触发时间（毫秒，0则不触发,毫秒:1秒等于1000毫秒）</param>
-    /// <param name="Callback">间隔触发回调</param>
-    /// <returns>计时器唯一ID</returns>
     public int CreateTimer_Permanent(bool IsUseRealTime, int intervalTime, UnityAction Callback)
     {
-        // 校验：间隔时间必须大于0
         if (intervalTime <= 0)
         {
             Debug.LogError("永久间隔触发器的间隔时间必须大于0！");
@@ -167,32 +152,21 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
 
         return KeyID;
     }
-
     #endregion
 
     #region 计时器控制方法
-    /// <summary>
-    /// 移除计时器
-    /// </summary>
-    /// <param name="KeyId">计时器唯一ID</param>
     public void RemoveTimer(int KeyId)
     {
-        if (TimerDic.ContainsKey(KeyId))
+        if (TimerDic.TryGetValue(KeyId, out var timer))
         {
-            TimerDic[KeyId].IsRuning = false;
-            DelayRemoveTimerList.Add(TimerDic[KeyId]);
+            timer.IsRuning = false;
         }
-        if (TimerDic_RealTime.ContainsKey(KeyId))
+        if (TimerDic_RealTime.TryGetValue(KeyId, out var timerRt))
         {
-            TimerDic_RealTime[KeyId].IsRuning = false;
-            DelayRemoveTimerList.Add(TimerDic_RealTime[KeyId]);
+            timerRt.IsRuning = false;
         }
     }
 
-    /// <summary>
-    /// 停止单个计时器
-    /// </summary>
-    /// <param name="KeyId">计时器唯一ID</param>
     public void StopTimer(int KeyId)
     {
         if (TimerDic.ContainsKey(KeyId))
@@ -201,10 +175,6 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
             TimerDic_RealTime[KeyId].IsRuning = false;
     }
 
-    /// <summary>
-    /// 开启单个计时器
-    /// </summary>
-    /// <param name="KeyId">计时器唯一ID</param>
     public void StartTimer(int KeyId)
     {
         if (TimerDic.ContainsKey(KeyId))
@@ -213,10 +183,6 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
             TimerDic_RealTime[KeyId].IsRuning = true;
     }
 
-    /// <summary>
-    /// 重置单个计时器
-    /// </summary>
-    /// <param name="KeyId">计时器唯一ID</param>
     public void ReSetTimer(int KeyId)
     {
         if (TimerDic.ContainsKey(KeyId))
@@ -227,8 +193,6 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
     #endregion
 
     #region 销毁处理
-
-    // 场景销毁时停止协程，避免内存泄漏
     protected override void OnDestroy()
     {
         Stop();

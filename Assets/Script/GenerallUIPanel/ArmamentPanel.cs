@@ -508,6 +508,11 @@ public class ArmamentPanel : BasePanel
         {
             GunSprite.rectTransform.localScale = new Vector3(0.8f, 0.8f, 1);
         }
+        else if(info.Name == "M249")
+        {
+            GunSprite.rectTransform.anchoredPosition = new Vector2(0, -40);
+        }
+
 
         ClearValueSliders();
 

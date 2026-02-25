@@ -114,8 +114,8 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//«π–µπ‹¿Ì
                 return "≥Â∑Ê«π";
             case GunType.Snipe:
                 return "À®∂Ø≤Ω«π";
-            case GunType.Shotgun:
-                return "…¢µØ«π";
+            case GunType.LightMachineGun:
+                return "«·ª˙«π";
             case GunType.DMR:
                 return "…‰ ÷≤Ω«π";
             default:
@@ -277,7 +277,7 @@ public enum GunType
     Rifle,      // ≤Ω«π
     Charge,     // ≥Â∑Ê«π
     Snipe,      // À®∂Ø≤Ω«π
-    Shotgun,    // …¢µØ«π
+    LightMachineGun,    // «·ª˙«π
     DMR         // …‰ ÷≤Ω«π
 }
 

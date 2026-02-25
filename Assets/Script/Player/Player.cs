@@ -338,6 +338,7 @@ public class Player : Base_Entity
             return;
 
         LocalPlayer.CmdSpawnAndPickGun(gunName);
+        CountDownManager.Instance.CreateTimer(false, 1000, () => { currentGun.TriggerReload(); });
     }
 
     [Command]
@@ -404,7 +405,9 @@ public class Player : Base_Entity
         currentGun = null;
     }
 
-    private void ServerHandleDropGun(GameObject gunObj)
+    // 原private改为public，添加[Server]特性限定仅服务器执行
+    [Server]
+    public void ServerHandleDropGun(GameObject gunObj)
     {
         if (!isServer || gunObj == null)
             return;
@@ -427,6 +430,7 @@ public class Player : Base_Entity
         gunObj.GetComponent<BaseGun>().SafeServerOnGunDropped();
         gunNetId.RemoveClientAuthority();//移除权限
     }
+
 
     [ClientRpc]
     private void RpcResetGunTransform(uint gunNetId, Vector3 worldPos, float rotZ)

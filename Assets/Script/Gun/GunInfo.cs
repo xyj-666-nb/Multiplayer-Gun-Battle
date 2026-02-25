@@ -57,12 +57,6 @@ public class GunInfo : ScriptableObject
     public float ShackStrength_Enemy;
     public float ShackTime_Enemy;
 
-    [Header("散弹枪的专属信息")]
-    public int ShotgunBulletAmount;//散弹的弹丸量
-
-    [Header("散弹枪分批发射参数")]
-    public float shotgunBatchInterval = 0.05f; // 批次之间的间隔时间
-    public float shotgunScatterAngle = 15f; // 5波总散射角度范围
 
     [Header("烟雾效果参数")]
     public Color smokeColor = new Color(0.5f, 0.5f, 0.5f, 0.8f); // 烟雾颜色
