@@ -10,6 +10,7 @@ public class Main : SingleMonoAutoBehavior<Main>
     public CustomNetworkManager customNetworkManager;
 
     public Team CurrentTeam;//当前的队伍
+    //private bool IsFirstEnterGame = false;
     protected override void Awake()
     {
         base.Awake();
@@ -81,7 +82,7 @@ public class Main : SingleMonoAutoBehavior<Main>
     void Start()
     {
         // 原有UI和测试按钮逻辑
-        UImanager.Instance.ShowPanel<RoomPanel>();
+        UImanager.Instance.ShowPanel<GameStartPanel>();
 
         // 枪械测试按钮
         Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械AKM", () => { Player.LocalPlayer.SpawnAndPickGun("AKM"); }, "枪械获取");
@@ -103,6 +104,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         Developer_GUITestManger.Instance.RegisterGuiButton("打开地图选择面板", () => { UImanager.Instance.ShowPanel<MapChoosePanel>(); }, "面板测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("打开玩家准备面板", () => { UImanager.Instance.ShowPanel<PlayerPreparaPanel>(); }, "面板测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("打开自定义UI面板", () => { UImanager.Instance.ShowPanel<PlayerCustomPanel>(); }, "面板测试");
+        Developer_GUITestManger.Instance.RegisterGuiButton("打开画面设置面板", () => { UImanager.Instance.ShowPanel<ScreenSettingPanel>(); }, "面板测试");
 
         Developer_GUITestManger.Instance.RegisterGuiButton("使用绿针", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Green_injection); }, "战术设备测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("使用黄色针剂", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Yellow_injection); }, "战术设备测试");
