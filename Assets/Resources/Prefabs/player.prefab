@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
+  m_Sprite: {fileID: -1455754585, guid: f022e1595738426438155fbf7ebb7c49, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -250,6 +250,7 @@ MonoBehaviour:
   FacingDir: 1
   MyBody: {fileID: 1084864238593657426}
   myStats: {fileID: 8487535142233067111}
+  myInputSystem: {fileID: 0}
   playerHandPos: {fileID: 2830158952220042674}
   MyHandControl: {fileID: 4571149557039848035}
   currentGun: {fileID: 0}
