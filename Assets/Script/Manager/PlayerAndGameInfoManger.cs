@@ -23,6 +23,11 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
     public List<PlayerCustomUIInfo> playerCustomUIInfoList = new List<PlayerCustomUIInfo> ();//这个数是需要进行本地化保存的
     public List<GameObject> AllCustomUIPrefabsList = new List<GameObject> ();//所有的自定义UI预制体
 
+    [Header("画面设置")]
+    public FpsType CurrentFPS;
+    public ScreenType CurrentScreen;
+
+
     //增加数据
     public void AddCustomUIInfoList(PlayerCustomUIInfo info)
     {

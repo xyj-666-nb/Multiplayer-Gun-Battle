@@ -26,7 +26,8 @@ public class RoomPanel : BasePanel
                 UImanager.Instance.HidePanel<RoomPanel>();
                 break;
             case "ExitButton":
-
+                UImanager.Instance.HidePanel<RoomPanel>();
+                UImanager.Instance.ShowPanel<GameStartPanel>();//游戏开始面板
                 break;
         }
 

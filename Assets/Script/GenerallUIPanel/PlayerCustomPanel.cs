@@ -145,6 +145,8 @@ public class PlayerCustomPanel : BasePanel
     public override void ShowMe(bool isNeedDefaultAnimator = true)
     {
         base.ShowMe(isNeedDefaultAnimator);
+        //每次打开的时候提醒玩家自定义自己的操作面板
+        WarnTriggerManager.Instance.TriggerNoInteractionWarn(1.5f, "在这里自定义你熟悉的操作面板！");
     }
 
     public override void SimpleHidePanel()
