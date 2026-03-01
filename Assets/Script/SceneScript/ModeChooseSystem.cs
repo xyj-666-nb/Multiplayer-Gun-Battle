@@ -1,4 +1,6 @@
 using Cinemachine;
+using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,6 +15,14 @@ public class ModeChooseSystem : MonoBehaviour
     public Button ConfirmStandaloneButton;// 确认进入单机模式
     public Button ReturnButton_Online;   // 多人模式返回
     public Button ReturnButton_Standalone;// 单机模式返回
+    public CanvasGroup OnlineButtonCanvasGroup;
+    public CanvasGroup StandaloneButtonCanvasGroup;
+
+    [Header("提示组件")]
+    public TextMeshProUGUI LeftPromptText;
+    public TextMeshProUGUI RightPromptText;
+    public Image LeftPromptImage;
+    public Image RightPromptImage;
 
     [Header("虚拟摄像机")]
     public CinemachineVirtualCamera MainCV;      // 主视角 
@@ -32,6 +42,12 @@ public class ModeChooseSystem : MonoBehaviour
     // Cinemachine Brain缓存
     private CinemachineBrain _cinemachineBrain;
 
+    public void SetCameraButtonInteract(bool IsActive)
+    {
+        OnlineButton.gameObject.SetActive(IsActive);
+        StandaloneButton.gameObject.SetActive(IsActive);
+    }
+
     private void Awake()
     {
         instance = this;
@@ -42,6 +58,17 @@ public class ModeChooseSystem : MonoBehaviour
         {
             Debug.LogError("场景中未找到Cinemachine Brain！请确保Main Camera上有Cinemachine Brain组件！");
         }
+        //初始化
+        OnlineButtonCanvasGroup.alpha = 1f;
+        OnlineButtonCanvasGroup.interactable = false;
+        StandaloneButtonCanvasGroup.alpha = 1f;
+        StandaloneButtonCanvasGroup.interactable=false;
+
+        //打开提示
+        SimpleAnimatorTool.Instance.AddFadeLoopTask(LeftPromptText);
+        SimpleAnimatorTool.Instance.AddFadeLoopTask(RightPromptText);
+        SimpleAnimatorTool.Instance.AddFadeLoopTask(LeftPromptImage,waitTime:0);
+        SimpleAnimatorTool.Instance.AddFadeLoopTask(RightPromptImage, waitTime: 0);
     }
 
     public void EnterSystem()
@@ -82,6 +109,7 @@ public class ModeChooseSystem : MonoBehaviour
     #region 视角切换
     private void SwitchToOnline()
     {
+        SetCameraButtonInteract(false);
         SetCinemachineBlendTime(defaultBlendTime);
         SwitchCamera(OnlineCV);
         ShowOnlineUI();
@@ -89,6 +117,7 @@ public class ModeChooseSystem : MonoBehaviour
 
     private void SwitchToStandalone()
     {
+        SetCameraButtonInteract(false);
         SetCinemachineBlendTime(defaultBlendTime);
         SwitchCamera(StandaloneCV);
         ShowStandaloneUI();
@@ -96,12 +125,12 @@ public class ModeChooseSystem : MonoBehaviour
 
     private void SwitchToMainCamera()
     {
+        SetCameraButtonInteract(true);
         SetCinemachineBlendTime(defaultBlendTime);
         SwitchCamera(MainCV);
         HideAllUI();
     }
 
-    // 【新增】切换到游戏视角
     private void SwitchToGameCamera()
     {
         SetCinemachineBlendTime(defaultBlendTime);
@@ -150,16 +179,29 @@ public class ModeChooseSystem : MonoBehaviour
     #endregion
 
     #region UI管理
+
+    public Sequence OnlineSequence;
     private void ShowOnlineUI()
     {
         ConfirmOnlineButton.gameObject.SetActive(true);
+
+        OnlineButtonCanvasGroup.interactable= true;
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(OnlineButtonCanvasGroup, ref OnlineSequence, true, () => {
+        
+        
+        });
         ReturnButton_Online.gameObject.SetActive(true);
         ConfirmStandaloneButton.gameObject.SetActive(false);
         ReturnButton_Standalone.gameObject.SetActive(false);
     }
-
+    public Sequence StandaloneSequence;
     private void ShowStandaloneUI()
     {
+        StandaloneButtonCanvasGroup.interactable = true;
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(StandaloneButtonCanvasGroup, ref StandaloneSequence, true, () => {
+
+
+        });
         ConfirmStandaloneButton.gameObject.SetActive(true);
         ReturnButton_Standalone.gameObject.SetActive(true);
         ConfirmOnlineButton.gameObject.SetActive(false);
@@ -168,6 +210,13 @@ public class ModeChooseSystem : MonoBehaviour
 
     private void HideAllUI()
     {
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(StandaloneButtonCanvasGroup, ref StandaloneSequence, true, () => {
+            StandaloneButtonCanvasGroup.interactable = false;
+
+        });
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(OnlineButtonCanvasGroup, ref OnlineSequence, true, () => {
+            OnlineButtonCanvasGroup.interactable = false;
+        });
         ConfirmOnlineButton.gameObject.SetActive(false);
         ReturnButton_Online.gameObject.SetActive(false);
         ConfirmStandaloneButton.gameObject.SetActive(false);
