@@ -1,5 +1,6 @@
 using Mirror;
 using UnityEngine;
+using UnityEngine.Playables;
 
 public class Main : SingleMonoAutoBehavior<Main>
 {
@@ -10,7 +11,11 @@ public class Main : SingleMonoAutoBehavior<Main>
     public CustomNetworkManager customNetworkManager;
 
     public Team CurrentTeam;//当前的队伍
-    //private bool IsFirstEnterGame = false;
+
+    public PlayableDirector StartTimeLine;
+
+    public GameStartCG CG;
+
     protected override void Awake()
     {
         base.Awake();
@@ -82,8 +87,6 @@ public class Main : SingleMonoAutoBehavior<Main>
     void Start()
     {
         // 原有UI和测试按钮逻辑
-        UImanager.Instance.ShowPanel<GameStartPanel>();
-
         // 枪械测试按钮
         Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械AKM", () => { Player.LocalPlayer.SpawnAndPickGun("AKM"); }, "枪械获取");
         Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械FAMAS", () => { Player.LocalPlayer.SpawnAndPickGun("FAMAS"); }, "枪械获取");
@@ -120,6 +123,11 @@ public class Main : SingleMonoAutoBehavior<Main>
         Developer_GUITestManger.Instance.RegisterGuiButton_TwoWay("打开当前调试信息", "关闭当前调试信息", () => { Developer_GUITestManger.Instance.IsShowAllInfo(true); }, () => { Developer_GUITestManger.Instance.IsShowAllInfo(false); });
         Developer_GUITestManger.Instance.RegisterGuiButton_TwoWay("收起枪械", "拿起枪械", () => { Player.LocalPlayer.MyHandControl.SetHolsterState(true); }, () => { Player.LocalPlayer.MyHandControl.SetHolsterState(false); });
         Developer_GUITestManger.Instance.RegisterGuiButton("清理烟雾", () => { FluidController.Instance.ClearTexture(); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("进入地图选择", () => { MapChooseWall.Instance.EnterMapChooseSystem(); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("退出地图选择", () => { MapChooseWall.Instance.ExitMapChooseSystem(); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("进入飞机视角", () => { MapChooseWall.Instance.EnterhelicopterVC(); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("播放第一个动画", () => { CG.PlayAnima1(); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("播放第二个动画", () => { CG.PlayAnima2(); });
     }
 
     private void Update()
@@ -127,6 +135,16 @@ public class Main : SingleMonoAutoBehavior<Main>
         // 预留Update逻辑
     }
 
+    public void GameStart()//游戏开始
+    {
+        UImanager.Instance.ShowPanel<GameStartPanel>();
+    }
+
+
+    public void PauseTimeLine()
+    {
+        StartTimeLine.Pause();
+    }
  
 }
 

@@ -53,8 +53,6 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
             else
                 yield return waitForSeconds;
 
-            // 【修复3】遍历前先复制一份 Values 的副本（ToList()）
-            // 这样即使原字典被添加/移除元素，遍历也不会报错
             List<TimerItem> timersSnapshot = TimerDic.Values.ToList();
 
             foreach (var timer in timersSnapshot)

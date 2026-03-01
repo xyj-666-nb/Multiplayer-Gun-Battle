@@ -26,6 +26,7 @@ public enum NeedCustomUIType
     SettingButton,
     HealthAndGunButton,//健康以及枪械状态按钮
     ThrowObjButton,//战术控制按钮
+    interactButton,//交互按钮
 }
 
 public class PlayerCustomPanel : BasePanel
@@ -176,6 +177,7 @@ public class PlayerCustomPanel : BasePanel
             case NeedCustomUIType.SettingButton: return "设置按钮";
             case NeedCustomUIType.HealthAndGunButton:return "玩家信息UI";
             case NeedCustomUIType.ThrowObjButton: return "战术控制UI";
+            case NeedCustomUIType.interactButton: return "交互按钮";
             default: return "未知按钮";
         }
     }
