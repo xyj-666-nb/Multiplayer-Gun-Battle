@@ -1,5 +1,6 @@
 using Mirror;
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static InputInfoManager;
@@ -27,6 +28,10 @@ public class MyPlayerInput : NetworkBehaviour
     private int ViewTaskID;//视野缩放任务ID
     private float ChangeSpeed_View = 4;//缩放视野的速度
     #endregion
+
+    public bool IsInteractButtonTrigger=false;//是否触发交互按钮
+    public float InteractCoolTime = 1f;//交互键的冷却时间
+    public bool IsInCooldown = false;
 
     private void Awake()
     {
@@ -59,6 +64,7 @@ public class MyPlayerInput : NetworkBehaviour
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.PickUpGun, PickUpGnn_Start, null, null);
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.DiscardGun, DiscardGun_Start, null, null);
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.GunAim, GunAim_Start, null, GunAim_End, GunAim_UpdateCheck);
+            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.Interact, Interact_Start, null, null, null);
             Debug.Log("MyPlayerInput：本地玩家输入事件绑定成功！");
         }
     }
@@ -455,6 +461,40 @@ public class MyPlayerInput : NetworkBehaviour
         AimStateExit();
     }
     #endregion
+
+    #region 交互逻辑
+    public void Interact_Start(InputAction.CallbackContext Content)
+    {
+        // 第一步：通用校验（保持和其他输入逻辑一致的校验规则）
+        if (!CheckCommonTriggerCondition())
+            return;
+
+        if (IsInCooldown)
+            return;
+
+        IsInCooldown = true;
+        IsInteractButtonTrigger = true;
+        //开启计时器
+        SimpleAnimatorTool.Instance.StartFloatLerp(1,0, InteractCoolTime, (v) => {
+            UImanager.Instance.GetPanel<PlayerPanel>()?.UpdateInteractButtonCool(v);//进行UI更新  
+        }, () => { IsInCooldown = false; });
+
+        StartCoroutine(ResetInteractTriggerAfterOneFrame());
+    }
+
+    /// <summary>
+    /// 协程：等待一帧后重置交互触发标记
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator ResetInteractTriggerAfterOneFrame()
+    {
+        yield return null;
+
+        IsInteractButtonTrigger = false;
+    }
+
+    #endregion
+
 
     private void Update()
     {

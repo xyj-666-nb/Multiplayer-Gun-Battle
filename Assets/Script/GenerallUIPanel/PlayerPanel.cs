@@ -24,6 +24,24 @@ public class PlayerPanel : BasePanel
     [Header("射击按钮")]
     public ShootButton shootButton;//射击按钮脚本
 
+    [Header("交互按钮")]
+    public CanvasGroup InteractButton;
+    private Sequence InteractBackGroundSequence;
+    public Image InteractButtonFillButtonImage;//射击按钮填充图片
+
+    public void UpdateInteractButtonCool(float amount)
+    {
+        InteractButtonFillButtonImage.fillAmount = amount;
+    }
+
+    public void SetActiveInteractButton(bool IsActive)
+    {
+        InteractButton.interactable = IsActive;
+        InteractButton.blocksRaycasts = IsActive;
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(InteractButton,ref InteractBackGroundSequence, IsActive, () => { 
+        });
+    }
+
     public List<CustomUI> AllCustomUIList = new List<CustomUI>();
 
     public static string GetAimButtonButtonGroupName()
@@ -124,6 +142,7 @@ public class PlayerPanel : BasePanel
 
         //注册一下射击按钮单选按钮
         ButtonGroupManager.Instance.AddToggleButtonToGroup(AimButtonButtonGroupName, controlDic[AimButtonButtonGroupName] as Button, isManualTrigger: true);//不需要事件。事件由输入系统管理器触发
+        SetActiveInteractButton(false);//关闭交互
     }
 
     public override void Start()
@@ -170,6 +189,17 @@ public class PlayerPanel : BasePanel
     {
 
     }
+    public override void SimpleHidePanel()
+    {
+        base.SimpleHidePanel();
+        canvasGroup.blocksRaycasts = false;
+    }
+
+    public override void SimpleShowPanel()
+    {
+        base.SimpleShowPanel();
+        canvasGroup.blocksRaycasts = true;
+    }
 
 
     #endregion
@@ -204,5 +234,4 @@ public class PlayerPanel : BasePanel
             UI.ApplicationInfo();//更新一下信息
         }
     }
-
 }

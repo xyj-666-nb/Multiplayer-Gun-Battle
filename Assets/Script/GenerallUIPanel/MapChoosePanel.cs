@@ -74,7 +74,7 @@ public class MapChoosePanel : BasePanel
     private Color _originalButtonColor=Color.white;
     private Vector3 _originalButtonScale=new Vector3(1,1,1);
 
-    [Header("总结信息")]
+    //[Header("总结信息")]
     public TextMeshProUGUI MapName;//地图名字
     public TextMeshProUGUI gameMode;//游戏模式
     public TextMeshProUGUI WinCondition;//胜利条件介绍文本

@@ -85,7 +85,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         BlueTeamScoreCount = 0;
         IsGameStart = true;
 
-        // 【修改】启动协程进行倒计时
+        //启动协程进行倒计时
         StartCoroutine(ServerGameCountdownCoroutine());
 
         // 初始化完成后同步一次空数据给客户端，确保UI干净
@@ -94,7 +94,7 @@ public class PlayerRespawnManager : NetworkBehaviour
 
     #region 游戏倒计时与结束逻辑
     /// <summary>
-    /// 【核心】服务器端游戏倒计时协程
+    /// 服务器端游戏倒计时协程
     /// </summary>
     [Server]
     private IEnumerator ServerGameCountdownCoroutine()
@@ -338,21 +338,15 @@ public class PlayerRespawnManager : NetworkBehaviour
     {
         if (!isClient)
             return;
-        var panel = UImanager.Instance?.GetPanel<MapChoosePanel>();
-        if (panel != null)
-        {
-            panel.MapButton_1.UpdatePlayerCount(newVal);
-        }
+        //调用本地的更新
+
+        MapChooseWall.Instance.UpdatePlayerCount(newVal, Map2ChooseCount);
     }
 
     private void OnMap2CountChanged(int oldVal, int newVal)
     {
         if (!isClient) return;
-        var panel = UImanager.Instance?.GetPanel<MapChoosePanel>();
-        if (panel != null)
-        {
-            panel.MapButton_2.UpdatePlayerCount(newVal);
-        }
+        MapChooseWall.Instance.UpdatePlayerCount(Map1ChooseCount, newVal);
     }
 
     public bool IsStart = false;
@@ -1037,9 +1031,9 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         UImanager.Instance.ShowPanel<CountDownPanel>().InitPanel(
             "游戏即将开始请做好准备！",
-            10,
+            5,
             () => {
-                UImanager.Instance.ShowPanel<MapChoosePanel>();
+                MapChooseWall.Instance.EnterMapChooseSystem();//通知所有人进入地图选择面板
             }
         );
     }
