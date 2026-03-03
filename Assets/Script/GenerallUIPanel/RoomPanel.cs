@@ -20,6 +20,7 @@ public class RoomPanel : BasePanel
             case "Button_CreateRoom":
                 UImanager.Instance.ShowPanel<CreateRoomPanel>();
                 UImanager.Instance.HidePanel<RoomPanel>();
+
                 break;
             case "Button_EnterRoom":
                 UImanager.Instance.ShowPanel<EnterRoomPanel>();
@@ -28,6 +29,8 @@ public class RoomPanel : BasePanel
             case "ExitButton":
                 UImanager.Instance.HidePanel<RoomPanel>();
                 UImanager.Instance.ShowPanel<GameStartPanel>();//游戏开始面板
+                //回到选择视角
+                ModeChooseSystem.instance.EnterSystem();
                 break;
         }
 

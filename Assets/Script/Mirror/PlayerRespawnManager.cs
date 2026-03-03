@@ -81,6 +81,15 @@ public class PlayerRespawnManager : NetworkBehaviour
             }
         }
 
+        if (CurrentMapIndex >= 0)
+        {
+            PRCInitAllInteractObj(CurrentMapIndex + 1, true);
+            Debug.Log($"[交互物体] 游戏开始，初始化地图 {CurrentMapIndex + 1} 的物体");
+        }
+        else
+        {
+            Debug.LogWarning("[交互物体] 游戏开始但未选择地图，无法初始化物体！");
+        }
         RedTeamScoreCount = 0;
         BlueTeamScoreCount = 0;
         IsGameStart = true;
@@ -134,6 +143,12 @@ public class PlayerRespawnManager : NetworkBehaviour
         IsGameStart = false;
 
         Team? winningTeam = null;
+
+        if (CurrentMapIndex >= 0)//还原地图
+        {
+            PRCInitAllInteractObj(CurrentMapIndex + 1, false);
+            Debug.Log($"[交互物体] 时间耗尽，重置地图 {CurrentMapIndex + 1} 的物体");
+        }
 
         // 比较比分
         if (RedTeamScoreCount > BlueTeamScoreCount)
@@ -566,6 +581,12 @@ public class PlayerRespawnManager : NetworkBehaviour
         {
             _isGameEnded = true;
             IsGameStart = false; // 也把开始标记关了
+
+            if (CurrentMapIndex >= 0)
+            {
+                PRCInitAllInteractObj(CurrentMapIndex + 1, false);
+                Debug.Log($"[交互物体] 比分达标，重置地图 {CurrentMapIndex + 1} 的物体");
+            }
 
             Debug.Log($"[游戏结束] {winningTeam.Value} 获胜！");
 
@@ -1224,13 +1245,13 @@ public class PlayerRespawnManager : NetworkBehaviour
         }
     }
 
-    // 新增一个公共方法，供面板打开时主动获取缓存
+
     public static NetworkPlayerInfo[] GetCachedData()
     {
         return _cachedClientData;
     }
 
-    #region 简化版：客户端退出+UI操作
+    #region 客户端退出+UI操作
     /// <summary>
     /// 全局清理方法（对外暴露）
     /// </summary>
@@ -1290,54 +1311,54 @@ public class PlayerRespawnManager : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// RPC：通知其他客户端退出
-    /// </summary>
-    [ClientRpc]
-    private void RpcNotifyAllClientsExit()
+    #endregion
+
+    #region 管理可交互的全局物体
+    public List<InteractObj> AllBaseBulletInteract_NetWorks;
+
+    //进行注册当前的所有信息
+    public void InitInteractObj(NetworkIdentity identity, int mapIndex)
     {
-        // 跳过房主
-        if (NetworkServer.active && NetworkClient.active)
-            return;
-
-        if (!NetworkClient.active)
-            return;
-
-        Debug.Log("[简化清理] RPC通知：客户端执行退出");
-
-        // 断开连接
-        NetworkManager networkManager = NetworkManager.singleton;
-        if (networkManager != null)
+        var script = identity.GetComponent<BaseBulletInteract_NetWork>();
+        if (script != null)
         {
-            networkManager.StopClient();
+            var info = new InteractObj
+            {
+                Identity = identity,
+                Script = script,
+                MapIndex = mapIndex 
+            };
+            AllBaseBulletInteract_NetWorks.Add(info);
+        }
+        else
+        {
+            Debug.LogError("传入的物体不具有BaseBulletInteract_NetWork脚本!");
+        }
+    }
+
+    /// <summary>
+    /// 通知所有客户端初始化所有的场景物体
+    /// </summary>
+    /// <param name="MapIndex">1为地图1，2为地图2</param>
+    [ClientRpc]
+    public void PRCInitAllInteractObj(int MapIndex,bool IsInit)
+    {
+        foreach (var Obj in AllBaseBulletInteract_NetWorks)
+        {
+            if (Obj.MapIndex != MapIndex)
+                continue;//继续
+
+            //统一触发所有地图物体的初始化
+            if(IsInit)
+                Obj.Script.Init();//调用初始化函数
+            else
+                Obj.Script.ResetObj();//调用对应的重置函数
         }
 
-        // 调用独立的 UI 清理方法
-        ForceCleanupUI();
     }
 
-    // 保留原有服务端数据重置（无修改）
-    [Server]
-    private void ResetAllGameData()
-    {
-        if (!NetworkServer.active) return;
-        _playerInfoList?.Clear();
-        _playerChooseMapDict?.Clear();
-        Map1ChooseCount = 0;
-        Map2ChooseCount = 0;
-        CurrentMapIndex = -1;
-        _preparedConnections?.Clear();
-        CurrentpreparaCount = 0;
-        CurrentPlayerCount = 0;
-        RedPlayerCount = 0;
-        BluePlayerCount = 0;
-        IsGameStart = false;
-        _isGameEnded = false;
-        RedTeamScoreCount = 0;
-        BlueTeamScoreCount = 0;
-        IsStart = false;
-    }
     #endregion
+
 }
 
 // 玩家当前的数据包
@@ -1360,4 +1381,12 @@ public struct NetworkPlayerInfo
     public Team Team;
     public int KillCount;
     public int DeathCount;
+}
+
+public class InteractObj
+{
+    public int MapIndex;
+    public NetworkIdentity Identity;
+    public BaseBulletInteract_NetWork Script;
+
 }

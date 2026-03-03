@@ -230,7 +230,6 @@ public class ModeChooseSystem : MonoBehaviour
         Debug.Log("确认进入多人模式");
         // 在这里添加进入多人模式的逻辑
         UImanager.Instance.ShowPanel<RoomPanel>();//打开联机房间
-        ExitSystem();
     }
 
     private void ConfirmStandalone()
