@@ -50,6 +50,7 @@ public class ModeChooseSystem : MonoBehaviour
 
     private void Awake()
     {
+      
         instance = this;
 
         // 获取Cinemachine Brain（用于控制混合速度）

@@ -1,5 +1,8 @@
+using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Playables;
+using UnityEngine.UI;
 
 public class GameStartCG : MonoBehaviour
 {
@@ -16,9 +19,30 @@ public class GameStartCG : MonoBehaviour
     [Header("第二个随机动作：举枪瞄准")]
     public float AnimaStartTime_2;//动画开始时间
     private int AnimaId=-1;
+
+    [Header("跳过功能提示面板")]
+    public float SkipTime;//跳跃动画的时间节点
+    public Button IsSkipButton;//是否跳跃
+    public CanvasGroup IsSkipPanelCanvasGroup;
+    private Sequence IsSkipPanelSequence;
+
     private void Awake()
     {
-        Instance=this;
+        //先注册一下提示消息
+        SimpleAnimatorTool.Instance.AddFadeLoopTask(IsSkipButton.GetComponentInChildren<TextMeshProUGUI>());
+        IsSkipButton.onClick.AddListener(() =>
+        {
+            //点击跳跃并关闭当前面板
+            SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(IsSkipPanelCanvasGroup, ref IsSkipPanelSequence, false, () => {
+
+                IsSkipPanelCanvasGroup.interactable = false;//无法交互
+                IsSkipPanelCanvasGroup.blocksRaycasts = false;
+                //跳过动画
+                StartTimeLine.time = SkipTime;
+            });
+
+        });
+        Instance =this;
         CountDownManager.Instance.CreateTimer(false, (int)(FirstStartTime * 1000), () => {
             Debug.Log("开始随机动画");
             AnimaId = CountDownManager.Instance.CreateTimer_Permanent(false, 6000, () =>

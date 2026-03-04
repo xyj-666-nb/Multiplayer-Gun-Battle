@@ -296,6 +296,7 @@ public class BaseGun : NetworkBehaviour
                 shootRaycastLayers
             );
 
+
             if (hit.collider != null)
             {
                 if (hit.collider.CompareTag("Player"))
@@ -312,14 +313,28 @@ public class BaseGun : NetworkBehaviour
                         hitTarget.ServerApplyDamage(gunInfo.Damage, hit.point, hit.normal, attackerStats);
                     }
                 }
+                else if (hit.collider.CompareTag("BulletInteractObj"))
+                {
+                    BaseBulletInteract_NetWork interactObj = hit.collider.GetComponent<BaseBulletInteract_NetWork>();
+
+                    if (interactObj == null)
+                    {
+                        Debug.LogError("没找到交互脚本！", hit.collider);
+                        return;
+                    }
+
+                    interactObj.CurrentHealthValue = Mathf.Max(0, interactObj.CurrentHealthValue - gunInfo.Damage);
+
+                    Debug.Log($"[BaseGun] 服务端直接扣血！目标:{hit.collider.name} | 伤害:{gunInfo.Damage} | 剩余:{interactObj.CurrentHealthValue}");
+                }
                 else if (hit.collider.CompareTag("Ground"))
                 {
                     RpcSpawnHitEffect(hit.point, hit.normal);
                 }
             }
-
             Vector2 bulletTargetPos = hit ? hit.point : (Vector2)firePoint.position + shootDir * gunInfo.Range;
-            if (isDebug) RpcDrawBulletSegment(firePoint.position, bulletTargetPos, shootDir);
+            if (isDebug)
+                RpcDrawBulletSegment(firePoint.position, bulletTargetPos, shootDir);
         }
         else
         {

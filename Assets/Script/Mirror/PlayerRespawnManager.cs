@@ -1314,7 +1314,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     #endregion
 
     #region 管理可交互的全局物体
-    public List<InteractObj> AllBaseBulletInteract_NetWorks;
+    public List<InteractObj> AllBaseBulletInteract_NetWorks=new List<InteractObj>();
 
     //进行注册当前的所有信息
     public void InitInteractObj(NetworkIdentity identity, int mapIndex)

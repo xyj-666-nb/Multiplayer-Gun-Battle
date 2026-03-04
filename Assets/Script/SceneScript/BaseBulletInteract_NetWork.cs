@@ -1,65 +1,51 @@
 using Mirror;
-using System;
 using UnityEngine;
 
-public abstract class BaseBulletInteract_NetWork : NetworkBehaviour//需要全局进行同步
+public abstract class BaseBulletInteract_NetWork : NetworkBehaviour
 {
-    [SyncVar(hook = nameof(OnChangeState))]
-    public bool IsTrigger = false;//是否触发
+    [Header("配置")]
+    public float InitHealthValue = 100;
 
+    // 完全公开，让外面直接改
+    [SyncVar(hook = nameof(OnHealthChanged))]
+    public float CurrentHealthValue = 100;
+
+    [SyncVar]
+    public bool IsTrigger = false;
+    private void Awake()
+    {
+        this.gameObject.SetActive(true);
+    }
+
+    // 只做一件事：血量变化了通知子类
+    private void OnHealthChanged(float oldVal, float newVal)
+    {
+        HealthChangeEffect(newVal);
+
+        // 服务端逻辑：血量归0
+        if (isServer && newVal <= 0 && !IsTrigger)
+        {
+            IsTrigger = true;
+            EffectTrigger();
+        }
+    }
+
+    // 初始化
     public override void OnStartServer()
     {
         base.OnStartServer();
+        CurrentHealthValue = InitHealthValue;
+        IsTrigger = false;
 
-        Transform rootTransform = transform.root;
-        string rootName = rootTransform.name;
-
-        int currentMapIndex = ExtractMapIndexFromName(rootName);
-
-        if (currentMapIndex != -1)
-        {
-            PlayerRespawnManager.Instance?.InitInteractObj(netIdentity, currentMapIndex);
-        }
-        else
-        {
-            Debug.LogError($"无法从根物体名称 '{rootName}' 中提取地图索引！请确保物体在 Map1 或 Map2 下。", this);
-        }
+        // 注册逻辑
+        int mapIndex = transform.root.name.Contains("1") ? 1 : (transform.root.name.Contains("2") ? 2 : -1);
+        if (mapIndex != -1)
+            PlayerRespawnManager.Instance?.InitInteractObj(netIdentity, mapIndex);
     }
 
-    /// <summary>
-    ///从字符串中提取地图数字
-    /// </summary>
-    private int ExtractMapIndexFromName(string name)
-    {
-
-        string numberStr = name.Replace("Map", "");
-
-        if (int.TryParse(numberStr, out int result))
-        {
-            return result;
-        }
-
-        return -1;
-    }
-
-    private void OnChangeState(bool OldValue, bool NewValue)
-    {
-        if (NewValue)
-            EffectTrigger();//触发效果
-    }
-
-    //基础子弹交互物体 
-    public abstract void Wound(Vector3 HitPos, float BulletDamage);//传入交互（子弹打中调用这个。至于什么时候触发看具体的需求）
-
-    //效果触发
+    // 子类实现
+    public abstract void HealthChangeEffect(float Health);
     public abstract void EffectTrigger();
-
-    public abstract void ResetObj();//强制实现还原函数，场景会自动在结束的时候调用重置
-
-    //初始化函数
-    public virtual void Init()
-    {
-
-    }
+    public abstract void ResetObj();
+    public abstract void Init();
 }
-
