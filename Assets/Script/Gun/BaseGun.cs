@@ -472,6 +472,9 @@ public class BaseGun : NetworkBehaviour
                 }
             }
         }
+
+        if(isLocalPlayer)//在这里加入本地屏幕震动
+          MyCameraControl.Instance.AddTimeBasedShake(gunInfo.ShackStrength,gunInfo.ShackTime);
     }
 
     private Vector2 CalculateLocalBulletScattering(Vector2 centerDir)

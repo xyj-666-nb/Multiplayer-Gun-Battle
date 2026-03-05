@@ -73,7 +73,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 10
   m_Sprite: {fileID: 1755790940, guid: a9591350e4da71b44bd18cc804f2b810, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -310,7 +310,6 @@ MonoBehaviour:
   TimeLine_Inject: {fileID: 697624540815007647}
   injectionType: 1
   _playerHand: {fileID: 0}
-  InjectionIcon: {fileID: 21300000, guid: 17996339215a5874d805527461e370c0, type: 3}
 --- !u!114 &1744961909299340748
 MonoBehaviour:
   m_ObjectHideFlags: 0

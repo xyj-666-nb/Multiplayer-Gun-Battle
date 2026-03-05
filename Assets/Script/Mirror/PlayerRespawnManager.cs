@@ -2,6 +2,7 @@ using DG.Tweening;
 using Mirror;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -499,10 +500,23 @@ public class PlayerRespawnManager : NetworkBehaviour
 
     public bool _isGameEnded = false;
 
-    [SyncVar]
+    [SyncVar(hook =nameof(OnChangeScoreValue))]
     public int RedTeamScoreCount = 0;
-    [SyncVar]
+
+    [SyncVar(hook = nameof(OnChangeScoreValue))]
     public int BlueTeamScoreCount = 0;
+    private void OnChangeScoreValue(int OldValue,int NewValue)//通过本地的钩子进行回调更新
+    {
+        if (UImanager.Instance != null)
+        {
+            GameScorePanel panel = UImanager.Instance.GetPanel<GameScorePanel>();
+            if (panel != null)
+            {
+                panel.UpdateScoreInfo();
+            }
+        }
+    }
+
     [SyncVar]
     public int GoalScoreCount = 3;//3分胜利
     [SyncVar]
@@ -511,7 +525,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     public float RemainGameTime;
 
     /// <summary>
-    /// 【客户端】剩余时间变化时的回调
+    /// 剩余时间变化时的回调
     /// </summary>
     private void OnRemainGameTimeUpdated(float oldTime, float newTime)
     {
@@ -543,23 +557,9 @@ public class PlayerRespawnManager : NetworkBehaviour
             RedTeamScoreCount++;
         else if (AddScoreTeam == Team.Blue)
             BlueTeamScoreCount++;
-
-        NoticeUIUpdate();
         CheckGameWin();
     }
 
-    [ClientRpc]
-    public void NoticeUIUpdate()
-    {
-        if (UImanager.Instance != null)
-        {
-            GameScorePanel panel = UImanager.Instance.GetPanel<GameScorePanel>();
-            if (panel != null)
-            {
-                panel.UpdateScoreInfo();
-            }
-        }
-    }
 
     public void CheckGameWin()
     {

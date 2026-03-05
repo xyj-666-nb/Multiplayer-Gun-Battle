@@ -108,4 +108,15 @@ public class GameStartCG : MonoBehaviour
         }
     }
 
+    public void UIHide()
+    {
+        //点击跳跃并关闭当前面板
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(IsSkipPanelCanvasGroup, ref IsSkipPanelSequence, false, () => {
+
+            IsSkipPanelCanvasGroup.interactable = false;//无法交互
+            IsSkipPanelCanvasGroup.blocksRaycasts = false;
+            //跳过动画
+        });
+    }
+
 }
