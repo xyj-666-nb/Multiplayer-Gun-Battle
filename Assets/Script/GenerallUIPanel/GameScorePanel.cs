@@ -1,3 +1,4 @@
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -10,7 +11,30 @@ public class GameScorePanel : BasePanel
     public TextMeshProUGUI TimeShowText;//时间显示文本
     public TextMeshProUGUI KDText;//玩家Kd显示(击杀数)
 
-    public Image TeamSprite;//队伍标
+    public Image teamSprite;//队伍标
+    public CanvasGroup MyTeamImageCanvas;
+    private Sequence MyTeamImageCanvasAnima;
+    //改变队伍标识
+    public void ChangeTeamSprite(Team teamEnum)
+    {
+        Sprite TeamSprite;
+
+        if (teamEnum == Team.Red)
+            TeamSprite = PlayerAndGameInfoManger.Instance.RedTeamSprite;//红队队伍标识
+        else
+            TeamSprite = PlayerAndGameInfoManger.Instance.BlueTeamSprite;//蓝队队伍标识
+
+        if (teamSprite.sprite == TeamSprite)
+            return;//图片一样直接返回
+
+        //触发渐变函数
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(MyTeamImageCanvas, ref MyTeamImageCanvasAnima, false, () =>
+        {
+            teamSprite.sprite = TeamSprite;
+            SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(MyTeamImageCanvas, ref MyTeamImageCanvasAnima, true, () => { });
+        });
+
+    }
 
     //更新当前的面板
     public void UpdateScoreInfo( )
@@ -26,14 +50,9 @@ public class GameScorePanel : BasePanel
 
     public void UpdateTime(float time)
     {
-        // 1. 防止负数显示
         time = Mathf.Max(0, time);
-
-        // 2. 计算分钟和秒
         int minutes = Mathf.FloorToInt(time / 60);
         int seconds = Mathf.FloorToInt(time % 60);
-
-        // 3. 格式化为 00:00 (补零)
         TimeShowText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 

@@ -232,10 +232,14 @@ MonoBehaviour:
   syncInterval: 0
   IsTackOut: 0
   IsThrown: 0
-  playerHandControl: {fileID: 0}
+  HandControl: {fileID: 0}
   MyMonster: {fileID: 0}
   TriggerTime: 2
   Duration: 1
+  explosionRadius: 4
+  maxDamage: 100
+  maxKnockbackForce: 10
+  minKnockbackForce: 3
   ExplosionPrefab: {fileID: 2734962017436586130}
   tacticType: 2
   IsInAnimation: 0

@@ -45,9 +45,19 @@ public class Player : Base_Entity
     [SyncVar]
     public string PlayerName;
 
-    [SyncVar]
+    [SyncVar(hook =nameof(OnChangeTeam))]
     public Team CurrentTeam;//当前队伍
 
+    private void OnChangeTeam(Team oldValue,Team newValue)
+    {
+        if (oldValue == newValue||!isLocalPlayer)
+            return;
+
+        //获取UI然后进行更新
+        UImanager.Instance.GetPanel<PlayerPreparaPanel>()?.ChangeTeamSprite(newValue);
+        UImanager.Instance.GetPanel<GameScorePanel>()?.ChangeTeamSprite(oldValue);
+
+    }
 
     [Command]
     public void ChangeTeam()//改变队伍

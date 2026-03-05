@@ -754,7 +754,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 12
   m_Sprite: {fileID: -853166479, guid: 98f2c18782c10594e988cff6870612d4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -832,11 +832,13 @@ MonoBehaviour:
   _currentMagazineBulletCount: 0
   _allReserveBulletCount: 0
   IsEnterAimState: 0
+  RemainingDestoryTime: 0
+  DestoryTime: 20
   ownerPlayer: {fileID: 0}
   isInPlayerHand: 0
   shootRaycastLayers:
     serializedVersion: 2
-    m_Bits: 264
+    m_Bits: 24840
   timelineDirector_Reload: {fileID: 5154253436750547491}
   timelineDirector_Shoot: {fileID: 4826485540562216406}
   gunInfo: {fileID: 11400000, guid: aebc0f97ab4b40c48a90f900a82e6ebe, type: 2}

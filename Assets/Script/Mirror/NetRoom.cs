@@ -35,7 +35,9 @@ public class NetRoom : MonoBehaviour//房间列表中每一行的UI逻辑脚本，负责显示房间
         }
         gameModeTMesh.text = $"游戏模式：{Name}";
         EnterButton.onClick.RemoveAllListeners();
-        EnterButton.onClick.AddListener(() => { UImanager.Instance.HidePanel<EnterRoomPanel>(); onJoin(uri); });//点击当前按钮就传入当前获取的Uri，然后触发传进来的加入房间的逻辑，触发进入房间
+        EnterButton.onClick.AddListener(() => { UImanager.Instance.HidePanel<EnterRoomPanel>(); onJoin(uri);
+        ModeChooseSystem.instance.ExitSystem();//退出系统
+        });//点击当前按钮就传入当前获取的Uri，然后触发传进来的加入房间的逻辑，触发进入房间
     }
     public void UpdateCount(int playerCount, int maxPlayers)
     {

@@ -9,6 +9,8 @@ TagManager:
   - cartridgeCase
   - BackGround
   - Wall
+  - Bullseye
+  - BulletInteractObj
   layers:
   - Default
   - TransparentFX
@@ -23,8 +25,8 @@ TagManager:
   - BackGround
   - Wall
   - ThrowObj
-  - 
-  - 
+  - bullseye
+  - BulletInteractObj
   - 
   - 
   - 
@@ -46,9 +48,9 @@ TagManager:
   - name: BG2
     uniqueID: 3426651571
     locked: 0
-  - name: Fluid
-    uniqueID: 1115925733
-    locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Fluid
+    uniqueID: 1115925733
     locked: 0

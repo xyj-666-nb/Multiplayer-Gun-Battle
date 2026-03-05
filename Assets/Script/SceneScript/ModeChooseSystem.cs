@@ -50,6 +50,7 @@ public class ModeChooseSystem : MonoBehaviour
 
     private void Awake()
     {
+      
         instance = this;
 
         // 获取Cinemachine Brain（用于控制混合速度）
@@ -230,7 +231,6 @@ public class ModeChooseSystem : MonoBehaviour
         Debug.Log("确认进入多人模式");
         // 在这里添加进入多人模式的逻辑
         UImanager.Instance.ShowPanel<RoomPanel>();//打开联机房间
-        ExitSystem();
     }
 
     private void ConfirmStandalone()

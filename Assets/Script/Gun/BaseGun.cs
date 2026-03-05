@@ -262,16 +262,25 @@ public class BaseGun : NetworkBehaviour
     [Command(requiresAuthority = true)]
     public void CmdStartShoot()
     {
-        if (!isServer) { Debug.LogError($"[服务器] CmdStartShoot非服务器环境！"); return; }
+        if (!isServer)
+        {
+            Debug.LogError($"[服务器] CmdStartShoot非服务器环境！");
+            return; 
+        }
         bool canShootServer = IsCanShoot();
-        if (!canShootServer) return;
+        if  (!canShootServer)
+            return;
         IsInShoot = true;
     }
 
     [Command(requiresAuthority = true)]
     public void CmdExecuteShootLogic()
     {
-        if (!isServer) { Debug.LogError($"[服务器] CmdExecuteShootLogic非服务器环境！"); return; }
+        if (!isServer) 
+        {
+            Debug.LogError($"[服务器] CmdExecuteShootLogic非服务器环境！"); 
+            return;
+        }
         _currentMagazineBulletCount = Mathf.Max(0, _currentMagazineBulletCount - 1);
 
         if (firePoint != null && gunInfo != null && ownerPlayer != null)
@@ -286,6 +295,7 @@ public class BaseGun : NetworkBehaviour
                 gunInfo.Range,
                 shootRaycastLayers
             );
+
 
             if (hit.collider != null)
             {
@@ -303,14 +313,28 @@ public class BaseGun : NetworkBehaviour
                         hitTarget.ServerApplyDamage(gunInfo.Damage, hit.point, hit.normal, attackerStats);
                     }
                 }
+                else if (hit.collider.CompareTag("BulletInteractObj"))
+                {
+                    BaseBulletInteract_NetWork interactObj = hit.collider.GetComponent<BaseBulletInteract_NetWork>();
+
+                    if (interactObj == null)
+                    {
+                        Debug.LogError("没找到交互脚本！", hit.collider);
+                        return;
+                    }
+
+                    interactObj.CurrentHealthValue = Mathf.Max(0, interactObj.CurrentHealthValue - gunInfo.Damage);
+
+                    Debug.Log($"[BaseGun] 服务端直接扣血！目标:{hit.collider.name} | 伤害:{gunInfo.Damage} | 剩余:{interactObj.CurrentHealthValue}");
+                }
                 else if (hit.collider.CompareTag("Ground"))
                 {
                     RpcSpawnHitEffect(hit.point, hit.normal);
                 }
             }
-
             Vector2 bulletTargetPos = hit ? hit.point : (Vector2)firePoint.position + shootDir * gunInfo.Range;
-            if (isDebug) RpcDrawBulletSegment(firePoint.position, bulletTargetPos, shootDir);
+            if (isDebug)
+                RpcDrawBulletSegment(firePoint.position, bulletTargetPos, shootDir);
         }
         else
         {
@@ -350,13 +374,20 @@ public class BaseGun : NetworkBehaviour
     [ClientRpc]
     private void RpcSpawnHitEffect(Vector2 hitPos, Vector2 hitNormal)
     {
-        if (hitwalleffect == null) { Debug.LogError("[打击特效] hitwalleffect 预制体未赋值！"); return; }
+        if (hitwalleffect == null)
+        { 
+            Debug.LogError("[打击特效] hitwalleffect 预制体未赋值！");
+            return;
+        }
         GameObject hitEffectObj = PoolManage.Instance.GetObj(hitwalleffect);
-        if (hitEffectObj == null) return;
+        if (hitEffectObj == null) 
+            return;
         hitEffectObj.transform.position = hitPos;
         hitEffectObj.transform.rotation = Quaternion.LookRotation(Vector3.forward, hitNormal);
         CountDownManager.Instance.CreateTimer(false, 1000, () => { PoolManage.Instance.PushObj(hitwalleffect, hitEffectObj); });
     }
+
+
 
     [ClientRpc]
     private void RpcDrawBulletSegment(Vector2 startPos, Vector2 targetPos, Vector2 shootDir)
@@ -409,9 +440,50 @@ public class BaseGun : NetworkBehaviour
     #region 客户端视觉特效逻辑
     public void PlaySingleShootVFX()
     {
-        if (applyAutoEjectCartridge) SpawnCartridgeCase();
+        if (applyAutoEjectCartridge) 
+            SpawnCartridgeCase();
         ApplyRecoil();
         MuzzleSmokeManager.Instance?.PlayMuzzleSmoke(firePoint, gunInfo);
+        
+
+        //本地靶子检测
+        if (ownerPlayer != null && ownerPlayer.isLocalPlayer && firePoint != null && gunInfo != null)
+        {
+            // 与服务器完全一致的射击方向计算，保证视觉与服务器射击无偏差
+            Vector2 firePointRightDir = firePoint.transform.right;
+            Vector2 baseDir = -firePointRightDir * ownerPlayer.FacingDir;
+            Vector2 shootDir = CalculateLocalBulletScattering(baseDir);
+
+            // 本地射线检测
+            RaycastHit2D localHit = Physics2D.Raycast(
+                firePoint.position,
+                shootDir,
+                gunInfo.Range,
+                shootRaycastLayers 
+            );
+
+            if (localHit.collider != null && localHit.collider.CompareTag("Bullseye"))
+            {
+                // 直接操作本地GameObject，无任何序列化限制
+                Bullseye localBullseye = localHit.collider.GetComponent<Bullseye>();
+                if (localBullseye != null)
+                {
+                    localBullseye.Wound(gunInfo.Damage);
+                }
+            }
+        }
+
+        if(isLocalPlayer)//在这里加入本地屏幕震动
+          MyCameraControl.Instance.AddTimeBasedShake(gunInfo.ShackStrength,gunInfo.ShackTime);
+    }
+
+    private Vector2 CalculateLocalBulletScattering(Vector2 centerDir)
+    {
+        if (gunInfo == null) return centerDir;
+        int baseAngle = 20;
+        float maxAngle = baseAngle * (1 - _localAccuracy / 100f);
+        float randomAngle = Random.Range(-maxAngle, maxAngle);
+        return Quaternion.Euler(0, 0, randomAngle) * centerDir;
     }
 
     public void handMovement_SpawnCartridgeCase_TimeLine()

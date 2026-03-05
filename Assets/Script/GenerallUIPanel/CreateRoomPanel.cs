@@ -48,8 +48,8 @@ public class CreateRoomPanel : BasePanel
                 
                 
                 });
+                ModeChooseSystem.instance.ExitSystem();//ÍË³öÏµÍ³
                 break;
-
             case "ExitButton":
                 UImanager.Instance.ShowPanel<RoomPanel>();
                 UImanager.Instance.HidePanel<CreateRoomPanel>();

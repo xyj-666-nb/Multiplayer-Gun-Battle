@@ -27,6 +27,11 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
     public FpsType CurrentFPS;
     public ScreenType CurrentScreen;
 
+    [Header("蓝队的队伍标识")]
+    public Sprite BlueTeamSprite;
+    [Header("红队的队伍标识")]
+    public Sprite RedTeamSprite;
+
 
     //增加数据
     public void AddCustomUIInfoList(PlayerCustomUIInfo info)

@@ -402,6 +402,7 @@ GameObject:
   - component: {fileID: 6844168943743090213}
   - component: {fileID: 8247813112761376461}
   - component: {fileID: 4861417169833707381}
+  - component: {fileID: 1379095734674623687}
   m_Layer: 5
   m_Name: TeamIcon
   m_TagString: Untagged
@@ -466,6 +467,18 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!225 &1379095734674623687
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5037454225131769518}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &5359028431079819576
 GameObject:
   m_ObjectHideFlags: 0
@@ -974,7 +987,8 @@ MonoBehaviour:
   BlueScoreText: {fileID: 1330755182757532365}
   TimeShowText: {fileID: 2292172947505163645}
   KDText: {fileID: 2216861164555916408}
-  TeamSprite: {fileID: 0}
+  teamSprite: {fileID: 4861417169833707381}
+  MyTeamImageCanvas: {fileID: 1379095734674623687}
 --- !u!1 &9135435332147144389
 GameObject:
   m_ObjectHideFlags: 0

@@ -43,6 +43,8 @@ public class GamePausePanel : BasePanel
                 UImanager.Instance.HidePanel<GamePausePanel>();
                 PlayerRespawnManager.Instance.CleanupAndExitGame();//退出链接
                 UImanager.Instance.ShowPanel<RoomPanel>();
+                //返回视角系统
+                ModeChooseSystem.instance.EnterSystem();
                 break;
             case "OperationSettingButton":
                 //打开自定义UI面板

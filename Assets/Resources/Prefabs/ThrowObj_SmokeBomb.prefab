@@ -128,7 +128,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3187886323673767674}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.7, y: 0.7, z: 1}
   m_ConstrainProportionsScale: 0
@@ -298,19 +298,18 @@ MonoBehaviour:
   syncInterval: 0
   IsTackOut: 0
   IsThrown: 0
-  playerHandControl: {fileID: 0}
-  tacticType: 3
+  HandControl: {fileID: 0}
+  MyMonster: {fileID: 0}
+  TriggerTime: 2
+  Duration: 8
+  explosionRadius: 4
+  maxDamage: 100
+  maxKnockbackForce: 10
+  minKnockbackForce: 3
   ExplosionPrefab: {fileID: 0}
-  ThrowObjTimeLine: {fileID: 696864521768875056}
-  SmokeTriggerTime: 2
-  SmokeDuration: 8
-  BaseSmokeRadius: 0.4
-  BaseSmokeStrength: 0.29
-  SizeDecaySpeed: 0.258
-  MaxSizeMultiplier: 2.12
-  SmokeColor: {r: 1, g: 1, b: 1, a: 1.2}
-  DrawInterval: 0.05
+  tacticType: 3
   IsInAnimation: 0
+  ThrowObjTimeLine: {fileID: 696864521768875056}
 --- !u!114 &-750005357372448155
 MonoBehaviour:
   m_ObjectHideFlags: 0

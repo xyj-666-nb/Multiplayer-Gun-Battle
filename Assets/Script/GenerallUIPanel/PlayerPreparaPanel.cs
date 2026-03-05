@@ -19,6 +19,32 @@ public class PlayerPreparaPanel : BasePanel
     public CanvasGroup GameStartCanvas;
     private Sequence GameStartCanvasAnima;
 
+    [Header("队伍标识")]
+    public Image MyTeamImage;//我的队伍标识
+    public CanvasGroup MyTeamImageCanvas;
+    private Sequence MyTeamImageCanvasAnima;
+    //改变队伍标识
+    public void ChangeTeamSprite(Team teamEnum)
+    {
+        Sprite TeamSprite;
+
+        if(teamEnum==Team.Red)
+            TeamSprite=PlayerAndGameInfoManger.Instance.RedTeamSprite;//红队队伍标识
+        else
+            TeamSprite = PlayerAndGameInfoManger.Instance.BlueTeamSprite;//蓝队队伍标识
+
+        if (MyTeamImage.sprite == TeamSprite)
+            return;//图片一样直接返回
+
+         //触发渐变函数
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(MyTeamImageCanvas, ref MyTeamImageCanvasAnima, false, () =>
+        {
+            MyTeamImage.sprite = TeamSprite;
+            SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(MyTeamImageCanvas, ref MyTeamImageCanvasAnima, true, () => { });
+        });
+     
+    }
+
     #region 生命周期
     public override void Awake()
     {
