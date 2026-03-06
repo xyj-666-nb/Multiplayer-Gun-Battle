@@ -156,7 +156,7 @@ public class ModeChooseSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// 【已更新】将所有虚拟相机优先级设为低（包含 GameVc）
+    /// 将所有虚拟相机优先级设为低（包含 GameVc）
     /// </summary>
     private void SetAllCamerasInactive()
     {

@@ -115,6 +115,8 @@ public class MyPlayerInput : NetworkBehaviour
 
         if (IsCanJump)
         {
+            //先重置速度(Y)
+            Myplayer.MyRigdboby.velocity = new Vector2(Myplayer.MyRigdboby.velocity.x,0);
             float jumpPower = Myplayer.MyHandControl != null && Myplayer.MyHandControl.IsEnterAim
                 ? MyStats.AimJumpPower
                 : MyStats.JumpPower;

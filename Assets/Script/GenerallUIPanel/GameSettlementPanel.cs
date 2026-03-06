@@ -33,7 +33,7 @@ public class GameSettlementPanel : BasePanel
        .DOScale(Vector3.one * 1.2f, 1f)
        .SetEase(Ease.OutQuad)
        .SetLink(BlueImage.gameObject);
-
+        ModeChooseSystem.instance.EnterSystem();//进入系统
     }
 
     public void TimeLineEnd()
@@ -81,9 +81,11 @@ public class GameSettlementPanel : BasePanel
         base.ClickButton(controlName);
         if(controlName== "ExitButton")
         {
+            Debug.Log("房间退出");
             //点击退出,如果是房主就关闭房间，如果是客户端就断开链接
             //返回创建界面
             PlayerRespawnManager.Instance.CleanupAndExitGame();
+            UImanager.Instance.HidePanel<GameSettlementPanel>();
         }
     }
     #endregion
