@@ -923,7 +923,7 @@ public class ArmamentPanel : BasePanel
         {
             if (InfoPack.HelmetSprite != null)
             {
-                GunSprite.sprite = InfoPack.HelmetSprite;
+                GunSprite.sprite = InfoPack.UISprite;//œ‘ æUIÕº
                 GunSprite.rectTransform.localScale = new Vector3(0.5f, 0.5f, 1);
             }
         }

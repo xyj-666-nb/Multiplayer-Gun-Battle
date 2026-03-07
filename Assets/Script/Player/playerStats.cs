@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class playerStats : CharacterStats
 {
+    [Header("自身引用")]
     public Player MyMonster;// 自身Player组件引用
+
     [Header("移动相关")]
     public float MaxYSpeed = 6f; // 最大Y轴速度
     public float MaxXSpeed = 8f; // 最大X轴速度
@@ -47,8 +49,17 @@ public class playerStats : CharacterStats
     public float ViewBuff_Bonus = 0.2f;//黄色针剂的视野提升
     public float DurationBuff_Bonus = 20f;//黄色针剂的持续时间(持续20秒)
     public float JumpBuff_MovePowerBonus = 1f;//黄色针剂的跳跃力提升(跳跃力加1)
-    // 仅保留buff激活标记，去掉原始值记录变量
+
+    // 内部私有变量
     private bool _isYellowBuffActive = false;
+
+    // [新增] 记录初始的白板属性，用于护甲计算
+    private float _originalMaxHealth;
+    private float _originalMaxXSpeed;
+
+    // 注射器动画任务ID
+    private int HealAnimaTaskId = -1;
+    public bool IsInInjectionGreenEffect = false;
 
     public override void Awake()
     {
@@ -61,6 +72,11 @@ public class playerStats : CharacterStats
                 MyMonster = GetComponentInParent<Player>();
             }
         }
+
+        // [新增] 初始化时记录原始属性（非常重要）
+        _originalMaxHealth = maxHealth;
+        _originalMaxXSpeed = MaxXSpeed;
+
         // 初始化血量
         if (isLocalPlayer || isServer)
         {
@@ -68,43 +84,99 @@ public class playerStats : CharacterStats
         }
     }
 
-    protected override void ClientHandleDeathVisual()//死亡视觉效果
+    // 获取护甲效果，现在接收具体的属性包
+    public void AddArmorEffect(ArmorInfoPack infoPack)
+    {
+        if (infoPack == null) return;
+
+        // 基于原始值计算新属性 (防止反复穿戴导致叠加)
+        maxHealth = _originalMaxHealth + infoPack.HealthAdd;
+        MaxXSpeed = _originalMaxXSpeed + infoPack.SpeedAdd;
+
+        //  回血逻辑 (只有服务器和本地玩家需要处理数值)
+        if (isLocalPlayer || isServer)
+        {
+            // 确保当前血量不超过新的最大血量，且至少回一点
+            float targetHealth = Mathf.Min(CurrentHealth + infoPack.HealthAdd, maxHealth);
+
+            // 只有血量有变化时才播动画
+            if (CurrentHealth < targetHealth)
+            {
+                HealAnimaTaskId = SimpleAnimatorTool.Instance.StartFloatLerp(CurrentHealth, targetHealth, 1f, (Value) => {
+                    if (isLocalPlayer)
+                    {
+                        // 本地玩家通过 Command 同步到服务器
+                        CmdChangeHealth(Value, Vector2.zero, Vector2.zero, null);
+                    }
+                    else if (isServer)
+                    {
+                        // 服务器直接修改当前血量
+                        CurrentHealth = Value;
+                    }
+                });
+            }
+        }
+
+        Debug.Log($"[护甲系统] 成功应用护甲 -> 血量上限: {maxHealth}, 移速加成: {infoPack.SpeedAdd}");
+    }
+
+    // 移除护甲效果，接收旧的属性包
+    public void RemoveArmorEffect(ArmorInfoPack oldInfoPack)
+    {
+        if (oldInfoPack == null) 
+            return;
+
+        // 直接恢复到原始属性
+        maxHealth = _originalMaxHealth;
+        MaxXSpeed = _originalMaxXSpeed;
+
+        // 处理血量溢出 (如果当前血量比原始最大血量还高，强制修正)
+        if (isLocalPlayer || isServer)
+        {
+            if (CurrentHealth > maxHealth)
+            {
+                CurrentHealth = maxHealth;
+                if (isLocalPlayer)
+                {
+                    CmdChangeHealth(CurrentHealth, Vector2.zero, Vector2.zero, null);
+                }
+            }
+        }
+
+        Debug.Log($"[护甲系统] 成功移除护甲 -> 血量上限恢复至: {maxHealth}");
+    }
+
+    protected override void ClientHandleDeathVisual()
     {
         base.ClientHandleDeathVisual();
     }
 
     /// <summary>
-    /// 受伤特效（也是通过钩子在所有的客户端执行）
+    /// 受伤特效（所有客户端执行）
     /// </summary>
-    /// <param name="ColliderPoint">击中的点</param>
-    /// <param name="hitNormal">受击的方向</param>
-    /// <param name="attacker">攻击者</param>
-    public override void RpcPlayWoundEffect(Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)//受伤触发的函数（所有客户端都会执行）
+    public override void RpcPlayWoundEffect(Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
     {
         base.RpcPlayWoundEffect(ColliderPoint, hitNormal, attacker);
 
-        //执行受击击退力
+        // 执行受击击退力
         if (attacker != null)
         {
             var attacker_ = attacker as playerStats;
             float knockbackDirection = Mathf.Sign(transform.position.x - attacker.transform.position.x);
             if (MyMonster?.MyRigdboby != null && attacker_?.MyMonster?.currentGun?.gunInfo != null)
             {
-                MyMonster.MyRigdboby.AddForce(new Vector2(knockbackDirection * attacker_.MyMonster.currentGun.gunInfo.Recoil_Enemy, 0), ForceMode2D.Impulse);//设置击退力
+                MyMonster.MyRigdboby.AddForce(new Vector2(knockbackDirection * attacker_.MyMonster.currentGun.gunInfo.Recoil_Enemy, 0), ForceMode2D.Impulse);
             }
 
-            //本地进行震屏
+            // 本地进行震屏
             if (isLocalPlayer && MyCameraControl.Instance != null)
             {
-                MyCameraControl.Instance.AddTimeBasedShake(attacker_.MyMonster.currentGun.gunInfo.ShackStrength_Enemy, attacker_.MyMonster.currentGun.gunInfo.ShackTime_Enemy);//对自己进行震动
+                MyCameraControl.Instance.AddTimeBasedShake(attacker_.MyMonster.currentGun.gunInfo.ShackStrength_Enemy, attacker_.MyMonster.currentGun.gunInfo.ShackTime_Enemy);
             }
         }
     }
 
     //————————————注射器效果————————————
-    private int HealAnimaTaskId = -1;//注射器动画的任务ID，防止重复触发动画
-    public bool IsInInjectionGreenEffect = false;//是否正在绿色注射器的效果中
-
     [ClientRpc]
     public void TriggerEffect_Injection(TacticType injectionType)
     {
@@ -112,38 +184,35 @@ public class playerStats : CharacterStats
         {
             case TacticType.Green_injection:
                 Debug.Log($"[本地玩家] 触发绿色针剂回血");
-                if (isLocalPlayer)//数值上面的回血是只有自己执行，而颜色的动画是共有的
+                if (isLocalPlayer)
                 {
                     // 触发回血
                     HealAnimaTaskId = SimpleAnimatorTool.Instance.StartFloatLerp(CurrentHealth, maxHealth, InjectionHealTime * 2 + StayTime, (Value) => {
                         CmdChangeHealth(Value, Vector2.zero, Vector2.zero, null);
                     });
                     IsInInjectionGreenEffect = true;
-                    //触发BuffUI
+                    // 触发BuffUI
                     UImanager.Instance.GetPanel<PlayerPanel>()?.CreateBuff(MilitaryManager.Instance.GetTacticUISprite(injectionType), InjectionHealTime * 2 + StayTime);
                 }
-
                 InjectionColorAnima(HealAnimaColor);
                 break;
 
             case TacticType.Yellow_injection:
                 Debug.Log($"[本地玩家] 触发黄色针剂速度buff");
-                if (isLocalPlayer && !_isYellowBuffActive) // 防止重复激活buff
+                if (isLocalPlayer && !_isYellowBuffActive)
                 {
-                    movePower += SpeedBuff_MovePowerBonus; // 基础移动力提升
-                    MaxXSpeed += MaxSpeedBuff_Bonus; // 基础最大速度提升
-                    AimMovePower += SpeedBuff_MovePowerBonus; // 瞄准状态移动力提升
-                    AimMoveMaxSpeed += MaxSpeedBuff_Bonus; // 瞄准状态最大速度提升
-                    JumpPower += JumpBuff_MovePowerBonus; // 基础跳跃力小幅提升（可自定义比例）
-                    AimJumpPower += JumpBuff_MovePowerBonus; // 瞄准状态跳跃力小幅提升
-                    AimViewBonus += ViewBuff_Bonus; // 视野提升
+                    movePower += SpeedBuff_MovePowerBonus;
+                    MaxXSpeed += MaxSpeedBuff_Bonus;
+                    AimMovePower += SpeedBuff_MovePowerBonus;
+                    AimMoveMaxSpeed += MaxSpeedBuff_Bonus;
+                    JumpPower += JumpBuff_MovePowerBonus;
+                    AimJumpPower += JumpBuff_MovePowerBonus;
+                    AimViewBonus += ViewBuff_Bonus;
 
-                    // 标记buff已激活
                     _isYellowBuffActive = true;
 
                     CountDownManager.Instance.CreateTimer(false, (int)(DurationBuff_Bonus * 1000), () =>
                     {
-                        // 减去固定加成值，恢复原始数值
                         movePower -= SpeedBuff_MovePowerBonus;
                         MaxXSpeed -= MaxSpeedBuff_Bonus;
                         AimMovePower -= SpeedBuff_MovePowerBonus;
@@ -158,7 +227,6 @@ public class playerStats : CharacterStats
 
                     UImanager.Instance.GetPanel<PlayerPanel>()?.CreateBuff(MilitaryManager.Instance.GetTacticUISprite(injectionType), DurationBuff_Bonus);
                 }
-
                 InjectionColorAnima(SpeedAnimaColor);
                 break;
         }
@@ -186,7 +254,7 @@ public class playerStats : CharacterStats
     public override void Death(CharacterStats killer)
     {
         base.Death(killer);
-        if(MyMonster.currentGun!=null)
+        if (MyMonster.currentGun != null)
         {
             MyMonster.currentGun.CmdForceDiscardGun();
         }

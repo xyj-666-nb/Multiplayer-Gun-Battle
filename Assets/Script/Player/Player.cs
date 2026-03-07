@@ -34,15 +34,27 @@ public class Player : Base_Entity
     public PlayableDirector TimeLine_Helmet;//头盔动画
 
     //本地钩子
-    private void OnChangeArmorState(ArmorType OldType, ArmorType NewType )
+    private void OnChangeArmorState(ArmorType OldType, ArmorType NewType)
     {
-        //进行触发护甲置换(通知其他人我这个动作)
-        var InfoPack= MilitaryManager.Instance.GetArmorInfoPack(NewType);//获取信息
-        //直接进行赋值(图片赋值)
-        ArmorSprite.sprite = InfoPack.ArmorSprite;
-        HelmetSprite.sprite = InfoPack.HelmetSprite;
-        CurrentArmorType = NewType;//进行一次赋值
-        WearArmorAnimatorStart();//播放动画
+        if (myStats == null) myStats = GetComponent<playerStats>();
+
+        if (OldType != ArmorType.Empty_handed)
+        {
+            var oldInfo = MilitaryManager.Instance.GetArmorInfoPack(OldType);
+            myStats.RemoveArmorEffect(oldInfo); // 把旧属性传进去
+        }
+        var newInfo = MilitaryManager.Instance.GetArmorInfoPack(NewType);
+
+        if (ArmorSprite != null) ArmorSprite.sprite = newInfo.ArmorSprite;
+        if (HelmetSprite != null) HelmetSprite.sprite = newInfo.HelmetSprite;
+
+        if (NewType != ArmorType.Empty_handed)
+        {
+            myStats.AddArmorEffect(newInfo);
+        }
+
+        // 6. 播放动画
+        WearArmorAnimatorStart();
     }
 
     public void WearArmorAnimatorStart()

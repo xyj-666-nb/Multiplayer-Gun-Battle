@@ -279,7 +279,7 @@ public class EquipmentConfigurationPanel : BasePanel
         //¸üÐÂ»¤¼×
         ArmorInfoPack.NameText.text = InfoPack.armorName;
         ArmorInfoPack.DescriptionText.text = InfoPack.armorDescription;
-        ArmorInfoPack.IconImage.sprite= InfoPack.HelmetSprite;
+        ArmorInfoPack.IconImage.sprite= InfoPack.UISprite;
 
     }
     #endregion

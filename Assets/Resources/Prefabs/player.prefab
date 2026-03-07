@@ -445,26 +445,26 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  maxHealth: 1000
+  maxHealth: 150
   CurrentHealth: 0
   IsDead: 0
   MaxBllomSpeed: 1
   MinBllomSpeed: 2
   BllomAmount: 10
   MyMonster: {fileID: 7290517828809082464}
-  MaxYSpeed: 4
-  MaxXSpeed: 4
+  MaxYSpeed: 3.5
+  MaxXSpeed: 3.5
   MaxYStretch: 0.3
   MaxXStretch: 0.2
   MoveBumpyRange: 0.1
   MoveBumpySpeed: 8
   movePower: 2
-  JumpPower: 8
-  WallJumpPower_Up: 4
-  WallJumpPower_Side: 6
+  JumpPower: 6
+  WallJumpPower_Up: 3
+  WallJumpPower_Side: 4
   AimMovePower: 0.5
   AimMoveMaxSpeed: 1.5
-  AimJumpPower: 3
+  AimJumpPower: 1.6
   AimAccuracyBonus: 0.5
   AimRecoilBonus: 0.3
   AimViewBonus: 0.3

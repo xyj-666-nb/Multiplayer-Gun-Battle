@@ -1,3 +1,4 @@
+using Cinemachine;
 using Mirror;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -15,6 +16,22 @@ public class Main : SingleMonoAutoBehavior<Main>
     public PlayableDirector StartTimeLine;
 
     public GameStartCG CG;
+    public CinemachineBrain brain;
+    public CinemachineVirtualCamera AnimaVC;//动画虚拟相机
+
+    public void SwitchToAnimaVCFast()
+    {
+        if (AnimaVC == null) return;
+
+        AnimaVC.Priority = 999; // 优先级拉满
+        AnimaVC.MoveToTopOfPrioritySubqueue(); // 强制插队到最前面
+        if (brain != null)
+        {
+            // 设置过渡时间：0.1秒 (你也可以设为 0 表示瞬间切)
+            brain.m_DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.EaseInOut, 0.001f);
+            Debug.Log("已切换到 AnimaVC，快速转场");
+        }
+    }
 
     protected override void Awake()
     {
@@ -129,6 +146,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         Developer_GUITestManger.Instance.RegisterGuiButton("进入飞机视角", () => { MapChooseWall.Instance.EnterhelicopterVC(); });
         Developer_GUITestManger.Instance.RegisterGuiButton("播放第一个动画", () => { CG.PlayAnima1(); });
         Developer_GUITestManger.Instance.RegisterGuiButton("播放第二个动画", () => { CG.PlayAnima2(); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("播放场景二动画", () => { Map2StartAnimaCG.Instance.TimeLine.Play(); SwitchToAnimaVCFast();UImanager.Instance.GetPanel<PlayerPanel>().SimpleHidePanel(); });
     }
 
     private void Update()
