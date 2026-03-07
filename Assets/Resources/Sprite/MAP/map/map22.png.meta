@@ -958,7 +958,7 @@ TextureImporter:
         width: 4
         height: 292
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -966,6 +966,48 @@ TextureImporter:
       bones: []
       spriteID: 11b365589beb95d479da85bd193c604b
       internalID: -1690926538
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: map22_41
+      rect:
+        serializedVersion: 2
+        x: 2398
+        y: 698
+        width: 138
+        height: 21
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e945d407ed1d4174f9a5a9e000be4c9d
+      internalID: -1257140037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: map22_42
+      rect:
+        serializedVersion: 2
+        x: 2596
+        y: 696
+        width: 22
+        height: 131
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8a9c4cecdaab5a5459bf3a95876e0fd6
+      internalID: -1865564388
       vertices: []
       indices: 
       edges: []
@@ -1017,6 +1059,8 @@ TextureImporter:
       map22_39: 2000701639
       map22_4: -1945675272
       map22_40: -1690926538
+      map22_41: -1257140037
+      map22_42: -1865564388
       map22_5: 1662030573
       map22_6: -1771190737
       map22_7: 1787726799
