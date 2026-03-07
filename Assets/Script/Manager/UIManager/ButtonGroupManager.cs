@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using UnityEngine.EventSystems; // 新增：用于EventTrigger
 
 /// <summary>
 /// 按钮组管理器
@@ -477,6 +478,49 @@ public class RadioButton
 
         _animaSequence?.Kill();
         _animaSequence = DOTween.Sequence();
+
+        // 新增：添加按压动画监听
+        AddPressEventTrigger(button);
+    }
+
+    // 新增：添加EventTrigger监听按下/抬起
+    private void AddPressEventTrigger(Button button)
+    {
+        EventTrigger trigger = button.GetComponent<EventTrigger>();
+        if (trigger == null)
+            trigger = button.gameObject.AddComponent<EventTrigger>();
+
+        // PointerDown事件：按下缩小
+        EventTrigger.Entry downEntry = new EventTrigger.Entry();
+        downEntry.eventID = EventTriggerType.PointerDown;
+        downEntry.callback.AddListener((data) => PlayPressAnima());
+        trigger.triggers.Add(downEntry);
+
+        // PointerUp事件：松开恢复
+        EventTrigger.Entry upEntry = new EventTrigger.Entry();
+        upEntry.eventID = EventTriggerType.PointerUp;
+        upEntry.callback.AddListener((data) => PlayReleaseAnima());
+        trigger.triggers.Add(upEntry);
+    }
+
+    // 新增：按下动画（缩小到0.95）
+    private void PlayPressAnima()
+    {
+        if (_rt == null) return;
+
+        _animaSequence?.Kill();
+        _animaSequence = DOTween.Sequence()
+            .Append(_rt.DOScale(0.95f, 0.1f).SetEase(Ease.OutQuad));
+    }
+
+    // 新增：松开动画（恢复原始大小）
+    private void PlayReleaseAnima()
+    {
+        if (_rt == null) return;
+
+        _animaSequence?.Kill();
+        _animaSequence = DOTween.Sequence()
+            .Append(_rt.DOScale(_originalScale, 0.1f).SetEase(Ease.OutQuad));
     }
 
     private void PlayChooseAnima()
@@ -660,6 +704,46 @@ public class ToggleButton
 
         _animationSequence?.Kill();
         _animationSequence = DOTween.Sequence();
+
+        // 新增：添加按压动画监听
+        AddPressEventTrigger(button);
+    }
+
+    private void AddPressEventTrigger(Button button)
+    {
+        EventTrigger trigger = button.GetComponent<EventTrigger>();
+        if (trigger == null)
+            trigger = button.gameObject.AddComponent<EventTrigger>();
+
+        // PointerDown事件：按下缩小
+        EventTrigger.Entry downEntry = new EventTrigger.Entry();
+        downEntry.eventID = EventTriggerType.PointerDown;
+        downEntry.callback.AddListener((data) => PlayPressAnima());
+        trigger.triggers.Add(downEntry);
+
+        // PointerUp事件：松开恢复
+        EventTrigger.Entry upEntry = new EventTrigger.Entry();
+        upEntry.eventID = EventTriggerType.PointerUp;
+        upEntry.callback.AddListener((data) => PlayReleaseAnima());
+        trigger.triggers.Add(upEntry);
+    }
+
+    private void PlayPressAnima()
+    {
+        if (_rt == null) return;
+
+        _animationSequence?.Kill();
+        _animationSequence = DOTween.Sequence()
+            .Append(_rt.DOScale(0.95f, 0.1f).SetEase(Ease.OutQuad));
+    }
+
+    private void PlayReleaseAnima()
+    {
+        if (_rt == null) return;
+
+        _animationSequence?.Kill();
+        _animationSequence = DOTween.Sequence()
+            .Append(_rt.DOScale(_originalScale, 0.1f).SetEase(Ease.OutQuad));
     }
 
     /// <summary>切换选中状态）</summary>

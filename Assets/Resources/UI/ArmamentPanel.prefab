@@ -2217,6 +2217,17 @@ MonoBehaviour:
   TacticSlotButtonList:
   - {fileID: 7650700611399367170}
   - {fileID: 1387192244583564097}
+  CurrentChooseGunInfo: {fileID: 0}
+  CurrentChooseTacticInfo: {fileID: 0}
+  CurrentChooseArmorInfoPack:
+    armorType: 0
+    armorName: 
+    armorDescription: 
+    HelmetSprite: {fileID: 0}
+    ArmorSprite: {fileID: 0}
+    UISprite: {fileID: 0}
+    HealthAdd: 0
+    SpeedAdd: 0
 --- !u!1 &3734501907857524745
 GameObject:
   m_ObjectHideFlags: 0

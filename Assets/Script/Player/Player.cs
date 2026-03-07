@@ -1,5 +1,7 @@
+using DG.Tweening;
 using Mirror;
 using UnityEngine;
+using UnityEngine.Playables;
 
 public class Player : Base_Entity
 {
@@ -20,6 +22,50 @@ public class Player : Base_Entity
 
     [Header("当前玩家触碰到的枪械")]
     public BaseGun CurrentTouchGun;
+
+    [Header("当前玩家穿戴的护甲")]
+    [SyncVar(hook =(nameof(OnChangeArmorState)))]
+    public ArmorType CurrentArmorType= ArmorType.Empty_handed;
+
+    [Header("护甲控制")]
+    public SpriteRenderer ArmorSprite;//护甲图片
+    public SpriteRenderer HelmetSprite;//头盔图片
+    [Header("护甲动画")]
+    public PlayableDirector TimeLine_Helmet;//头盔动画
+
+    //本地钩子
+    private void OnChangeArmorState(ArmorType OldType, ArmorType NewType )
+    {
+        //进行触发护甲置换(通知其他人我这个动作)
+        var InfoPack= MilitaryManager.Instance.GetArmorInfoPack(NewType);//获取信息
+        //直接进行赋值(图片赋值)
+        ArmorSprite.sprite = InfoPack.ArmorSprite;
+        HelmetSprite.sprite = InfoPack.HelmetSprite;
+        CurrentArmorType = NewType;//进行一次赋值
+        WearArmorAnimatorStart();//播放动画
+    }
+
+    public void WearArmorAnimatorStart()
+    {
+        //触发动画
+        TimeLine_Helmet.time = 0;//重新播放
+        TimeLine_Helmet.Play();//进行播放
+        ArmorSprite.DOKill();//销毁动画
+        ArmorSprite.color = ColorManager.SetColorAlpha( ArmorSprite.color, 0);
+        ArmorSprite.DOFade(1, 1.5f);//播放护甲显示
+    }
+
+    public void getArmor(ArmorType Type)
+    {
+        CmdGetArmor(Type);
+    }
+
+    //获取护甲
+    [Command]
+    public void CmdGetArmor(ArmorType Type)
+    {
+        CurrentArmorType= Type;
+    }
 
     [Header("准备状态")]
     [SyncVar]

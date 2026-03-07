@@ -22,6 +22,7 @@ public class SlotInfoPack
     //然后就是战术道具1，2以及护甲信息类了
     public TacticInfo CurrentTactic_1Info;//当前战术道具1信息
     public TacticInfo CurrentTactic_2Info;//当前战术道具2信息
+    public ArmorType CurrentArmorType;//护甲类型
 }
 #endregion
 
@@ -234,6 +235,7 @@ public class EquipmentConfigurationPanel : BasePanel
                 break;
             case "Armor_Button":
                 //点击了护甲按钮，进行相应的逻辑处理
+                EquipmentDescriptionText.text = MilitaryManager.Instance.GetArmorInfoPack(_currentSlotInfoPack.CurrentArmorType).armorDescription;//更新文本
                 break;
             default:
                 Debug.LogWarning($"未知的装备按钮名称：{ButtonName}");
@@ -273,8 +275,12 @@ public class EquipmentConfigurationPanel : BasePanel
             Tactical_2_InfoPack.NameText.text = slotInfoPack.CurrentTactic_2Info.Name;
             Tactical_2_InfoPack.IconImage.sprite = slotInfoPack.CurrentTactic_2Info.UISprite;
         }
-
+        var InfoPack = MilitaryManager.Instance.GetArmorInfoPack(slotInfoPack.CurrentArmorType);
         //更新护甲
+        ArmorInfoPack.NameText.text = InfoPack.armorName;
+        ArmorInfoPack.DescriptionText.text = InfoPack.armorDescription;
+        ArmorInfoPack.IconImage.sprite= InfoPack.HelmetSprite;
+
     }
     #endregion
 

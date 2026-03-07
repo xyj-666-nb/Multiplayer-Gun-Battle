@@ -268,6 +268,23 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//枪械管理
         }
     }
     #endregion
+
+    #region 护甲管理
+    public List<ArmorInfoPack> ArmorInfoPackList;//护甲管理包
+
+    public ArmorInfoPack GetArmorInfoPack(ArmorType Type)//获取护甲管理包
+    {
+        foreach(var InfoPack in ArmorInfoPackList)
+        {
+            if(InfoPack.armorType== Type)
+            {
+                return InfoPack;
+            }
+        }
+        Debug.Log("未找到名为" + Type.ToString() + "的护甲包");
+        return null;
+    }
+    #endregion
 }
 
 #region 枚举定义
@@ -302,4 +319,33 @@ public enum TacticBigType
     injection,  // 针剂类
     throwobj    // 投掷物类
 }
+
+[System.Serializable]
+public enum ArmorType
+{
+    Empty_handed,//空手
+    Army_Heavy,//陆军——重型
+    Navy_Balanced,//海军——均衡
+    AirForce_Light,//空军——轻型
+}
+
 #endregion
+[System.Serializable]
+public class ArmorInfoPack
+{
+    //护甲信息包
+    [Header("护甲类型以及名字")]
+    public ArmorType armorType;
+    public string armorName;
+    [Header("护甲的描述")]
+    [TextArea(3, 8)]
+    public string armorDescription;
+    [Header("护甲图片")]
+    public Sprite HelmetSprite;//头盔图片
+    public Sprite ArmorSprite;//护甲图片
+    [Header("护甲UI图片")]
+    public Sprite UISprite;//护甲UI图片
+    [Header("数值加成")]
+    public float HealthAdd;//生命力加成
+    public float SpeedAdd;//速度加成
+}

@@ -63,15 +63,17 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         CurrentSlotInfoPack = PlayerSlotInfoPacksList[listIndex];//进行赋值
 
     }
-
     public void EquipCurrentSlot()
     {
+        //拿取护甲
+        Player.LocalPlayer.CmdGetArmor(CurrentSlotInfoPack.CurrentArmorType);//根据信息获取数据
+        //先进行为期1.5秒的护甲置换
+        CountDownManager.Instance.CreateTimer(false, 1500, () => {
         //装备当前枪械以及投掷物
         Player.LocalPlayer.SpawnAndPickGun(CurrentSlotInfoPack.CurrentGunInfo.Name);//获取枪械
-        //更新投掷物
         PlayerTacticControl.Instance?.UpdateCurrentTactic();//进行UI交互的更新
-        //触发战术道具的交互
-        PlayerTacticControl.Instance.SetTacticControl(true);
+        PlayerTacticControl.Instance.SetTacticControl(true);//触发战术道具的交互
+        });
     }
 
    
