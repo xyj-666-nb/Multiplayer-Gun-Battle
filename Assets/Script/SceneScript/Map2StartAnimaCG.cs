@@ -66,6 +66,11 @@ public class Map2StartAnimaCG : MonoBehaviour
         }
     }
 
+    public void SetExit()
+    {
+        AnimaVC.Priority = -10;
+    }
+
     /// <summary>
     /// 启动剧烈震动 (1秒后自动停止)
     /// </summary>

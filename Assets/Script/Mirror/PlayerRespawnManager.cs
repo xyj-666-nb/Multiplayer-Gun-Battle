@@ -370,7 +370,6 @@ public class PlayerRespawnManager : NetworkBehaviour
     [Server]
     public void CheckGameAllowStar()
     {
-        // 核心修改：游戏已经开始，直接跳过所有准备状态判断
         if (IsGameStart)
         {
             Debug.Log("[Room] 游戏已开始，跳过准备状态检查");
@@ -662,7 +661,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     [Command(requiresAuthority = false)]
     public void CmdRequestDecideFinalMap()
     {
-        DecideFinalMap();
+        DecideFinalMap();//返回胜利地图
     }
 
     [Server]
@@ -673,7 +672,7 @@ public class PlayerRespawnManager : NetworkBehaviour
             PlayerAndGameInfoManger.Instance.AllMapInfoList.Count < 2)
         {
             Debug.LogError("[地图判定] PlayerAndGameInfoManger 或地图列表未准备好！");
-            return;
+            return ;
         }
 
         int finalMapIndex = 0;
@@ -1142,6 +1141,8 @@ public class PlayerRespawnManager : NetworkBehaviour
         }
 
         Debug.Log("[传送] 所有客户端传送通知发送完成！");
+        //进行地图的一个初始化
+        PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentMapIndex].MapInit();//地图初始化
     }
 
     [TargetRpc]

@@ -253,6 +253,9 @@ public class playerStats : CharacterStats
 
     public override void Death(CharacterStats killer)
     {
+        if (!PlayerRespawnManager.Instance.IsGameStart)
+            return;//游戏如果没开始就无法死亡
+
         base.Death(killer);
         if (MyMonster.currentGun != null)
         {

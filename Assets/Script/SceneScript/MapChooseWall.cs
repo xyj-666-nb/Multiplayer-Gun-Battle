@@ -14,6 +14,8 @@ public class MapChooseWall : MonoBehaviour
     public CinemachineVirtualCamera map1VC;
     public CinemachineVirtualCamera map2VC;
     public CinemachineVirtualCamera helicopterVC;
+    public CinemachineVirtualCamera Map2SceneVC;//地图2的转场摄像机
+    public CinemachineVirtualCamera Scene2RealVac;//地图2的真实游戏相机
 
     [Header("===== UI组件赋值 =====")]
     [Header("主视角相关UI")]
@@ -77,7 +79,6 @@ public class MapChooseWall : MonoBehaviour
     [Header("面板持续时间")]
     public float Duration = 20;
 
-    public int CurrentChooseMap = 1;
 
     private Sequence _countdownColorSequence;
 
@@ -99,9 +100,47 @@ public class MapChooseWall : MonoBehaviour
         CountDownCanvasGroup.alpha = 0;
     }
 
+    // 【修复】TriggerMapAnima：加安全检查，统一相机切换逻辑
     public void TriggerMapAnima()
     {
-        PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentChooseMap - 1].TriggerAnima();//触发动画（播放对应的动画）
+        // 1. 基础安全检查
+        if (PlayerRespawnManager.Instance == null)
+        {
+            Debug.LogError("【TriggerMapAnima】PlayerRespawnManager 单例为空！");
+            return;
+        }
+        if (PlayerAndGameInfoManger.Instance == null)
+        {
+            Debug.LogError("【TriggerMapAnima】PlayerAndGameInfoManger 单例为空！");
+            return;
+        }
+
+        int mapIndex = PlayerRespawnManager.Instance.CurrentMapIndex;
+        Debug.Log($"【TriggerMapAnima】当前地图索引：{mapIndex}");
+
+        // 2. 列表安全检查
+        var mapList = PlayerAndGameInfoManger.Instance.AllMapManagerList;
+        if (mapList == null || mapList.Count == 0)
+        {
+            Debug.LogError("【TriggerMapAnima】AllMapManagerList 列表为空！请检查 Inspector 赋值。");
+            return;
+        }
+        if (mapIndex < 0 || mapIndex >= mapList.Count)
+        {
+            Debug.LogError($"【TriggerMapAnima】索引越界！索引：{mapIndex}，列表数量：{mapList.Count}");
+            return;
+        }
+
+        // 3. 相机切换逻辑
+        if (mapIndex == 1) // 地图2
+        {
+            SetCinemachineBlendTime(0f);
+            SwitchCamera(CameraView.MapScene2Real, Scene2RealVac);
+        }
+        // 地图1不需要额外切相机，保持在 Helicopter 即可
+
+        // 4. 触发动画
+        mapList[mapIndex].TriggerAnima();
     }
 
     void Start()
@@ -169,8 +208,8 @@ public class MapChooseWall : MonoBehaviour
     /// </summary>
     private void OnCountdownFinished()
     {
-        Debug.Log("倒计时结束，进入直升机视角");
-        EnterhelicopterVC();
+        //根据系统的选择进入对应的摄像机视角
+        EnterVC();
     }
     #endregion
 
@@ -295,16 +334,19 @@ public class MapChooseWall : MonoBehaviour
         MainCanvasGroup.blocksRaycasts = true;
     }
 
+    // 【修复】ExitMapChooseSystem：确保直接切回 PlayerVC，统一相机重置
     public void ExitMapChooseSystem()
     {
         SetCinemachineBlendTime(defaultBlendTime);
-        Debug.Log("退出地图选择系统");
+        Debug.Log("退出地图选择系统，直接切回玩家视角");
+
+        // 直接切换到玩家视角
         SwitchToPlayerView();
+
         HideAllMapChooseUI();
         // 退出系统时才清空选中状态
         _selectedMap = null;
         UImanager.Instance.GetPanel<PlayerPanel>().SimpleShowPanel();
-
         _countdownColorSequence?.Kill();
     }
     #endregion
@@ -350,14 +392,38 @@ public class MapChooseWall : MonoBehaviour
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(ConfirmButton_Map2, ref Map2Anima, false, () => { ConfirmButton_Map2.gameObject.SetActive(false); });
     }
 
-    public void EnterhelicopterVC()//进入直升机视角
+    public void EnterVC()//进入转场视角
     {
         PlayerRespawnManager.Instance.CmdRequestDecideFinalMap();//判断地图
-        SetCinemachineBlendTime(defaultBlendTime + 3f); // 比默认慢1秒
-        SwitchCamera(CameraView.Helicopter, helicopterVC);
-        CountDownManager.Instance.CreateTimer(false,(int)((defaultBlendTime + 3.5f)*1000), () => {
-            //播放动画
-            TriggerMapAnima();
+        //等待0.1秒给与时间
+        CountDownManager.Instance.CreateTimer(false, 100, () => {
+            SetCinemachineBlendTime(defaultBlendTime + 3f); // 比默认慢1秒
+            if (PlayerRespawnManager.Instance.CurrentMapIndex == 0)
+                SwitchCamera(CameraView.Helicopter, helicopterVC);
+            else
+                SwitchCamera(CameraView.MapScene2, Map2SceneVC);
+            CountDownManager.Instance.CreateTimer(false, (int)((defaultBlendTime + 3.5f) * 1000), () => {
+                //播放动画
+                TriggerMapAnima();
+            });
+        });
+
+    }
+
+    public void TestScene2()
+    {
+        SwitchCamera(CameraView.MapScene2, Map2SceneVC);
+        CountDownManager.Instance.CreateTimer(false, (int)((defaultBlendTime + 3.5f) * 1000), () => {
+            // 安全检查
+            if (PlayerAndGameInfoManger.Instance == null || PlayerAndGameInfoManger.Instance.AllMapManagerList.Count < 2)
+            {
+                Debug.LogError("【TestScene2】AllMapManagerList 元素不足！");
+                return;
+            }
+
+            PlayerAndGameInfoManger.Instance.AllMapManagerList[1].TriggerAnima();
+            SetCinemachineBlendTime(0f);
+            SwitchCamera(CameraView.MapScene2Real, Scene2RealVac);
         });
     }
 
@@ -382,6 +448,8 @@ public class MapChooseWall : MonoBehaviour
             case CameraView.Map1:
             case CameraView.Map2:
             case CameraView.Helicopter:
+            case CameraView.MapScene2:
+            case CameraView.MapScene2Real:
                 ReturnToMapSelectFromMapView();
                 break;
             case CameraView.MapSelect:
@@ -482,7 +550,8 @@ public class MapChooseWall : MonoBehaviour
     #region 动画控制
     private void StartMainPromptFadeAnimation()
     {
-        if (MainPromptImage == null) return;
+        if (MainPromptImage == null)
+            return;
 
         StopMainPromptFadeAnimation();
         SetImageAlpha(MainPromptImage, minAlpha);
@@ -574,11 +643,20 @@ public class MapChooseWall : MonoBehaviour
 
     private void SetAllCameraInactive()
     {
-        if (playerVC != null) playerVC.Priority = _inactivePriority;
-        if (mapSelectVC != null) mapSelectVC.Priority = _inactivePriority;
-        if (map1VC != null) map1VC.Priority = _inactivePriority;
-        if (map2VC != null) map2VC.Priority = _inactivePriority;
-        if (helicopterVC != null) helicopterVC.Priority = _inactivePriority;
+        if (playerVC != null)
+            playerVC.Priority = _inactivePriority;
+        if (mapSelectVC != null)
+            mapSelectVC.Priority = _inactivePriority;
+        if (map1VC != null)
+            map1VC.Priority = _inactivePriority;
+        if (map2VC != null)
+            map2VC.Priority = _inactivePriority;
+        if (helicopterVC != null)
+            helicopterVC.Priority = _inactivePriority;
+        if (Map2SceneVC != null)
+            Map2SceneVC.Priority = _inactivePriority;
+        if (Scene2RealVac != null)
+            Scene2RealVac.Priority = _inactivePriority;
     }
 
     // UI显隐/交互的简化方法
@@ -632,5 +710,7 @@ public enum CameraView
     MapSelect,
     Map1,
     Map2,
-    Helicopter
+    Helicopter,
+    MapScene2,
+    MapScene2Real
 }

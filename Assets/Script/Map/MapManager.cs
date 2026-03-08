@@ -33,6 +33,8 @@ public class MapManager : MonoBehaviour
     private float _targetAmplitude; // 目标震动强度
     private bool _isShaking; // 是否正在震动
 
+    public List<Elevator> ElevatorListInit;//初始化升降电梯
+
     private void Awake()
     {
         // 初始化：获取/添加相机的噪声组件（核心）
@@ -83,6 +85,11 @@ public class MapManager : MonoBehaviour
         StopShack();
     }
 
+    public void StopTimeLine()
+    {
+        TimeLine.Stop();
+    }
+
     // 启动直升机相机震动（仅作用于helicopterVC）
     public void StartShack()
     {
@@ -125,5 +132,19 @@ public class MapManager : MonoBehaviour
             _targetAmplitude = 0f;
             _isShaking = false;
         }
+    }
+
+
+    //地图初始化2
+    public void MapInit()
+    {
+        if(ElevatorListInit.Count>0)
+        {
+            foreach (var Ele in ElevatorListInit)
+            {
+                Ele.Init();//初始化
+            }
+        }
+     
     }
 }
