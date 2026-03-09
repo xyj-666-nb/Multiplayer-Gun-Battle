@@ -543,8 +543,9 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
     /// <param name="sequence">目标面板的动画序列</param>
     /// <param name="isShow">显示/隐藏</param>
     /// <param name="callBack">动画完成回调</param>
+    /// <param name="duration">动画持续时间（默认0.3秒）</param>
     /// <param name="IsNeedSetActive">是否跳过SetActive操作（默认true：跳过，物体始终激活；false：执行激活/失活）</param>
-    public void CommonFadeDefaultAnima(CanvasGroup canvasGroup, ref Sequence sequence, bool isShow, UnityAction callBack, bool IsNeedSetActive = true)
+    public void CommonFadeDefaultAnima(CanvasGroup canvasGroup, ref Sequence sequence, bool isShow, UnityAction callBack, float duration = 0.3f, bool IsNeedSetActive = true)
     {
         // 空值校验
         if (canvasGroup == null)
@@ -571,7 +572,7 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
                 DOTween.To(() => canvasGroup.alpha,
                            v => canvasGroup.alpha = v,
                            1,
-                           0.3f)
+                           duration) // 使用参数 duration
                 .SetEase(Ease.OutQuad)
             )
             .OnComplete(() =>
@@ -592,12 +593,12 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
                 DOTween.To(() => canvasGroup.alpha,
                            v => canvasGroup.alpha = v,
                            0,
-                           0.3f)
+                           duration) // 使用参数 duration
                 .SetEase(Ease.InQuad)
             )
             .OnComplete(() =>
             {
-                canvasGroup.alpha = 0; 
+                canvasGroup.alpha = 0;
                 if (!IsNeedSetActive && canvasGroup.gameObject.activeSelf)
                 {
                     canvasGroup.gameObject.SetActive(false);

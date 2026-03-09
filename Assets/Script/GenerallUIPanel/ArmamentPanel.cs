@@ -1029,8 +1029,25 @@ public class ArmamentPanel : BasePanel
     #endregion
 
     #region Ãæ°åÏÔÒþ
-    public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true) => base.HideMe(callback, isNeedDefaultAnimator);
-    public override void ShowMe(bool isNeedDefaultAnimator = true) => base.ShowMe(isNeedDefaultAnimator);
+    bool IsPlayerPanelHide = false;
+    public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
+    {
+        base.HideMe(callback, isNeedDefaultAnimator);
+        if(IsPlayerPanelHide)
+        {
+            UImanager.Instance.GetPanel<PlayerPanel>().SimpleShowPanel();
+            IsPlayerPanelHide = false;
+        }
+    }
+    public override void ShowMe(bool isNeedDefaultAnimator = true)
+    {
+        base.ShowMe(isNeedDefaultAnimator);
+        if(UImanager.Instance.GetPanel<PlayerPanel>()!=null)
+        {
+            UImanager.Instance.GetPanel<PlayerPanel>().SimpleHidePanel();
+            IsPlayerPanelHide = true;
+        }
+    }
     public override void SliderValueChange(string sliderName, float value) => base.SliderValueChange(sliderName, value);
     protected override void SpecialAnimator_Hide() { }
     protected override void SpecialAnimator_Show() { }

@@ -329,18 +329,28 @@ public class EquipmentConfigurationPanel : BasePanel
 
     }
     #endregion
+    bool IsPlayerPanelHide = false;
+
 
     #region 面板显隐以及特殊动画
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
     {
         base.HideMe(callback, isNeedDefaultAnimator);
+        if (IsPlayerPanelHide)
+        {
+            UImanager.Instance.GetPanel<PlayerPanel>().SimpleShowPanel();
+            IsPlayerPanelHide = false;
+        }
     }
-
     public override void ShowMe(bool isNeedDefaultAnimator = true)
     {
         base.ShowMe(isNeedDefaultAnimator);
+        if (UImanager.Instance.GetPanel<PlayerPanel>() != null)
+        {
+            UImanager.Instance.GetPanel<PlayerPanel>().SimpleHidePanel();
+            IsPlayerPanelHide = true;
+        }
     }
-
     protected override void SpecialAnimator_Hide()
     {
     }
