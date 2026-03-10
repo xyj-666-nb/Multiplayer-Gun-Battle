@@ -595,6 +595,7 @@ public class Player : Base_Entity
 
     #endregion
 
+    [Command(requiresAuthority =false)]
     public void Transmit(Vector3 Pos)
     {
         Player.LocalPlayer.transform.position = Pos;
