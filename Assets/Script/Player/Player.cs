@@ -13,7 +13,7 @@ public class Player : Base_Entity
     [Header("核心组件")]
     public playerStats myStats;
     public MyPlayerInput myInputSystem;
-    public PlayerSortingLayerControl mySortingLayerControl;
+    //public PlayerSortingLayerControl mySortingLayerControl;
 
     [Header("枪械挂载")]
     public Transform playerHandPos;
@@ -28,7 +28,7 @@ public class Player : Base_Entity
     private void OnChangeEnterRoomState(bool OldValue,bool NewValue)
     {
         //当玩家进入房间的状态改变也需要改变当前玩家的显示层级
-         mySortingLayerControl.SetSortingLayer(NewValue);//设置层级
+         //mySortingLayerControl.SetSortingLayer(NewValue);//设置层级
     }
 
     [Header("当前玩家触碰到的枪械")]
@@ -319,7 +319,7 @@ public class Player : Base_Entity
             oldGun.transform.SetParent(null); // 仅解挂载
             EventCenter.Instance.TriggerEvent(E_EventType.E_playerLoseGun, this);
             //解除2d渲染控制
-            mySortingLayerControl.RemoveSpriteRendererFromManager(oldGun.GetComponent<SpriteRenderer>());
+            //mySortingLayerControl.RemoveSpriteRendererFromManager(oldGun.GetComponent<SpriteRenderer>());
         }
 
         if (newGun != null)
@@ -336,7 +336,7 @@ public class Player : Base_Entity
             newGun.transform.localRotation = Quaternion.identity;
             EventCenter.Instance.TriggerEvent(E_EventType.E_playerGetGun, this);
             //将枪械设置到2d图片渲染器管理上面
-            mySortingLayerControl.AddSpriteRendererInManager(newGun.GetComponent<SpriteRenderer>());
+            //mySortingLayerControl.AddSpriteRendererInManager(newGun.GetComponent<SpriteRenderer>());
         }
 
         if (!isLocalPlayer)

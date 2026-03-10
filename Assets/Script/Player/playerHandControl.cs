@@ -171,7 +171,7 @@ public class playerHandControl : NetworkBehaviour
                 oldThrowScript.ThrowObjTimeLine.Stop();
             SetAimPointActive(false);
             //移除管理
-            ownerPlayer.mySortingLayerControl.RemoveSpriteRendererFromManager(OldObj.GetComponent<SpriteRenderer>());//加入管理
+            //ownerPlayer.mySortingLayerControl.RemoveSpriteRendererFromManager(OldObj.GetComponent<SpriteRenderer>());//加入管理
         }
 
         if (NewObj != null && NewObj != OldObj)
@@ -188,7 +188,7 @@ public class playerHandControl : NetworkBehaviour
                 if (_isDebug) Debug.Log($"[投掷物挂载] 已挂载", this);
 
                 //在这里将新的物体加入到管理
-                ownerPlayer.mySortingLayerControl.AddSpriteRendererInManager(NewObj.GetComponent<SpriteRenderer>());//加入管理
+/*                ownerPlayer.mySortingLayerControl.AddSpriteRendererInManager(NewObj.GetComponent<SpriteRenderer>());*///加入管理
                 if (isLocalPlayer)//只有本地才更新
                     UImanager.Instance.GetPanel<PlayerPanel>()?.shootButton.ChangeIcon(MilitaryManager.Instance.GetTacticUISprite(throwScript.tacticType));//更新UI的图标设置为投掷物的图标
             }
@@ -215,7 +215,7 @@ public class playerHandControl : NetworkBehaviour
             {
                 oldInjectionScript.TimeLine_Inject.Stop();
                 //在这里将新的物体加入到管理
-                ownerPlayer.mySortingLayerControl.RemoveSpriteRendererFromManager(OldInjection.GetComponentInChildren<SpriteRenderer>());//移除管理
+              /*  ownerPlayer.mySortingLayerControl.RemoveSpriteRendererFromManager(OldInjection.GetComponentInChildren<SpriteRenderer>());*///移除管理
             }
           
         }
@@ -232,7 +232,7 @@ public class playerHandControl : NetworkBehaviour
                 injectionScript._playerHand = this;
                 if (_isDebug) Debug.Log($"[注射器挂载] 已挂载", this);
                 //在这里将新的物体加入到管理
-                ownerPlayer.mySortingLayerControl.AddSpriteRendererInManager(NewInjection.GetComponentInChildren<SpriteRenderer>());
+                //ownerPlayer.mySortingLayerControl.AddSpriteRendererInManager(NewInjection.GetComponentInChildren<SpriteRenderer>());
             }
         }
     }

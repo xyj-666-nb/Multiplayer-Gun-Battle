@@ -1,15 +1,15 @@
-using Mirror;
+锘縰sing Mirror;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Switch : BaseBulletInteract_NetWork
 {
-    [Header("电闸配置")]
+    [Header("绠＄悊璺伅鍒楄〃")]
     public List<StreetLamp> ManageStreetLampList;
-
+    public Sprite qinwei, yanzhong, wanquansunhuai;
     public override void EffectTrigger()
     {
-        // 可添加特效逻辑
+       
         gameObject.tag = "BackGround";
         gameObject.layer = LayerMask.NameToLayer("Default");
     }
@@ -18,16 +18,15 @@ public class Switch : BaseBulletInteract_NetWork
     {
         if (!isServer) return;
 
-        // 1. 计算电闸当前的破坏等级
+    
         StreetLampDegreeOfDestruction switchInfluence = health switch
         {
-            > 150 => StreetLampDegreeOfDestruction.Normal,   // 电闸完好，不添乱
-            > 100 => StreetLampDegreeOfDestruction.Slight,   // 电闸损坏，施加轻微影响
-            > 50 => StreetLampDegreeOfDestruction.Serious,   // 电闸快炸了，施加严重影响
-            _ => StreetLampDegreeOfDestruction.Lose           // 电闸炸了，施加失效影响
+            > 150 => StreetLampDegreeOfDestruction.Normal,   //姝ｅ父   
+            > 100 => StreetLampDegreeOfDestruction.Slight,   //杞诲井
+            > 50 => StreetLampDegreeOfDestruction.Serious,   //涓ラ噸
+            _ => StreetLampDegreeOfDestruction.Lose         //瀹屽叏  
         };
 
-        // 2. 将这个影响广播给所有路灯
         SetStreetLampInfluence(switchInfluence);
     }
 
@@ -49,7 +48,7 @@ public class Switch : BaseBulletInteract_NetWork
     {
         if (isServer)
         {
-            // 初始化时，确保电闸对所有路灯施加 Normal 影响
+        
             SetStreetLampInfluence(StreetLampDegreeOfDestruction.Normal);
         }
     }
@@ -60,11 +59,11 @@ public class Switch : BaseBulletInteract_NetWork
         {
             CurrentHealthValue = InitHealthValue;
             IsTrigger = false;
-            // 重置时，恢复对路灯的 Normal 影响
+ 
             SetStreetLampInfluence(StreetLampDegreeOfDestruction.Normal);
-            gameObject.tag = "BulletInteractObj";//设置会回层级然后
+            gameObject.tag = "BulletInteractObj";
             gameObject.layer = LayerMask.NameToLayer("BulletInteractObj");
-            //恢复血量
+      
             CmdHeal();
         }
     }

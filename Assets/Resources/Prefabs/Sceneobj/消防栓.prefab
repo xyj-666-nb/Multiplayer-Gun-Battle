@@ -373,10 +373,10 @@ MonoBehaviour:
   InitHealthValue: 100
   CurrentHealthValue: 100
   IsTrigger: 0
-  waterEffect: {fileID: 7351860809178455340}
   HpCanvasGroup: {fileID: 2418725311328964373}
   HpFillImage: {fileID: 5193779384813483013}
   ShowTime: 3
+  waterEffect: {fileID: 7351860809178455340}
 --- !u!61 &5112702586955858127
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -463,6 +463,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 14
       objectReference: {fileID: 0}
+    - target: {fileID: 1004559777674129498, guid: a7470d24a768e97418b7c2954c264cd9, type: 3}
+      propertyPath: InitialModule.startSize.scalar
+      value: 0.42
+      objectReference: {fileID: 0}
+    - target: {fileID: 1004559777674129498, guid: a7470d24a768e97418b7c2954c264cd9, type: 3}
+      propertyPath: InitialModule.startSize.minScalar
+      value: 0.07
+      objectReference: {fileID: 0}
     - target: {fileID: 1768611033696528797, guid: a7470d24a768e97418b7c2954c264cd9, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -486,6 +494,14 @@ PrefabInstance:
     - target: {fileID: 1832552314864054818, guid: a7470d24a768e97418b7c2954c264cd9, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3676083080827104711, guid: a7470d24a768e97418b7c2954c264cd9, type: 3}
+      propertyPath: InitialModule.startSize.scalar
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3676083080827104711, guid: a7470d24a768e97418b7c2954c264cd9, type: 3}
+      propertyPath: InitialModule.startSize.minScalar
+      value: 0.22
       objectReference: {fileID: 0}
     - target: {fileID: 5065276252967952254, guid: a7470d24a768e97418b7c2954c264cd9, type: 3}
       propertyPath: m_LocalScale.x
@@ -558,6 +574,14 @@ PrefabInstance:
     - target: {fileID: 6261838622216284122, guid: a7470d24a768e97418b7c2954c264cd9, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8947544829086535077, guid: a7470d24a768e97418b7c2954c264cd9, type: 3}
+      propertyPath: InitialModule.startSize.scalar
+      value: 0.46
+      objectReference: {fileID: 0}
+    - target: {fileID: 8947544829086535077, guid: a7470d24a768e97418b7c2954c264cd9, type: 3}
+      propertyPath: InitialModule.startSize.minScalar
+      value: 0.17
       objectReference: {fileID: 0}
     - target: {fileID: 9188871569673483068, guid: a7470d24a768e97418b7c2954c264cd9, type: 3}
       propertyPath: m_Layer
