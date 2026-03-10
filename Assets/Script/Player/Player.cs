@@ -13,12 +13,23 @@ public class Player : Base_Entity
     [Header("核心组件")]
     public playerStats myStats;
     public MyPlayerInput myInputSystem;
+    public PlayerSortingLayerControl mySortingLayerControl;
 
     [Header("枪械挂载")]
     public Transform playerHandPos;
     public playerHandControl MyHandControl;
     [SyncVar(hook = nameof(OnGunChanged))]
     public BaseGun currentGun;
+
+    [Header("是否进入房屋")]
+    [SyncVar(hook = nameof(OnChangeEnterRoomState))]
+    public bool IsEnterRoom = false;//是否进入房屋
+
+    private void OnChangeEnterRoomState(bool OldValue,bool NewValue)
+    {
+        //当玩家进入房间的状态改变也需要改变当前玩家的显示层级
+         mySortingLayerControl.SetSortingLayer(NewValue);//设置层级
+    }
 
     [Header("当前玩家触碰到的枪械")]
     public BaseGun CurrentTouchGun;
@@ -34,6 +45,7 @@ public class Player : Base_Entity
     public PlayableDirector TimeLine_Helmet;//头盔动画
 
     //本地钩子
+
     private void OnChangeArmorState(ArmorType OldType, ArmorType NewType)
     {
         if (myStats == null) myStats = GetComponent<playerStats>();
@@ -306,6 +318,8 @@ public class Player : Base_Entity
         {
             oldGun.transform.SetParent(null); // 仅解挂载
             EventCenter.Instance.TriggerEvent(E_EventType.E_playerLoseGun, this);
+            //解除2d渲染控制
+            mySortingLayerControl.RemoveSpriteRendererFromManager(oldGun.GetComponent<SpriteRenderer>());
         }
 
         if (newGun != null)
@@ -321,6 +335,8 @@ public class Player : Base_Entity
             newGun.transform.localPosition = Vector3.zero;
             newGun.transform.localRotation = Quaternion.identity;
             EventCenter.Instance.TriggerEvent(E_EventType.E_playerGetGun, this);
+            //将枪械设置到2d图片渲染器管理上面
+            mySortingLayerControl.AddSpriteRendererInManager(newGun.GetComponent<SpriteRenderer>());
         }
 
         if (!isLocalPlayer)
@@ -437,12 +453,12 @@ public class Player : Base_Entity
 
         if (currentGun != null)
         {
-            ServerHandleDropGun(currentGun.gameObject);
+            ServerHandleDropGun(currentGun.gameObject,false);
         }
 
         // 服务器：强制枪械X缩放为负
         Vector3 gunScale = gunObj.transform.localScale;
-        gunScale.x = -Mathf.Abs(gunScale.x); // 核心：强制X轴为负
+        gunScale.x = -Mathf.Abs(gunScale.x);
         gunObj.transform.localScale = gunScale;
 
         // 再处理父对象、位置、旋转
@@ -457,25 +473,26 @@ public class Player : Base_Entity
         newGun.SafeServerOnGunPicked();
     }
 
-    public void DropCurrentGun()
+    public void DropCurrentGun(bool  IsDestroy=false)
     {
         if (!isLocalPlayer || currentGun == null)
             return;
-        LocalPlayer.CmdDropCurrentGun();
+        LocalPlayer.CmdDropCurrentGun(IsDestroy);
 
     }
 
     [Command]
-    private void CmdDropCurrentGun()
+    private void CmdDropCurrentGun(bool IsDestroy)
     {
-        if (!isServer || currentGun == null) return;
-        ServerHandleDropGun(currentGun.gameObject);
+        if (!isServer || currentGun == null) 
+            return;
+        ServerHandleDropGun(currentGun.gameObject, IsDestroy);
         currentGun = null;
     }
 
     // 原private改为public，添加[Server]特性限定仅服务器执行
     [Server]
-    public void ServerHandleDropGun(GameObject gunObj)
+    public void ServerHandleDropGun(GameObject gunObj,bool IsDestroy)
     {
         if (!isServer || gunObj == null)
             return;
@@ -497,6 +514,8 @@ public class Player : Base_Entity
         RpcResetGunTransform(gunNetId?.netId ?? 0, gunObj.transform.position, gunObj.transform.eulerAngles.z);
         gunObj.GetComponent<BaseGun>().SafeServerOnGunDropped();
         gunNetId.RemoveClientAuthority();//移除权限
+        if(IsDestroy)
+            NetworkServer.Destroy(gunObj);
     }
 
 

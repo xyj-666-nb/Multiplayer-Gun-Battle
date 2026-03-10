@@ -51,6 +51,27 @@ public class PlayerRespawnManager : NetworkBehaviour
     // 维护所有玩家的详细数据列表
     private List<PlayerInfo> _playerInfoList = new List<PlayerInfo>();
 
+    //服务器对玩家的管理
+    [Server]
+    public void ClearAllPlayerGun()
+    {
+        //清除所有玩家手上的枪械
+        foreach (PlayerInfo playerInfoPack in _playerInfoList)
+        {
+            playerInfoPack.Monster.DropCurrentGun(true);//丢弃并销毁当前所有玩家的枪械
+        }
+
+    }
+    [Server]
+    public void ClearAllPlayerArmor()
+    {
+        //清除所有玩家手上的枪械
+        foreach (PlayerInfo playerInfoPack in _playerInfoList)
+        {
+            playerInfoPack.Monster.CurrentArmorType = ArmorType.Empty_handed;
+        }
+    }
+
     /// <summary>
     /// 游戏正式开始时调用，记录队伍、重置击杀/死亡数、重置比分
     /// </summary>
@@ -496,6 +517,8 @@ public class PlayerRespawnManager : NetworkBehaviour
     #region 对局计数管理
     [SyncVar]
     public bool IsGameStart = false; // 游戏是否开始
+    [SyncVar]
+    public bool IsGameRealStart = false;//游戏是否真正启动
 
     public bool _isGameEnded = false;
 
@@ -580,7 +603,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         {
             _isGameEnded = true;
             IsGameStart = false; // 也把开始标记关了
-
+            IsGameStart=false;
             if (CurrentMapIndex >= 0)
             {
                 PRCInitAllInteractObj(CurrentMapIndex + 1, false);
@@ -1142,7 +1165,11 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         Debug.Log("[传送] 所有客户端传送通知发送完成！");
         //进行地图的一个初始化
+        IsGameRealStart = true;//启动游戏
         PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentMapIndex].MapInit();//地图初始化
+        //对所有玩家进行初始化
+        ClearAllPlayerGun();
+        ClearAllPlayerArmor();
     }
 
     [TargetRpc]
@@ -1261,7 +1288,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     {
         IsGameStart = false;
         _isGameEnded = true;
-
+        IsGameStart = false;
         StopAllCoroutines();
 
         bool isNetworkActive = NetworkServer.active || NetworkClient.active;
