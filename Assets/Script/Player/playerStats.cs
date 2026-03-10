@@ -50,6 +50,8 @@ public class playerStats : CharacterStats
     public float DurationBuff_Bonus = 20f;//黄色针剂的持续时间(持续20秒)
     public float JumpBuff_MovePowerBonus = 1f;//黄色针剂的跳跃力提升(跳跃力加1)
 
+
+
     // 内部私有变量
     private bool _isYellowBuffActive = false;
 

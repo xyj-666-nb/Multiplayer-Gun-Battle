@@ -807,7 +807,7 @@ public class BaseGun : NetworkBehaviour
         yield return null;
         if (ownerPlayer != null)
         {
-            ownerPlayer.ServerHandleDropGun(gameObject);
+            ownerPlayer.ServerHandleDropGun(gameObject,false);
             ownerPlayer.currentGun = null;
         }
     }

@@ -103,6 +103,8 @@ public abstract class CharacterStats : NetworkBehaviour
         if (IsDead)
             return;
 
+        if (value < 0 && !PlayerRespawnManager.Instance.IsGameRealStart)//游戏未真正开始就无法扣血
+            return;
         float newHealth = CurrentHealth + value;
         newHealth = Mathf.Clamp(newHealth, 0, maxHealth);
 
@@ -307,10 +309,14 @@ public abstract class CharacterStats : NetworkBehaviour
     {
         if (IsDead)
             return;
-
+        
         float healthBefore = CurrentHealth;
-        CurrentHealth = Mathf.Max(CurrentHealth - damage, 0);
-        Debug.Log($"[ServerApplyGrenadeDamage] {gameObject.name} 被手雷炸中！血量: {healthBefore} -> {CurrentHealth}, 伤害: {damage}");
+        if (PlayerRespawnManager.Instance.IsGameRealStart)
+        {
+            CurrentHealth = Mathf.Max(CurrentHealth - damage, 0);
+            Debug.Log($"[ServerApplyGrenadeDamage] {gameObject.name} 被手雷炸中！血量: {healthBefore} -> {CurrentHealth}, 伤害: {damage}");
+        }
+
 
         Vector2 hitDir = ((Vector2)transform.position - explosionCenter).normalized;
         Vector2 hitPoint = (Vector2)transform.position;
@@ -329,7 +335,6 @@ public abstract class CharacterStats : NetworkBehaviour
             }
         }
 
-        // 【修改】传入计算好的 knockbackForce
         RpcPlayGrenadeEffect(hitPoint, hitDir, explosionCenter, knockbackForce, attacker);
 
         if (CurrentHealth <= 0 && !_hasTriggeredDeath)

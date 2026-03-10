@@ -37,7 +37,9 @@ public class SettingPanel : BasePanel
     {
         AddButtonToGroup(_totalGroupName, "Button_ChangeKey", ChooseButton_ChangeKey, CancelButton_ChangeKey);
         AddButtonToGroup(_totalGroupName, "Button_MusicSetting", ChooseButton_MusicSetting, CancelButton_MusicSetting);
-       // AddButtonToGroup(_totalGroupName, "Button_LnaguageSetting", ChooseButton_Language, CancelButton_Language);
+        AddButtonToGroup(_totalGroupName, "Button_PictureSetting", ChooseButton_PictureSetting, CancelButton_PictureSetting);
+        // AddButtonToGroup(_totalGroupName, "Button_LnaguageSetting", ChooseButton_Language, CancelButton_Language);
+        // ScreenSettingPanel
     }
 
     private void AddButtonToGroup(string groupName, string buttonName, UnityAction chooseEvent, UnityAction cancelEvent, float scale = 1.1f, float duration = 0.2f)
@@ -140,6 +142,18 @@ public class SettingPanel : BasePanel
             _currentTypingWritingTask = null;
         }
         _currentTypingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask("画面设置", CurrentTopic);
+
+        var musicPanel = UImanager.Instance.ShowPanel<ScreenSettingPanel>();
+        if (musicPanel != null && !musicPanel.IsDestroyed())
+        {
+            musicPanel.transform.SetParent(PanelParentObj);
+            // 重置面板的 Left 和 Top 偏移
+            ResetPanelOffset(musicPanel.GetComponent<RectTransform>());
+        }
+        else
+        {
+            Debug.LogError("ScreenSettingPanel 面板为空或已销毁");
+        }
     }
 
     public void CancelButton_PictureSetting()
@@ -148,6 +162,14 @@ public class SettingPanel : BasePanel
         {
             _currentTypingWritingTask.StopTyping();
             _currentTypingWritingTask = null;
+        }
+        try
+        {
+            UImanager.Instance.HidePanel<ScreenSettingPanel>();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"关闭MusicPanel失败：{e.Message}");
         }
     }
 

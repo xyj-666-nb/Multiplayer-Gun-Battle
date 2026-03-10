@@ -1,6 +1,7 @@
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class GameStartPanel : BasePanel
 {
@@ -8,6 +9,12 @@ public class GameStartPanel : BasePanel
     private Sequence IntroducePanelAnima;
     public RectTransform LeftRect;
     public RectTransform OperateRect;//呼唤选项面板
+
+    [Header("两个小面板")]
+    public CanvasGroup LeftRectCanvasGroup;
+    public CanvasGroup RightRectCanvasGroup;
+    private Sequence LeftRectCanvasGroupAnima;
+    private Sequence RightRectCanvasGroupAnima;
 
     bool IsStartPanel=false;
     bool isStartOperatePanel = false;
@@ -22,10 +29,15 @@ public class GameStartPanel : BasePanel
 
     public void IsActiveOperate(bool IsActive, UnityAction Callback = null)
     {
-        isStartOperatePanel= IsActive;
+        isStartOperatePanel = IsActive;
         float PosY = 0;
+        RightRectCanvasGroup.blocksRaycasts = true;
         if (!IsActive)
-            PosY = 1089;
+        {
+            PosY = 400;
+            RightRectCanvasGroup.blocksRaycasts = false;
+        }
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(RightRectCanvasGroup, ref RightRectCanvasGroupAnima, IsActive, () => { }, 0.25f);
         OperateRect.DOAnchorPosY(PosY, 0.4f).SetEase(Ease.OutBack).OnComplete(() => { Callback?.Invoke(); });
     }
 
@@ -34,8 +46,14 @@ public class GameStartPanel : BasePanel
     {
         LeftRect.DOKill();
         float XPos = 0;
-        if(!IsActive)
-            XPos = -400;
+        LeftRectCanvasGroup.blocksRaycasts = true;
+        if (!IsActive)
+        {
+            XPos = -100;
+            LeftRectCanvasGroup.blocksRaycasts = false;
+        }
+
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(LeftRectCanvasGroup, ref LeftRectCanvasGroupAnima, IsActive, () => { }, 0.2f);
         LeftRect.DOAnchorPosX(XPos, 0.4f).SetEase(Ease.OutBack).OnComplete(() => { Callback?.Invoke(); }); ; 
     }
 
