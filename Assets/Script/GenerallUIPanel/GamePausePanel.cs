@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class GamePausePanel : BasePanel
 {
@@ -6,6 +8,14 @@ public class GamePausePanel : BasePanel
     public override void Awake()
     {
         base.Awake();
+        //进行按钮的注册
+        List<Button> SimpleEffectButtonGroupList = new List<Button>();
+        SimpleEffectButtonGroupList.Add(controlDic["ReturnGameButton"] as Button);
+        SimpleEffectButtonGroupList.Add(controlDic["SettingButton"] as Button);
+        SimpleEffectButtonGroupList.Add(controlDic["EnterEquipPanelButton"] as Button);
+        SimpleEffectButtonGroupList.Add(controlDic["ExitCurrentRoom"] as Button);
+        SimpleEffectButtonGroupList.Add(controlDic["OperationSettingButton"] as Button);
+        SimpleEffectButtonGroup.Instance.RegisterGroup("GamePausePanel", SimpleEffectButtonGroupList);
     }
     public override void Start()
     {
@@ -19,6 +29,7 @@ public class GamePausePanel : BasePanel
     protected override void OnDestroy()
     {
         base.OnDestroy();
+        SimpleEffectButtonGroup.Instance.UnRegisterGroup("GamePausePanel");
     }
     #endregion
 

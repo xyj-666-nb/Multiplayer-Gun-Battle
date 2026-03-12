@@ -1,6 +1,5 @@
 using DG.Tweening;
 using Mirror;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -30,6 +29,67 @@ public abstract class CharacterStats : NetworkBehaviour
     public float MinBllomSpeed = 4f;//血液飞溅的最小速度
     public float BllomAmount = 20;//血液飞溅的数量
 
+    [Header("呼吸回血")]
+    public float EnterBreatheHealTime = 5;//进入呼吸回血的时间限制
+    public float HealSpeed = 40;//回血的速度/每秒
+    [SyncVar]//全局同步
+   [SerializeField] private float CurrentRemainTime=5;//当前剩余时间
+    private int BreatheHealTaskId;//呼吸回血的任务Id
+    private bool IsEnterBreather = false;
+
+    [Server]
+    public void HandleBreatheHealTime()
+    {
+        if (CurrentHealth >= maxHealth)
+        {
+            if (Mathf.Abs(CurrentRemainTime - EnterBreatheHealTime) > 0.01f)
+                CurrentRemainTime = EnterBreatheHealTime;
+
+            if (IsEnterBreather)
+            {
+                IsEnterBreather = false;
+                // 确保停止旧的任务
+                SimpleAnimatorTool.Instance?.StopFloatLerpById(BreatheHealTaskId);
+            }
+            return;
+        }
+
+        if (IsEnterBreather)
+        {
+            return;
+        }
+
+        CurrentRemainTime -= Time.deltaTime;
+
+        if (CurrentRemainTime <= 0)
+        {
+            IsEnterBreather = true;
+
+            // 开始回血
+            float duration = (maxHealth - CurrentHealth) / HealSpeed;
+
+            BreatheHealTaskId = SimpleAnimatorTool.Instance.StartFloatLerp(
+                CurrentHealth,
+                maxHealth,
+                duration,
+                (Value) => {
+                    CurrentHealth = Value;
+                },
+                () => {
+                    ResetCoolTime();
+                }
+            );
+        }
+    }
+
+    public void ResetCoolTime()
+    {
+        CurrentRemainTime = EnterBreatheHealTime;//重置时间
+        IsEnterBreather = false;
+        //重置状态
+        SimpleAnimatorTool.Instance.StopFloatLerpById(BreatheHealTaskId);//先暂停任务
+    }
+
     #region 组件与配置
     private Rigidbody2D _rb2D;
     private bool _hasTriggeredDeath = false;
@@ -58,7 +118,8 @@ public abstract class CharacterStats : NetworkBehaviour
         IsDead = false;
         _hasTriggeredDeath = false;
         _playerConn = connectionToClient; // 记录玩家连接
-
+        //初始化呼吸冷却时间
+        CurrentRemainTime = EnterBreatheHealTime;
         // 初始化击杀者信息
         if (isServer)
         {
@@ -98,12 +159,12 @@ public abstract class CharacterStats : NetworkBehaviour
 
     #region 核心血量操作
     [Command]
-    public void CmdChangeHealth(float value, Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
+    public virtual void CmdChangeHealth(float value, Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
     {
         if (IsDead)
             return;
 
-        if (value < 0 && !PlayerRespawnManager.Instance.IsGameRealStart)//游戏未真正开始就无法扣血
+        if (value < 0 || !PlayerRespawnManager.Instance.IsGameRealStart)//游戏未真正开始就无法扣血
             return;
         float newHealth = CurrentHealth + value;
         newHealth = Mathf.Clamp(newHealth, 0, maxHealth);
@@ -119,7 +180,7 @@ public abstract class CharacterStats : NetworkBehaviour
     }
 
     [Server]
-    public void ServerApplyDamage(float damage, Vector2 hitPoint, Vector2 hitNormal, CharacterStats attacker)
+    public virtual void ServerApplyDamage(float damage, Vector2 hitPoint, Vector2 hitNormal, CharacterStats attacker)
     {
         if (IsDead)
             return;
@@ -127,8 +188,16 @@ public abstract class CharacterStats : NetworkBehaviour
         float healthBefore = CurrentHealth;
         CurrentHealth = Mathf.Max(CurrentHealth - damage, 0);
         Debug.Log($"[ServerApplyDamage] {gameObject.name} 扣血：{healthBefore} → {CurrentHealth}（伤害：{damage}）");
-
+        ResetCoolTime();//重置呼吸恢复时间
         Wound(damage, hitPoint, hitNormal, attacker);
+    }
+
+    private void Update()
+    {
+        if (isServer && PlayerRespawnManager.Instance != null && PlayerRespawnManager.Instance.IsGameRealStart)
+        {
+            HandleBreatheHealTime();
+        }
     }
 
     [Server]
@@ -176,7 +245,8 @@ public abstract class CharacterStats : NetworkBehaviour
     [Server]
     public virtual void Death(CharacterStats killer)
     {
-        if (IsDead || _hasTriggeredDeath) return;
+        if (IsDead || _hasTriggeredDeath) 
+            return;
 
         IsDead = true;
         _hasTriggeredDeath = true;
@@ -344,7 +414,7 @@ public abstract class CharacterStats : NetworkBehaviour
     }
 
     /// <summary>
-    /// 【客户端】播放手雷爆炸的视觉/物理反馈
+    /// 播放手雷爆炸的视觉/物理反馈
     /// </summary>
     [ClientRpc]
     private void RpcPlayGrenadeEffect(Vector2 hitPoint, Vector2 hitDir, Vector2 explosionCenter, Vector2 knockbackForce, CharacterStats attacker)
@@ -362,7 +432,6 @@ public abstract class CharacterStats : NetworkBehaviour
 
         if (isLocalPlayer && _rb2D != null)
         {
-            // 【修改】直接应用手雷传过来的力
             _rb2D.velocity = Vector2.zero; // 先清零，防止叠加
             _rb2D.AddForce(knockbackForce, ForceMode2D.Impulse);
 

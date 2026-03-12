@@ -1,4 +1,5 @@
 using DG.Tweening;
+using Mirror;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -24,6 +25,18 @@ public class PlayerPreparaPanel : BasePanel
     public CanvasGroup MyTeamImageCanvas;
     private Sequence MyTeamImageCanvasAnima;
     //改变队伍标识
+    [Header("邀请码面板")]
+    public CanvasGroup RoomInfoPanel;
+    private Sequence RoomInfoPanelAnima;
+    public TextMeshProUGUI RoomNumber;
+    public bool IsOpenPanel=true;
+
+    public void SetRoomInfoPanelActive(bool IsActive)
+    {
+        RoomInfoPanel.blocksRaycasts = IsActive;
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(RoomInfoPanel, ref RoomInfoPanelAnima, IsActive, () => { });
+    }
+
     public void ChangeTeamSprite(Team teamEnum)
     {
         Sprite TeamSprite;
@@ -51,9 +64,22 @@ public class PlayerPreparaPanel : BasePanel
         MyRct = GetComponent<RectTransform>();
         base.Awake();
         ButtonGroupManager.Instance.AddToggleButtonToGroup(PreparaButtonFile, controlDic["PreparaButton"] as Button, "", playerPrepara, CancelPrePara);
-        //隐藏当前的开始游戏按钮（人数和队伍达到条件才开始）
-        GameStartCanvas.interactable = false;
-        GameStartCanvas.alpha = 0;
+
+        GameStartCanvas.interactable = true;
+        GameStartCanvas.alpha = 1;
+
+        if (!NetworkServer.active||Main.Instance.CurrentMode!=NetworkMode.Remote)//如果是房主就打开,如果不是远程联机模式就关闭
+        {
+            if (controlDic.ContainsKey("ShowRoomJoinInfoPanelButton"))
+            {
+                (controlDic["ShowRoomJoinInfoPanelButton"] as Button).gameObject.SetActive(false);
+
+            }
+            GameStartCanvas.interactable = false;
+            GameStartCanvas.alpha = 0;
+            SetRoomInfoPanelActive(false);
+            IsOpenPanel = false;
+        }
     }
 
     public void IsActiveGameStartButton(bool IsActive)
@@ -68,7 +94,7 @@ public class PlayerPreparaPanel : BasePanel
             if(IsActive)
             {
                 GameStartCanvas.interactable = true;//允许交互
-                                                    //全局播报允许游戏开始
+                //全局播报允许游戏开始
                 CountDownManager.Instance.CreateTimer(false, 300, () => { PlayerRespawnManager.Instance.SendGlobalMessage("对局开始条件达成，等待房主开始游戏", 1); });
             }
             });
@@ -158,6 +184,12 @@ public class PlayerPreparaPanel : BasePanel
             //给全局发消息
             Player.LocalPlayer.CmdRequestStartGame();
         }
+        else if(controlName == "ShowRoomJoinInfoPanelButton")
+        {
+            IsOpenPanel =!IsOpenPanel;
+            SetRoomInfoPanelActive(IsOpenPanel);//触发一下
+            (controlDic["ShowRoomJoinInfoPanelButton"] as Button).GetComponentInChildren<TextMeshProUGUI>().text = IsOpenPanel? "<":">";
+        }
     }
 
 
@@ -180,6 +212,7 @@ public class PlayerPreparaPanel : BasePanel
 
         // 显示面板时立即刷新
         ManualRefreshUI();
+        RoomNumber.text = Main.Instance.JoinRoomInfo;
     }
 
     protected override void SpecialAnimator_Hide() { }

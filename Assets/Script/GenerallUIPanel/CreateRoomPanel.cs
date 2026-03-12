@@ -1,5 +1,7 @@
+using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class CreateRoomPanel : BasePanel
@@ -11,20 +13,100 @@ public class CreateRoomPanel : BasePanel
     [SerializeField] private TMP_InputField InputField_PlayerName;// 房主名输入框
     public static string CurrentPlayerName;                       // 当前的房主名
 
-    private GameMode currentGameMode = GameMode.Team_Battle;     // 当前的游戏模式（后面通过检测输入而引入）
+    private GameMode currentGameMode = GameMode.Team_Battle;     // 当前的游戏模式
 
     [Header("房间设置的数据")]
     public int GameTime;//游戏时间
     public int GameGoalScore;//游戏目标分数
 
+    // 内部标记
+    private bool _isButtonGroupRegistered = false;
+    private string ScoreChooseName = "GameScoreChoose";
+    private string TimeChooseName = "GameTimeChoose";
+
+    public override void Awake()
+    {
+        base.Awake();
+
+    }
 
     public override void Start()
     {
         base.Start();
 
-        // 实时记录输入（检测玩家的输入）
-        InputField.onValueChanged.AddListener(str => CurrentRoomName = str);
-        InputField_PlayerName.onValueChanged.AddListener(str => CurrentPlayerName = str);
+        // 实时记录输入
+        if (InputField != null)
+            InputField.onValueChanged.AddListener(str => CurrentRoomName = str);
+        if (InputField_PlayerName != null)
+            InputField_PlayerName.onValueChanged.AddListener(str => CurrentPlayerName = str);
+
+        // 【核心修复】延迟到 Start 安全注册按钮组
+        SafeRegisterButtonGroups();
+    }
+
+    /// <summary>
+    /// 安全注册按钮组
+    /// </summary>
+    private void SafeRegisterButtonGroups()
+    {
+        if (_isButtonGroupRegistered) return;
+
+        try
+        {
+            // 1. 注册分数选择
+            if (ButtonGroupManager.Instance != null && controlDic != null)
+            {
+                TryAddRadio(ScoreChooseName, "Button_10Score", () => { GameGoalScore = 10; });
+                TryAddRadio(ScoreChooseName, "Button_15Score", () => { GameGoalScore = 15; });
+                TryAddRadio(ScoreChooseName, "Button_30Score", () => { GameGoalScore = 30; });
+                SafeSelectFirst(ScoreChooseName);
+            }
+
+            // 2. 注册时间选择
+            if (ButtonGroupManager.Instance != null && controlDic != null)
+            {
+                TryAddRadio(TimeChooseName, "Button_5minute", () => { GameTime = 5; });
+                TryAddRadio(TimeChooseName, "Button_10minute", () => { GameTime = 10; });
+                TryAddRadio(TimeChooseName, "Button_15minute", () => { GameTime = 15; });
+                SafeSelectFirst(TimeChooseName);
+            }
+
+            _isButtonGroupRegistered = true;
+            Debug.Log("[CreateRoomPanel] 按钮组注册成功");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[CreateRoomPanel] 注册按钮组时跳过: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 辅助：安全添加单选按钮
+    /// </summary>
+    private void TryAddRadio(string groupName, string controlName, UnityAction call)
+    {
+        if (controlDic == null || !controlDic.ContainsKey(controlName)) return;
+
+        Button btn = controlDic[controlName] as Button;
+        if (btn != null && ButtonGroupManager.Instance != null)
+        {
+            ButtonGroupManager.Instance.AddRadioButtonToGroup(groupName, btn, call);
+        }
+    }
+
+    /// <summary>
+    /// 辅助：安全选择第一个
+    /// </summary>
+    private void SafeSelectFirst(string groupName)
+    {
+        try
+        {
+            if (ButtonGroupManager.Instance != null)
+            {
+                ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(groupName);
+            }
+        }
+        catch { }
     }
 
     public override void ClickButton(string controlName)
@@ -34,64 +116,145 @@ public class CreateRoomPanel : BasePanel
         switch (controlName)
         {
             case "CreateButton":
-                // 防止为空，给个默认（获取当前的信息）
-                var roomName = string.IsNullOrWhiteSpace(CurrentRoomName) ? "Room" : CurrentRoomName;
-                var hostName = string.IsNullOrWhiteSpace(CurrentPlayerName) ? "Host" : CurrentPlayerName;
-                Main.PlayerName = hostName;//赋值当前的名字
-                Debug.Log(Main.PlayerName);
+                if (Main.Instance.CurrentMode == NetworkMode.LAN)
+                {
+                    // 局域网逻辑（保持不变，加判空）
+                    var roomName = string.IsNullOrWhiteSpace(CurrentRoomName) ? "Room" : CurrentRoomName;
+                    var hostName = string.IsNullOrWhiteSpace(CurrentPlayerName) ? "Host" : CurrentPlayerName;
+                    Main.PlayerName = hostName;
 
-                Host.CreateRoom(roomName, hostName, GameTime, GameGoalScore); // 传房间名、房主名,人数（后面还需要传入游戏模式等等）
-                ReserveHost(); // 分离广播器
-                UImanager.Instance.HidePanel<CreateRoomPanel>();//隐藏创建房间的面板
-                                                                //在这里进行注册数据
-                CountDownManager.Instance.CreateTimer(false, 1000, () => { PlayerRespawnManager.Instance.InitGoalScoreCount(GameGoalScore,GameTime);
-                
-                
-                });
-                ModeChooseSystem.instance.ExitSystem();//退出系统
+                    if (Host != null)
+                    {
+                        Host.CreateRoom(roomName, hostName, GameTime, GameGoalScore);
+                        ReserveHost();
+                    }
+
+                    if (UImanager.Instance != null)
+                        UImanager.Instance.HidePanel<CreateRoomPanel>();
+
+                    if (CountDownManager.Instance != null)
+                    {
+                        CountDownManager.Instance.CreateTimer(false, 1000, () => {
+                            if (PlayerRespawnManager.Instance != null)
+                                PlayerRespawnManager.Instance.InitGoalScoreCount(GameGoalScore, GameTime);
+                        });
+                    }
+
+                    if (ModeChooseSystem.instance != null)
+                        ModeChooseSystem.instance.ExitSystem();
+                }
+                else
+                {
+                    // 远程逻辑（保持不变）
+                    RelayForCustomManager relay = FindObjectOfType<RelayForCustomManager>();
+                    if (relay == null)
+                    {
+                        Debug.LogError("场景里没有找到 RelayForCustomManager 组件！");
+                        return;
+                    }
+
+                    var hostNameRelay = string.IsNullOrWhiteSpace(CurrentPlayerName) ? "Host" : CurrentPlayerName;
+                    Main.PlayerName = hostNameRelay;
+
+                    if (Host != null)
+                        Host.gameObject.SetActive(false);
+
+                    if (UImanager.Instance != null)
+                        UImanager.Instance.HidePanel<CreateRoomPanel>();
+
+                    // 安全初始化
+                    void SafeInitGameData()
+                    {
+                        try
+                        {
+                            if (PlayerRespawnManager.Instance != null)
+                            {
+                                PlayerRespawnManager.Instance.InitGoalScoreCount(GameGoalScore, GameTime);
+                            }
+                        }
+                        catch { }
+                    }
+
+                    SafeInitGameData();
+
+                    // 关联事件
+                    ServerOnlinePanel onlinePanel = UImanager.Instance?.ShowPanel<ServerOnlinePanel>();
+
+                    if (onlinePanel != null)
+                    {
+                        void UnsubscribeAll()
+                        {
+                            RelayForCustomManager.OnRelaySuccess -= HandleSuccess;
+                            RelayForCustomManager.OnRelayFailed -= HandleFailed;
+                        }
+
+                        void HandleSuccess(string code)
+                        {
+                            Debug.Log($"连接成功！Code: {code}");
+                            UnsubscribeAll();
+                            onlinePanel.HidePanel();
+                            SafeInitGameData();
+
+                            if (ModeChooseSystem.instance != null)
+                                ModeChooseSystem.instance.ExitSystem();
+                        }
+
+                        void HandleFailed(string error)
+                        {
+                            Debug.LogError($"连接失败: {error}");
+                            UnsubscribeAll();
+                            onlinePanel.HidePanel();
+                        }
+
+                        void HandleCancel()
+                        {
+                            Debug.Log("用户点击了取消");
+                            relay.CancelRelayConnection();
+                            UnsubscribeAll();
+                        }
+
+                        RelayForCustomManager.OnRelaySuccess += HandleSuccess;
+                        RelayForCustomManager.OnRelayFailed += HandleFailed;
+                        onlinePanel.OnCancelAction += HandleCancel;
+                    }
+
+                    relay.StartRelayHost();
+                }
                 break;
             case "ExitButton":
-                UImanager.Instance.ShowPanel<RoomPanel>();
-                UImanager.Instance.HidePanel<CreateRoomPanel>();
+                if (UImanager.Instance != null)
+                {
+                    UImanager.Instance.ShowPanel<RoomPanel>();
+                    UImanager.Instance.HidePanel<CreateRoomPanel>();
+                }
                 break;
         }
     }
 
     public void ReserveHost()
     {
-        // 把信号播放器分离出去
-        Host.gameObject.transform.parent = null;//把房主组件从当前面板的层级中分离出去，避免在切换面板时被销毁
-        //记录一下当前的物体
-        CustomNetworkManager.Instance.BroadcasterObj = Host.gameObject;//记录这个物体
+        if (Host != null && CustomNetworkManager.Instance != null)
+        {
+            Host.gameObject.transform.parent = null;
+            CustomNetworkManager.Instance.BroadcasterObj = Host.gameObject;
+        }
     }
 
-    protected override void SpecialAnimator_Show()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
 
+        _isButtonGroupRegistered = false;
+
+        try
+        {
+            // 如果有 UnRegisterGroup，在这里调用
+            ButtonGroupManager.Instance.DestroyRadioGroup(ScoreChooseName);
+            ButtonGroupManager.Instance.DestroyRadioGroup(TimeChooseName);
+        }
+        catch { }
     }
 
-    protected override void SpecialAnimator_Hide()
-    {
-
-    }
-
-    private string ScoreChooseName = "GameScoreChoose";
-    private string TimeChooseName= "GameTimeChoose";
-    public override void Awake()
-    {
-        base.Awake();
-        //注册选择按钮
-
-        ButtonGroupManager.Instance.AddRadioButtonToGroup(ScoreChooseName, controlDic["Button_10Score"] as Button, () => { GameGoalScore = 10; });
-        ButtonGroupManager.Instance.AddRadioButtonToGroup(ScoreChooseName, controlDic["Button_15Score"] as Button, () => { GameGoalScore = 15; });
-        ButtonGroupManager.Instance.AddRadioButtonToGroup(ScoreChooseName, controlDic["Button_30Score"] as Button, () => { GameGoalScore = 30; });
-        //设置默认选择
-        ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(ScoreChooseName);
-
-
-        ButtonGroupManager.Instance.AddRadioButtonToGroup(TimeChooseName, controlDic["Button_5minute"] as Button, () => { GameTime = 5; });
-        ButtonGroupManager.Instance.AddRadioButtonToGroup(TimeChooseName, controlDic["Button_10minute"] as Button, () => { GameTime = 10; });
-        ButtonGroupManager.Instance.AddRadioButtonToGroup(TimeChooseName, controlDic["Button_15minute"] as Button, () => { GameTime = 15; });
-        ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(TimeChooseName);
-    }
+    protected override void SpecialAnimator_Show() { }
+    protected override void SpecialAnimator_Hide() { }
 }

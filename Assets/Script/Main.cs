@@ -1,4 +1,5 @@
 using Cinemachine;
+using Localization;
 using Mirror;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -10,6 +11,9 @@ public class Main : SingleMonoAutoBehavior<Main>
 
     [Header("Network配置")]
     public CustomNetworkManager customNetworkManager;
+    [Header("当前联机模式")]
+    public NetworkMode CurrentMode;
+    public string JoinRoomInfo;//加入房间获取的加入码
 
     public Team CurrentTeam;//当前的队伍
 
@@ -133,6 +137,9 @@ public class Main : SingleMonoAutoBehavior<Main>
         Developer_GUITestManger.Instance.RegisterGuiButton("拿出手雷弹", () => { Player.LocalPlayer.MyHandControl.TriggerThrowObj(TacticType.Grenade); }, "战术设备测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("回收投掷物", () => { Player.LocalPlayer.MyHandControl.CmdRecycleThrowObj(); }, "战术设备测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("发射投掷物", () => { Player.LocalPlayer.MyHandControl.LaunchCurrentThrowObj(); }, "战术设备测试");
+
+        Developer_GUITestManger.Instance.RegisterGuiButton("中文", () => { LocalizationManager.SwitchLanguage(Language.Chinese); }, "切换语言");
+        Developer_GUITestManger.Instance.RegisterGuiButton("英文", () => { LocalizationManager.SwitchLanguage(Language.English); }, "切换语言");
 
         Developer_GUITestManger.Instance.RegisterGuiButton("发送全局消息(持续两秒)", () => { PlayerRespawnManager.Instance.SendGlobalMessage("这是一条全局消息", 2f); }, "功能测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("发送个人消息(持续两秒)", () => { SendMessageManger.Instance.SendMessage("这是一条个人消息", 2f); }, "功能测试");

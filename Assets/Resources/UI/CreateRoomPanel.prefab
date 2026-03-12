@@ -1,18 +1,19 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!1 &569169258336472105
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1386517800914547595}
   - component: {fileID: 3555079908318968528}
   - component: {fileID: 3967631693907634496}
   - component: {fileID: 1321412723978165567}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Viewport
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -96,13 +97,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6428292151668028187}
   - component: {fileID: 2671866500482144818}
   - component: {fileID: 7372385290572041445}
   - component: {fileID: 8200383649888422394}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Button_5minute
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -217,12 +219,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2895075103449989922}
   - component: {fileID: 343524070963127833}
   - component: {fileID: 5699734381615342378}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: "\u2014\u2014ModeChoose\u2014\u2014\u2014"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -278,6 +281,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u6A21\u5F0F\u9009\u62E9"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -352,12 +356,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5981826678678586644}
   - component: {fileID: 4945002986472852200}
   - component: {fileID: 8900692941707941971}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: "\u2014fraction_Time\u2014 "
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -415,6 +420,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u6BD4\u5206\u4E0A\u9650\u8BBE\u7F6E"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -489,12 +495,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2678235671295017341}
   - component: {fileID: 6710740412000977513}
   - component: {fileID: 8679080599305201032}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -549,6 +556,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "10\u5206\u949F"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -623,13 +631,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4248982795195914635}
   - component: {fileID: 6357298396347711757}
   - component: {fileID: 349925243291554934}
   - component: {fileID: 3832758208010711498}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Button_30Score
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -744,13 +753,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8057850656758055333}
   - component: {fileID: 6813568722590155113}
   - component: {fileID: 3779669806741737963}
   - component: {fileID: 5511304506384658256}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Button_10minute
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -865,12 +875,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4235724514377913170}
   - component: {fileID: 5310879576644499040}
   - component: {fileID: 5403661357860819246}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Handle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -940,12 +951,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 387004588622251349}
   - component: {fileID: 6964877655841681401}
   - component: {fileID: 7388056211811788883}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: topic
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1000,6 +1012,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u56E2\u961F\u7ADE\u6280"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -1074,12 +1087,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4489461608371094482}
   - component: {fileID: 5357424923564525873}
   - component: {fileID: 1680614362691212528}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: promptText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1134,6 +1148,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "(\u53EA\u80FD\u8F93\u5165\u6570\u5B57\uFF0C\u6700\u59276\u4F4D)"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -1208,12 +1223,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6706315838045619669}
   - component: {fileID: 5701828537988764865}
   - component: {fileID: 5779514761914168944}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: promptText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1268,6 +1284,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "(\u6700\u59276\u4F4D\u5B57\u7B26)"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -1342,12 +1359,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6263548552964837264}
   - component: {fileID: 984847031869328112}
   - component: {fileID: 7400607210734199621}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1402,6 +1420,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u200B"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -1476,12 +1495,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8950427423992099873}
   - component: {fileID: 6730261881378619452}
   - component: {fileID: 208928294028884204}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1536,6 +1556,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u56E2\u961F\u7ADE\u6280"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -1610,12 +1631,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3323243890325561048}
   - component: {fileID: 1640230530194117194}
   - component: {fileID: 5726876112729183506}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: LeftArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1688,11 +1710,12 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5920084247100006312}
   - component: {fileID: 8611891484266853728}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: LanRoomHost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1737,13 +1760,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4924159577344633966}
   - component: {fileID: 2033990568283998391}
   - component: {fileID: 5060684404217686162}
   - component: {fileID: 6373682293470003581}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: CreateRoomPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1842,13 +1866,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2292392995452990946}
   - component: {fileID: 3309064413707510142}
   - component: {fileID: 5411135412087862488}
   - component: {fileID: 2984831795377173302}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Button_TeamCompetition
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1963,13 +1988,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1238070813632015898}
   - component: {fileID: 1501973619084928923}
   - component: {fileID: 2183632787696099294}
   - component: {fileID: 2495438911068914631}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Button_10Score
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2084,11 +2110,12 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 52718142831784721}
   - component: {fileID: 7604633770434075787}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2136,12 +2163,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6399894132209967208}
   - component: {fileID: 6631287716552216908}
   - component: {fileID: 1396163847841997243}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2196,6 +2224,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "10\u5206"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -2270,12 +2299,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4588390834730174209}
   - component: {fileID: 3203489441934823297}
   - component: {fileID: 7110928879542723455}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2330,6 +2360,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "15\u5206\u949F"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -2404,13 +2435,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6941085904769308114}
   - component: {fileID: 6550112832334941558}
   - component: {fileID: 4550289895068676862}
   - component: {fileID: 8930723253148633486}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Button_15Score
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2525,12 +2557,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 615897122884305879}
   - component: {fileID: 2814727309860415109}
   - component: {fileID: 3129782489433537750}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: "\u2014topic_Time\u2014"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2588,6 +2621,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u5BF9\u5C40\u65F6\u957F\u8BBE\u7F6E"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -2662,12 +2696,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6845950285862822740}
   - component: {fileID: 4807098822606174510}
   - component: {fileID: 3165063186364340952}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2722,6 +2757,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "15\u5206"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -2796,12 +2832,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3270161166597410038}
   - component: {fileID: 525213388244313344}
   - component: {fileID: 2253465616158663531}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2856,6 +2893,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u200B"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -2930,12 +2968,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5994511201718196503}
   - component: {fileID: 6382857332884180044}
   - component: {fileID: 9163655982369631619}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2990,6 +3029,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u8FD4\u56DE"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -3064,10 +3104,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7081100721956202820}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Content
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3094,7 +3135,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000053934, y: 0.00037280493}
+  m_AnchoredPosition: {x: -0.000053934, y: 0.000028479571}
   m_SizeDelta: {x: 0, y: 859.36}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &5881514691004369445
@@ -3103,12 +3144,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5285793760098457643}
   - component: {fileID: 5306074624468157041}
   - component: {fileID: 696967569290171665}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: "\u2014\u2014RoomName\u2014\u2014\u2014"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3164,6 +3206,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u623F\u95F4\u540D\u79F0"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -3238,13 +3281,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5586045183607171475}
   - component: {fileID: 2777984902259231801}
   - component: {fileID: 4294260796697887456}
   - component: {fileID: 2109042987350272633}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Placeholder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3299,6 +3343,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u8F93\u5165\u7684\u623F\u95F4\u540D\u79F0......"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -3393,12 +3438,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7637416402689642388}
   - component: {fileID: 5296519396368053590}
   - component: {fileID: 3165448710516504146}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3453,6 +3499,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "30\u5206"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -3527,13 +3574,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1829746094543891113}
   - component: {fileID: 1517888600511457056}
   - component: {fileID: 7477043641246929632}
   - component: {fileID: 1144383896018103660}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: CreateButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3648,12 +3696,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8177349601367267729}
   - component: {fileID: 318073407979684712}
   - component: {fileID: 6968582099647925481}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: ModeInfoSetting_team
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3726,13 +3775,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7569790235037669413}
   - component: {fileID: 3431423915460704695}
   - component: {fileID: 7007148425104080239}
   - component: {fileID: 4491376720875467185}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: RoomSettingPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3816,13 +3866,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8731709182629762391}
   - component: {fileID: 1802596927716137967}
   - component: {fileID: 9087307258175551543}
   - component: {fileID: 4160994746425135638}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Placeholder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3877,6 +3928,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u8F93\u5165\u7684\u73A9\u5BB6\u540D\u79F0......"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -3971,13 +4023,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2260870908775039078}
   - component: {fileID: 3626038257164347706}
   - component: {fileID: 5399685612953484927}
   - component: {fileID: 7649275285433783071}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Scroll View
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4079,12 +4132,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1401075297086176448}
   - component: {fileID: 6676177878555152120}
   - component: {fileID: 217226125302125022}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4139,6 +4193,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u521B\u5EFA"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -4213,13 +4268,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1274377887187690028}
   - component: {fileID: 3115350551376032136}
   - component: {fileID: 9200753788796917513}
   - component: {fileID: 5460631433606053403}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: InputField (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4389,12 +4445,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5243590492421213687}
   - component: {fileID: 6340310569761864067}
   - component: {fileID: 228204870551917817}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Topic
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4449,6 +4506,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u521B\u5EFA\u623F\u95F4"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -4523,12 +4581,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1829742925799122292}
   - component: {fileID: 7685202361112326759}
   - component: {fileID: 7216318353625181050}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Topic
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4583,6 +4642,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u623F\u95F4\u8BBE\u7F6E"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -4657,10 +4717,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6869282459155634832}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Sliding Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4693,12 +4754,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 9118301147655039527}
   - component: {fileID: 243212697627418152}
   - component: {fileID: 5037104100644748084}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4753,6 +4815,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "5\u5206\u949F"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -4827,12 +4890,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4296758678745402935}
   - component: {fileID: 1430950003411793398}
   - component: {fileID: 7394210232395639317}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: "\u2014\u2014PlayerName\u2014\u2014\u2014"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4888,6 +4952,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u73A9\u5BB6\u540D\u79F0"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -4962,13 +5027,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7595505081184465478}
   - component: {fileID: 6875561001651327907}
   - component: {fileID: 5948461788008519919}
   - component: {fileID: 5938934451850112334}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Button_15minute
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5083,11 +5149,12 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5278598068583185580}
   - component: {fileID: 1588542853634164049}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5135,13 +5202,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3958097983671256455}
   - component: {fileID: 3935907998297124943}
   - component: {fileID: 4774856691109400942}
   - component: {fileID: 8183679537182596955}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: ExitButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5256,13 +5324,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 651185979490417260}
   - component: {fileID: 5668080667870560698}
   - component: {fileID: 7833227289692741527}
   - component: {fileID: 4156130319656419039}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: InputField (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5432,13 +5501,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4157816250107483130}
   - component: {fileID: 369807393921510982}
   - component: {fileID: 3146324060267705500}
   - component: {fileID: 1378630800241954388}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Scrollbar Vertical
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -66,11 +67,23 @@ public class GameStartPanel : BasePanel
     public override void Start()
     {
         base.Start();
+        //注册一下按钮组
+        List<Button> ButtonGroup = new List<Button>();
+        ButtonGroup.Add(controlDic["GameStartButton"] as Button);
+        ButtonGroup.Add(controlDic["GameExitButton"] as Button);
+        ButtonGroup.Add(controlDic["DevelopmentTeamButton"] as Button);
+        ButtonGroup.Add(controlDic["PanelExitButton"] as Button);
+        ButtonGroup.Add(controlDic["OptionButton "] as Button);
+        ButtonGroup.Add(controlDic["GameSettingButton"] as Button);
+        ButtonGroup.Add(controlDic["ReturnButton"] as Button);
+
+        SimpleEffectButtonGroup.Instance.RegisterGroup("GameStartGroup", ButtonGroup);//注册组
     }
 
     protected override void OnDestroy()
     {
         base.OnDestroy();
+        SimpleEffectButtonGroup.Instance.UnRegisterGroup("GameStartGroup");//销毁组
     }
     #endregion
 
@@ -88,7 +101,7 @@ public class GameStartPanel : BasePanel
                 break;
             case "GameExitButton":
                 //弹出警告
-                WarnTriggerManager.Instance.TriggerDoubleInteraction2Warn("是否确认退出游戏？", null, ()=> { Application.Quit(); } );
+                WarnTriggerManager.Instance.TriggerDoubleInteraction2Warn("是否确认退出游戏？", null, ()=> { Application.Quit();PlayerAndGameInfoManger.Instance. SavePlayerData(); } );
                 break;
             case "DevelopmentTeamButton":
                 IsActiveIntroducePanel(!IsStartPanel);

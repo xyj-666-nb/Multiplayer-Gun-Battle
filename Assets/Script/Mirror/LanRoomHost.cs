@@ -42,7 +42,6 @@ public class LanRoomHost : MonoBehaviour
 
         try
         {
-            // 1. 预处理端口
             int port = nm.PrepareForCreateRoom();
             if (port == -1)
             {
@@ -50,23 +49,19 @@ public class LanRoomHost : MonoBehaviour
                 return;
             }
 
-            // 2. 设置房间信息（修复port赋值问题）
             discovery.roomName = string.IsNullOrWhiteSpace(roomName) ? "默认房间" : roomName;
             discovery.playerName = string.IsNullOrWhiteSpace(playerName) ? "房主" : playerName;
 
-            // ========== 核心修复3：调用SetPort方法，避免直接赋值port字段 ==========
-            discovery.SetPort(port); // 用封装的方法处理类型转换，而非直接赋值discovery.port
+            discovery.SetPort(port);
 
             discovery.maxPlayers = maxPlayers;
             discovery.playerCount = 1;
             discovery.gameTime = GameTime;
             discovery.GoldScore = GoalScore;
 
-            // 3. 启动服务器
             nm.maxConnections = maxPlayers;
             nm.StartHost();
 
-            // 4. 广播房间信息
             discovery.AdvertiseServer();
 
             Debug.Log($"成功创建房间（端口：{port}），开始广播");

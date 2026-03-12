@@ -18,7 +18,6 @@ public class CustomNetworkManager : NetworkManager
     private KcpTransport _kcpTransport;
     private bool isStoppingPort = false;
 
-    // 新增：动态端口配置
     [Header("动态端口配置")]
     public int minPort = 7777; // 端口起始范围
     public int maxPort = 8888; // 端口结束范围
@@ -35,7 +34,7 @@ public class CustomNetworkManager : NetworkManager
     }
 
     /// <summary>
-    /// 服务端停止时触发（核心修复：移除递归调用）
+    /// 服务端停止时触发
     /// </summary>
     public override void OnStopServer()
     {
@@ -44,14 +43,12 @@ public class CustomNetworkManager : NetworkManager
         OnServerStoppedEvent?.Invoke();
         Debug.Log("[CustomNetworkManager] 服务端已停止，执行收尾清理");
 
-        // 清理广播器（保留原有逻辑）
+        // 清理广播器
         if (BroadcasterObj != null)
         {
             Destroy(BroadcasterObj);
             BroadcasterObj = null; // 置空防止重复销毁
         }
-
-        // 移除原有的 ForceStopCurrentPort() 调用！这是递归的根源
     }
 
     /// <summary>
@@ -132,12 +129,18 @@ public class CustomNetworkManager : NetworkManager
     /// </summary>
     public void ForceStopCurrentPort()
     {
+        // 如果是远程模式，直接跳过 KCP 清理
+        if (Main.Instance != null && Main.Instance.CurrentMode == NetworkMode.Remote)
+        {
+            Debug.Log("[CustomNetworkManager] 远程模式，跳过 KCP 端口清理");
+            return;
+        }
+
         if (isStoppingPort) return;
         isStoppingPort = true;
 
         try
         {
-            // 1. 通用方式判断并停止Host/Server/Client
             bool isHost = NetworkServer.active && NetworkClient.isConnected;
             bool isServerOnly = NetworkServer.active && !NetworkClient.isConnected;
             bool isClientOnly = !NetworkServer.active && NetworkClient.isConnected;
@@ -285,7 +288,7 @@ public class CustomNetworkManager : NetworkManager
     }
 
     /// <summary>
-    /// 自动分配可用端口（从minPort到maxPort找第一个可用的）
+    /// 自动分配可用端口
     /// </summary>
     /// <returns>可用端口，失败返回-1</returns>
     public int AllocateAvailablePort()
@@ -309,9 +312,6 @@ public class CustomNetworkManager : NetworkManager
                 _currentUsedPort = port;
                 if (_kcpTransport != null)
                 {
-                    // ========== 核心修复：显式转换为ushort + 范围兜底 ==========
-                    // 1. 显式转换（解决编译错误）
-                    // 2. 二次范围检查，防止极端情况溢出
                     ushort kcpPort = port > 65535 ? (ushort)65535 : (ushort)port;
                     _kcpTransport.Port = kcpPort;
 
@@ -325,18 +325,15 @@ public class CustomNetworkManager : NetworkManager
     }
 
     /// <summary>
-    /// 创建房间前的预处理（清理旧端口+分配新端口）
+    /// 创建房间前的预处理
     /// </summary>
     /// <returns>分配的端口号，失败返回-1</returns>
     public int PrepareForCreateRoom()
     {
-        // 1. 先停止旧端口
         ForceStopCurrentPort();
 
-        // 2. 等待端口释放
         System.Threading.Thread.Sleep(200);
 
-        // 3. 分配新端口
         int port = AllocateAvailablePort();
 
         if (port == -1)
@@ -354,7 +351,7 @@ public class CustomNetworkManager : NetworkManager
     {
         base.Awake();
         Instance = this;
-        // 通用方式获取KcpTransport（兼容所有版本）
+        // 通用方式获取KcpTransport
         _kcpTransport = FindObjectOfType<KcpTransport>();
         if (_kcpTransport == null)
         {

@@ -1,5 +1,6 @@
 using Cinemachine;
 using DG.Tweening;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -50,7 +51,13 @@ public class ModeChooseSystem : MonoBehaviour
 
     private void Awake()
     {
-      
+        //添加按钮的互动效果
+        List<Button> SimpleEffectButtonGroupList=new List<Button>();
+        SimpleEffectButtonGroupList.Add(ReturnButton_Online);
+        SimpleEffectButtonGroupList.Add(ReturnButton_Standalone);
+        SimpleEffectButtonGroupList.Add(ConfirmOnlineButton);
+        SimpleEffectButtonGroupList.Add(ConfirmStandaloneButton);
+        SimpleEffectButtonGroup.Instance.RegisterGroup("ModeChooseSystem", SimpleEffectButtonGroupList);
         instance = this;
 
         // 获取Cinemachine Brain（用于控制混合速度）
@@ -70,6 +77,11 @@ public class ModeChooseSystem : MonoBehaviour
         SimpleAnimatorTool.Instance.AddFadeLoopTask(RightPromptText);
         SimpleAnimatorTool.Instance.AddFadeLoopTask(LeftPromptImage,waitTime:0);
         SimpleAnimatorTool.Instance.AddFadeLoopTask(RightPromptImage, waitTime: 0);
+    }
+
+    private void OnDestroy()
+    {
+        SimpleEffectButtonGroup.Instance.UnRegisterGroup("ModeChooseSystem");
     }
 
     public void EnterSystem()
@@ -92,7 +104,6 @@ public class ModeChooseSystem : MonoBehaviour
     // 系统出口：退出模式选择系统
     public void ExitSystem()
     {
-        // 解绑所有按钮事件
         OnlineButton.onClick.RemoveListener(SwitchToOnline);
         StandaloneButton.onClick.RemoveListener(SwitchToStandalone);
         ReturnButton_Online.onClick.RemoveListener(SwitchToMainCamera);
@@ -100,11 +111,47 @@ public class ModeChooseSystem : MonoBehaviour
         ConfirmOnlineButton.onClick.RemoveListener(ConfirmOnline);
         ConfirmStandaloneButton.onClick.RemoveListener(ConfirmStandalone);
 
-        // 【核心修改】退出时切换到游戏视角
-        SwitchToGameCamera();
+        SetCinemachineBlendTime(0f);
 
-        // 退出时关闭所有UI
-        HideAllUI();
+        if (GameVc != null)
+        {
+            // 先把所有相机都设为最低
+            SetAllCamerasInactive();
+            // 把 GameVc 设为最高
+            GameVc.Priority = _activePriority + 100; 
+            GameVc.ForceCameraPosition(GameVc.transform.position, GameVc.transform.rotation);
+        }
+
+        ForceHideAllUI();
+
+        Debug.Log("[ModeChooseSystem] 已瞬间退出并切换到游戏视角");
+    }
+
+    /// <summary>
+    /// 强制瞬间隐藏 UI，不走动画
+    /// </summary>
+    private void ForceHideAllUI()
+    {
+        if (OnlineButtonCanvasGroup != null)
+        {
+            OnlineButtonCanvasGroup.alpha = 0;
+            OnlineButtonCanvasGroup.interactable = false;
+            OnlineButtonCanvasGroup.blocksRaycasts = false;
+        }
+
+        if (StandaloneButtonCanvasGroup != null)
+        {
+            StandaloneButtonCanvasGroup.alpha = 0;
+            StandaloneButtonCanvasGroup.interactable = false;
+            StandaloneButtonCanvasGroup.blocksRaycasts = false;
+        }
+
+        if (ConfirmOnlineButton != null) ConfirmOnlineButton.gameObject.SetActive(false);
+        if (ReturnButton_Online != null) ReturnButton_Online.gameObject.SetActive(false);
+        if (ConfirmStandaloneButton != null) ConfirmStandaloneButton.gameObject.SetActive(false);
+        if (ReturnButton_Standalone != null) ReturnButton_Standalone.gameObject.SetActive(false);
+        if (OnlineButton != null) OnlineButton.gameObject.SetActive(false);
+        if (StandaloneButton != null) StandaloneButton.gameObject.SetActive(false);
     }
 
     #region 视角切换

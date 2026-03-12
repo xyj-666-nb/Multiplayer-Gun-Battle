@@ -175,6 +175,8 @@ public class PlayerPanel : BasePanel
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
     {
         base.HideMe(callback, isNeedDefaultAnimator);
+        //添加按钮交互效果
+     
     }
 
     public override void ShowMe(bool isNeedDefaultAnimator = true)

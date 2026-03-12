@@ -51,6 +51,8 @@ public class RoomPlayerCheck : BaseSceneInteract
         if (OutsideCollider2 != null) OutsideCollider2.isTrigger = false;
 
         IsEnterRoom = true;//标记已进入房间
+                           //设置玩家进入房间
+        Player.LocalPlayer.CmdChangeEnterRoomState(true);
         Debug.Log("玩家进入房间：内部门启用，外部门禁用，房子外围隐藏");
     }
 
@@ -93,7 +95,6 @@ public class RoomPlayerCheck : BaseSceneInteract
             return;
         }
 
-        // 修复：遍历OutsideAllDoors而非InnerAllDoors
         foreach (Door d in OutsideAllDoors)
         {
             if (d != null) d.CanUse = true;
@@ -108,7 +109,6 @@ public class RoomPlayerCheck : BaseSceneInteract
             return;
         }
 
-        // 修复：遍历OutsideAllDoors而非InnerAllDoors
         foreach (Door d in OutsideAllDoors)
         {
             if (d != null) d.CanUse = false;
@@ -124,10 +124,12 @@ public class RoomPlayerCheck : BaseSceneInteract
     public override void triggerExitRange()
     {
         // 空引用保护：本地玩家不存在则直接返回
-        if (Player.LocalPlayer == null) return;
+        if (Player.LocalPlayer == null) 
+            return;
 
         // 未进入房间则无需处理离开逻辑
-        if (!IsEnterRoom) return;
+        if (!IsEnterRoom) 
+            return;
 
         // 计算玩家是否真正离开房间（结合方向+阈值）
         bool isPlayerReallyLeave = false;
@@ -148,19 +150,23 @@ public class RoomPlayerCheck : BaseSceneInteract
         // 只有真正离开时，才执行恢复逻辑
         if (isPlayerReallyLeave)
         {
-            if (SpriteGroup != null) SpriteGroup.FadeIn();//恢复房子外围显示
+            if (SpriteGroup != null)
+                SpriteGroup.FadeIn();//恢复房子外围显示
             SetFalseAllInnerDoors();//禁用内部门
             SetAllOutsideDoorsCanUse();//启用外部门
 
             // 恢复碰撞体状态
-            if (InterCollider != null) InterCollider.isTrigger = true;
-            if (OutsideCollider1 != null) OutsideCollider1.isTrigger = false;
-            if (OutsideCollider2 != null) OutsideCollider2.isTrigger = false;
+            if (InterCollider != null) 
+                InterCollider.isTrigger = true;
+            if (OutsideCollider1 != null) 
+                OutsideCollider1.isTrigger = false;
+            if (OutsideCollider2 != null) 
+                OutsideCollider2.isTrigger = false;
 
-            // 关键：重置进入标记，否则下次进入后离开判断失效
             IsEnterRoom = false;
 
             Debug.Log("玩家真正离开房间：恢复房子外围，禁用内部门，启用外部门");
+            Player.LocalPlayer.CmdChangeEnterRoomState(false);
         }
     }
 }

@@ -1,5 +1,4 @@
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -38,8 +37,8 @@ public class SettingPanel : BasePanel
         AddButtonToGroup(_totalGroupName, "Button_ChangeKey", ChooseButton_ChangeKey, CancelButton_ChangeKey);
         AddButtonToGroup(_totalGroupName, "Button_MusicSetting", ChooseButton_MusicSetting, CancelButton_MusicSetting);
         AddButtonToGroup(_totalGroupName, "Button_PictureSetting", ChooseButton_PictureSetting, CancelButton_PictureSetting);
-        // AddButtonToGroup(_totalGroupName, "Button_LnaguageSetting", ChooseButton_Language, CancelButton_Language);
-        // ScreenSettingPanel
+         AddButtonToGroup(_totalGroupName, "Button_Language", ChooseButton_Language, CancelButton_Language);
+
     }
 
     private void AddButtonToGroup(string groupName, string buttonName, UnityAction chooseEvent, UnityAction cancelEvent, float scale = 1.1f, float duration = 0.2f)
@@ -69,10 +68,10 @@ public class SettingPanel : BasePanel
     public void ChooseButton_ChangeKey()
     {
         _currentTypingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask("操作设置", CurrentTopic);
-        if (PanelParentObj != null && !PanelParentObj.gameObject.IsDestroyed())
+        if (PanelParentObj != null )
         {
             var changeKeyPanel = UImanager.Instance.ShowPanel<ChangeKeypanel>();
-            if (changeKeyPanel != null && !changeKeyPanel.IsDestroyed())
+            if (changeKeyPanel != null )
             {
                 changeKeyPanel.transform.SetParent(PanelParentObj);
                 // 重置面板的 Left 和 Top 偏移
@@ -106,10 +105,10 @@ public class SettingPanel : BasePanel
     public void ChooseButton_MusicSetting()
     {
         _currentTypingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask("音乐设置", CurrentTopic);
-        if (PanelParentObj != null && !PanelParentObj.gameObject.IsDestroyed())
+        if (PanelParentObj != null )
         {
             var musicPanel = UImanager.Instance.ShowPanel<MusicPanel>();
-            if (musicPanel != null && !musicPanel.IsDestroyed())
+            if (musicPanel != null )
             {
                 musicPanel.transform.SetParent(PanelParentObj);
                 // 重置面板的 Left 和 Top 偏移
@@ -144,7 +143,7 @@ public class SettingPanel : BasePanel
         _currentTypingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask("画面设置", CurrentTopic);
 
         var musicPanel = UImanager.Instance.ShowPanel<ScreenSettingPanel>();
-        if (musicPanel != null && !musicPanel.IsDestroyed())
+        if (musicPanel != null)
         {
             musicPanel.transform.SetParent(PanelParentObj);
             // 重置面板的 Left 和 Top 偏移
@@ -181,21 +180,17 @@ public class SettingPanel : BasePanel
             _currentTypingWritingTask = null;
         }
         _currentTypingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask("语言设置", CurrentTopic);
-        //// 【仅修改此处】语言面板改为和改键/音乐面板相同的挂载逻辑
-        //if (PanelParentObj != null && !PanelParentObj.gameObject.IsDestroyed())
-        //{
-        //    var languagePanel = UImanager.Instance.ShowPanel<Languepanel>();
-        //    if (languagePanel != null && !languagePanel.IsDestroyed())
-        //    {
-        //        languagePanel.transform.SetParent(PanelParentObj);
-        //        // 重置面板的 Left 和 Top 偏移
-        //        ResetPanelOffset(languagePanel.GetComponent<RectTransform>());
-        //    }
-        //    else
-        //    {
-        //        Debug.LogError("Languepanel 面板为空或已销毁");
-        //    }
-        //}
+        var musicPanel = UImanager.Instance.ShowPanel<LanguePanel>();
+        if (musicPanel != null)
+        {
+            musicPanel.transform.SetParent(PanelParentObj);
+            // 重置面板的 Left 和 Top 偏移
+            ResetPanelOffset(musicPanel.GetComponent<RectTransform>());
+        }
+        else
+        {
+            Debug.LogError("MusicPanel 面板为空或已销毁");
+        }
     }
 
     public void CancelButton_Language()
@@ -205,7 +200,14 @@ public class SettingPanel : BasePanel
             _currentTypingWritingTask.StopTyping();
             _currentTypingWritingTask = null;
         }
-
+        try
+        {
+            UImanager.Instance.HidePanel<LanguePanel>();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"关闭MusicPanel失败：{e.Message}");
+        }
     }
     #endregion
 

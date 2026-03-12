@@ -1284,11 +1284,13 @@ public class PlayerRespawnManager : NetworkBehaviour
     /// 全局清理方法（对外暴露）
     /// </summary>
     // 找到PlayerRespawnManager中的CleanupAndExitGame方法，修改为：
+    /// <summary>
+    /// 全局清理方法（对外暴露）
+    /// </summary>
     public void CleanupAndExitGame()
     {
         IsGameStart = false;
         _isGameEnded = true;
-        IsGameStart = false;
         StopAllCoroutines();
 
         bool isNetworkActive = NetworkServer.active || NetworkClient.active;
@@ -1307,20 +1309,36 @@ public class PlayerRespawnManager : NetworkBehaviour
             // 销毁重生管理器
             DestroyRespawnManager();
         }
-
-        if (CustomNetworkManager.Instance != null)
+        if (Main.Instance != null && Main.Instance.CurrentMode == NetworkMode.LAN)
         {
-            CustomNetworkManager.Instance.ForceStopCurrentPort();
+            // 局域网模式：使用原来的强制端口清理
+            Debug.Log("[退出] 局域网模式，执行 KCP 端口清理...");
+            if (CustomNetworkManager.Instance != null)
+            {
+                CustomNetworkManager.Instance.ForceStopCurrentPort();
+            }
         }
-
-        // StopHost 会自动判断并停止 Client/Server/Host
-        NetworkManager.singleton.StopHost();
+        else
+        {
+            // 远程模式：使用 Relay 清理
+            Debug.Log("[退出] 远程模式，执行 Relay 清理...");
+            var relayMgr = FindObjectOfType<RelayForCustomManager>();
+            if (relayMgr != null)
+            {
+                relayMgr.StopRelay(); // 我们在下面给 Relay 脚本加这个方法
+            }
+            else
+            {
+                // 兜底方案
+                NetworkManager.singleton.StopHost();
+            }
+        }
 
         ForceCleanupUI();
     }
 
     /// <summary>
-    /// 【优化】独立的UI强制清理方法，不依赖网络状态
+    /// 独立的UI强制清理方法，不依赖网络状态
     /// </summary>
     private void ForceCleanupUI()
     {

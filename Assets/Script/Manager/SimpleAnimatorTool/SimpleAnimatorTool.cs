@@ -134,34 +134,42 @@ public class SimpleAnimatorTool : SingleMonoAutoBehavior<SimpleAnimatorTool>
     /// </summary>
     public void UpdateFloatLerpTask()
     {
-        if (_lerpTasks.Count > 0)
+        if (_lerpTasks.Count == 0) return;
+
+        // 倒序遍历
+        for (int i = _lerpTasks.Count - 1; i >= 0; i--)
         {
-            // 倒序遍历，防止移除报错
-            for (int i = _lerpTasks.Count - 1; i >= 0; i--)
+            if (i < 0 || i >= _lerpTasks.Count)
+                continue;
+
+            FloatLerpTask task = _lerpTasks[i];
+
+            task.elapsedTime += Time.deltaTime;
+
+            if (task.elapsedTime >= task.totalDuration)
             {
-                FloatLerpTask task = _lerpTasks[i];
-                task.elapsedTime += Time.deltaTime;
+ 
+                task.onUpdate?.Invoke(task.targetValue);
 
-                if (task.elapsedTime >= task.totalDuration)
-                {
-                    task.onUpdate.Invoke(task.targetValue);
+                _lerpTasks.RemoveAt(i);
 
-                    task.onComplete?.Invoke();
+                task.onComplete?.Invoke();
 
-                    // 3. 移除任务
-                    _lerpTasks.RemoveAt(i);
-                    continue;
-                }
+                continue;
+            }
 
-                // 计算缓动比例
-                float t = task.elapsedTime / task.totalDuration;
-                t = ApplyEase(t, task.easeType);
+            // 计算缓动比例
+            float t = task.elapsedTime / task.totalDuration;
+            t = ApplyEase(t, task.easeType);
 
-                // 计算当前值并回调
-                float currentValue = Mathf.Lerp(task.startValue, task.targetValue, t);
-                task.onUpdate.Invoke(currentValue);
+            // 计算当前值并回调
+            float currentValue = Mathf.Lerp(task.startValue, task.targetValue, t);
+            task.onUpdate?.Invoke(currentValue);
 
-                // 回写结构体 (因为是值类型)
+            // 回写结构体 (因为是值类型)
+            // 再次检查索引安全
+            if (i >= 0 && i < _lerpTasks.Count)
+            {
                 _lerpTasks[i] = task;
             }
         }

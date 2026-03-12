@@ -25,6 +25,12 @@ public class Player : Base_Entity
     [SyncVar(hook = nameof(OnChangeEnterRoomState))]
     public bool IsEnterRoom = false;//是否进入房屋
 
+    [Command]
+    public void CmdChangeEnterRoomState(bool isEnterRoom)
+    {
+        IsEnterRoom=isEnterRoom;
+    }
+
     private void OnChangeEnterRoomState(bool OldValue,bool NewValue)
     {
         //当玩家进入房间的状态改变也需要改变当前玩家的显示层级
@@ -65,7 +71,6 @@ public class Player : Base_Entity
             myStats.AddArmorEffect(newInfo);
         }
 
-        // 6. 播放动画
         WearArmorAnimatorStart();
     }
 
@@ -422,7 +427,10 @@ public class Player : Base_Entity
             return;
 
         LocalPlayer.CmdSpawnAndPickGun(gunName);
-        CountDownManager.Instance.CreateTimer(false, 1000, () => { currentGun.TriggerReload(); });
+        CountDownManager.Instance.CreateTimer(false, 1000, () => {
+            if(currentGun!=null)
+               currentGun.TriggerReload(); 
+        });
     }
 
     [Command]

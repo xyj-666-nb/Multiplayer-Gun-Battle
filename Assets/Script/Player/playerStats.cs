@@ -51,11 +51,10 @@ public class playerStats : CharacterStats
     public float JumpBuff_MovePowerBonus = 1f;//黄色针剂的跳跃力提升(跳跃力加1)
 
 
-
     // 内部私有变量
     private bool _isYellowBuffActive = false;
 
-    // [新增] 记录初始的白板属性，用于护甲计算
+    //  记录初始的白板属性，用于护甲计算
     private float _originalMaxHealth;
     private float _originalMaxXSpeed;
 
@@ -75,7 +74,7 @@ public class playerStats : CharacterStats
             }
         }
 
-        // [新增] 初始化时记录原始属性（非常重要）
+        // 初始化时记录原始属性（非常重要）
         _originalMaxHealth = maxHealth;
         _originalMaxXSpeed = MaxXSpeed;
 
@@ -132,7 +131,7 @@ public class playerStats : CharacterStats
         maxHealth = _originalMaxHealth;
         MaxXSpeed = _originalMaxXSpeed;
 
-        // 处理血量溢出 (如果当前血量比原始最大血量还高，强制修正)
+        // 处理血量溢出
         if (isLocalPlayer || isServer)
         {
             if (CurrentHealth > maxHealth)
