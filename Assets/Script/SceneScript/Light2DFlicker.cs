@@ -100,7 +100,6 @@ public class Light2DFlicker : MonoBehaviour
         {
             _isFastFlickering = true;
             _fastFlickerTimer = fastFlickerDuration;
-            Debug.Log("¥•∑¢µ∆π‚øÏ…¡£°");
         }
     }
 

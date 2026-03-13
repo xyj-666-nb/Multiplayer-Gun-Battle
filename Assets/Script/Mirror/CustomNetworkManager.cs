@@ -3,73 +3,124 @@ using Mirror;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
+using Utp;
 
 public class CustomNetworkManager : NetworkManager
 {
     public static CustomNetworkManager Instance;
 
-    // 自定义事件：供Main类监听
-    public static event System.Action OnServerStartedEvent;//接入服务器
-    public static event System.Action OnServerStoppedEvent;//停止服务器
-    public static event System.Action OnClientConnectedSuccess;//链接成功
+    // 自定义事件
+    public static event System.Action OnServerStartedEvent;
+    public static event System.Action OnServerStoppedEvent;
+    public static event System.Action OnClientConnectedSuccess;
 
-    public GameObject BroadcasterObj;//广播器（断开房间和游戏开始的时候自动销毁）
-
-    private KcpTransport _kcpTransport;
-    private bool isStoppingPort = false;
+    public GameObject BroadcasterObj;
+    private bool _isRelayModeActive = false;
 
     [Header("动态端口配置")]
-    public int minPort = 7777; // 端口起始范围
-    public int maxPort = 8888; // 端口结束范围
-    private int _currentUsedPort; // 记录当前使用的端口
+    public int minPort = 7777;
+    public int maxPort = 8888;
+    private int _currentUsedPort;
+
+    #region 核心：双模式切换（动态添加/移除组件）
+    /// <summary>
+    /// 切换到局域网模式（KCP）
+    /// </summary>
+    public void SwitchToLanMode()
+    {
+        _isRelayModeActive = false;
+
+        // 1. 移除UTP
+        var existingUtp = GetComponent<UtpTransport>();
+        if (existingUtp != null)
+        {
+            DestroyImmediate(existingUtp);
+        }
+
+        // 2. 添加KCP
+        var kcp = GetComponent<KcpTransport>();
+        if (kcp == null)
+        {
+            kcp = gameObject.AddComponent<KcpTransport>();
+        }
+        kcp.enabled = true;
+
+        // 3. 赋值
+        transport = kcp;
+        _currentUsedPort = kcp.Port;
+
+        Debug.Log("[CustomNetworkManager] 已切换到【局域网模式】");
+    }
 
     /// <summary>
-    /// 服务端启动时触发
+    /// 切换到Relay模式（UTP）- 核心：彻底移除KCP
     /// </summary>
+    public void SwitchToRelayMode()
+    {
+        _isRelayModeActive = true;
+
+        // 1. 【核心】彻底移除KCP组件（Mirror再也找不到它了）
+        var existingKcp = GetComponent<KcpTransport>();
+        if (existingKcp != null)
+        {
+            DestroyImmediate(existingKcp);
+        }
+
+        // 2. 添加UTP
+        var utp = GetComponent<UtpTransport>();
+        if (utp == null)
+        {
+            utp = gameObject.AddComponent<UtpTransport>();
+        }
+        utp.enabled = true;
+        utp.useRelay = true;
+
+        // 3. 赋值
+        transport = utp;
+
+        Debug.Log("[CustomNetworkManager] 已切换到【Relay模式】，KCP已彻底移除");
+    }
+    #endregion
+
+    #region 生命周期
     public override void OnStartServer()
     {
         base.OnStartServer();
         OnServerStartedEvent?.Invoke();
-        Debug.Log($"[CustomNetworkManager] 服务端启动（端口：{_currentUsedPort}），触发重生管理器生成事件");
+        string transportName = transport != null ? transport.GetType().Name : "未知";
+        Debug.Log($"[CustomNetworkManager] 服务端启动（模式：{(_isRelayModeActive ? "Relay" : "局域网")}，传输层：{transportName}）");
     }
 
-    /// <summary>
-    /// 服务端停止时触发
-    /// </summary>
     public override void OnStopServer()
     {
         base.OnStopServer();
-
         OnServerStoppedEvent?.Invoke();
-        Debug.Log("[CustomNetworkManager] 服务端已停止，执行收尾清理");
 
-        // 清理广播器
         if (BroadcasterObj != null)
         {
             Destroy(BroadcasterObj);
-            BroadcasterObj = null; // 置空防止重复销毁
+            BroadcasterObj = null;
+        }
+
+        // 切回局域网待命
+        if (_isRelayModeActive)
+        {
+            SwitchToLanMode();
         }
     }
 
-    /// <summary>
-    /// 重写玩家生成（仅服务端执行）
-    /// </summary>
     public override void OnServerAddPlayer(NetworkConnectionToClient conn)
     {
-        Transform spawnPoint = GetStartPosition(); // 先取Mirror默认出生点
-
-        // 仅当重生管理器已生成时，才使用其出生点
+        Transform spawnPoint = GetStartPosition();
         if (PlayerRespawnManager.Instance != null)
         {
-            Transform managerSpawnPoint = PlayerRespawnManager.Instance.GetRandomSpawnPoint();
-            if (managerSpawnPoint != null)
-            {
-                spawnPoint = managerSpawnPoint;
-            }
+            Transform managerSpawn = PlayerRespawnManager.Instance.GetRandomSpawnPoint();
+            if (managerSpawn != null) spawnPoint = managerSpawn;
         }
+
         if (playerPrefab == null)
         {
-            Debug.LogError("[CustomNetworkManager] 严重错误：Player Prefab未赋值！请在Inspector面板中选择玩家预制体");
+            Debug.LogError("[CustomNetworkManager] Player Prefab未赋值！");
             conn.Disconnect();
             return;
         }
@@ -77,203 +128,124 @@ public class CustomNetworkManager : NetworkManager
         Vector3 spawnPos = spawnPoint != null ? spawnPoint.position : Vector3.zero;
         Quaternion spawnRot = spawnPoint != null ? spawnPoint.rotation : Quaternion.identity;
 
-        // 生成玩家
         GameObject player = Instantiate(playerPrefab, spawnPos, spawnRot);
         NetworkServer.AddPlayerForConnection(conn, player);
 
-        Debug.Log($"[CustomNetworkManager] 玩家{conn.connectionId}生成成功，出生点：{spawnPos}");
-
-        // 仅保留服务端的全局消息播报（延迟执行）
-        CountDownManager.Instance.CreateTimer(false, 500, () =>
+        if (CountDownManager.Instance != null)
         {
-            string playerName = player.GetComponent<Player>().GetDisplayName(); // 用兜底方法
-            PlayerRespawnManager.Instance.SendGlobalMessage("玩家：" + playerName + "加入进房间", 1);
-        });
+            CountDownManager.Instance.CreateTimer(false, 500, () =>
+            {
+                string playerName = "未知玩家";
+                if (player != null && player.TryGetComponent<Player>(out var p))
+                {
+                    playerName = p.GetDisplayName();
+                }
+                PlayerRespawnManager.Instance?.SendGlobalMessage("玩家：" + playerName + "加入进房间", 1);
+            });
+        }
 
-        PlayerRespawnManager.Instance.UpdatePlayerCount();//更新一下人数
+        PlayerRespawnManager.Instance?.UpdatePlayerCount();
     }
 
     public override void OnServerDisconnect(NetworkConnectionToClient conn)
     {
-        // 尝试获取玩家名字用于广播
         string exitPlayerName = "未知玩家";
         if (conn.identity != null && conn.identity.TryGetComponent<Player>(out var player))
         {
             exitPlayerName = player.GetDisplayName();
         }
 
-        if (PlayerRespawnManager.Instance != null)
-        {
-            PlayerRespawnManager.Instance.HandlePlayerDisconnected(conn);
-            PlayerRespawnManager.Instance.SendGlobalMessage("玩家：" + exitPlayerName + "离开了房间", 1);
-        }
+        PlayerRespawnManager.Instance?.HandlePlayerDisconnected(conn);
+        PlayerRespawnManager.Instance?.SendGlobalMessage("玩家：" + exitPlayerName + "离开了房间", 1);
 
         base.OnServerDisconnect(conn);
         PlayerRespawnManager.Instance?.UpdatePlayerCount();
-        Debug.Log($"[CustomNetworkManager] 玩家 {exitPlayerName} 断开连接");
     }
 
-    /// <summary>
-    /// 客户端连接服务器成功时触发
-    /// </summary>
     public override void OnClientConnect()
     {
         base.OnClientConnect();
         OnClientConnectedSuccess?.Invoke();
-        Debug.Log("[CustomNetworkManager] 客户端连接服务器成功，触发UI初始化事件");
+        Debug.Log("[CustomNetworkManager] 客户端连接成功");
     }
+    #endregion
 
-    #region 强化版：强制停止端口+动态端口分配
-    /// <summary>
-    /// 强制停止当前占用的网络端口，清理所有网络连接
-    /// </summary>
+    #region 局域网端口管理
     public void ForceStopCurrentPort()
     {
-        // 如果是远程模式，直接跳过 KCP 清理
-        if (Main.Instance != null && Main.Instance.CurrentMode == NetworkMode.Remote)
+        if (_isRelayModeActive) return;
+
+        if (NetworkServer.active || NetworkClient.isConnected)
         {
-            Debug.Log("[CustomNetworkManager] 远程模式，跳过 KCP 端口清理");
-            return;
+            StopHost();
         }
 
-        if (isStoppingPort) return;
-        isStoppingPort = true;
-
-        try
+        var kcp = GetComponent<KcpTransport>();
+        if (kcp != null)
         {
-            bool isHost = NetworkServer.active && NetworkClient.isConnected;
-            bool isServerOnly = NetworkServer.active && !NetworkClient.isConnected;
-            bool isClientOnly = !NetworkServer.active && NetworkClient.isConnected;
-
-            if (isHost)
-            {
-                StopHost();
-                Debug.Log("[CustomNetworkManager] 强制停止：已关闭Host模式");
-            }
-            else if (isServerOnly)
-            {
-                NetworkServer.DisconnectAll();
-                StopServer();
-                Debug.Log("[CustomNetworkManager] 强制停止：已关闭Server并断开所有客户端");
-            }
-
-            if (isClientOnly)
-            {
-                StopClient();
-                Debug.Log("[CustomNetworkManager] 强制停止：已断开Client连接");
-            }
-
-            if (_kcpTransport != null)
-            {
-                // 反射清理Kcp底层套接字（核心！彻底释放端口）
-                CleanupKcpSocket();
-
-                // 禁用组件释放端口
-                _kcpTransport.enabled = false;
-                Invoke(nameof(ReEnableKcpTransport), 0.1f);
-
-                Debug.Log($"[CustomNetworkManager] 强制停止：已释放Kcp端口 {_kcpTransport.Port}");
-            }
-            else
-            {
-                _kcpTransport = FindObjectOfType<KcpTransport>();
-                if (_kcpTransport != null)
-                {
-                    CleanupKcpSocket();
-                    _kcpTransport.enabled = false;
-                    Invoke(nameof(ReEnableKcpTransport), 0.1f);
-                }
-            }
-
-            if (BroadcasterObj != null)
-            {
-                Destroy(BroadcasterObj);
-                BroadcasterObj = null;
-            }
-            PlayerRespawnManager.Instance?.UpdatePlayerCount();
-
-            // 重置当前端口
-            _currentUsedPort = 0;
-            Debug.Log("[CustomNetworkManager] 强制停止端口完成：所有网络资源已清理");
+            CleanupKcpSocket(kcp);
+            kcp.enabled = false;
+            Invoke(nameof(ReEnableKcpTransport), 0.1f);
         }
-        catch (System.Exception ex)
+
+        if (BroadcasterObj != null)
         {
-            Debug.LogError($"[CustomNetworkManager] 强制停止端口时出错：{ex.Message}\n{ex.StackTrace}");
+            Destroy(BroadcasterObj);
+            BroadcasterObj = null;
         }
-        finally
-        {
-            isStoppingPort = false;
-        }
+
+        _currentUsedPort = 0;
     }
 
-    /// <summary>
-    /// 反射清理KcpTransport底层套接字（彻底释放端口）
-    /// </summary>
-    private void CleanupKcpSocket()
+    private void CleanupKcpSocket(KcpTransport kcp)
     {
-        if (_kcpTransport == null) return;
-
         try
         {
-            // 查找KcpTransport的私有socket字段
-            var socketField = _kcpTransport.GetType().GetField("socket",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var serverSocketField = _kcpTransport.GetType().GetField("serverSocket",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var socketField = kcp.GetType().GetField("socket", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var serverSocketField = kcp.GetType().GetField("serverSocket", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
-            // 关闭socket
             if (socketField != null)
             {
-                var socket = socketField.GetValue(_kcpTransport) as Socket;
+                var socket = socketField.GetValue(kcp) as Socket;
                 if (socket != null)
                 {
                     if (socket.Connected) socket.Shutdown(SocketShutdown.Both);
                     socket.Close();
                     socket.Dispose();
-                    socketField.SetValue(_kcpTransport, null);
+                    socketField.SetValue(kcp, null);
                 }
             }
 
-            // 关闭serverSocket
             if (serverSocketField != null)
             {
-                var serverSocket = serverSocketField.GetValue(_kcpTransport) as Socket;
+                var serverSocket = serverSocketField.GetValue(kcp) as Socket;
                 if (serverSocket != null)
                 {
                     serverSocket.Close();
                     serverSocket.Dispose();
-                    serverSocketField.SetValue(_kcpTransport, null);
+                    serverSocketField.SetValue(kcp, null);
                 }
             }
         }
         catch (System.Exception ex)
         {
-            Debug.LogWarning($"[CustomNetworkManager] 清理Kcp套接字警告：{ex.Message}");
+            Debug.LogWarning($"清理KCP套接字警告：{ex.Message}");
         }
     }
 
-    /// <summary>
-    /// 重新启用KcpTransport
-    /// </summary>
     private void ReEnableKcpTransport()
     {
-        if (_kcpTransport != null && !_kcpTransport.enabled)
+        var kcp = GetComponent<KcpTransport>();
+        if (kcp != null && !kcp.enabled && !_isRelayModeActive)
         {
-            _kcpTransport.enabled = true;
-            Debug.Log("[CustomNetworkManager] KcpTransport已重新启用，端口已释放");
+            kcp.enabled = true;
         }
     }
 
-    /// <summary>
-    /// 检测端口是否可用
-    /// </summary>
-    /// <param name="port">要检测的端口</param>
-    /// <returns>是否可用</returns>
     public bool IsPortAvailable(int port)
     {
         try
         {
-            // 创建临时Socket检测端口是否被占用
             using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
                 socket.Bind(new IPEndPoint(IPAddress.Any, port));
@@ -287,63 +259,38 @@ public class CustomNetworkManager : NetworkManager
         }
     }
 
-    /// <summary>
-    /// 自动分配可用端口
-    /// </summary>
-    /// <returns>可用端口，失败返回-1</returns>
     public int AllocateAvailablePort()
     {
-        // 先检查端口范围是否合法（ushort最大是65535）
-        if (maxPort > 65535)
-        {
-            Debug.LogError($"[CustomNetworkManager] 最大端口{maxPort}超出ushort范围（0-65535），自动修正为65535");
-            maxPort = 65535;
-        }
-        if (minPort < 0)
-        {
-            Debug.LogError($"[CustomNetworkManager] 最小端口{minPort}小于0，自动修正为0");
-            minPort = 0;
-        }
+        if (_isRelayModeActive) return 7777;
+
+        if (maxPort > 65535) maxPort = 65535;
+        if (minPort < 0) minPort = 0;
 
         for (int port = minPort; port <= maxPort; port++)
         {
             if (IsPortAvailable(port))
             {
                 _currentUsedPort = port;
-                if (_kcpTransport != null)
+                var kcp = GetComponent<KcpTransport>();
+                if (kcp != null)
                 {
-                    ushort kcpPort = port > 65535 ? (ushort)65535 : (ushort)port;
-                    _kcpTransport.Port = kcpPort;
-
-                    Debug.Log($"[CustomNetworkManager] 已分配可用端口：{port}（转换为ushort：{kcpPort}）");
-                    return port;
+                    ushort kcpPort = (ushort)Mathf.Clamp(port, 0, 65535);
+                    kcp.Port = kcpPort;
                 }
+                return port;
             }
         }
-        Debug.LogError("[CustomNetworkManager] 端口范围[" + minPort + "-" + maxPort + "]内无可用端口！");
+        Debug.LogError("无可用端口！");
         return -1;
     }
 
-    /// <summary>
-    /// 创建房间前的预处理
-    /// </summary>
-    /// <returns>分配的端口号，失败返回-1</returns>
     public int PrepareForCreateRoom()
     {
+        if (_isRelayModeActive) return 0;
+
         ForceStopCurrentPort();
-
         System.Threading.Thread.Sleep(200);
-
-        int port = AllocateAvailablePort();
-
-        if (port == -1)
-        {
-            Debug.LogError("[CustomNetworkManager] 无法分配可用端口，创建房间失败！");
-            return -1;
-        }
-
-        Debug.Log("[CustomNetworkManager] 已完成创建房间前的端口清理，分配端口：" + port);
-        return port;
+        return AllocateAvailablePort();
     }
     #endregion
 
@@ -351,21 +298,17 @@ public class CustomNetworkManager : NetworkManager
     {
         base.Awake();
         Instance = this;
-        // 通用方式获取KcpTransport
-        _kcpTransport = FindObjectOfType<KcpTransport>();
-        if (_kcpTransport == null)
+
+        // 默认局域网模式
+        if (!_isRelayModeActive)
         {
-            Debug.LogWarning("[CustomNetworkManager] 未找到KcpTransport组件，将在运行时再次尝试获取");
-        }
-        else
-        {
-            // 初始化当前端口
-            _currentUsedPort = _kcpTransport.Port;
+            // 确保有KCP
+            if (GetComponent<KcpTransport>() == null)
+            {
+                gameObject.AddComponent<KcpTransport>();
+            }
         }
     }
 
-    public override void OnClientDisconnect()
-    {
-        base.OnClientDisconnect();
-    }
+    public bool IsRelayModeActive() => _isRelayModeActive;
 }

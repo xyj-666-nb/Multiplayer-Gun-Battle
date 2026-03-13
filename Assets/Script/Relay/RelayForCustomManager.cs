@@ -14,21 +14,18 @@ public class RelayForCustomManager : MonoBehaviour
 
     [Header("设置")]
     public int maxRelayPlayers = 4;
-
-    [Header("调试信息")]
     public string currentJoinCode;
 
-    // ========== 事件系统 ==========
+    // 事件系统
     public static event Action OnRelayConnecting;
-    public static event Action<string> OnRelaySuccess; // 参数: JoinCode
-    public static event Action<string> OnRelayFailed;  // 参数: 错误信息
+    public static event Action<string> OnRelaySuccess;
+    public static event Action<string> OnRelayFailed;
 
     private bool isTryingToConnect;
 
     void Awake()
     {
         if (customManager == null) customManager = GetComponent<CustomNetworkManager>();
-        if (utpTransport == null) utpTransport = GetComponent<UtpTransport>();
     }
 
     async void Start()
@@ -36,95 +33,216 @@ public class RelayForCustomManager : MonoBehaviour
         await LoginToUnity();
     }
 
-    // ==========================================
-    // 【公共接口】
-    // ==========================================
-
-    public void StartRelayHost()
+    /// <summary>
+    /// 启动Relay房主
+    /// </summary>
+    public async void StartRelayHost()
     {
+        // 1. 强制切换到Relay模式（彻底移除KCP）
+        if (customManager != null)
+        {
+            customManager.SwitchToRelayMode();
+        }
+
+        // 2. 重新获取UTP引用（因为刚才可能重新添加了组件）
+        utpTransport = customManager.GetComponent<UtpTransport>();
+
         if (utpTransport == null)
         {
-            Debug.LogError("请在 Inspector 赋值 UtpTransport！");
+            string error = "场景里没有找到 UtpTransport 组件！";
+            Debug.LogError(error);
+            OnRelayFailed?.Invoke(error);
             return;
+        }
+
+        // 3. 校验UGS登录
+        if (!UnityServices.State.Equals(ServicesInitializationState.Initialized))
+        {
+            try
+            {
+                await UnityServices.InitializeAsync();
+            }
+            catch (Exception e)
+            {
+                string error = string.Format("Unity云初始化失败：{0}", e.Message);
+                Debug.LogError(error);
+                OnRelayFailed?.Invoke(error);
+                return;
+            }
+        }
+
+        if (!AuthenticationService.Instance.IsSignedIn)
+        {
+            try
+            {
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+                Debug.Log(string.Format("房主登录成功，玩家ID：{0}", AuthenticationService.Instance.PlayerId));
+            }
+            catch (Exception e)
+            {
+                string error = string.Format("房主登录失败：{0}", e.Message);
+                Debug.LogError(error);
+                OnRelayFailed?.Invoke(error);
+                return;
+            }
         }
 
         isTryingToConnect = true;
         OnRelayConnecting?.Invoke();
-        Debug.Log("正在申请 Relay 服务器...");
+        Debug.Log("正在申请Relay服务器...");
 
         utpTransport.useRelay = true;
+        utpTransport.enabled = true;
 
+        // 4. 通过 UtpTransport 申请房间
         utpTransport.AllocateRelayServer(
             maxPlayers: maxRelayPlayers,
-            regionId: null,
+            regionId: "",
             onSuccess: (joinCode) =>
             {
                 if (!isTryingToConnect) return;
 
+                if (string.IsNullOrEmpty(joinCode))
+                {
+                    OnRelayFailed?.Invoke("房间创建失败：云服务器返回空房间码");
+                    isTryingToConnect = false;
+                    return;
+                }
+
                 currentJoinCode = joinCode;
-                Debug.Log("--------------------------------");
-                Debug.Log($"房间创建成功！Join Code: {joinCode}");
-                Debug.Log("--------------------------------");
-                Main.Instance.JoinRoomInfo= joinCode;//赋值加入码
+                Debug.Log("========================================");
+                Debug.Log("房间创建成功！");
+                Debug.Log(string.Format("房间码: {0}", joinCode));
+                Debug.Log("========================================");
+
                 OnRelaySuccess?.Invoke(joinCode);
-                customManager.StartHost();
+                if (Main.Instance != null)
+                {
+                    Main.Instance.JoinRoomInfo = joinCode;
+                }
+
+                // 5. 直接启动Mirror的Host（此时KCP已经被移除，Mirror只能用UTP）
+                if (customManager != null)
+                {
+                    customManager.StartHost();
+                }
+                else
+                {
+                    NetworkManager.singleton.StartHost();
+                }
             },
-            onFailure: () => // 【关键】这里是 () => 不带参数
+            onFailure: () =>
             {
                 if (!isTryingToConnect) return;
 
-                string errorMsg = "创建房间失败，请检查网络连接";
+                string errorMsg = "房间创建失败！请检查网络和Unity云服务配置";
                 Debug.LogError(errorMsg);
-                utpTransport.useRelay = false;
                 isTryingToConnect = false;
-
-                // 手动传错误信息
                 OnRelayFailed?.Invoke(errorMsg);
             }
         );
     }
 
-    public void StartRelayClient(string joinCode)
+    /// <summary>
+    /// 启动Relay客户端
+    /// </summary>
+    public async void StartRelayClient(string joinCode)
     {
+        // 1. 切换到Relay模式
+        if (customManager != null)
+        {
+            customManager.SwitchToRelayMode();
+        }
+
+        // 2. 获取UTP引用
+        utpTransport = customManager.GetComponent<UtpTransport>();
+
         if (utpTransport == null)
         {
-            Debug.LogError("请在 Inspector 赋值 UtpTransport！");
+            string error = "场景里没有找到 UtpTransport 组件！";
+            Debug.LogError(error);
+            OnRelayFailed?.Invoke(error);
             return;
         }
 
         if (string.IsNullOrEmpty(joinCode))
         {
-            Debug.LogError("请输入 Join Code！");
+            string error = "请输入有效的房间码！";
+            Debug.LogError(error);
+            OnRelayFailed?.Invoke(error);
             return;
+        }
+
+        // 3. 格式化房间码
+        joinCode = joinCode.Trim().ToUpper().Replace(" ", "").Replace("\n", "").Replace("\r", "");
+        Debug.Log(string.Format("正在加入房间，处理后的房间码: [{0}]", joinCode));
+
+        // 4. 校验UGS登录
+        if (!UnityServices.State.Equals(ServicesInitializationState.Initialized))
+        {
+            try
+            {
+                await UnityServices.InitializeAsync();
+            }
+            catch (Exception e)
+            {
+                string error = string.Format("Unity云初始化失败：{0}", e.Message);
+                Debug.LogError(error);
+                OnRelayFailed?.Invoke(error);
+                return;
+            }
+        }
+
+        if (!AuthenticationService.Instance.IsSignedIn)
+        {
+            try
+            {
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+                Debug.Log(string.Format("客户端登录成功，玩家ID：{0}", AuthenticationService.Instance.PlayerId));
+            }
+            catch (Exception e)
+            {
+                string error = string.Format("客户端登录失败：{0}", e.Message);
+                Debug.LogError(error);
+                OnRelayFailed?.Invoke(error);
+                return;
+            }
         }
 
         isTryingToConnect = true;
         OnRelayConnecting?.Invoke();
-        Debug.Log($"正在加入房间: {joinCode}");
 
         utpTransport.useRelay = true;
+        utpTransport.enabled = true;
 
+        // 5. 通过 UtpTransport 配置客户端
         utpTransport.ConfigureClientWithJoinCode(
             joinCode: joinCode,
             onSuccess: () =>
             {
-                if (!isTryingToConnect)
-                    return;
+                if (!isTryingToConnect) return;
 
-                Debug.Log("配置成功，正在连接...");
-                customManager.StartClient();
+                Debug.Log("房间码验证通过，正在连接房主...");
+
+                // 启动客户端
+                if (customManager != null)
+                {
+                    customManager.StartClient();
+                }
+                else
+                {
+                    NetworkManager.singleton.StartClient();
+                }
+
+                OnRelaySuccess?.Invoke(joinCode);
             },
-            onFailure: () => 
+            onFailure: () =>
             {
-                if (!isTryingToConnect)
-                    return;
+                if (!isTryingToConnect) return;
 
-                string errorMsg = "加入房间失败，请检查 Join Code 是否正确";
+                string errorMsg = "加入失败！请检查：\n1. 房间码是否正确\n2. 房主是否在线\n3. 两台设备是否为同一个Unity项目\n4. 网络是否正常";
                 Debug.LogError(errorMsg);
-                utpTransport.useRelay = false;
                 isTryingToConnect = false;
-
-                // 手动传错误信息
                 OnRelayFailed?.Invoke(errorMsg);
             }
         );
@@ -133,12 +251,8 @@ public class RelayForCustomManager : MonoBehaviour
     public void CancelRelayConnection()
     {
         isTryingToConnect = false;
-        Debug.Log("已取消 Relay 连接");
+        Debug.Log("已取消Relay连接");
     }
-
-    // ==========================================
-    // 内部
-    // ==========================================
 
     private async Task LoginToUnity()
     {
@@ -149,37 +263,39 @@ public class RelayForCustomManager : MonoBehaviour
             {
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
             }
-            Debug.Log("Unity 云服务就绪");
+            Debug.Log("Unity云服务就绪");
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"云服务登录失败: {e.Message}");
+            Debug.LogWarning(string.Format("云服务登录失败: {0}", e.Message));
         }
     }
 
-    /// <summary>
-    /// 停止 Relay 并清理状态
-    /// </summary>
     public void StopRelay()
     {
-        Debug.Log("[Relay] 正在停止 Relay 连接...");
+        Debug.Log("[Relay] 正在停止Relay连接...");
 
-        // 1. 停止 Mirror
         if (NetworkServer.active || NetworkClient.isConnected)
         {
-            NetworkManager.singleton.StopHost();
+            if (customManager != null)
+            {
+                customManager.StopHost();
+            }
+            else
+            {
+                NetworkManager.singleton.StopHost();
+            }
         }
 
-        // 2. 关闭 Relay 开关
         if (utpTransport != null)
         {
+            utpTransport.ServerStop();
             utpTransport.useRelay = false;
         }
 
-        // 3. 重置状态
         isTryingToConnect = false;
         currentJoinCode = "";
 
-        Debug.Log("[Relay] Relay 连接已清理完毕");
+        Debug.Log("[Relay] Relay连接已清理完毕");
     }
 }
