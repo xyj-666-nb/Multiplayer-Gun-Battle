@@ -79,11 +79,8 @@ public class MapChooseWall : MonoBehaviour
     [Header("面板持续时间")]
     public float Duration = 20;
 
-
     private Sequence _countdownColorSequence;
-
     public CanvasGroup MainCanvasGroup;
-
 
     private void Awake()
     {
@@ -100,10 +97,8 @@ public class MapChooseWall : MonoBehaviour
         CountDownCanvasGroup.alpha = 0;
     }
 
-    // 【修复】TriggerMapAnima：加安全检查，统一相机切换逻辑
     public void TriggerMapAnima()
     {
-        // 1. 基础安全检查
         if (PlayerRespawnManager.Instance == null)
         {
             Debug.LogError("【TriggerMapAnima】PlayerRespawnManager 单例为空！");
@@ -118,7 +113,6 @@ public class MapChooseWall : MonoBehaviour
         int mapIndex = PlayerRespawnManager.Instance.CurrentMapIndex;
         Debug.Log($"【TriggerMapAnima】当前地图索引：{mapIndex}");
 
-        // 2. 列表安全检查
         var mapList = PlayerAndGameInfoManger.Instance.AllMapManagerList;
         if (mapList == null || mapList.Count == 0)
         {
@@ -131,15 +125,12 @@ public class MapChooseWall : MonoBehaviour
             return;
         }
 
-        // 3. 相机切换逻辑
         if (mapIndex == 1) // 地图2
         {
             SetCinemachineBlendTime(0f);
             SwitchCamera(CameraView.MapScene2Real, Scene2RealVac);
         }
-        // 地图1不需要额外切相机，保持在 Helicopter 即可
 
-        // 4. 触发动画
         mapList[mapIndex].TriggerAnima();
     }
 
@@ -332,19 +323,19 @@ public class MapChooseWall : MonoBehaviour
             Debug.Log($"[MapChooseWall] 初始化UI数据: 地图1={PlayerRespawnManager.Instance.Map1ChooseCount}, 地图2={PlayerRespawnManager.Instance.Map2ChooseCount}");
         }
         MainCanvasGroup.blocksRaycasts = true;
+
+        // 【核心修改】重新进入系统时，启用所有主按钮
+        SetMainButtonsInteractable(true);
     }
 
-    // 【修复】ExitMapChooseSystem：确保直接切回 PlayerVC，统一相机重置
     public void ExitMapChooseSystem()
     {
         SetCinemachineBlendTime(defaultBlendTime);
         Debug.Log("退出地图选择系统，直接切回玩家视角");
 
-        // 直接切换到玩家视角
         SwitchToPlayerView();
 
         HideAllMapChooseUI();
-        // 退出系统时才清空选中状态
         _selectedMap = null;
         UImanager.Instance.GetPanel<PlayerPanel>().SimpleShowPanel();
         _countdownColorSequence?.Kill();
@@ -394,6 +385,9 @@ public class MapChooseWall : MonoBehaviour
 
     public void EnterVC()//进入转场视角
     {
+        // 【核心修改】转场开始，立刻禁用所有主按钮，防止玩家重复操作
+        SetMainButtonsInteractable(false);
+
         PlayerRespawnManager.Instance.CmdRequestDecideFinalMap();//判断地图
         //等待0.1秒给与时间
         CountDownManager.Instance.CreateTimer(false, 100, () => {
@@ -407,7 +401,6 @@ public class MapChooseWall : MonoBehaviour
                 TriggerMapAnima();
             });
         });
-
     }
 
     public void TestScene2()
@@ -462,7 +455,23 @@ public class MapChooseWall : MonoBehaviour
     }
     #endregion
 
-    // ===================== UI状态管理（修改确认按钮逻辑） =====================
+    // ===================== 新增：主按钮统一交互管理 =====================
+    #region 按钮交互统一管理
+    /// <summary>
+    /// 统一设置地图选择主按钮的交互状态
+    /// </summary>
+    /// <param name="isInteractable">是否可点击</param>
+    private void SetMainButtonsInteractable(bool isInteractable)
+    {
+        SetButtonInteractable(MainViewChooseButton, isInteractable);
+        SetButtonInteractable(ChooseMap1Button, isInteractable);
+        SetButtonInteractable(ChooseMap2Button, isInteractable);
+
+        Debug.Log($"[MapChooseWall] 地图选择主按钮交互状态已设置为: {isInteractable}");
+    }
+    #endregion
+
+    // ===================== UI状态管理=====================
     #region UI状态管理
     private void HideAllMapChooseUI()
     {
@@ -497,7 +506,6 @@ public class MapChooseWall : MonoBehaviour
         SetUIVisible(PromptImage_Map1, true);
         SetUIVisible(PromptImage_Map2, true);
 
-        // 【修复】确保人数文本可见
         SetTextMeshProVisible(Map1ChoosePlayerCountText, true);
         SetTextMeshProVisible(Map2ChoosePlayerCountText, true);
 

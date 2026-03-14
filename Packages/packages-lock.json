@@ -1,5 +1,31 @@
 {
   "dependencies": {
+    "cn.unity.uos.launcher": {
+      "version": "https://cnb.cool/unity/uos/UOSLauncher.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1"
+      },
+      "hash": "5d5371e7adfa84d2cd6ee096838e5ca549aa74d1"
+    },
+    "cn.unity.uos.sync.relay": {
+      "version": "https://cnb.cool/unity/uos/SyncRelaySDK.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.transport": "1.3.3",
+        "com.unity.nuget.newtonsoft-json": "3.2.1"
+      },
+      "hash": "7c7734e2d8fd645fde530ec0cafe0e3691c6a5c1"
+    },
+    "cn.unity.uos.transport.kcp2k": {
+      "version": "https://cnb.cool/unity/uos/Transport.git?path=/kcp2k",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "18ae577bf9256560da8592fefd2693c553d50e04"
+    },
     "com.unity.2d.animation": {
       "version": "9.2.0",
       "depth": 1,

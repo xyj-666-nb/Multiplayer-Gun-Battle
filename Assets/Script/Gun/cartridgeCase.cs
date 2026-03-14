@@ -7,7 +7,6 @@ public class cartridgeCase : MonoBehaviour
         
         if (collision.CompareTag("Ground"))
         {
-            Debug.Log("µ¯¿ÇµôÂä");
             MusicManager.Instance.PlayEffect("Music/BulletFill/µ°¿ÇµôÂä1",0.75f);
         }
     }

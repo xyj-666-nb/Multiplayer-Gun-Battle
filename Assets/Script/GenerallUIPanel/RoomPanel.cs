@@ -5,6 +5,7 @@ using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using TMPro;
+using Unity.Sync.Relay.Transport.Mirror;
 
 public class RoomPanel : BasePanel
 {
@@ -72,40 +73,54 @@ public class RoomPanel : BasePanel
             case "Button_CreateRoom":
                 UImanager.Instance.ShowPanel<CreateRoomPanel>();
                 UImanager.Instance.HidePanel<RoomPanel>();
-
                 break;
+
             case "Button_EnterRoom":
                 //根据模式不同选用不同的面板
-                if(Main.Instance.CurrentMode==NetworkMode.LAN)
-                   UImanager.Instance.ShowPanel<EnterRoomPanel>();//打开局域网加入面板
+                if (Main.Instance.CurrentMode == NetworkMode.LAN)
+                    UImanager.Instance.ShowPanel<EnterRoomPanel>();//打开局域网加入面板
                 else
                     UImanager.Instance.ShowPanel<Remote_EnterRoomPanel>();//打开远程加入面板
                 UImanager.Instance.HidePanel<RoomPanel>();
                 break;
+
             case "ExitButton":
                 IsActiveUpRect(false, () => { IsActiveLefRect(true, null); });
                 break;
+
             case "LANModeChoose":
                 Main.Instance.CurrentMode = NetworkMode.LAN;
                 TopicText.text = "局域网模式";
-                SwitchTransport(true);
+
+                if (CustomNetworkManager.Instance != null)
+                {
+                    CustomNetworkManager.Instance.SwitchToLanMode();
+                }
+
                 IsActiveLefRect(false, () => { IsActiveUpRect(true, null); });
                 break;
 
             case "RemoteModeChoose":
                 Main.Instance.CurrentMode = NetworkMode.Remote;
-                TopicText.text = "远程模式";
-                SwitchTransport(false);
+                TopicText.text = "远程模式 (国内UOS)";
+
+                if (CustomNetworkManager.Instance != null)
+                {
+                    CustomNetworkManager.Instance.SwitchToRelayMode();
+                }
+
                 IsActiveLefRect(false, () => { IsActiveUpRect(true, null); });
                 break;
+
             case "ModeChooseExitButton":
                 UImanager.Instance.HidePanel<RoomPanel>();
                 UImanager.Instance.ShowPanel<GameStartPanel>();//游戏开始面板
                 ModeChooseSystem.instance.EnterSystem();
                 break;
         }
-
     }
+
+    // ... (删除原来的 SwitchTransport 方法，不需要了)
 
     #region 生命周期
     public override void Start()
@@ -157,37 +172,6 @@ public class RoomPanel : BasePanel
         base.Update();
     }
 
-    private void SwitchTransport(bool useLan)
-    {
-        // 确保能找到 NetworkManager
-        if (CustomNetworkManager.Instance == null) return;
-
-        // 获取两个 Transport 组件
-        var kcp = CustomNetworkManager.Instance.GetComponent<kcp2k.KcpTransport>();
-        var utp = CustomNetworkManager.Instance.GetComponent<Utp.UtpTransport>();
-
-        if (kcp == null || utp == null)
-        {
-            Debug.LogError("NetworkManager 物体上缺少 KcpTransport 或 UtpTransport 组件！");
-            return;
-        }
-
-        // 切换启用状态
-        kcp.enabled = useLan;
-        utp.enabled = !useLan;
-
-        // 可选：把 NetworkManager 的 Transport 插槽也更新一下（双保险）
-        if (useLan)
-        {
-            CustomNetworkManager.Instance.transport = kcp;
-        }
-        else
-        {
-            CustomNetworkManager.Instance.transport = utp;
-        }
-
-        Debug.Log($"已切换传输模式: {(useLan ? "局域网 (KCP)" : "远程 (UTP Relay)")}");
-    }
 }
 
 public enum NetworkMode

@@ -46,7 +46,7 @@ public class EnterRoomPanel : BasePanel
             disco.OnServerFound.AddListener(HandleServerFound);
         }
 
-        PlayerNameInputField.onValueChanged.AddListener((str) => { Main.PlayerName = str; });
+        PlayerNameInputField.onValueChanged.AddListener((str) => { UOSRelaySimple.Instance.playerName = str; });
     }
 
     #endregion

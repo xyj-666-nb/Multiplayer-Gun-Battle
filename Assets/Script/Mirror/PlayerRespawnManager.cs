@@ -1287,6 +1287,10 @@ public class PlayerRespawnManager : NetworkBehaviour
     /// <summary>
     /// 全局清理方法（对外暴露）
     /// </summary>
+    #region 客户端退出+UI操作
+    /// <summary>
+    /// 全局清理方法（对外暴露）
+    /// </summary>
     public void CleanupAndExitGame()
     {
         IsGameStart = false;
@@ -1320,12 +1324,11 @@ public class PlayerRespawnManager : NetworkBehaviour
         }
         else
         {
-            // 远程模式：使用 Relay 清理
-            Debug.Log("[退出] 远程模式，执行 Relay 清理...");
-            var relayMgr = FindObjectOfType<RelayForCustomManager>();
-            if (relayMgr != null)
+            // 【核心修改】远程模式：适配 UOSRelaySimple 单例
+            Debug.Log("[退出] 远程模式，执行 UOS Relay 清理...");
+            if (UOSRelaySimple.Instance != null)
             {
-                relayMgr.StopRelay(); // 我们在下面给 Relay 脚本加这个方法
+                UOSRelaySimple.Instance.StopRelay();
             }
             else
             {
@@ -1356,6 +1359,8 @@ public class PlayerRespawnManager : NetworkBehaviour
             Debug.LogError($"UI清理过程中发生异常: {e.Message}");
         }
     }
+
+    #endregion
 
     #endregion
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -27,7 +28,6 @@ public class CreateRoomPanel : BasePanel
     public override void Awake()
     {
         base.Awake();
-
     }
 
     public override void Start()
@@ -40,7 +40,7 @@ public class CreateRoomPanel : BasePanel
         if (InputField_PlayerName != null)
             InputField_PlayerName.onValueChanged.AddListener(str => CurrentPlayerName = str);
 
-        // 【核心修复】延迟到 Start 安全注册按钮组
+        // 安全注册按钮组
         SafeRegisterButtonGroups();
     }
 
@@ -72,7 +72,6 @@ public class CreateRoomPanel : BasePanel
             }
 
             _isButtonGroupRegistered = true;
-            Debug.Log("[CreateRoomPanel] 按钮组注册成功");
         }
         catch (System.Exception e)
         {
@@ -118,51 +117,26 @@ public class CreateRoomPanel : BasePanel
             case "CreateButton":
                 if (Main.Instance.CurrentMode == NetworkMode.LAN)
                 {
-                    // 局域网逻辑（保持不变，加判空）
-                    var roomName = string.IsNullOrWhiteSpace(CurrentRoomName) ? "Room" : CurrentRoomName;
-                    var hostName = string.IsNullOrWhiteSpace(CurrentPlayerName) ? "Host" : CurrentPlayerName;
-                    Main.PlayerName = hostName;
 
-                    if (Host != null)
+                    if (CustomNetworkManager.Instance != null)
                     {
-                        Host.CreateRoom(roomName, hostName, GameTime, GameGoalScore);
-                        ReserveHost();
+                        CustomNetworkManager.Instance.SwitchToLanMode();
                     }
 
-                    if (UImanager.Instance != null)
-                        UImanager.Instance.HidePanel<CreateRoomPanel>();
 
-                    if (CountDownManager.Instance != null)
-                    {
-                        CountDownManager.Instance.CreateTimer(false, 1000, () => {
-                            if (PlayerRespawnManager.Instance != null)
-                                PlayerRespawnManager.Instance.InitGoalScoreCount(GameGoalScore, GameTime);
-                        });
-                    }
-
-                    if (ModeChooseSystem.instance != null)
-                        ModeChooseSystem.instance.ExitSystem();
+                    StartCoroutine(CreateLanRoomAfterFrame());
                 }
                 else
                 {
-                    // 远程逻辑（保持不变）
-                    RelayForCustomManager relay = FindObjectOfType<RelayForCustomManager>();
-                    if (relay == null)
+
+                    if (CustomNetworkManager.Instance != null)
                     {
-                        Debug.LogError("场景里没有找到 RelayForCustomManager 组件！");
-                        return;
+                        CustomNetworkManager.Instance.SwitchToRelayMode();
                     }
 
-                    var hostNameRelay = string.IsNullOrWhiteSpace(CurrentPlayerName) ? "Host" : CurrentPlayerName;
-                    Main.PlayerName = hostNameRelay;
+                    UImanager.Instance.HidePanel<CreateRoomPanel>();
 
-                    if (Host != null)
-                        Host.gameObject.SetActive(false);
-
-                    if (UImanager.Instance != null)
-                        UImanager.Instance.HidePanel<CreateRoomPanel>();
-
-                    // 安全初始化
+                    // 安全初始化游戏数据
                     void SafeInitGameData()
                     {
                         try
@@ -177,15 +151,15 @@ public class CreateRoomPanel : BasePanel
 
                     SafeInitGameData();
 
-                    // 关联事件
+                    // 关联事件（和你原来的逻辑完全兼容）
                     ServerOnlinePanel onlinePanel = UImanager.Instance?.ShowPanel<ServerOnlinePanel>();
 
                     if (onlinePanel != null)
                     {
                         void UnsubscribeAll()
                         {
-                            RelayForCustomManager.OnRelaySuccess -= HandleSuccess;
-                            RelayForCustomManager.OnRelayFailed -= HandleFailed;
+                            UOSRelaySimple.OnRelaySuccess -= HandleSuccess;
+                            UOSRelaySimple.OnRelayFailed -= HandleFailed;
                         }
 
                         void HandleSuccess(string code)
@@ -209,16 +183,16 @@ public class CreateRoomPanel : BasePanel
                         void HandleCancel()
                         {
                             Debug.Log("用户点击了取消");
-                            relay.CancelRelayConnection();
+                            UOSRelaySimple.Instance.StopRelay();
                             UnsubscribeAll();
                         }
 
-                        RelayForCustomManager.OnRelaySuccess += HandleSuccess;
-                        RelayForCustomManager.OnRelayFailed += HandleFailed;
+                        UOSRelaySimple.OnRelaySuccess += HandleSuccess;
+                        UOSRelaySimple.OnRelayFailed += HandleFailed;
                         onlinePanel.OnCancelAction += HandleCancel;
                     }
 
-                    relay.StartRelayHost();
+                    UOSRelaySimple.Instance.StartRelayHost();
                 }
                 break;
             case "ExitButton":
@@ -229,6 +203,40 @@ public class CreateRoomPanel : BasePanel
                 }
                 break;
         }
+    }
+
+    /// <summary>
+    /// 【关键新增】协程：等 2 帧后再创建局域网房间
+    /// </summary>
+    private IEnumerator CreateLanRoomAfterFrame()
+    {
+        // 等 2 帧，确保 Unity 完成组件的启用/禁用状态更新
+        yield return null;
+        yield return null;
+
+        // 局域网逻辑（完全保持不变）
+        var roomName = string.IsNullOrWhiteSpace(CurrentRoomName) ? "Room" : CurrentRoomName;
+        var hostName = string.IsNullOrWhiteSpace(CurrentPlayerName) ? "Host" : CurrentPlayerName;
+
+        if (Host != null)
+        {
+            Host.CreateRoom(roomName, hostName, GameTime, GameGoalScore);
+            ReserveHost();
+        }
+
+        if (UImanager.Instance != null)
+            UImanager.Instance.HidePanel<CreateRoomPanel>();
+
+        if (CountDownManager.Instance != null)
+        {
+            CountDownManager.Instance.CreateTimer(false, 1000, () => {
+                if (PlayerRespawnManager.Instance != null)
+                    PlayerRespawnManager.Instance.InitGoalScoreCount(GameGoalScore, GameTime);
+            });
+        }
+
+        if (ModeChooseSystem.instance != null)
+            ModeChooseSystem.instance.ExitSystem();
     }
 
     public void ReserveHost()
@@ -248,7 +256,6 @@ public class CreateRoomPanel : BasePanel
 
         try
         {
-            // 如果有 UnRegisterGroup，在这里调用
             ButtonGroupManager.Instance.DestroyRadioGroup(ScoreChooseName);
             ButtonGroupManager.Instance.DestroyRadioGroup(TimeChooseName);
         }

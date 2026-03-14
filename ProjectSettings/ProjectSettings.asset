@@ -731,22 +731,26 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Android: DOTWEEN
+    Android: DOTWEEN;UNITY_UOS_SECURITY
     EmbeddedLinux: DOTWEEN
     GameCoreScarlett: DOTWEEN
     GameCoreXboxOne: DOTWEEN
+    HMIAndroid: UNITY_UOS_SECURITY
     LinuxHeadlessSimulation: DOTWEEN
     Nintendo Switch: DOTWEEN
+    OpenHarmony: UNITY_UOS_SECURITY
     PS4: DOTWEEN
     PS5: DOTWEEN
     QNX: DOTWEEN
+    Server: UNITY_UOS_SECURITY
     Stadia: DOTWEEN
-    Standalone: DOTWEEN;MIRROR;MIRROR_89_OR_NEWER;MIRROR_90_OR_NEWER;MIRROR_93_OR_NEWER;MIRROR_96_OR_NEWER;EDGEGAP_PLUGIN_SERVERS
+    Standalone: DOTWEEN;MIRROR;MIRROR_89_OR_NEWER;MIRROR_90_OR_NEWER;MIRROR_93_OR_NEWER;MIRROR_96_OR_NEWER;EDGEGAP_PLUGIN_SERVERS;UNITY_UOS_SECURITY
     VisionOS: DOTWEEN
-    WebGL: DOTWEEN
+    WebGL: DOTWEEN;UNITY_UOS_SECURITY
+    WeixinMiniGame: UNITY_UOS_SECURITY
     Windows Store Apps: DOTWEEN
     XboxOne: DOTWEEN
-    iPhone: DOTWEEN
+    iPhone: DOTWEEN;UNITY_UOS_SECURITY
     tvOS: DOTWEEN
   additionalCompilerArguments: {}
   platformArchitecture: {}

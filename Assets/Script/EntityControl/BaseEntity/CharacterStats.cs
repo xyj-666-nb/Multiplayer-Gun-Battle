@@ -215,7 +215,7 @@ public abstract class CharacterStats : NetworkBehaviour
             if (attacker is playerStats attackerStats)
             {
                 // 优先取攻击者的Main.PlayerName，无则取物体名
-                _killerName = Main.PlayerName ?? attacker.gameObject.name;
+                _killerName =UOSRelaySimple.Instance.playerName ?? attacker.gameObject.name;
 
                 // 获取击杀者当前使用的枪械名
                 if (attackerStats.MyMonster != null && attackerStats.MyMonster.currentGun != null)
@@ -395,7 +395,7 @@ public abstract class CharacterStats : NetworkBehaviour
         {
             if (attacker is playerStats attackerStats)
             {
-                _killerName = Main.PlayerName ?? attacker.gameObject.name;
+                _killerName = UOSRelaySimple.Instance.playerName ?? attacker.gameObject.name;
                 _killerGunName = "手雷";
             }
             else

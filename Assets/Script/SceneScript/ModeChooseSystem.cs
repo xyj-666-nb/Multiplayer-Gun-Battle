@@ -100,6 +100,26 @@ public class ModeChooseSystem : MonoBehaviour
         ConfirmOnlineButton.onClick.AddListener(ConfirmOnline);
         ConfirmStandaloneButton.onClick.AddListener(ConfirmStandalone);
     }
+    public void EnterSystem_Quick()//快速版
+    {
+        GameStartCG.Instance.StopTimeLine();
+
+        SetCinemachineBlendTime(0f);
+
+        SetAllCamerasInactive();
+        if (MainCV != null)
+        {
+            MainCV.Priority = _activePriority;
+            // 强制刷新相机位置，确保没有延迟
+            MainCV.ForceCameraPosition(MainCV.transform.position, MainCV.transform.rotation);
+        }
+        OnlineButton.onClick.AddListener(SwitchToOnline);
+        StandaloneButton.onClick.AddListener(SwitchToStandalone);
+        ReturnButton_Online.onClick.AddListener(SwitchToMainCamera);
+        ReturnButton_Standalone.onClick.AddListener(SwitchToMainCamera);
+        ConfirmOnlineButton.onClick.AddListener(ConfirmOnline);
+        ConfirmStandaloneButton.onClick.AddListener(ConfirmStandalone);
+    }
 
     // 系统出口：退出模式选择系统
     public void ExitSystem()

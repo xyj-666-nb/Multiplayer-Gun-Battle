@@ -39,13 +39,13 @@ public static class ShadowMeshJobHelper
         // 在Job完成后处理结果
         jobHandle.Complete();
 
-        // 提取结果
+        // 提取结果 (修改1：这里的 ToArray 全改为 AsArray().ToArray())
         var meshData = new MeshData
         {
-            vertices = outVertices.ToArray(),
-            triangles = outTriangles.ToArray(),
-            tangents = outTangents.ToArray(),
-            colors = outColors.ToArray(),
+            vertices = outVertices.AsArray().ToArray(),
+            triangles = outTriangles.AsArray().ToArray(),
+            tangents = outTangents.AsArray().ToArray(),
+            colors = outColors.AsArray().ToArray(),
             bounds = bounds[0]
         };
 
@@ -98,27 +98,28 @@ public static class ShadowMeshJobHelper
     {
         public JobHandle handle;
         public ShadowMeshGenJob job;
-        
+
         public bool IsCompleted => handle.IsCompleted;
-        
+
         public MeshData GetResult()
         {
             handle.Complete(); // 确保完成
-            
+
+            // 提取结果 (修改2：这里是报错核心第108行，全改为 AsArray().ToArray())
             var result = new MeshData
             {
-                vertices = job.outVertices.ToArray(),
-                triangles = job.outTriangles.ToArray(),
-                tangents = job.outTangents.ToArray(),
-                colors = job.outColors.ToArray(),
+                vertices = job.outVertices.AsArray().ToArray(),
+                triangles = job.outTriangles.AsArray().ToArray(),
+                tangents = job.outTangents.AsArray().ToArray(),
+                colors = job.outColors.AsArray().ToArray(),
                 bounds = job.bounds.Length > 0 ? job.bounds[0] : new Bounds()
             };
 
             Dispose();
-            
+
             return result;
         }
-        
+
         public void Dispose()
         {
             if (job.shapePath.IsCreated) job.shapePath.Dispose();

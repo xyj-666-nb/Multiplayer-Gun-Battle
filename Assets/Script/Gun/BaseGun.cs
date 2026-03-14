@@ -2,7 +2,7 @@ using Mirror;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Events;
-using DG.Tweening; // 必须导入DOTween命名空间
+using DG.Tweening;
 
 public class BaseGun : NetworkBehaviour
 {
@@ -19,7 +19,7 @@ public class BaseGun : NetworkBehaviour
     [SyncVar(hook = nameof(OnIsInReloadChanged))]
     protected bool _isInReload = false;
     [SerializeField]
-    [SyncVar(hook = nameof(OnIsInShootChanged))]
+    [SyncVar]
     protected bool _isInShoot = false;
     [SerializeField]
     [SyncVar(hook = nameof(OnCanShootChanged))]
@@ -112,11 +112,13 @@ public class BaseGun : NetworkBehaviour
         get => _isInReload;
         set
         {
-            if (!isServer) return;
+            if (!isServer)
+                return;
             if (_isInReload != value)
             {
                 _isInReload = value;
-                if (value) _isInShoot = false;
+                if (value)
+                    _isInShoot = false;
             }
         }
     }
@@ -126,11 +128,13 @@ public class BaseGun : NetworkBehaviour
         get => _isInShoot;
         set
         {
-            if (!isServer) return;
+            if (!isServer)
+                return;
             if (_isInShoot != value)
             {
                 _isInShoot = value;
-                if (value) _canShoot = false;
+                if (value)
+                    _canShoot = false;
             }
         }
     }
@@ -140,8 +144,10 @@ public class BaseGun : NetworkBehaviour
         get => _canShoot;
         set
         {
-            if (!isServer) return;
-            if (_canShoot != value) _canShoot = value;
+            if (!isServer)
+                return;
+            if (_canShoot != value)
+                _canShoot = value;
         }
     }
 
@@ -152,26 +158,17 @@ public class BaseGun : NetworkBehaviour
     #region SyncVar钩子（状态同步回调）
     private void OnIsInReloadChanged(bool oldValue, bool newValue)
     {
-        if (!isClient) return;
+        if (!isClient)
+            return;
         if (timelineDirector_Reload != null)
         {
-            if (newValue) timelineDirector_Reload.Play();
-            else timelineDirector_Reload.Stop();
+            if (newValue)
+                timelineDirector_Reload.Play();
+            else
+                timelineDirector_Reload.Stop();
         }
         else Debug.LogError($"[客户端] [{gameObject.name}] 换弹Timeline未赋值！");
     }
-
-    private void OnIsInShootChanged(bool oldValue, bool newValue)
-    {
-        if (!isClient) return;
-        if (timelineDirector_Shoot != null)
-        {
-            if (newValue) timelineDirector_Shoot.Play();
-            else timelineDirector_Shoot.Stop();
-        }
-        else Debug.LogError($"[客户端] [{gameObject.name}] 射击Timeline未赋值！");
-    }
-
     private void OnCanShootChanged(bool oldValue, bool newValue) { }
 
     private void OnCurrentMagazineBulletChanged(float oldValue, float newValue)
@@ -216,7 +213,7 @@ public class BaseGun : NetworkBehaviour
             ResetLocalAimProperties();
 
             // 服务器：开启销毁计时
-            if (isServer) 
+            if (isServer)
                 StartDestroyTimer();
         }
     }
@@ -258,30 +255,35 @@ public class BaseGun : NetworkBehaviour
     {
         IsEnterAimState = IsEnter;
     }
-
     [Command(requiresAuthority = true)]
     public void CmdStartShoot()
     {
         if (!isServer)
         {
             Debug.LogError($"[服务器] CmdStartShoot非服务器环境！");
-            return; 
+            return;
         }
         bool canShootServer = IsCanShoot();
-        if  (!canShootServer)
+        if (!canShootServer)
             return;
+
         IsInShoot = true;
+
+        RpcPlayShootAnimation();
     }
 
     [Command(requiresAuthority = true)]
     public void CmdExecuteShootLogic()
     {
-        if (!isServer) 
+        if (!isServer) //只有服务器进行运算
         {
-            Debug.LogError($"[服务器] CmdExecuteShootLogic非服务器环境！"); 
+            Debug.LogError($"[服务器] CmdExecuteShootLogic非服务器环境！");
             return;
         }
         _currentMagazineBulletCount = Mathf.Max(0, _currentMagazineBulletCount - 1);
+
+        // 【新增】声明目标点变量，作用域提到 if 外面，以便最后调用 Rpc
+        Vector2 bulletTargetPos = Vector2.zero;
 
         if (firePoint != null && gunInfo != null && ownerPlayer != null)
         {
@@ -295,8 +297,6 @@ public class BaseGun : NetworkBehaviour
                 gunInfo.Range,
                 shootRaycastLayers
             );
-
-
             if (hit.collider != null)
             {
                 if (hit.collider.CompareTag("Player"))
@@ -325,22 +325,26 @@ public class BaseGun : NetworkBehaviour
 
                     interactObj.CurrentHealthValue = Mathf.Max(0, interactObj.CurrentHealthValue - gunInfo.Damage);
 
-                    Debug.Log($"[BaseGun] 服务端直接扣血！目标:{hit.collider.name} | 伤害:{gunInfo.Damage} | 剩余:{interactObj.CurrentHealthValue}");
                 }
                 else if (hit.collider.CompareTag("Ground"))
                 {
                     RpcSpawnHitEffect(hit.point, hit.normal);
                 }
             }
-            Vector2 bulletTargetPos = hit ? hit.point : (Vector2)firePoint.position + shootDir * gunInfo.Range;
-            if (isDebug)
-                RpcDrawBulletSegment(firePoint.position, bulletTargetPos, shootDir);
+
+            // 计算子弹最终的目标位置
+            bulletTargetPos = hit ? hit.point : (Vector2)firePoint.position + shootDir * gunInfo.Range;
         }
         else
         {
             Debug.LogError($"[BaseGun] 射击失败：firePoint={firePoint != null} | gunInfo={gunInfo != null} | ownerPlayer={ownerPlayer != null}");
         }
+
         RpcPlaySingleShootVFX();
+
+        // 【修改】RpcDrawBulletSegment 现在只传一个参数 bulletTargetPos
+        if (isDebug)
+            RpcDrawBulletSegment(bulletTargetPos);
     }
 
     [Command(requiresAuthority = true)]
@@ -375,26 +379,49 @@ public class BaseGun : NetworkBehaviour
     private void RpcSpawnHitEffect(Vector2 hitPos, Vector2 hitNormal)
     {
         if (hitwalleffect == null)
-        { 
+        {
             Debug.LogError("[打击特效] hitwalleffect 预制体未赋值！");
             return;
         }
         GameObject hitEffectObj = PoolManage.Instance.GetObj(hitwalleffect);
-        if (hitEffectObj == null) 
+        if (hitEffectObj == null)
             return;
         hitEffectObj.transform.position = hitPos;
         hitEffectObj.transform.rotation = Quaternion.LookRotation(Vector3.forward, hitNormal);
         CountDownManager.Instance.CreateTimer(false, 1000, () => { PoolManage.Instance.PushObj(hitwalleffect, hitEffectObj); });
     }
 
+    [ClientRpc]
+    private void RpcPlayShootAnimation()
+    {
+        if (ownerPlayer != null && ownerPlayer.isLocalPlayer)//本地玩家执行过了，直接退出
+            return;
 
+        if (timelineDirector_Shoot != null)
+        {
+            timelineDirector_Shoot.Stop();
+            timelineDirector_Shoot.Play();
+        }
+        else
+        {
+            Debug.LogError($"[客户端] [{gameObject.name}] 射击Timeline未赋值！");
+        }
+    }
 
     [ClientRpc]
-    private void RpcDrawBulletSegment(Vector2 startPos, Vector2 targetPos, Vector2 shootDir)
+    private void RpcDrawBulletSegment(Vector2 targetPos)
     {
         if (!isDebug) return;
+
+        if (firePoint == null)
+            return;
+
         GameObject template = GetBulletSegmentTemplate();
-        if (template == null) { Debug.LogError("[子弹线段] 模板创建失败，跳过绘制"); return; }
+        if (template == null)
+        {
+            Debug.LogError("[子弹线段] 模板创建失败，跳过绘制");
+            return;
+        }
 
         GameObject bulletObj = PoolManage.Instance?.GetObj(template);
         if (bulletObj == null)
@@ -425,8 +452,12 @@ public class BaseGun : NetworkBehaviour
         lr.startColor = resetColor;
         lr.endColor = resetColor;
 
+        Vector2 startPos = firePoint.position;
+        Vector2 shootDir = (targetPos - startPos).normalized;
+
         BulletSegmentFly fly = bulletObj.GetComponent<BulletSegmentFly>();
         if (fly == null) fly = bulletObj.AddComponent<BulletSegmentFly>();
+
         fly.Init(lr, startPos, targetPos, shootDir, bulletSegmentLength, bulletFlySpeed, bulletShowDuration, template);
 
         float totalDuration = Vector2.Distance(startPos, targetPos) / bulletFlySpeed + bulletShowDuration;
@@ -438,13 +469,15 @@ public class BaseGun : NetworkBehaviour
     #endregion
 
     #region 客户端视觉特效逻辑
-    public void PlaySingleShootVFX()
+    public void PlaySingleShootVFX()//所有客户端都执行的动画
     {
-        if (applyAutoEjectCartridge) 
+        if (applyAutoEjectCartridge)
             SpawnCartridgeCase();
+
+
         ApplyRecoil();
         MuzzleSmokeManager.Instance?.PlayMuzzleSmoke(firePoint, gunInfo);
-        
+
 
         //本地靶子检测
         if (ownerPlayer != null && ownerPlayer.isLocalPlayer && firePoint != null && gunInfo != null)
@@ -459,7 +492,7 @@ public class BaseGun : NetworkBehaviour
                 firePoint.position,
                 shootDir,
                 gunInfo.Range,
-                shootRaycastLayers 
+                shootRaycastLayers
             );
 
             if (localHit.collider != null && localHit.collider.CompareTag("Bullseye"))
@@ -473,8 +506,9 @@ public class BaseGun : NetworkBehaviour
             }
         }
 
-        if(isLocalPlayer)//在这里加入本地屏幕震动
-          MyCameraControl.Instance.AddTimeBasedShake(gunInfo.ShackStrength,gunInfo.ShackTime);
+        if (isLocalPlayer)//在这里加入本地屏幕震动
+            MyCameraControl.Instance.AddTimeBasedShake(gunInfo.ShackStrength, gunInfo.ShackTime);
+
     }
 
     private Vector2 CalculateLocalBulletScattering(Vector2 centerDir)
@@ -581,7 +615,9 @@ public class BaseGun : NetworkBehaviour
     #region 对外封装方法
     public virtual void TriggerSingleShoot()
     {
-        if (!IsCanShoot()) return;
+        if (!IsCanShoot())
+            return;
+        timelineDirector_Shoot.Play();//自己手动播放一次
         CmdStartShoot();
     }
 
@@ -608,8 +644,13 @@ public class BaseGun : NetworkBehaviour
 
     public bool IsCanShoot()
     {
-        if (gunInfo == null) { Debug.LogError($"IsCanShoot：gunInfo未赋值！"); return false; }
-        return !IsInReload && !IsInShoot && CanShoot && CurrentMagazineBulletCount > 0;
+        if (gunInfo == null)
+        {
+            Debug.LogError($"IsCanShoot：gunInfo未赋值！");
+            return false;
+        }
+        return
+            !IsInReload && !IsInShoot && CanShoot && CurrentMagazineBulletCount > 0;
     }
     #endregion
 
@@ -637,8 +678,6 @@ public class BaseGun : NetworkBehaviour
 
         RemainingDestoryTime = DestoryTime;
     }
-
-
     #endregion
 
     #region 枪械拾取/丢弃逻辑
@@ -807,7 +846,7 @@ public class BaseGun : NetworkBehaviour
         yield return null;
         if (ownerPlayer != null)
         {
-            ownerPlayer.ServerHandleDropGun(gameObject,false);
+            ownerPlayer.ServerHandleDropGun(gameObject, false);
             ownerPlayer.currentGun = null;
         }
     }
@@ -900,7 +939,7 @@ public class BaseGun : NetworkBehaviour
         StopFlashAnimation();
     }
     #endregion
-}
+} // BaseGun 类结束
 
 #region 辅助类：子弹飞行逻辑
 public class BulletSegmentFly : MonoBehaviour

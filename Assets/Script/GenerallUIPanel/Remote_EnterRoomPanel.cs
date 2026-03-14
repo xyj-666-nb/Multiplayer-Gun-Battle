@@ -6,18 +6,14 @@ using UnityEngine.UI;
 public class Remote_EnterRoomPanel : BasePanel
 {
     [Header("远程联机专用")]
-    public TMP_InputField joinCodeInputField; // 输入 Join Code 的框
-    public TMP_InputField PlayerNameInputField; // 玩家名字
-    public TMP_Text statusText;               // 显示状态（可选）
-
-    // 缓存 Relay 脚本引用
-    private RelayForCustomManager _relayManager;
+    public TMP_InputField joinCodeInputField;
+    public TMP_InputField PlayerNameInputField; 
+    public TMP_Text statusText;
+    public TextMeshProUGUI PromptText;//提升文本
 
     public override void Awake()
     {
         base.Awake();
-        // 自动查找 Relay 脚本
-        _relayManager = FindObjectOfType<RelayForCustomManager>();
     }
 
     public override void Start()
@@ -34,15 +30,6 @@ public class Remote_EnterRoomPanel : BasePanel
 
         if (PlayerNameInputField != null)
         {
-            PlayerNameInputField.onValueChanged.AddListener((str) =>
-            {
-                Main.PlayerName = str;
-            });
-
-            if (!string.IsNullOrEmpty(Main.PlayerName))
-            {
-                PlayerNameInputField.text = Main.PlayerName;
-            }
         }
     }
 
@@ -56,9 +43,9 @@ public class Remote_EnterRoomPanel : BasePanel
         if (statusText != null)
             statusText.text = "请输入房间码";
 
-        if (PlayerNameInputField != null && !string.IsNullOrEmpty(Main.PlayerName))
+        if (PlayerNameInputField != null && !string.IsNullOrEmpty(UOSRelaySimple.Instance.playerName))
         {
-            PlayerNameInputField.text = Main.PlayerName;
+           // UOSRelaySimple.Instance.SetPlayerData(PlayerNameInputField.text);//设置玩家数据
         }
     }
 
@@ -69,16 +56,8 @@ public class Remote_EnterRoomPanel : BasePanel
         switch (controlName)
         {
             case "JoinButton": // 点击加入按钮
-                if (string.IsNullOrEmpty(Main.PlayerName) && PlayerNameInputField != null)
-                {
-                    Main.PlayerName = PlayerNameInputField.text;
-                }
 
-                if (string.IsNullOrEmpty(Main.PlayerName))
-                {
-                    if (statusText != null) statusText.text = "请先输入玩家名字！";
-                    return;
-                }
+              //  UOSRelaySimple.Instance.SetPlayerData(PlayerNameInputField.text);//设置玩家数据
 
                 TryJoinRelayRoom();
                 break;
@@ -91,14 +70,14 @@ public class Remote_EnterRoomPanel : BasePanel
     }
 
     /// <summary>
-    /// 核心逻辑：尝试加入 Relay 房间
+    /// 适配 UOSRelaySimple 单例
     /// </summary>
     private void TryJoinRelayRoom()
     {
-        if (_relayManager == null)
+        if (CustomNetworkManager.Instance != null)
         {
-            Debug.LogError("场景里没有找到 RelayForCustomManager！");
-            return;
+            CustomNetworkManager.Instance.SwitchToRelayMode();
+            Debug.Log("[Remote_EnterRoomPanel] 已切换到【Relay模式（UOS）】");
         }
 
         // 获取输入的 Code，去除首尾空格
@@ -106,7 +85,8 @@ public class Remote_EnterRoomPanel : BasePanel
 
         if (string.IsNullOrEmpty(code))
         {
-            if (statusText != null) statusText.text = "请输入有效的房间码！";
+            if (statusText != null)
+                PromptText.text = "请输入有效的房间码！";
             Debug.LogWarning("Join Code 为空！");
             return;
         }
@@ -116,21 +96,17 @@ public class Remote_EnterRoomPanel : BasePanel
             statusText.text = "正在连接...";
         (controlDic["JoinButton"] as Button).interactable = false; // 防止重复点击
 
-        // ==========================================
-        // 关联事件
-        // ==========================================
-
+        // 关联 UOSRelaySimple 的事件
         void UnsubscribeAll()
         {
-            RelayForCustomManager.OnRelaySuccess -= OnJoinSuccess;
-            RelayForCustomManager.OnRelayFailed -= OnJoinFailed;
+            UOSRelaySimple.OnRelaySuccess -= OnJoinSuccess;
+            UOSRelaySimple.OnRelayFailed -= OnJoinFailed;
         }
 
         void OnJoinSuccess(string c)
         {
-
             UnsubscribeAll();
-            if (statusText != null) 
+            if (statusText != null)
                 statusText.text = "连接成功！";
         }
 
@@ -138,16 +114,13 @@ public class Remote_EnterRoomPanel : BasePanel
         {
             UnsubscribeAll();
             if (statusText != null)
-                statusText.text = $"连接失败";
+                statusText.text = $"连接失败: {error}";
             (controlDic["JoinButton"] as Button).interactable = true; // 恢复按钮
         }
 
-        // 订阅事件
-        RelayForCustomManager.OnRelaySuccess += OnJoinSuccess;
-        RelayForCustomManager.OnRelayFailed += OnJoinFailed;
-
-        // 启动连接！
-        _relayManager.StartRelayClient(code);
+        UOSRelaySimple.OnRelaySuccess += OnJoinSuccess;
+        UOSRelaySimple.OnRelayFailed += OnJoinFailed;
+        UOSRelaySimple.Instance.StartRelayClient(code);
     }
 
     protected override void OnDestroy()

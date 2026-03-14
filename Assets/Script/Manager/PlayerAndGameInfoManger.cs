@@ -5,8 +5,9 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 {
     [Header("玩家战备数据")]
     public int MaxSlotCount = 4;
-    // 这个 List 依然保留在 Inspector 中作为默认配置，但运行时会被存档覆盖
     public List<SlotInfoPack> PlayerSlotInfoPacksList = new List<SlotInfoPack>();
+
+    private List<SlotInfoPack> _defaultSlotInfoBackup;
 
     [Header("当前的装备槽位")]
     public int SlotCount = 1;
@@ -32,10 +33,9 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
     [Header("红队的队伍标识")]
     public Sprite RedTeamSprite;
 
-    // 存档文件名常量
     private const string SAVE_FILE_NAME = "PlayerGameData";
 
-    // ================= 原有逻辑  =================
+    // ================= 逻辑修复  =================
 
     public void AddCustomUIInfoList(PlayerCustomUIInfo info)
     {
@@ -61,7 +61,6 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
     public void SetSlotInfoPack(int Index)
     {
         var listIndex = Index - 1;
-        // 增加安全检查
         if (listIndex >= 0 && listIndex < PlayerSlotInfoPacksList.Count)
         {
             SlotCount = Index;
@@ -75,14 +74,42 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
     public void EquipCurrentSlot()
     {
-        if (CurrentSlotInfoPack == null) return;
+        if (CurrentSlotInfoPack == null)
+        {
+            Debug.LogWarning("当前槽位信息为空，无法装备！");
+            return;
+        }
 
-        Player.LocalPlayer.CmdGetArmor(CurrentSlotInfoPack.CurrentArmorType);
+        var cachedArmorType = CurrentSlotInfoPack.CurrentArmorType;
+        string cachedGunName = CurrentSlotInfoPack.CurrentGunInfo?.Name;
+
+        if (Player.LocalPlayer != null)
+        {
+            Player.LocalPlayer.CmdGetArmor(cachedArmorType);
+        }
+
+        if (CountDownManager.Instance == null) 
+            return;
+
         CountDownManager.Instance.CreateTimer(false, 1500, () => {
-            Player.LocalPlayer.SpawnAndPickGun(CurrentSlotInfoPack.CurrentGunInfo.Name);
-            PlayerTacticControl.Instance?.UpdateCurrentTactic();
-            PlayerTacticControl.Instance.SetTacticControl(true);
+            if (this == null || Instance == null) 
+                return;
+            if (Player.LocalPlayer == null) 
+                return;
+
+            if (!string.IsNullOrEmpty(cachedGunName))
+            {
+                Player.LocalPlayer.SpawnAndPickGun(cachedGunName);
+            }
         });
+    }
+    public void ShowTactic()
+    {
+        if (PlayerTacticControl.Instance != null)
+        {
+            PlayerTacticControl.Instance.UpdateCurrentTactic();
+            PlayerTacticControl.Instance.SetTacticControl(true);
+        }
     }
 
     public GunInfo GetCurrentGunInfo()
@@ -103,27 +130,28 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         return null;
     }
 
-
     protected override void Awake()
     {
         base.Awake();
+        BackupDefaultData();
         LoadPlayerData();
         SetSlotInfoPack(SlotCount);
+    }
+
+    private void BackupDefaultData()
+    {
+
+        _defaultSlotInfoBackup = new List<SlotInfoPack>(PlayerSlotInfoPacksList);
+        Debug.Log($"[PlayerAndGameInfoManger] 已备份默认配置，共 {_defaultSlotInfoBackup.Count} 个槽位");
     }
 
     protected override void OnDestroy()
     {
         base.OnDestroy();
-        // 销毁时自动保存一次
     }
 
-
-    /// <summary>
-    /// 保存玩家数据到本地
-    /// </summary>
     public void SavePlayerData()
     {
-        // 1. 准备要保存的数据
         PlayerGameSaveData saveData = new PlayerGameSaveData
         {
             PlayerSlotInfoPacksList = this.PlayerSlotInfoPacksList,
@@ -134,13 +162,9 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         };
 
         JsonManager.Instance.SaveData(saveData, SAVE_FILE_NAME, JsonType.JsonUtlity);
-
         Debug.Log($"[PlayerAndGameInfoManger] 玩家数据已保存");
     }
 
-    /// <summary>
-    /// 从本地读取玩家数据
-    /// </summary>
     public void LoadPlayerData()
     {
         PlayerGameSaveData loadData = JsonManager.Instance.LoadData<PlayerGameSaveData>(SAVE_FILE_NAME, JsonType.JsonUtlity);
@@ -148,16 +172,23 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         if (loadData == null)
         {
             Debug.Log("[PlayerAndGameInfoManger] 未找到存档，使用默认配置");
+            RestoreDefaultData(); // 恢复备份
             return;
         }
 
-        // 只有当存档里有数据时才覆盖，防止把 Inspector 里的默认配置清空
-        if (loadData.PlayerSlotInfoPacksList != null && loadData.PlayerSlotInfoPacksList.Count > 0)
+        bool hasValidSlotData = loadData.PlayerSlotInfoPacksList != null && loadData.PlayerSlotInfoPacksList.Count > 0;
+
+        if (hasValidSlotData)
         {
             this.PlayerSlotInfoPacksList = loadData.PlayerSlotInfoPacksList;
+            Debug.Log("[PlayerAndGameInfoManger] 已加载存档槽位数据");
+        }
+        else
+        {
+            Debug.LogWarning("[PlayerAndGameInfoManger] 存档中的槽位数据为空，回退到默认配置");
+            RestoreDefaultData(); // 恢复备份
         }
 
-        // 恢复当前选中的槽位
         if (loadData.CurrentSlotIndex > 0)
         {
             this.SlotCount = loadData.CurrentSlotIndex;
@@ -172,19 +203,29 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         // 恢复画面设置
         this.CurrentFPS = (FpsType)loadData.CurrentFPS;
         this.CurrentScreen = (ScreenType)loadData.CurrentScreen;
+    }
 
-        Debug.Log("[PlayerAndGameInfoManger] 玩家数据已加载");
+    private void RestoreDefaultData()
+    {
+        PlayerSlotInfoPacksList.Clear();
+
+        // 从备份里复制回来
+        if (_defaultSlotInfoBackup != null)
+        {
+            PlayerSlotInfoPacksList.AddRange(_defaultSlotInfoBackup);
+        }
+        else
+        {
+            Debug.LogError("备份数据也丢失了！");
+        }
     }
 }
 
 public class PlayerGameSaveData
 {
     public List<SlotInfoPack> PlayerSlotInfoPacksList = new List<SlotInfoPack>();
-
     public int CurrentSlotIndex = 1;
-
     public List<PlayerCustomUIInfo> playerCustomUIInfoList = new List<PlayerCustomUIInfo>();
-
-    public int CurrentFPS; // 存 enum 的 int 值
+    public int CurrentFPS;
     public int CurrentScreen;
 }

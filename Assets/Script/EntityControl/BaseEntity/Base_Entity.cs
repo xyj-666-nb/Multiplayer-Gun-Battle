@@ -52,47 +52,41 @@ public class Base_Entity : NetworkBehaviour
 
     #region 生物翻转
     [Header("角色朝向")]
-    [SyncVar(hook = nameof(OnFacingDirChanged))] // 朝向变化时触发客户端缩放更新
+    [SyncVar(hook = nameof(OnFacingDirChanged))]
     public int FacingDir = 1;
-    [SyncVar]
-    private bool FacingRight = true;
+
 
     /// <summary>
     /// 【客户端调用】请求服务器执行翻转
     /// </summary>
-    [Command(requiresAuthority = true)] // 仅本地玩家能调用，确保权限
-    public void CmdRequestFlip()
+    [Command(requiresAuthority = true)]
+    public void CmdRequestFlip(int targetDir)
     {
-        if (!isServer) return;
-        Flip(); // 服务器统一执行翻转逻辑
+        // 服务器直接接受客户端的方向并同步给其他人
+        FacingDir = targetDir;
     }
 
     /// <summary>
-    /// 服务器内部执行翻转
-    /// </summary>
-    private void Flip()
-    {
-        if (!isFlip) 
-            return;
-
-        // 服务器修改FacingDir
-        FacingDir *= -1;
-        FacingRight = !FacingRight;
-        Debug.Log($"[服务器] 玩家{gameObject.name}翻转，FacingDir={FacingDir}");
-    }
-
-    /// <summary>
-    /// FacingDir同步钩子（所有客户端实时更新缩放）
+    /// FacingDir同步钩子（其他客户端同步缩放）
     /// </summary>
     private void OnFacingDirChanged(int oldValue, int newValue)
     {
-        if (!isClient) return;
+        // 如果是本地玩家，因为我们已经"本地预测"提前翻转过了，所以这里不用重复执行
+        if (isLocalPlayer) return;
 
-        float targetScaleX = isFlip ? newValue : 1f;
+        ApplyFlipVisual(newValue);
+    }
+
+    /// <summary>
+    /// 纯视觉翻转表现（抽离出来方便本地和网络共用）
+    /// </summary>
+    public void ApplyFlipVisual(int dir)
+    {
+        if (!isFlip) return;
+        float targetScaleX = dir;
         Vector3 currentScale = transform.localScale;
         currentScale.x = targetScaleX;
         transform.localScale = currentScale;
-        Debug.Log($"[客户端] 玩家{gameObject.name}同步缩放，X={targetScaleX}");
     }
     #endregion
 

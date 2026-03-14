@@ -302,7 +302,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         // 音量计算：特殊音量(可>1) * 全局音量(0-1)
         float specificVol = specificEffectVolumes.TryGetValue(clip.name, out float vol) ? vol : 1f;
         float finalVolume = specificVol * effectGlobalVolume;
-        Debug.Log($"音效【{clip.name}】最终音量：{finalVolume} (特殊音量{specificVol} × 全局音量{effectGlobalVolume})");
+     //   Debug.Log($"音效【{clip.name}】最终音量：{finalVolume} (特殊音量{specificVol} × 全局音量{effectGlobalVolume})");
 
         if (is3d)
             // 传递新增的isDetach参数

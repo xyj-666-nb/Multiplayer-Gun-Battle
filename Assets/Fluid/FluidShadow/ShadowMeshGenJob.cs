@@ -17,30 +17,31 @@ public struct ShadowMeshGenJob : IJob
     public NativeList<int> outTriangles;
     public NativeList<Vector4> outTangents;
     public NativeList<Color> outColors;
-    
+
     // 单个值仍可使用 NativeArray
     [WriteOnly] public NativeArray<Bounds> bounds;
-    
 
+    [Obsolete]
     public void Execute()
     {
         Bounds b = GenerateShadowMesh(shapePath, out var vertices, out var triangles, out var tangents, out var colors);
-        
+
         // 清空并添加所有数据
         outVertices.Clear();
-        outVertices.AddRange(vertices);
-        
+        // 修改1：使用 AsArray() 转为 NativeArray 再添加
+        outVertices.AddRange(vertices.AsArray());
+
         outTriangles.Clear();
-        outTriangles.AddRange(triangles);
-        
+        outTriangles.AddRange(triangles.AsArray());
+
         outTangents.Clear();
-        outTangents.AddRange(tangents);
-        
+        outTangents.AddRange(tangents.AsArray());
+
         outColors.Clear();
-        outColors.AddRange(colors);
-        
+        outColors.AddRange(colors.AsArray());
+
         bounds[0] = b;
-        
+
         // 释放临时数据
         vertices.Dispose();
         triangles.Dispose();
@@ -98,6 +99,7 @@ public struct ShadowMeshGenJob : IJob
 
     static void PopulateEdgeArray(NativeList<Vector3> vertices, NativeList<int> triangles, NativeList<Edge> edges)
     {
+        // 修改2：遍历 NativeList 时使用 .Length 且通过索引访问，避免 GetEnumerator
         for (int triangleIndex = 0; triangleIndex < triangles.Length; triangleIndex += 3)
         {
             edges.Add(CreateEdge(triangleIndex, triangleIndex + 1, vertices, triangles));
@@ -130,6 +132,7 @@ public struct ShadowMeshGenJob : IJob
 
     static void CreateShadowTriangles(NativeList<Vector3> vertices, NativeList<Color> colors, NativeList<int> triangles, NativeList<Vector4> tangents, NativeList<Edge> edges)
     {
+        // 修改3：遍历 NativeList 时使用 .Length
         for (int edgeIndex = 0; edgeIndex < edges.Length; edgeIndex++)
         {
             if (IsOutsideEdge(edgeIndex, edges))
@@ -182,9 +185,9 @@ public struct ShadowMeshGenJob : IJob
         return new Bounds { max = maxVec, min = minVec };
     }
 
-    public static Bounds GenerateShadowMesh(NativeArray<Vector3> shapePath, 
+    public static Bounds GenerateShadowMesh(NativeArray<Vector3> shapePath,
         out NativeList<Vector3> outVertices,
-        out NativeList<int> outTriangles, 
+        out NativeList<int> outTriangles,
         out NativeList<Vector4> outTangents,
         out NativeList<Color> outColors)
     {
@@ -220,10 +223,11 @@ public struct ShadowMeshGenJob : IJob
         // double time = sw.Elapsed.TotalMilliseconds;
         // UnityEngine.Debug.LogError($"生成阴影网格耗时：{time:F3}ms");
 
+        // 注意：这里 tessI.Elements 是 LibTess 的普通数组，不要改
         var indicesI = tessI.Elements.Select(i => i).ToArray();
         var verticesI = tessI.Vertices.Select(v => new Vector3(v.Position.X, v.Position.Y, 0)).ToArray();
         var extrusionI = tessI.Vertices.Select(v => new Color(((Color)v.Data).r, ((Color)v.Data).g, ((Color)v.Data).b, ((Color)v.Data).a)).ToArray();
-        
+
         for (int i = 0; i < verticesI.Length; i++)
         {
             vertices.Add(verticesI[i]);
@@ -257,7 +261,8 @@ public struct ShadowMeshGenJob : IJob
         outTangents = tangents;
         outColors = extrusion;
 
-        Vector3[] finalVertices = vertices.ToArray();
+        // 修改4：这里是报错核心！改为 AsArray().ToArray()
+        Vector3[] finalVertices = vertices.AsArray().ToArray();
 
         // sw.Stop();
         // double time = sw.Elapsed.TotalMilliseconds;

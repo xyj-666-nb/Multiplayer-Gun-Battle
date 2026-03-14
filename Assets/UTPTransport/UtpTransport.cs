@@ -98,10 +98,6 @@ namespace Utp
 
 		private void SetupDefaultCallbacks()
 		{
-			if (OnServerConnected == null)
-			{
-				OnServerConnected = (connId) => UtpLog.Warning("OnServerConnected called with no handler");
-			}
 			if (OnServerDisconnected == null)
 			{
 				OnServerDisconnected = (connId) => UtpLog.Warning("OnServerDisconnected called with no handler");

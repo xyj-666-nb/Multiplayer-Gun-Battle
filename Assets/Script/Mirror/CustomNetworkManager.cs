@@ -2,6 +2,7 @@ using kcp2k;
 using Mirror;
 using System.Net;
 using System.Net.Sockets;
+using Unity.Sync.Relay.Transport.Mirror;
 using UnityEngine;
 using Utp;
 
@@ -22,63 +23,118 @@ public class CustomNetworkManager : NetworkManager
     public int maxPort = 8888;
     private int _currentUsedPort;
 
-    #region 核心：双模式切换（动态添加/移除组件）
+    #region 核心：双模式切换（稳妥版：禁用/启用，不销毁）
     /// <summary>
-    /// 切换到局域网模式（KCP）
+    /// 【统一入口】切换到局域网模式（KCP）
     /// </summary>
     public void SwitchToLanMode()
     {
         _isRelayModeActive = false;
+        Debug.Log("[CustomNetworkManager] 正在切换到【局域网模式（KCP）】...");
 
-        // 1. 移除UTP
-        var existingUtp = GetComponent<UtpTransport>();
-        if (existingUtp != null)
-        {
-            DestroyImmediate(existingUtp);
-        }
+        // 1. 先停止所有网络活动
+        StopAllNetworkActivity();
 
-        // 2. 添加KCP
-        var kcp = GetComponent<KcpTransport>();
+        // 2. 【关键】禁用 UOS 相关的一切
+        DisableUOSRelayEverything();
+
+        // 3. 确保有 KCP 组件，没有就添加
+        KcpTransport kcp = GetComponent<KcpTransport>();
         if (kcp == null)
         {
             kcp = gameObject.AddComponent<KcpTransport>();
         }
+
+        // 4. 启用 KCP，禁用 Relay
         kcp.enabled = true;
+        var uosRelay = GetComponent<RelayTransportMirror>();
+        if (uosRelay != null)
+        {
+            uosRelay.enabled = false;
+        }
 
-        // 3. 赋值
+        // 5. 告诉 Mirror 使用 KCP
         transport = kcp;
-        _currentUsedPort = kcp.Port;
 
-        Debug.Log("[CustomNetworkManager] 已切换到【局域网模式】");
+        Debug.Log("[CustomNetworkManager] 已切换到【局域网模式（KCP）】");
     }
 
     /// <summary>
-    /// 切换到Relay模式（UTP）- 核心：彻底移除KCP
+    /// 【统一入口】切换到 Relay 模式（UOS）
     /// </summary>
     public void SwitchToRelayMode()
     {
         _isRelayModeActive = true;
+        Debug.Log("[CustomNetworkManager] 正在切换到【Relay模式（UOS）】...");
 
-        // 1. 【核心】彻底移除KCP组件（Mirror再也找不到它了）
-        var existingKcp = GetComponent<KcpTransport>();
-        if (existingKcp != null)
+        // 1. 先停止所有网络活动
+        StopAllNetworkActivity();
+
+        // 2. 【关键】启用 UOS 相关的一切
+        EnableUOSRelayEverything();
+
+        // 3. 确保有 Relay 组件，没有就添加
+        RelayTransportMirror uosRelay = GetComponent<RelayTransportMirror>();
+        if (uosRelay == null)
         {
-            DestroyImmediate(existingKcp);
+            uosRelay = gameObject.AddComponent<RelayTransportMirror>();
         }
 
-        // 2. 添加UTP
-        var utp = GetComponent<UtpTransport>();
-        if (utp == null)
+        // 4. 启用 Relay，禁用 KCP
+        uosRelay.enabled = true;
+        var kcp = GetComponent<KcpTransport>();
+        if (kcp != null)
         {
-            utp = gameObject.AddComponent<UtpTransport>();
+            kcp.enabled = false;
         }
-        utp.enabled = true;
-        utp.useRelay = true;
 
-        // 3. 赋值
-        transport = utp;
+        // 5. 告诉 Mirror 使用 Relay
+        transport = uosRelay;
 
-        Debug.Log("[CustomNetworkManager] 已切换到【Relay模式】，KCP已彻底移除");
+        // 6. 同步引用给 UOSRelaySimple
+        if (UOSRelaySimple.Instance != null)
+        {
+            UOSRelaySimple.Instance.relayTransport = uosRelay;
+        }
+
+        Debug.Log("[CustomNetworkManager]  已切换到【Relay模式（UOS）】");
+    }
+
+    /// <summary>
+    /// 【辅助】停止所有网络活动
+    /// </summary>
+    private void StopAllNetworkActivity()
+    {
+        if (NetworkServer.active || NetworkClient.isConnected)
+        {
+            StopHost();
+        }
+    }
+
+    /// <summary>
+    /// 【辅助】禁用 UOS 相关的一切
+    /// </summary>
+    private void DisableUOSRelayEverything()
+    {
+        // 禁用 UOSRelaySimple 单例
+        if (UOSRelaySimple.Instance != null)
+        {
+            UOSRelaySimple.Instance.enabled = false;
+            Debug.Log("[CustomNetworkManager] 已禁用 UOSRelaySimple");
+        }
+    }
+
+    /// <summary>
+    /// 【辅助】启用 UOS 相关的一切
+    /// </summary>
+    private void EnableUOSRelayEverything()
+    {
+        // 启用 UOSRelaySimple 单例
+        if (UOSRelaySimple.Instance != null)
+        {
+            UOSRelaySimple.Instance.enabled = true;
+            Debug.Log("[CustomNetworkManager] 已启用 UOSRelaySimple");
+        }
     }
     #endregion
 
@@ -167,6 +223,10 @@ public class CustomNetworkManager : NetworkManager
         base.OnClientConnect();
         OnClientConnectedSuccess?.Invoke();
         Debug.Log("[CustomNetworkManager] 客户端连接成功");
+        //处理其他信息
+        UImanager.Instance.HidePanel<EnterRoomPanel>();
+        ModeChooseSystem.instance.ExitSystem();//退出系统
+        UImanager.Instance.HidePanel<Remote_EnterRoomPanel>();
     }
     #endregion
 

@@ -240,7 +240,6 @@ public class playerHandControl : NetworkBehaviour
     private void OnRotationValueSynced(float oldFloat, float newFloat)
     {
         _currentRotationValue_Z = newFloat;
-        // 【修改】只有非拥有者才需要同步旋转
         if (!isOwned)
             transform.localRotation = Quaternion.Euler(0, 0, newFloat);
     }
@@ -295,8 +294,6 @@ public class playerHandControl : NetworkBehaviour
 
         if (!_isReloading) HandleMouseRotation_Bidirectional();
         else ResetRotationOnReload();
-
-        // 【修改】删除了原有的 SyncHandRotation，拥有者不再通过SyncVar平滑自己
     }
 
     public override void OnStartServer()
@@ -374,9 +371,7 @@ public class playerHandControl : NetworkBehaviour
             targetAngle = -targetAngle;
         }
 
-        // 【修改】拥有者直接旋转自己的手臂（本地预测）
         transform.localRotation = Quaternion.Euler(0, 0, targetAngle);
-        // 【修改】同步角度到服务器
         SetRotationZ(targetAngle);
     }
     #endregion
@@ -405,7 +400,6 @@ public class playerHandControl : NetworkBehaviour
     public void SetRotationZ(float targetZ)
     {
         if (IsHolsterGun || _isHolsterAnimaPlaying) return;
-        // 【修改】简化逻辑：服务器直接设值，客户端发命令
         if (isServer)
             _currentRotationValue_Z = targetZ;
         else if (isClient && isOwned)
@@ -526,15 +520,24 @@ public class playerHandControl : NetworkBehaviour
     }
     #endregion
 
-    #region 投掷物瞄准点系统
+    #region 投掷物瞄准点系统 (优化版)
     private GameObject[] _aimPoints;
+    // 新增：用于平滑移动的速度缓存数组
+    private Vector2[] _aimPointVelocities;
+
     public Vector2 LaunchForce;
     public float CurrentAimAngle;
     public bool IsStartAim = false;
 
+    [Header("瞄准点设置")]
+    public float AimPointTimeInterval = 0.1f; // 改为时间间隔，物理计算更准确
+    public float SmoothTime = 0.05f; // 平滑时间，越小越快，越大越缓
+
     private void InitAimPoints()
     {
         _aimPoints = new GameObject[AimPointCount];
+        _aimPointVelocities = new Vector2[AimPointCount]; // 初始化速度数组
+
         for (int i = 0; i < AimPointCount; i++)
         {
             _aimPoints[i] = Instantiate(AimPointPrefab);
@@ -562,26 +565,31 @@ public class playerHandControl : NetworkBehaviour
 
     private IEnumerator UpdateAimPointActive(bool isActive)
     {
-        if (_aimPoints == null) yield break;
+        if (_aimPoints == null)
+            yield break;
 
         IsStartAim = isActive;
         for (int i = 0; i < _aimPoints.Length; i++)
         {
-            if (this == null || _aimPoints == null || _aimPoints[i] == null) yield break;
+            // 修复1：闭包陷阱，循环内定义局部变量
+            int index = i;
 
-            SpriteRenderer sr = _aimPoints[i].GetComponent<SpriteRenderer>();
+            if (this == null || _aimPoints == null || _aimPoints[index] == null)
+                yield break;
+
+            SpriteRenderer sr = _aimPoints[index].GetComponent<SpriteRenderer>();
             if (sr == null) continue;
 
             if (isActive)
             {
-                _aimPoints[i].SetActive(true);
+                _aimPoints[index].SetActive(true);
                 sr.DOFade(1, 0.1f);
             }
             else
             {
                 sr.DOFade(0, 0.1f).OnComplete(() => {
-                    if (_aimPoints != null && i < _aimPoints.Length && _aimPoints[i] != null)
-                        _aimPoints[i].SetActive(false);
+                    if (_aimPoints != null && index < _aimPoints.Length && _aimPoints[index] != null)
+                        _aimPoints[index].SetActive(false);
                 });
             }
             yield return new WaitForSeconds(0.05f);
@@ -601,19 +609,37 @@ public class playerHandControl : NetworkBehaviour
     private Vector2 CalculateAimPointPosition(float t)
     {
         Vector2 forceDisplacement = LaunchForce * t;
+        // 这里的 Physics2D.gravity 是固定的，确保计算稳定
         Vector2 pos = (Vector2)TacticRootTransform.transform.position
                     + forceDisplacement
                     + 0.5f * Physics2D.gravity * t * t;
         return pos;
     }
 
-    private void UpdateThrowAimPoints()
+    // 修复2：将瞄准点更新逻辑放在 FixedUpdate 中调用，保证物理预测稳定
+    // 请确保在外部的 FixedUpdate 里调用此方法，而不是 Update
+    public void UpdateThrowAimPoints()
     {
-        if (!IsStartAim || _aimPoints == null || ownerPlayer == null) return;
+        if (!IsStartAim || _aimPoints == null || ownerPlayer == null)
+            return;
+
         for (int i = 0; i < _aimPoints.Length; i++)
         {
-            if (_aimPoints[i] == null) continue;
-            _aimPoints[i].transform.position = CalculateAimPointPosition(i * AimPointDistance);
+            if (_aimPoints[i] == null)
+                continue;
+
+            Vector2 targetPos = CalculateAimPointPosition(i * AimPointTimeInterval);
+
+            // 修复3：使用 SmoothDamp 进行平滑移动，消除弹跳感
+            Vector2 currentPos = _aimPoints[i].transform.position;
+
+            // 这里使用 Vector2.SmoothDamp，比 Lerp 效果更自然，不会有“弹簧感”
+            _aimPoints[i].transform.position = Vector2.SmoothDamp(
+                currentPos,
+                targetPos,
+                ref _aimPointVelocities[i], // 引用传递速度
+                SmoothTime
+            );
         }
     }
 
@@ -625,12 +651,15 @@ public class playerHandControl : NetworkBehaviour
             if (point != null) Destroy(point);
         }
         _aimPoints = null;
+        _aimPointVelocities = null;
     }
 
     private void HandleMouseAimAngle()
     {
-        if (mainCamera == null || !mainCamera.orthographic) return;
-        if (TacticRootTransform == null) return;
+        if (mainCamera == null || !mainCamera.orthographic)
+            return;
+        if (TacticRootTransform == null)
+            return;
 
         Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(new Vector3(
             Input.mousePosition.x, Input.mousePosition.y,
@@ -643,7 +672,8 @@ public class playerHandControl : NetworkBehaviour
             mouseWorldPos.y - TacticRootTransform.position.y
         );
 
-        if (dirToMouse.sqrMagnitude < 0.001f) return;
+        if (dirToMouse.sqrMagnitude < 0.001f)
+            return;
         float targetAngle = Mathf.Atan2(dirToMouse.y, dirToMouse.x) * Mathf.Rad2Deg;
 
         CalculateLaunchForce(targetAngle);

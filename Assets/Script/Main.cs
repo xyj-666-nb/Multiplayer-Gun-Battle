@@ -7,18 +7,14 @@ using UnityEngine.Playables;
 public class Main : SingleMonoAutoBehavior<Main>
 {
     public LanguageType CurrentLanguageType;
-    public static string PlayerName = "Player";
 
     [Header("Network配置")]
     public CustomNetworkManager customNetworkManager;
     [Header("当前联机模式")]
     public NetworkMode CurrentMode;
-    public string JoinRoomInfo;//加入房间获取的加入码
-
+ 
     public Team CurrentTeam;//当前的队伍
-
     public PlayableDirector StartTimeLine;
-
     public GameStartCG CG;
     public CinemachineBrain brain;
     public CinemachineVirtualCamera AnimaVC;//动画虚拟相机
@@ -148,12 +144,14 @@ public class Main : SingleMonoAutoBehavior<Main>
         Developer_GUITestManger.Instance.RegisterGuiButton_TwoWay("打开当前调试信息", "关闭当前调试信息", () => { Developer_GUITestManger.Instance.IsShowAllInfo(true); }, () => { Developer_GUITestManger.Instance.IsShowAllInfo(false); });
         Developer_GUITestManger.Instance.RegisterGuiButton_TwoWay("收起枪械", "拿起枪械", () => { Player.LocalPlayer.MyHandControl.SetHolsterState(true); }, () => { Player.LocalPlayer.MyHandControl.SetHolsterState(false); });
         Developer_GUITestManger.Instance.RegisterGuiButton("清理烟雾", () => { FluidController.Instance.ClearTexture(); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("保存数据", () => { PlayerAndGameInfoManger.Instance.SavePlayerData(); });
         Developer_GUITestManger.Instance.RegisterGuiButton("进入地图选择", () => { MapChooseWall.Instance.EnterMapChooseSystem(); });
         Developer_GUITestManger.Instance.RegisterGuiButton("退出地图选择", () => { MapChooseWall.Instance.ExitMapChooseSystem(); });
         Developer_GUITestManger.Instance.RegisterGuiButton("进入飞机视角", () => { MapChooseWall.Instance.EnterVC(); });
         Developer_GUITestManger.Instance.RegisterGuiButton("测试地图2视角", () => { MapChooseWall.Instance.TestScene2(); });
         Developer_GUITestManger.Instance.RegisterGuiButton("播放第一个动画", () => { CG.PlayAnima1(); });
         Developer_GUITestManger.Instance.RegisterGuiButton("播放第二个动画", () => { CG.PlayAnima2(); });
+       // Developer_GUITestManger.Instance.RegisterGuiButton("翻转画面", () => { CameraFlipper.Instance.ToggleFlip(); });
         Developer_GUITestManger.Instance.RegisterGuiButton("播放场景二动画", () => { Map2StartAnimaCG.Instance.TimeLine.Play(); SwitchToAnimaVCFast();UImanager.Instance.GetPanel<PlayerPanel>().SimpleHidePanel(); });
     }
 

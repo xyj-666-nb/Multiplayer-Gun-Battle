@@ -116,7 +116,7 @@ public class MyPlayerInput : NetworkBehaviour
         if (IsCanJump)
         {
             //先重置速度(Y)
-            Myplayer.MyRigdboby.velocity = new Vector2(Myplayer.MyRigdboby.velocity.x,0);
+            Myplayer.MyRigdboby.velocity = new Vector2(Myplayer.MyRigdboby.velocity.x, 0);
             float jumpPower = Myplayer.MyHandControl != null && Myplayer.MyHandControl.IsEnterAim
                 ? MyStats.AimJumpPower
                 : MyStats.JumpPower;
@@ -146,8 +146,12 @@ public class MyPlayerInput : NetworkBehaviour
 
             // 墙跳后立即关闭，防止连续墙跳
             IsCanWallJump = false;
-            //然后翻转玩家
-            Myplayer.CmdRequestFlip();
+
+            int targetFacingDir = -Myplayer.FacingDir; // 墙跳意味着方向要反转
+
+            Myplayer.FacingDir = targetFacingDir;     
+            Myplayer.ApplyFlipVisual(targetFacingDir); 
+            Myplayer.CmdRequestFlip(targetFacingDir);
         }
 
         CountDownManager.Instance.CreateTimer(false, 50, () => { IsJumpCheck = true; });//0.2秒后才开启检测
@@ -215,54 +219,35 @@ public class MyPlayerInput : NetworkBehaviour
     /// </summary>
     /// <param name="moveDirection">移动方向：-1=左，1=右</param>
     /// <param name="targetFacingDir">目标朝向：-1=左，1=右</param>
+    /// <summary>
+    /// 通用移动逻辑处理
+    /// </summary>
     private void HandleMoveLogic(float moveDirection, int targetFacingDir)
     {
-        // 第一步：通用校验
-        if (!CheckCommonTriggerCondition())
-            return;
+        if (!CheckCommonTriggerCondition()) return;
+        if (!IsCanHorizontalMove) return;
 
-        // 第二步：自身特殊条件
-        if (!IsCanHorizontalMove)
-            return;
-
-        // 判断是否处于瞄准状态
-        float finalMovePower = Myplayer.MyHandControl != null && Myplayer.MyHandControl.IsEnterAim
-            ? MyStats.AimMovePower
-            : MyStats.movePower;
-
-        if (Myplayer.currentGun != null && Myplayer.currentGun.IsInShoot)
-        {
-            finalMovePower /= 4;
-        }
-
-        float applyPower = finalMovePower;
-        if (Myplayer.MyRigdboby.velocity.x * moveDirection < 0)
-        {
-            applyPower *= 2;
-        }
-
-        Myplayer.MyRigdboby.AddForce(new Vector2(moveDirection * applyPower, 0), ForceMode2D.Impulse);
-
-        float currentXVelocity = Myplayer.MyRigdboby.velocity.x;
-        // 判断是否处于瞄准状态
         float dynamicMaxSpeed = Myplayer.MyHandControl != null && Myplayer.MyHandControl.IsEnterAim
-            ? MyStats.AimMoveMaxSpeed
-            : MyStats.MaxXSpeed;
+            ? MyStats.AimMoveMaxSpeed : MyStats.MaxXSpeed;
 
-        // 射击状态 → 最大速度减半
         if (Myplayer.currentGun != null && Myplayer.currentGun.IsInShoot)
-        {
             dynamicMaxSpeed /= 2;
-        }
-        // 用动态最大速度限制
-        if (Math.Abs(currentXVelocity) > dynamicMaxSpeed)
-        {
-            Myplayer.MyRigdboby.velocity = new Vector2(targetFacingDir * dynamicMaxSpeed, Myplayer.MyRigdboby.velocity.y);
-        }
+
+        float targetVelocityX = moveDirection * dynamicMaxSpeed;
+
+        float currentVelocityX = Myplayer.MyRigdboby.velocity.x;
+        float smoothedVelocityX = Mathf.Lerp(currentVelocityX, targetVelocityX, 15f * Time.deltaTime);
+
+        Myplayer.MyRigdboby.velocity = new Vector2(smoothedVelocityX, Myplayer.MyRigdboby.velocity.y);
 
         if (Myplayer.FacingDir != targetFacingDir)
         {
-            Myplayer.CmdRequestFlip();
+            // 本地立刻强行表现翻转，不依赖服务器回传
+            Myplayer.FacingDir = targetFacingDir;
+            Myplayer.ApplyFlipVisual(targetFacingDir);
+
+ 
+            Myplayer.CmdRequestFlip(targetFacingDir);
         }
     }
 

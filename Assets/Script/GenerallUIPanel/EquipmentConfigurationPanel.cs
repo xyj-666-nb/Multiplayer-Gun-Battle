@@ -1,3 +1,4 @@
+using System.Collections; // 【新增】用于协程
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -52,6 +53,7 @@ public class EquipmentConfigurationPanel : BasePanel
     public TextMeshProUGUI SlotIndexText;
 
     private SlotInfoPack _currentSlotInfoPack;
+    private bool _isFirstTimeInit = true; // 【新增】标记是否为第一次初始化数据
     #endregion
 
     #region 核心属性
@@ -65,6 +67,13 @@ public class EquipmentConfigurationPanel : BasePanel
                 _currentSlotInfoPack = value;
                 //在这里带动更新
                 UpdateCurrentSlotInfo(value);
+
+                // 【新增】第一次有数据时，手动选中第一个装备按钮
+                if (_isFirstTimeInit && value != null)
+                {
+                    _isFirstTimeInit = false;
+                    StartCoroutine(SelectFirstEquipButtonNextFrame());
+                }
             }
         }
     }
@@ -73,7 +82,8 @@ public class EquipmentConfigurationPanel : BasePanel
     #region 初始化与注册逻辑
     public void UpdateSlotIndexText()
     {
-        SlotIndexText.text = PlayerAndGameInfoManger.Instance.SlotCount.ToString();
+        if (SlotIndexText != null && PlayerAndGameInfoManger.Instance != null)
+            SlotIndexText.text = PlayerAndGameInfoManger.Instance.SlotCount.ToString();
     }
 
     public void initArmamentPack()
@@ -86,6 +96,8 @@ public class EquipmentConfigurationPanel : BasePanel
 
     public void RegisterSlotButton()
     {
+        if (SlotButtonParent == null || SlotButtonPrefabs == null) return;
+
         foreach (Transform child in SlotButtonParent)
         {
             PoolManage.Instance.PushObj(SlotButtonPrefabs, child.gameObject);
@@ -104,7 +116,8 @@ public class EquipmentConfigurationPanel : BasePanel
             string btnName = $"Slot{i + 1}";
             Obj.name = btnName;//命名为Slot1，Slot2，Slot3，Slot4
             var textComp = Obj.GetComponentInChildren<TextMeshProUGUI>();
-            textComp.text = (i + 1).ToString();//对TextMesh组件进行赋值
+            if (textComp != null)
+                textComp.text = (i + 1).ToString();//对TextMesh组件进行赋值
 
             ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(SlotButtonGroupName, Obj.GetComponent<Button>(), SlotButtonTriggerEvent);
         }
@@ -146,8 +159,17 @@ public class EquipmentConfigurationPanel : BasePanel
         ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, tac2Btn, ArmamentButtonTriggerEvent);
         ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, armorBtn, ArmamentButtonTriggerEvent);
 
-        // 手动选中第一个装备按钮
-        ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(ArmamentButtonGroupName, true);
+        // ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(ArmamentButtonGroupName, true);
+    }
+
+    // 协程：等一帧，确保UI和数据都就绪后再选中装备按钮
+    private IEnumerator SelectFirstEquipButtonNextFrame()
+    {
+        yield return null; // 等待一帧
+        if (ButtonGroupManager.Instance != null)
+        {
+            ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(ArmamentButtonGroupName, true);
+        }
     }
     #endregion
 
@@ -155,7 +177,6 @@ public class EquipmentConfigurationPanel : BasePanel
     //槽位按钮点击事件
     public void SlotButtonTriggerEvent(string ButtonName)
     {
-
         int slotNum = -1;
         string numStr = ButtonName.Replace("Slot", "").Trim(); // Trim去除可能的空格
         if (int.TryParse(numStr, out slotNum))
@@ -218,24 +239,58 @@ public class EquipmentConfigurationPanel : BasePanel
     //装备按钮点击事件
     public void ArmamentButtonTriggerEvent(string ButtonName)
     {
+        // 【修复】核心保护：如果文本组件或当前槽位为空，直接返回
+        if (EquipmentDescriptionText == null) return;
+        if (_currentSlotInfoPack == null)
+        {
+            EquipmentDescriptionText.text = "数据加载中...";
+            return;
+        }
+
         // 更新描述文本为当前点击的装备的描述文本
         switch (ButtonName)
         {
             case "Gun_Button":
-                //点击了枪械按钮，进行相应的逻辑处理
-                EquipmentDescriptionText.text = _currentSlotInfoPack.CurrentGunInfo.description;//更新描述文本
+                if (_currentSlotInfoPack.CurrentGunInfo != null)
+                {
+                    EquipmentDescriptionText.text = _currentSlotInfoPack.CurrentGunInfo.description;
+                }
+                else
+                {
+                    EquipmentDescriptionText.text = "未装备枪械";
+                }
                 break;
             case "Tactic1_Button":
-                //点击了战术道具1按钮，进行相应的逻辑处理
-                EquipmentDescriptionText.text = _currentSlotInfoPack.CurrentTactic_1Info.Description;//更新描述文本
+                if (_currentSlotInfoPack.CurrentTactic_1Info != null)
+                {
+                    EquipmentDescriptionText.text = _currentSlotInfoPack.CurrentTactic_1Info.Description;
+                }
+                else
+                {
+                    EquipmentDescriptionText.text = "未装备战术道具1";
+                }
                 break;
             case "Tactic2_Button":
-                //点击了战术道具2按钮，进行相应的逻辑处理
-                EquipmentDescriptionText.text = _currentSlotInfoPack.CurrentTactic_2Info.Description;//更新描述文本
+                if (_currentSlotInfoPack.CurrentTactic_2Info != null)
+                {
+                    EquipmentDescriptionText.text = _currentSlotInfoPack.CurrentTactic_2Info.Description;
+                }
+                else
+                {
+                    EquipmentDescriptionText.text = "未装备战术道具2";
+                }
                 break;
             case "Armor_Button":
-                //点击了护甲按钮，进行相应的逻辑处理
-                EquipmentDescriptionText.text = MilitaryManager.Instance.GetArmorInfoPack(_currentSlotInfoPack.CurrentArmorType).armorDescription;//更新文本
+                // 这里也可以加个检查，确保 MilitaryManager 正常
+                var armorPack = MilitaryManager.Instance?.GetArmorInfoPack(_currentSlotInfoPack.CurrentArmorType);
+                if (armorPack != null)
+                {
+                    EquipmentDescriptionText.text = armorPack.armorDescription;
+                }
+                else
+                {
+                    EquipmentDescriptionText.text = "未装备护甲";
+                }
                 break;
             default:
                 Debug.LogWarning($"未知的装备按钮名称：{ButtonName}");
@@ -252,35 +307,56 @@ public class EquipmentConfigurationPanel : BasePanel
             Debug.LogWarning("槽位信息包为空，跳过UI更新！");
             return;
         }
-        if (slotInfoPack.CurrentGunInfo == null)
-        {
-            Debug.LogWarning("当前槽位无枪械信息！");
-            GunInfoPack.NameText.text = "无枪械";
-            GunInfoPack.IconImage.sprite = null;
-            return;
-        }
 
         //更新枪械
-        GunInfoPack.NameText.text = slotInfoPack.CurrentGunInfo.Name;//更新名称
-        GunInfoPack.IconImage.sprite = slotInfoPack.CurrentGunInfo.GunSprite;//更新图标
-        //更新战术道具
+        if (slotInfoPack.CurrentGunInfo != null && GunInfoPack.NameText != null)
+        {
+            GunInfoPack.NameText.text = slotInfoPack.CurrentGunInfo.Name;
+            if (GunInfoPack.IconImage != null)
+                GunInfoPack.IconImage.sprite = slotInfoPack.CurrentGunInfo.GunSprite;
+        }
+        else
+        {
+            if (GunInfoPack.NameText != null) GunInfoPack.NameText.text = "无枪械";
+            if (GunInfoPack.IconImage != null) GunInfoPack.IconImage.sprite = null;
+        }
+
+        //更新战术道具1
         if (slotInfoPack.CurrentTactic_1Info != null)
         {
-            Tactical_1_InfoPack.NameText.text = slotInfoPack.CurrentTactic_1Info.Name;
-            Tactical_1_InfoPack.IconImage.sprite = slotInfoPack.CurrentTactic_1Info.UISprite;
+            if (Tactical_1_InfoPack.NameText != null)
+                Tactical_1_InfoPack.NameText.text = slotInfoPack.CurrentTactic_1Info.Name;
+            if (Tactical_1_InfoPack.IconImage != null)
+                Tactical_1_InfoPack.IconImage.sprite = slotInfoPack.CurrentTactic_1Info.UISprite;
+        }
+        else
+        {
+            if (Tactical_1_InfoPack.NameText != null) Tactical_1_InfoPack.NameText.text = "无";
+            if (Tactical_1_InfoPack.IconImage != null) Tactical_1_InfoPack.IconImage.sprite = null;
         }
 
+        //更新战术道具2
         if (slotInfoPack.CurrentTactic_2Info != null)
         {
-            Tactical_2_InfoPack.NameText.text = slotInfoPack.CurrentTactic_2Info.Name;
-            Tactical_2_InfoPack.IconImage.sprite = slotInfoPack.CurrentTactic_2Info.UISprite;
+            if (Tactical_2_InfoPack.NameText != null)
+                Tactical_2_InfoPack.NameText.text = slotInfoPack.CurrentTactic_2Info.Name;
+            if (Tactical_2_InfoPack.IconImage != null)
+                Tactical_2_InfoPack.IconImage.sprite = slotInfoPack.CurrentTactic_2Info.UISprite;
         }
-        var InfoPack = MilitaryManager.Instance.GetArmorInfoPack(slotInfoPack.CurrentArmorType);
-        //更新护甲
-        ArmorInfoPack.NameText.text = InfoPack.armorName;
-        ArmorInfoPack.DescriptionText.text = InfoPack.armorDescription;
-        ArmorInfoPack.IconImage.sprite= InfoPack.UISprite;
+        else
+        {
+            if (Tactical_2_InfoPack.NameText != null) Tactical_2_InfoPack.NameText.text = "无";
+            if (Tactical_2_InfoPack.IconImage != null) Tactical_2_InfoPack.IconImage.sprite = null;
+        }
 
+        //更新护甲
+        var InfoPack = MilitaryManager.Instance?.GetArmorInfoPack(slotInfoPack.CurrentArmorType);
+        if (InfoPack != null)
+        {
+            if (ArmorInfoPack.NameText != null) ArmorInfoPack.NameText.text = InfoPack.armorName;
+            if (ArmorInfoPack.DescriptionText != null) ArmorInfoPack.DescriptionText.text = InfoPack.armorDescription;
+            if (ArmorInfoPack.IconImage != null) ArmorInfoPack.IconImage.sprite = InfoPack.UISprite;
+        }
     }
     #endregion
 
@@ -307,6 +383,8 @@ public class EquipmentConfigurationPanel : BasePanel
     protected override void OnDestroy()
     {
         base.OnDestroy();
+        // 重置标记，防止如果面板复用出现问题
+        _isFirstTimeInit = true;
     }
     #endregion
 
@@ -316,7 +394,6 @@ public class EquipmentConfigurationPanel : BasePanel
         base.ClickButton(controlName);
         if (controlName == "ExitButton")
         {
-
             UImanager.Instance.HidePanel<EquipmentConfigurationPanel>();
         }
         else if (controlName == "Button_SetCurrentSkot")
@@ -326,11 +403,10 @@ public class EquipmentConfigurationPanel : BasePanel
             UpdateSlotIndexText();//更新一下
             WarnTriggerManager.Instance.TriggerNoInteractionWarn(1, "设置成功");
         }
-
     }
     #endregion
-    bool IsPlayerPanelHide = false;
 
+    bool IsPlayerPanelHide = false;
 
     #region 面板显隐以及特殊动画
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)

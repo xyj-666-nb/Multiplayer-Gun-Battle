@@ -47,7 +47,6 @@ public class DeathPanel : BasePanel
         {
             UImanager.Instance.HidePanel<DeathPanel>();
             TimeLine.Stop();//停止
-           
         }
     }
     #endregion
@@ -59,6 +58,8 @@ public class DeathPanel : BasePanel
         if (controlName == "StartPanelButton")
         {
             IsStartCountDown = false;
+            //打开战备配置面板
+            UImanager.Instance.ShowPanel<EquipmentConfigurationPanel>();
         }
     }
     #endregion
@@ -70,6 +71,8 @@ public class DeathPanel : BasePanel
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
     {
         base.HideMe(callback, isNeedDefaultAnimator);
+        if (UImanager.Instance.GetPanel<EquipmentConfigurationPanel>() != null)
+            UImanager.Instance.HidePanel<EquipmentConfigurationPanel>(); 
     }
 
     public override void ShowMe(bool isNeedDefaultAnimator = true)

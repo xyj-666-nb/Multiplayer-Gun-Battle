@@ -23,6 +23,7 @@ public class Player : Base_Entity
 
     [Header("是否进入房屋")]
     [SyncVar(hook = nameof(OnChangeEnterRoomState))]
+
     public bool IsEnterRoom = false;//是否进入房屋
 
     [Command]
@@ -159,6 +160,11 @@ public class Player : Base_Entity
     public float mainLerpSpeed = 2f;
     public float maxLerpSpeed = 15f;
     private Vector2 baseBodyScale; // 改为记录MyBody的初始缩放
+
+    #region 缩放动画配置 (新增预测变量)
+    private Vector3 lastPosition;      // 上一帧的坐标
+    private Vector2 estimatedVelocity; // 估算速度（用于网络同步平滑）
+    #endregion
     #endregion
 
     #region Mirror生命周期
@@ -190,7 +196,7 @@ public class Player : Base_Entity
         LocalPlayer = this;
         Debug.Log($"[本地客户端] 初始化本地玩家：{gameObject.name}");
 
-        string localName = Main.PlayerName; // 你的本地名称
+        string localName = UOSRelaySimple.Instance.playerName; // 你的本地名称
         if (string.IsNullOrEmpty(localName))
         {
             localName = $"玩家{Random.Range(1000, 9999)}"; // 本地兜底
@@ -427,9 +433,11 @@ public class Player : Base_Entity
             return;
 
         LocalPlayer.CmdSpawnAndPickGun(gunName);
-        CountDownManager.Instance.CreateTimer(false, 1000, () => {
+        CountDownManager.Instance.CreateTimer(false, 500, () => {
             if(currentGun!=null)
-               currentGun.TriggerReload(); 
+               currentGun.TriggerReload();
+            //这时候触发战术设备的出现
+            PlayerAndGameInfoManger.Instance.ShowTactic();//显示战术设备
         });
     }
 
@@ -567,7 +575,7 @@ public class Player : Base_Entity
         }
         else
         {
-            return Main.PlayerName ?? $"玩家{Random.Range(1000, 9999)}";
+            return UOSRelaySimple.Instance.playerName ?? $"玩家{Random.Range(1000, 9999)}";
         }
     }
 
