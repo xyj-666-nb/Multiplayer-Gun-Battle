@@ -4,21 +4,16 @@ using UnityEngine.EventSystems;
 public class AimButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     private bool IsPressed = false;
-    // 单击模式专用：记录当前是否处于瞄准状态
+    // 记录当前是否处于瞄准状态
     private bool IsInAimState = false;
+    private bool IsRemoveScript = false;
+
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        // 基础安全检查
-        if (Player.LocalPlayer == null || Player.LocalPlayer.myInputSystem == null)
-            return;
-        if (PlayerAndGameInfoManger.Instance == null)
-            return;
-
         // 根据设置判断模式
         if (PlayerAndGameInfoManger.Instance.IsUseSinglePress_AimButton)
         {
-            // 【单击切换模式】
             if (IsInAimState)
             {
                 // 当前在瞄准 -> 退出
@@ -46,9 +41,6 @@ public class AimButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        // 基础安全检查
-        if (PlayerAndGameInfoManger.Instance == null)
-            return;
 
         // 如果是单击模式，直接跳过
         if (PlayerAndGameInfoManger.Instance.IsUseSinglePress_AimButton)
@@ -67,9 +59,16 @@ public class AimButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     private void Update()
     {
-        // 基础安全检查
-        if (PlayerAndGameInfoManger.Instance == null)
-            return;
+
+        if(!IsRemoveScript)
+        {
+            //持续获取
+            if (GetComponent<EventTrigger>())
+            {
+                GetComponent<EventTrigger>().enabled = false;
+                IsRemoveScript =true;
+            }
+        }
 
         // 如果是单击模式，直接跳过
         if (PlayerAndGameInfoManger.Instance.IsUseSinglePress_AimButton)

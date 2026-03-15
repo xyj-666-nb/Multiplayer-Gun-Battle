@@ -805,20 +805,19 @@ public class ArmamentPanel : BasePanel
         }
         else if (info.Name == "AKM" && GunSprite != null)
         {
-            GunSprite.rectTransform.localScale = new Vector3(2, 1, 1);
-            GunSprite.rectTransform.anchoredPosition = new Vector2(70, 0);
+            GunSprite.rectTransform.localScale = new Vector3(2, 0.7f, 1);
         }
         else if ((info.Name == "M110" || info.Name == "Vector-45") && GunSprite != null)
         {
-            GunSprite.rectTransform.localScale = new Vector3(0.9f, 1, 1);
+            GunSprite.rectTransform.localScale = new Vector3(0.8f, 0.8f, 1);
         }
         else if (info.Name == "AUG" && GunSprite != null)
         {
-            GunSprite.rectTransform.localScale = new Vector3(0.8f, 0.8f, 1);
+            GunSprite.rectTransform.localScale = new Vector3(0.6f, 0.6f, 1);
         }
         else if (info.Name == "M249" && GunSprite != null)
         {
-            GunSprite.rectTransform.anchoredPosition = new Vector2(0, -40);
+            GunSprite.rectTransform.localScale = new Vector3(0.8f, 0.8f, 1);
         }
 
         ClearValueSliders();
@@ -924,13 +923,13 @@ public class ArmamentPanel : BasePanel
             if (InfoPack.HelmetSprite != null)
             {
                 GunSprite.sprite = InfoPack.UISprite;//显示UI图
-                GunSprite.rectTransform.localScale = new Vector3(0.5f, 0.5f, 1);
+                GunSprite.rectTransform.localScale = new Vector3(0.3f, 0.3f, 1);
             }
         }
 
         // 更新数值滑块
         CreateValueSlider(InfoPack.HealthAdd, "生命加成", "50");
-        CreateValueSlider(InfoPack.SpeedAdd, "速度加成", "10");//速度加成
+        CreateValueSlider(InfoPack.SpeedAdd, "速度加成", "1");//速度加成
     }
 
     /// <summary>

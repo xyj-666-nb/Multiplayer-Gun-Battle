@@ -173,6 +173,7 @@ public class playerStats : CharacterStats
             if (isLocalPlayer && MyCameraControl.Instance != null)
             {
                 MyCameraControl.Instance.AddTimeBasedShake(attacker_.MyMonster.currentGun.gunInfo.ShackStrength_Enemy, attacker_.MyMonster.currentGun.gunInfo.ShackTime_Enemy);
+                //ÊÜÉË´¥·¢ÆÁÄ»Õğ¶¯
             }
         }
     }

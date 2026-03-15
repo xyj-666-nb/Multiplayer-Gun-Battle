@@ -43,6 +43,10 @@ public class GamePausePanel : BasePanel
             case "ReturnGameButton":
                 UImanager.Instance.HidePanel<GamePausePanel>();
                 break;
+            case "SaveButton":
+                PlayerAndGameInfoManger.Instance.SavePlayerData();//保存一下玩家数据
+                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f,"保存成功");
+                break;
             case "SettingButton":
                 UImanager.Instance.ShowPanel<SettingPanel>();//打开设置面板
                 break;

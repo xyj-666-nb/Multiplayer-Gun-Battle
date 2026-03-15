@@ -14,7 +14,7 @@ public class PlayerPanel : BasePanel
     private Sequence GunBackGroundSequence;
     public  BaseGun CurrentGun => Player.LocalPlayer.currentGun;
     [HideInInspector]
-    public static string AimButtonButtonGroupName = "AimButton";
+    public static string AimButtonButtonGroupName = "Aim_Button";
 
     [Header("Buff预制体")]
     public GameObject BuffPrefabs;
@@ -141,7 +141,7 @@ public class PlayerPanel : BasePanel
         base.Awake();
 
         //注册一下射击按钮单选按钮
-        ButtonGroupManager.Instance.AddToggleButtonToGroup(AimButtonButtonGroupName, controlDic[AimButtonButtonGroupName] as Button, isManualTrigger: true);//不需要事件。事件由输入系统管理器触发
+        ButtonGroupManager.Instance.AddToggleButtonToGroup(AimButtonButtonGroupName, controlDic[AimButtonButtonGroupName] as Button, isManualTrigger: true);
         SetActiveInteractButton(false);//关闭交互
     }
 

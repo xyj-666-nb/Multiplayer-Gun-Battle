@@ -364,7 +364,7 @@ public class MyPlayerInput : NetworkBehaviour
     #endregion
 
     #region Ç¹ÐµÃé×¼¿ØÖÆÂß¼­
-    private bool IsEnterAim=false;
+    public bool IsEnterAim=false;
     private void GunAim_Start(InputAction.CallbackContext Content)
     {
         CheckAndHandleAim();

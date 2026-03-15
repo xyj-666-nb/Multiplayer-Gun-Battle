@@ -35,7 +35,7 @@ public class GameStartPanel : BasePanel
         RightRectCanvasGroup.blocksRaycasts = true;
         if (!IsActive)
         {
-            PosY = 400;
+            PosY = 700;
             RightRectCanvasGroup.blocksRaycasts = false;
         }
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(RightRectCanvasGroup, ref RightRectCanvasGroupAnima, IsActive, () => { }, 0.25f);
@@ -50,7 +50,7 @@ public class GameStartPanel : BasePanel
         LeftRectCanvasGroup.blocksRaycasts = true;
         if (!IsActive)
         {
-            XPos = -100;
+            XPos = -200;
             LeftRectCanvasGroup.blocksRaycasts = false;
         }
 
