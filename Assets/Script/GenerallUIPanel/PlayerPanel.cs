@@ -167,6 +167,11 @@ public class PlayerPanel : BasePanel
         base.ClickButton(controlName);
         if (controlName == "SettingButton")
             UImanager.Instance.ShowPanel<GamePausePanel>();//打开游戏暂停面板
+        else if(controlName == "ScreenFlipButton")
+        {
+            //点击翻转按钮就提供翻转服务
+            GlobalPictureFlipManager.Instance.TriggerGlobalFlip();//触发翻转
+        }
     }
     #endregion
 

@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using Unity.Sync.Relay.Transport.Mirror;
 using UnityEngine;
-using Utp;
 
 public class CustomNetworkManager : NetworkManager
 {
@@ -23,29 +22,29 @@ public class CustomNetworkManager : NetworkManager
     public int maxPort = 8888;
     private int _currentUsedPort;
 
-    #region 核心：双模式切换（稳妥版：禁用/启用，不销毁）
+    #region 双模式切换
     /// <summary>
-    /// 【统一入口】切换到局域网模式（KCP）
+    /// 切换到局域网模式（KCP）
     /// </summary>
     public void SwitchToLanMode()
     {
         _isRelayModeActive = false;
         Debug.Log("[CustomNetworkManager] 正在切换到【局域网模式（KCP）】...");
 
-        // 1. 先停止所有网络活动
+        // 先停止所有网络活动
         StopAllNetworkActivity();
 
-        // 2. 【关键】禁用 UOS 相关的一切
+        // 禁用 UOS 相关的一切
         DisableUOSRelayEverything();
 
-        // 3. 确保有 KCP 组件，没有就添加
+        // 确保有 KCP 组件，没有就添加
         KcpTransport kcp = GetComponent<KcpTransport>();
         if (kcp == null)
         {
             kcp = gameObject.AddComponent<KcpTransport>();
         }
 
-        // 4. 启用 KCP，禁用 Relay
+        // 启用 KCP，禁用 Relay
         kcp.enabled = true;
         var uosRelay = GetComponent<RelayTransportMirror>();
         if (uosRelay != null)
@@ -53,34 +52,34 @@ public class CustomNetworkManager : NetworkManager
             uosRelay.enabled = false;
         }
 
-        // 5. 告诉 Mirror 使用 KCP
+        // 告诉 Mirror 使用 KCP
         transport = kcp;
 
         Debug.Log("[CustomNetworkManager] 已切换到【局域网模式（KCP）】");
     }
 
     /// <summary>
-    /// 【统一入口】切换到 Relay 模式（UOS）
+    /// 切换到 Relay 模式（UOS）
     /// </summary>
     public void SwitchToRelayMode()
     {
         _isRelayModeActive = true;
         Debug.Log("[CustomNetworkManager] 正在切换到【Relay模式（UOS）】...");
 
-        // 1. 先停止所有网络活动
+        // 先停止所有网络活动
         StopAllNetworkActivity();
 
-        // 2. 【关键】启用 UOS 相关的一切
+        // 启用 UOS 相关的一切
         EnableUOSRelayEverything();
 
-        // 3. 确保有 Relay 组件，没有就添加
+        // 确保有 Relay 组件，没有就添加
         RelayTransportMirror uosRelay = GetComponent<RelayTransportMirror>();
         if (uosRelay == null)
         {
             uosRelay = gameObject.AddComponent<RelayTransportMirror>();
         }
 
-        // 4. 启用 Relay，禁用 KCP
+        // 启用 Relay，禁用 KCP
         uosRelay.enabled = true;
         var kcp = GetComponent<KcpTransport>();
         if (kcp != null)
@@ -88,10 +87,10 @@ public class CustomNetworkManager : NetworkManager
             kcp.enabled = false;
         }
 
-        // 5. 告诉 Mirror 使用 Relay
+        //  告诉 Mirror 使用 Relay
         transport = uosRelay;
 
-        // 6. 同步引用给 UOSRelaySimple
+        //  同步引用给 UOSRelaySimple
         if (UOSRelaySimple.Instance != null)
         {
             UOSRelaySimple.Instance.relayTransport = uosRelay;
@@ -101,7 +100,7 @@ public class CustomNetworkManager : NetworkManager
     }
 
     /// <summary>
-    /// 【辅助】停止所有网络活动
+    /// 停止所有网络活动
     /// </summary>
     private void StopAllNetworkActivity()
     {
@@ -112,7 +111,7 @@ public class CustomNetworkManager : NetworkManager
     }
 
     /// <summary>
-    /// 【辅助】禁用 UOS 相关的一切
+    /// 禁用 UOS 相关的一切
     /// </summary>
     private void DisableUOSRelayEverything()
     {
@@ -125,7 +124,7 @@ public class CustomNetworkManager : NetworkManager
     }
 
     /// <summary>
-    /// 【辅助】启用 UOS 相关的一切
+    ///启用 UOS 相关的一切
     /// </summary>
     private void EnableUOSRelayEverything()
     {

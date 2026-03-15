@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -22,12 +23,18 @@ public class CreateRoomPanel : BasePanel
 
     // 内部标记
     private bool _isButtonGroupRegistered = false;
-    private string ScoreChooseName = "GameScoreChoose";
-    private string TimeChooseName = "GameTimeChoose";
+    private string ScoreChooseName = "CreateButton";
+    private string TimeChooseName = "ExitButton";
 
     public override void Awake()
     {
         base.Awake();
+        //注册一下按钮动画
+        List<Button> ButtonGroup = new List<Button>();
+        // 根据你ClickButton里的按钮名，自动添加到组里
+        ButtonGroup.Add(controlDic["CreateButton"] as Button);
+        ButtonGroup.Add(controlDic["ExitButton"] as Button);
+        SimpleEffectButtonGroup.Instance.RegisterGroup("CreateRoomPanel", ButtonGroup);//注册组
     }
 
     public override void Start()
@@ -53,7 +60,6 @@ public class CreateRoomPanel : BasePanel
 
         try
         {
-            // 1. 注册分数选择
             if (ButtonGroupManager.Instance != null && controlDic != null)
             {
                 TryAddRadio(ScoreChooseName, "Button_10Score", () => { GameGoalScore = 10; });
@@ -62,7 +68,6 @@ public class CreateRoomPanel : BasePanel
                 SafeSelectFirst(ScoreChooseName);
             }
 
-            // 2. 注册时间选择
             if (ButtonGroupManager.Instance != null && controlDic != null)
             {
                 TryAddRadio(TimeChooseName, "Button_5minute", () => { GameTime = 5; });
@@ -80,7 +85,7 @@ public class CreateRoomPanel : BasePanel
     }
 
     /// <summary>
-    /// 辅助：安全添加单选按钮
+    /// 安全添加单选按钮
     /// </summary>
     private void TryAddRadio(string groupName, string controlName, UnityAction call)
     {
@@ -94,7 +99,7 @@ public class CreateRoomPanel : BasePanel
     }
 
     /// <summary>
-    /// 辅助：安全选择第一个
+    /// 安全选择第一个
     /// </summary>
     private void SafeSelectFirst(string groupName)
     {
@@ -205,16 +210,14 @@ public class CreateRoomPanel : BasePanel
         }
     }
 
-    /// <summary>
-    /// 【关键新增】协程：等 2 帧后再创建局域网房间
-    /// </summary>
+
     private IEnumerator CreateLanRoomAfterFrame()
     {
         // 等 2 帧，确保 Unity 完成组件的启用/禁用状态更新
         yield return null;
         yield return null;
 
-        // 局域网逻辑（完全保持不变）
+        // 局域网逻辑
         var roomName = string.IsNullOrWhiteSpace(CurrentRoomName) ? "Room" : CurrentRoomName;
         var hostName = string.IsNullOrWhiteSpace(CurrentPlayerName) ? "Host" : CurrentPlayerName;
 
@@ -260,6 +263,9 @@ public class CreateRoomPanel : BasePanel
             ButtonGroupManager.Instance.DestroyRadioGroup(TimeChooseName);
         }
         catch { }
+
+        //销毁注册
+        SimpleEffectButtonGroup.Instance.UnRegisterGroup("CreateRoomPanel");
     }
 
     protected override void SpecialAnimator_Show() { }

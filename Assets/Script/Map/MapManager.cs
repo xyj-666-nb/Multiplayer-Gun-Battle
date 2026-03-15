@@ -37,7 +37,7 @@ public class MapManager : MonoBehaviour
 
     private void Awake()
     {
-        // 初始化：获取/添加相机的噪声组件（核心）
+        // 初始化：获取/添加相机的噪声组件
         if (helicopterVC != null)
         {
             // 获取噪声组件，没有则自动添加
@@ -46,7 +46,7 @@ public class MapManager : MonoBehaviour
             {
                 _helicopterNoise = helicopterVC.AddCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
             }
-            // 初始化震动参数（默认关闭震动）
+            // 初始化震动参数
             _helicopterNoise.m_AmplitudeGain = 0f;
             _helicopterNoise.m_FrequencyGain = shakeFrequency;
             _targetAmplitude = 0f;
@@ -59,7 +59,7 @@ public class MapManager : MonoBehaviour
 
     private void Update()
     {
-        // 平滑过渡震动强度（避免震动启停太突兀）
+        // 平滑过渡震动强度
         if (_helicopterNoise != null && Mathf.Abs(_helicopterNoise.m_AmplitudeGain - _targetAmplitude) > 0.01f)
         {
             _helicopterNoise.m_AmplitudeGain = Mathf.Lerp(
@@ -77,12 +77,19 @@ public class MapManager : MonoBehaviour
 
     public void AnimaEnd()
     {
+        //进行翻转
+        if (Player.LocalPlayer.CurrentTeam == Team.Red)
+            GlobalPictureFlipManager.Instance.TriggerGlobalFlip(false);
+        else
+            GlobalPictureFlipManager.Instance.TriggerGlobalFlip(true);//蓝队就打开翻转
+
         //动画结束
         UImanager.Instance.GetPanel<PlayerPanel>().SimpleShowPanel();
         UImanager.Instance.ShowPanel<GameScorePanel>();//打开比分面板
         PlayerAndGameInfoManger.Instance.EquipCurrentSlot();//获取战备
-        // 动画结束可顺便停止震动（可选）
+        // 动画结束可顺便停止震动
         StopShack();
+
     }
 
     public void StopTimeLine()
@@ -90,7 +97,7 @@ public class MapManager : MonoBehaviour
         TimeLine.Stop();
     }
 
-    // 启动直升机相机震动（仅作用于helicopterVC）
+    // 启动直升机相机震动
     public void StartShack()
     {
         if (helicopterVC == null || _helicopterNoise == null)
@@ -123,7 +130,7 @@ public class MapManager : MonoBehaviour
         StopShack();
     }
 
-    // 可选：快速强制停止震动（无平滑过渡）
+    //快速强制停止震动
     public void StopShackImmediate()
     {
         if (_helicopterNoise != null)

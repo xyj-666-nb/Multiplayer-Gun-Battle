@@ -86,6 +86,7 @@ public class ModeChooseSystem : MonoBehaviour
 
     public void EnterSystem()
     {
+        GlobalPictureFlipManager.Instance.TriggerGlobalFlip(false);//关闭所有翻转
         GameStartCG.Instance.StopTimeLine();
 
         SwitchToMainCamera();

@@ -324,8 +324,9 @@ public class MapChooseWall : MonoBehaviour
         }
         MainCanvasGroup.blocksRaycasts = true;
 
-        // 【核心修改】重新进入系统时，启用所有主按钮
         SetMainButtonsInteractable(true);
+
+        GlobalPictureFlipManager.Instance.TriggerGlobalFlip(false);//关闭所有翻转
     }
 
     public void ExitMapChooseSystem()

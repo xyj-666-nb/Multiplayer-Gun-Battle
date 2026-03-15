@@ -223,6 +223,11 @@ public class Player : Base_Entity
         {
             //重生后获取当前战备
             PlayerAndGameInfoManger.Instance.EquipCurrentSlot();
+            if (Player.LocalPlayer.CurrentTeam == Team.Red)
+                GlobalPictureFlipManager.Instance.TriggerGlobalFlip(false);
+            else
+                GlobalPictureFlipManager.Instance.TriggerGlobalFlip(true);//蓝队就打开翻转
+            //重新设置翻转
         }
     }
 

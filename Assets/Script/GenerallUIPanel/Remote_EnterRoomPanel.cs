@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -14,6 +15,11 @@ public class Remote_EnterRoomPanel : BasePanel
     public override void Awake()
     {
         base.Awake();
+        List<Button> ButtonGroup = new List<Button>();
+        // 根据你ClickButton里的按钮名，自动添加到组里
+        ButtonGroup.Add(controlDic["JoinButton"] as Button);
+        ButtonGroup.Add(controlDic["ExitButton"] as Button);
+        SimpleEffectButtonGroup.Instance.RegisterGroup("Remote_EnterRoomPanel", ButtonGroup);//注册组
     }
 
     public override void Start()
@@ -45,7 +51,6 @@ public class Remote_EnterRoomPanel : BasePanel
 
         if (PlayerNameInputField != null && !string.IsNullOrEmpty(UOSRelaySimple.Instance.playerName))
         {
-           // UOSRelaySimple.Instance.SetPlayerData(PlayerNameInputField.text);//设置玩家数据
         }
     }
 
@@ -56,9 +61,6 @@ public class Remote_EnterRoomPanel : BasePanel
         switch (controlName)
         {
             case "JoinButton": // 点击加入按钮
-
-              //  UOSRelaySimple.Instance.SetPlayerData(PlayerNameInputField.text);//设置玩家数据
-
                 TryJoinRelayRoom();
                 break;
 
@@ -126,6 +128,7 @@ public class Remote_EnterRoomPanel : BasePanel
     protected override void OnDestroy()
     {
         base.OnDestroy();
+        SimpleEffectButtonGroup.Instance.UnRegisterGroup("Remote_EnterRoomPanel");//销毁组
     }
 
     protected override void SpecialAnimator_Show()

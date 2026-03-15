@@ -27,6 +27,7 @@ public enum NeedCustomUIType
     HealthAndGunButton,//健康以及枪械状态按钮
     ThrowObjButton,//战术控制按钮
     interactButton,//交互按钮
+    ScreenFlipButton//场景翻转按钮
 }
 
 public class PlayerCustomPanel : BasePanel

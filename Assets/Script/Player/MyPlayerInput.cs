@@ -224,8 +224,10 @@ public class MyPlayerInput : NetworkBehaviour
     /// </summary>
     private void HandleMoveLogic(float moveDirection, int targetFacingDir)
     {
-        if (!CheckCommonTriggerCondition()) return;
-        if (!IsCanHorizontalMove) return;
+        if (!CheckCommonTriggerCondition())
+            return;
+        if (!IsCanHorizontalMove)
+            return;
 
         float dynamicMaxSpeed = Myplayer.MyHandControl != null && Myplayer.MyHandControl.IsEnterAim
             ? MyStats.AimMoveMaxSpeed : MyStats.MaxXSpeed;
@@ -254,15 +256,19 @@ public class MyPlayerInput : NetworkBehaviour
     // 左移
     public void Move_Left_Continue(CustomInputContext Content)
     {
-        // 左移：方向=-1，目标朝向=-1
-        HandleMoveLogic(-1, -1);
+        if (!GlobalPictureFlipManager.Instance.IsFlipped)
+            HandleMoveLogic(-1, -1); // 左移：方向=-1，目标朝向=-1
+       else
+            HandleMoveLogic(1, 1);
     }
 
     // 右移
     public void Move_Right_Continue(CustomInputContext Content)
     {
-        // 右移：方向=1，目标朝向=1
-        HandleMoveLogic(1, 1);
+        if (!GlobalPictureFlipManager.Instance.IsFlipped)
+            HandleMoveLogic(1, 1);// 右移：方向=1，目标朝向=1
+        else
+            HandleMoveLogic(-1, -1);
     }
     #endregion
 

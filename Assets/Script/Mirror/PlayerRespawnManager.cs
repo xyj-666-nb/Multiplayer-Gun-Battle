@@ -49,6 +49,7 @@ public class PlayerRespawnManager : NetworkBehaviour
 
     #region 玩家数据管理
     // 维护所有玩家的详细数据列表
+
     private List<PlayerInfo> _playerInfoList = new List<PlayerInfo>();
 
     //服务器对玩家的管理
@@ -60,7 +61,6 @@ public class PlayerRespawnManager : NetworkBehaviour
         {
             playerInfoPack.Monster.DropCurrentGun(true);//丢弃并销毁当前所有玩家的枪械
         }
-
     }
     [Server]
     public void ClearAllPlayerArmor()
@@ -1082,7 +1082,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     }
     #endregion
 
-    #region 地图传送与队伍出生点核心逻辑 (已修复)
+    #region 地图传送与队伍出生点核心逻辑 
 
     [Server]
     private MapManager GetCurrentMapManager()

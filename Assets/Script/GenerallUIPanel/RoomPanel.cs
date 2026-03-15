@@ -22,6 +22,36 @@ public class RoomPanel : BasePanel
     private Sequence LeftCanvasGroupAnima;
     private Sequence UpCanvasGroupAnima;
 
+    [Header("模式介绍信息")]
+    public TextMeshProUGUI Topic;
+    public TextMeshProUGUI Content;
+    public RectTransform PromptImage;
+    public CanvasGroup PromptImageCanvasGroup;
+    private Sequence PromptImageAnima;
+
+    [Header("介绍内容LAN")]
+    public string Prompt_LAN;
+    [TextArea(3, 10)]
+    public string Content_LAN;
+    [Header("介绍内容Remote")]
+    public string Prompt_Remote;
+    [TextArea(3, 10)]
+    public string Content_Remote;
+
+
+    /// <summary>
+    /// 只负责提示图片的显隐动画，不负责文本更新
+    /// </summary>
+    public void TriggerPromptImageAnima(bool IsActive)
+    {
+        //设置显隐动画
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(PromptImageCanvasGroup, ref PromptImageAnima, IsActive, () => { });
+
+        //位移动画
+        float PosY = IsActive ? 0 : -200; // 三元运算符简化
+        PromptImage.DOKill();
+        PromptImage.DOAnchorPos3DY(PosY, 0.4f).SetEase(IsActive ? Ease.OutBack : Ease.InBack); // 入场和出场用不同缓动，更自然
+    }
 
     public override void Awake()
     {
@@ -46,7 +76,33 @@ public class RoomPanel : BasePanel
         // 复用SimpleAnimatorTool的淡入淡出
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(LeftCanvasGroup, ref LeftCanvasGroupAnima, IsActive, () => { }, 0.2f);
         // 复用DOTween的位移动画
-        LefRect.DOAnchorPosX(XPos, 0.4f).SetEase(Ease.OutBack).OnComplete(() => { CallBack?.Invoke(); });
+        LefRect.DOAnchorPosX(XPos, 0.3f).SetEase(Ease.OutBack).OnComplete(() => { CallBack?.Invoke(); });
+    }
+
+    private TypingWritingTask TextTypingTask1;
+    private TypingWritingTask TextTypingTask2;
+
+    /// <summary>
+    /// 独立的文本更新方法
+    /// </summary>
+    public void TriggerTextAnima(NetworkMode Mode)
+    {
+        if (TextTypingTask1 != null && TextTypingTask2 != null)
+        {
+            TextTypingTask1.StopTyping();
+            TextTypingTask2.StopTyping();
+        }
+
+        if (Mode == NetworkMode.LAN)
+        {
+            TextTypingTask1 = SimpleAnimatorTool.Instance.AddTypingTask(Prompt_LAN, Topic);
+            TextTypingTask2 = SimpleAnimatorTool.Instance.AddTypingTask(Content_LAN, Content,0.04f);
+        }
+        else
+        {
+            TextTypingTask1 = SimpleAnimatorTool.Instance.AddTypingTask(Prompt_Remote, Topic);
+            TextTypingTask2 = SimpleAnimatorTool.Instance.AddTypingTask(Content_Remote, Content, 0.04f);
+        }
     }
 
     public void IsActiveUpRect(bool IsActive, UnityAction CallBack)
@@ -85,24 +141,34 @@ public class RoomPanel : BasePanel
                 break;
 
             case "ExitButton":
-                IsActiveUpRect(false, () => { IsActiveLefRect(true, null); });
+                IsActiveUpRect(false, () => {
+                    IsActiveLefRect(true, null);
+                });
+                TriggerPromptImageAnima(false); // 明确关闭提示
                 break;
 
             case "LANModeChoose":
                 Main.Instance.CurrentMode = NetworkMode.LAN;
                 TopicText.text = "局域网模式";
 
+                TriggerTextAnima(NetworkMode.LAN);
+                TriggerPromptImageAnima(true); 
+
                 if (CustomNetworkManager.Instance != null)
                 {
                     CustomNetworkManager.Instance.SwitchToLanMode();
                 }
 
+                // 关闭左面板，打开上面板
                 IsActiveLefRect(false, () => { IsActiveUpRect(true, null); });
                 break;
 
             case "RemoteModeChoose":
                 Main.Instance.CurrentMode = NetworkMode.Remote;
-                TopicText.text = "远程模式 (国内UOS)";
+                TopicText.text = "远程模式";
+
+                TriggerTextAnima(NetworkMode.Remote);
+                TriggerPromptImageAnima(true);
 
                 if (CustomNetworkManager.Instance != null)
                 {
@@ -119,8 +185,6 @@ public class RoomPanel : BasePanel
                 break;
         }
     }
-
-    // ... (删除原来的 SwitchTransport 方法，不需要了)
 
     #region 生命周期
     public override void Start()
@@ -155,6 +219,7 @@ public class RoomPanel : BasePanel
     {
         base.ShowMe(isNeedDefaultAnimator);
         IsActiveLefRect(true, null);
+        TriggerPromptImageAnima(false);
     }
 
     protected override void SpecialAnimator_Hide()
@@ -171,7 +236,6 @@ public class RoomPanel : BasePanel
     {
         base.Update();
     }
-
 }
 
 public enum NetworkMode

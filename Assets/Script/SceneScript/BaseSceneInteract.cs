@@ -13,12 +13,52 @@ public abstract class BaseSceneInteract : MonoBehaviour//基础场景交互
     private bool _isTriggerChecked = false;
 
     public bool IsNeedInteractive = true;
-    public bool IsNeedShowUI=true;
+    public bool IsNeedShowUI = true;
+
+    // 记录UI的初始Scale，用于绝对定位翻转
+    private Vector3 _originalUIScale;
+
+    public virtual void Awake()
+    {
+        // 安全校验
+        if (GlobalPictureFlipManager.Instance == null) return;
+        if (UICanvas == null) return;
+
+        // 记录初始的、正确的Scale
+        _originalUIScale = UICanvas.GetComponent<RectTransform>().localScale;
+
+        //注册翻转事件
+        GlobalPictureFlipManager.Instance.FlipCallBack += TriggerFlip;
+
+        // Awake时强制同步一次当前状态，避免初始不同步
+        TriggerFlip(GlobalPictureFlipManager.Instance.IsFlipped);
+    }
+
+    public void TriggerFlip(bool IsFlip)
+    {
+        if (UICanvas == null) return;
+
+        RectTransform rect = UICanvas.GetComponent<RectTransform>();
+
+        rect.localScale = new Vector3(
+            IsFlip ? -_originalUIScale.x : _originalUIScale.x,
+            _originalUIScale.y,
+            _originalUIScale.z
+        );
+    }
 
     private void Start()
     {
-        if(IsNeedShowUI)
-          SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(UICanvas, ref UICanvasAnima, false, () => { });
+        if (IsNeedShowUI)
+            SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(UICanvas, ref UICanvasAnima, false, () => { });
+    }
+
+    public virtual void OnDestroy()
+    {
+        if (GlobalPictureFlipManager.Instance != null)
+        {
+            GlobalPictureFlipManager.Instance.FlipCallBack -= TriggerFlip;
+        }
     }
 
     public bool IsStartCheck = false;
@@ -36,10 +76,10 @@ public abstract class BaseSceneInteract : MonoBehaviour//基础场景交互
         {
             if (collision.GetComponent<Player>() == Player.LocalPlayer)//本地玩家才显示
             {
-                if(IsNeedShowUI)
-                   SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(UICanvas, ref UICanvasAnima, true, () => { });
+                if (IsNeedShowUI)
+                    SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(UICanvas, ref UICanvasAnima, true, () => { });
                 IsStartCheck = true;
-                if (UImanager.Instance.GetPanel<PlayerPanel>()&& IsNeedInteractive)
+                if (UImanager.Instance.GetPanel<PlayerPanel>() && IsNeedInteractive)
                 {
                     //打开交互按钮
                     UImanager.Instance.GetPanel<PlayerPanel>().SetActiveInteractButton(true);
@@ -48,7 +88,7 @@ public abstract class BaseSceneInteract : MonoBehaviour//基础场景交互
                     return;
                 IsInCoolTime = true;
                 triggerEnterRange();
-                CountDownManager.Instance.CreateTimer(false, (int)(1000 * CoolDownTime), () => { IsInCoolTime = false; }); 
+                CountDownManager.Instance.CreateTimer(false, (int)(1000 * CoolDownTime), () => { IsInCoolTime = false; });
                 _isTriggerChecked = true;
             }
         }
