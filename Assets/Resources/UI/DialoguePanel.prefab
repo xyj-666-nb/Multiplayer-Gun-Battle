@@ -1,17 +1,18 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!1 &128262588778162864
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4914514447233071210}
   - component: {fileID: 4814373370307475538}
   - component: {fileID: 4848453441128715228}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: SpeakerContent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -66,6 +67,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: fasfshdethth
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -140,12 +142,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5189907598823139032}
   - component: {fileID: 6684201663542540413}
   - component: {fileID: 6408851701619486602}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: SpeakerNameText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -200,6 +203,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: speakerName
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 2e498d1c8094910479dc3e1b768306a4, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 2e498d1c8094910479dc3e1b768306a4, type: 2}
@@ -274,13 +278,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2286724062876774578}
   - component: {fileID: 5425051479063411918}
   - component: {fileID: 5084642969935995287}
   - component: {fileID: 8524088328371165543}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: SkipProgressImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -363,13 +368,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 786377436141884718}
   - component: {fileID: 2289619691079108956}
   - component: {fileID: 2386761388300217406}
   - component: {fileID: 873979488991926728}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: PromptText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -392,7 +398,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0.36993408, y: 0.5000076}
+  m_AnchoredPosition: {x: 0.36993408, y: 0.5}
   m_SizeDelta: {x: 767.2057, y: 41.6985}
   m_Pivot: {x: 1, y: 0}
 --- !u!222 &2289619691079108956
@@ -424,6 +430,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: TopicText
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -510,12 +517,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3351933704530601261}
   - component: {fileID: 4915971537537527031}
   - component: {fileID: 5295162652013493167}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -570,6 +578,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u5207\u6362\u4E3A\u81EA\u52A8\u64AD\u653E"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -644,13 +653,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6465981309452643690}
   - component: {fileID: 761106701150143570}
   - component: {fileID: 1817473051116670572}
   - component: {fileID: 2677699067704164926}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: ChangeModeButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -765,12 +775,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6250386447733057546}
   - component: {fileID: 4667466709127706039}
   - component: {fileID: 2750481325160778694}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -840,12 +851,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4617679689730918543}
   - component: {fileID: 2736904050486595125}
   - component: {fileID: 6607466517079012035}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: DialogueArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -919,7 +931,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4484007640587144387}
   - component: {fileID: 4765609646427277043}
@@ -927,6 +939,7 @@ GameObject:
   - component: {fileID: 8012099511479926661}
   - component: {fileID: 920835821846743522}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: DialoguePanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1010,6 +1023,7 @@ MonoBehaviour:
   IsCanDestroy: 1
   IsUseRealTime: 0
   IsUseSpecialCanvas: 0
+  PriorityIndex: 0
   _canvasPixelPerfect: 0
   _canvasSortingOrder: 10
   _canvasSortingLayer: UI
@@ -1042,12 +1056,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5721441237744734448}
   - component: {fileID: 504499888443312384}
   - component: {fileID: 5033986266585992141}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: SkipPromptText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1103,6 +1118,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: SkipCurrent
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1177,12 +1193,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3910940244317176143}
   - component: {fileID: 693138460450274086}
   - component: {fileID: 7391666079497476294}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: speakerImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1252,13 +1269,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4520960899924346617}
   - component: {fileID: 3163027513036619300}
   - component: {fileID: 1356772882655836434}
   - component: {fileID: 1033408367598459935}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: InteractButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
