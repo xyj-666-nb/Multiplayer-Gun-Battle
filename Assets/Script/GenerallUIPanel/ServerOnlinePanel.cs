@@ -43,10 +43,11 @@ public class ServerOnlinePanel : BasePanel
         // 初始化文本列表
         _connectingTextList = new List<string>
         {
-            "正在连接服务器...",
-            "正在连接服务器..",
+            "正在连接服务器",
             "正在连接服务器.",
-            "正在连接服务器"
+            "正在连接服务器..",
+            "正在连接服务器..."
+
         };
     }
 

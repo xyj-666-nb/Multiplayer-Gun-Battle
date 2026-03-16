@@ -1,7 +1,9 @@
 using DG.Tweening;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 #region 面板类型枚举
 public enum WarnPanelType
@@ -168,70 +170,46 @@ public class WarnPanel : BasePanel
             return;
         }
 
-        Vector2 originalPos = rt.anchoredPosition;
+        Vector2 fixedOriginalPos = new Vector2(0, -100);
+        Vector2 hidePos = new Vector2(200, -100);
+
         NoInteraction_Sequence?.Kill();
         NoInteraction_Sequence = DOTween.Sequence();
 
         if (IsShow)
         {
-            // 显示时先激活面板
+            // 显示：强制重置到隐藏位置，再播放动画
             NoInteractionGroup.gameObject.SetActive(true);
             NoInteractionGroup.alpha = 0;
+            rt.anchoredPosition = hidePos;
 
-            // 淡入
-            SimpleAnimatorTool.Instance.StartFloatLerp(0, 1, 0.3f,
-                (v) => { NoInteractionGroup.alpha = v; },
-                () => { NoInteractionGroup.alpha = 1; });
-
-            rt.anchoredPosition = new Vector2(200, -100);
-
-            Debug.Log($"显示动画：起始位置={rt.anchoredPosition}，目标位置={originalPos}");
-
-            // 位置动画
+            // 统一用DOTween，不再混用SimpleAnimatorTool
             NoInteraction_Sequence.Append(
-                rt.DOAnchorPos(originalPos, 1f)
-                .SetEase(Ease.OutQuad)
-            )
-            .OnComplete(() => {
-                Debug.Log("显示动画完成，当前位置=" + rt.anchoredPosition);
+                rt.DOAnchorPos(fixedOriginalPos, 1f).SetEase(Ease.OutQuad)
+            );
+            NoInteraction_Sequence.Join(
+                NoInteractionGroup.DOFade(1, 0.3f).SetEase(Ease.Linear)
+            );
+            NoInteraction_Sequence.OnComplete(() => {
                 CallBack?.Invoke();
             });
         }
         else
         {
-            if (!NoInteractionGroup.gameObject.activeSelf)
-            {
-                NoInteractionGroup.gameObject.SetActive(true);
-            }
+            // 隐藏：从原始位置飞到隐藏位置
+            rt.anchoredPosition = fixedOriginalPos;
+            NoInteractionGroup.alpha = 1;
 
-            rt.anchoredPosition = originalPos;
-
-            // 打印日志验证位置
-            Debug.Log($"隐藏动画：起始位置={rt.anchoredPosition}，目标位置=(200, -100)");
-
-            // 位置动画 + 淡出同步
             NoInteraction_Sequence.Append(
-                rt.DOAnchorPos(new Vector2(200, -100), 0.5f)
-                .SetEase(Ease.InQuad)
+                rt.DOAnchorPos(hidePos, 0.5f).SetEase(Ease.InQuad)
             );
-
             NoInteraction_Sequence.Join(
-                DOTween.To(() => NoInteractionGroup.alpha,
-                           v => NoInteractionGroup.alpha = v,
-                           0,
-                           0.3f)
-                .SetEase(Ease.Linear)
+                NoInteractionGroup.DOFade(0, 0.3f).SetEase(Ease.Linear)
             );
-
-            NoInteraction_Sequence.OnComplete(() =>
-            {
-                NoInteractionGroup.alpha = 0;
-                rt.anchoredPosition = originalPos;
-
-                // 隐藏完成后失活面板
+            NoInteraction_Sequence.OnComplete(() => {
                 NoInteractionGroup.gameObject.SetActive(false);
-
-                Debug.Log("隐藏动画完成，位置已重置为=" + originalPos);
+                NoInteractionGroup.alpha = 0;
+                rt.anchoredPosition = fixedOriginalPos; // 强制重置回固定原始位置
                 CallBack?.Invoke();
             });
         }
@@ -502,6 +480,8 @@ public class WarnPanel : BasePanel
 
     #region 开启一个警告事件
 
+    private int TimerID=-1;
+
     /// <summary>
     /// 播放无交互警告面板
     /// </summary>
@@ -512,6 +492,10 @@ public class WarnPanel : BasePanel
     public void StartWarnPanel_NoInteraction(float Duration, string Content, UnityAction callback = null, bool IsUseDefaultAnima = true)
     {
         CurrentShowWarnPanelType = WarnPanelType.NoInteraction;
+        if(TimerID!=-1)
+        {
+            CountDownManager.Instance.StopTimer(TimerID);//停止上次的计时器 
+        }
 
         if (!CheckGroupValid(NoInteractionGroup, "NoInteractionGroup"))
         {
@@ -533,7 +517,7 @@ public class WarnPanel : BasePanel
 
         SetActive_NoInteractionGroup(true,
             () => {
-                CountDownManager.Instance.CreateTimer(
+                TimerID= CountDownManager.Instance.CreateTimer(
                     true,
                     (int)(Duration * 1000),
                     () => {
@@ -731,6 +715,15 @@ public class WarnPanel : BasePanel
         base.Awake();
         // 初始化所有面板为未激活状态
         SetAllGroupsActive(false);
+        System.Collections.Generic.List<Button> WarRecordPanelButtonList = new List<Button>();
+        WarRecordPanelButtonList.Add(controlDic["ConfirmButton_SingleInteraction"] as Button);
+        WarRecordPanelButtonList.Add(controlDic["ConfirmButton_DoubleInteraction"] as Button);
+        WarRecordPanelButtonList.Add(controlDic["CancelButton_DoubleInteraction"] as Button);
+        WarRecordPanelButtonList.Add(controlDic["ConfirmButton_DoubleInteraction2"] as Button);
+        WarRecordPanelButtonList.Add(controlDic["CancelButton_DoubleInteraction2"] as Button);
+        WarRecordPanelButtonList.Add(controlDic["ConfirmButton_DealInteraction"] as Button);
+        WarRecordPanelButtonList.Add(controlDic["CancelButton_DealInteraction"] as Button);
+        SimpleEffectButtonGroup.Instance.RegisterGroup("WarnPanel", WarRecordPanelButtonList);
     }
 
     public override void Start()
@@ -756,6 +749,7 @@ public class WarnPanel : BasePanel
         // 清空回调，避免内存泄漏
         ConfirmCallback = null;
         CancelCallback = null;
+        SimpleEffectButtonGroup.Instance.UnRegisterGroup("WarnPanel");
     }
     #endregion
 

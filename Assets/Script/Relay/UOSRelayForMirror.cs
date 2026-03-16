@@ -20,7 +20,7 @@ public class UOSRelaySimple : MonoBehaviour
     public int maxPlayers = 4;
     public string currentRoomCode; // 保存给客户端用的 RoomCode
 
-    // 内部玩家ID（按照官方示例，在Awake/Start里初始化）
+    // 内部玩家ID
     private string playerUuid;
     public string playerName;
 
@@ -28,6 +28,9 @@ public class UOSRelaySimple : MonoBehaviour
     public static event Action OnRelayConnecting;
     public static event Action<string> OnRelaySuccess;
     public static event Action<string> OnRelayFailed;
+
+    public static event Action<string> OnQuerySuccess; // 仅查询成功
+    public static event Action<string> OnQueryFailed;  // 仅查询失败
 
     private void Awake()
     {
@@ -47,25 +50,22 @@ public class UOSRelaySimple : MonoBehaviour
 
     private void Start()
     {
-        // 【完全照搬官方】在 Start() 里就初始化玩家数据
         InitializePlayerData();
     }
 
     /// <summary>
-    /// 【照搬官方】初始化玩家数据
+    /// 初始化玩家数据
     /// </summary>
     private void InitializePlayerData()
     {
         playerUuid = Guid.NewGuid().ToString();
         playerName = "Player-" + playerUuid.Substring(0, 8);
-
-        // 【关键】按照官方示例，尽早设置玩家数据
         relayTransport.SetPlayerData(playerUuid, playerName);
         Debug.Log($"【UOS】已初始化玩家数据：UUID={playerUuid}, Name={playerName}");
     }
 
     /// <summary>
-    /// 【房主】创建房间（完全照搬官方 StartHost 流程）
+    /// 【房主】创建房间
     /// </summary>
     public void StartRelayHost()
     {
@@ -78,20 +78,17 @@ public class UOSRelaySimple : MonoBehaviour
         OnRelayConnecting?.Invoke();
         Debug.Log("【UOS】开始创建房间...");
 
-        // 【完全照搬官方】异步创建房间
         StartCoroutine(LobbyService.AsyncCreateRoom(new CreateRoomRequest()
         {
             Name = "游戏房间",
             MaxPlayers = maxPlayers,
-            OwnerId = playerUuid, // 【关键】OwnerId 必须和 SetPlayerData 里的一致
-            // 【修改】先试 Public 房间，不设 JoinCode，避免密码验证问题
+            OwnerId = playerUuid,
             Visibility = LobbyRoomVisibility.Public,
-            // JoinCode = "U", // 【照搬官方】Private房间才需要，先注释掉
         }, OnCreateRoomComplete));
     }
 
     /// <summary>
-    /// 【照搬官方】房间创建完成回调
+    /// 房间创建完成回调
     /// </summary>
     private void OnCreateRoomComplete(CreateRoomResponse resp)
     {
@@ -102,19 +99,12 @@ public class UOSRelaySimple : MonoBehaviour
             if (resp.Status == LobbyRoomStatus.ServerAllocated)
             {
                 relayTransport.SetRoomData(resp);
-
-                // 保存 RoomCode 给客户端用
                 currentRoomCode = resp.RoomCode;
                 Debug.Log($"【UOS】【重要】客户端加入用的房间码：{currentRoomCode}");
-                Debug.LogWarning("【UOS】请把上面的RoomCode分享给客户端！");
 
-                // 【完全照搬官方】直接启动 Host，不做任何等待
                 Debug.Log("【UOS】正在启动 Host...");
                 customManager.StartHost();
-
-                // 触发成功事件
                 OnRelaySuccess?.Invoke(currentRoomCode);
-
             }
             else
             {
@@ -132,7 +122,27 @@ public class UOSRelaySimple : MonoBehaviour
     }
 
     /// <summary>
-    /// 【客户端】通过RoomCode加入（基于官方流程，改用RoomCode查询）
+    /// 仅查询房间是否存在
+    /// </summary>
+    public void QueryRoomOnly(string roomCode)
+    {
+        if (string.IsNullOrEmpty(roomCode))
+        {
+            OnQueryFailed?.Invoke("请输入有效的房间码！");
+            return;
+        }
+        if (relayTransport == null)
+        {
+            OnQueryFailed?.Invoke("未找到RelayTransportMirror组件！");
+            return;
+        }
+
+        Debug.Log($"【UOS】正在查询房间，房间码：{roomCode}");
+        StartCoroutine(LobbyService.AsyncQueryRoomByRoomCode(roomCode, OnQueryRoomComplete));
+    }
+
+    /// <summary>
+    /// 通过RoomCode加入
     /// </summary>
     public void StartRelayClient(string roomCode)
     {
@@ -148,35 +158,56 @@ public class UOSRelaySimple : MonoBehaviour
         }
 
         OnRelayConnecting?.Invoke();
-        Debug.Log($"【UOS】正在查询房间，房间码：{roomCode}");
-
-        // 【修改】官方是用 ListRoom，我们用 QueryRoomByRoomCode 来满足"码加入"的需求
-        StartCoroutine(LobbyService.AsyncQueryRoomByRoomCode(roomCode, OnQueryRoomComplete));
+        Debug.Log($"【UOS】正在连接房间，房间码：{roomCode}");
+        StartCoroutine(LobbyService.AsyncQueryRoomByRoomCode(roomCode, (resp) => {
+            if (resp.Code == (uint)RelayCode.OK)
+            {
+                Debug.Log("【UOS】Query Room succeed, starting client...");
+                relayTransport.SetRoomData(resp);
+                customManager.StartClient();
+                OnRelaySuccess?.Invoke(resp.RoomCode);
+            }
+            else
+            {
+                string error = $"连接失败，错误码：{resp.Code}";
+                Debug.LogError($"【UOS】{error}");
+                OnRelayFailed?.Invoke(error);
+            }
+        }));
     }
 
     /// <summary>
-    /// 【照搬官方】房间查询完成回调
+    ///房间查询完成回调
     /// </summary>
     private void OnQueryRoomComplete(QueryRoomResponse resp)
     {
         if (resp.Code == (uint)RelayCode.OK)
         {
             Debug.Log("【UOS】Query Room succeed.");
-
-            // 【完全照搬官方】设置房间数据
-            relayTransport.SetRoomData(resp);
-
-            // 【完全照搬官方】不设置 JoinCode，直接启动 Client
-            Debug.Log("【UOS】正在启动 Client...");
-            customManager.StartClient();
-
-            OnRelaySuccess?.Invoke(resp.RoomCode);
+            // 仅触发查询成功事件，让 UI 层决定是否连接
+            OnQuerySuccess?.Invoke(resp.RoomCode);
         }
         else
         {
-            string error = $"Query Room Fail By Lobby Service, Code: {resp.Code}";
-            Debug.LogError($"【UOS】{error}");
-            OnRelayFailed?.Invoke(error);
+            string finalUIMsg; // 给玩家看的提示
+            string logMsg;      // 给控制台看的日志
+
+            if (resp.Code == 10032)
+            {
+                finalUIMsg = "未找到房间";
+                logMsg = $"【UOS】{finalUIMsg}，错误码：{resp.Code}（这是正常业务提示，非报错）";
+
+                Debug.LogWarning(logMsg);
+            }
+            else
+            {
+                finalUIMsg = $"查询失败，请检查网络";
+                logMsg = $"【UOS】查询房间异常失败，错误码：{resp.Code}";
+
+                Debug.LogError(logMsg);
+            }
+
+            OnQueryFailed?.Invoke(finalUIMsg);
         }
     }
 

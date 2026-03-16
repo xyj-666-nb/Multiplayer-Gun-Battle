@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class WarRecordPanel : BasePanel
 {
@@ -86,12 +87,10 @@ public class WarRecordPanel : BasePanel
 
     protected override void SpecialAnimator_Show()
     {
-        throw new System.NotImplementedException();
     }
 
     protected override void SpecialAnimator_Hide()
     {
-        throw new System.NotImplementedException();
     }
 
     public override void SimpleHidePanel()
@@ -118,6 +117,8 @@ public class WarRecordPanel : BasePanel
     public override void Awake()
     {
         base.Awake();
+        //×¢²á°´Å¥¶¯»­
+   
     }
     #endregion
 
