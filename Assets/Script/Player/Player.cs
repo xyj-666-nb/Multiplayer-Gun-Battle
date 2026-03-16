@@ -219,6 +219,10 @@ public class Player : Base_Entity
         MyHandControl = playerHandPos.GetComponent<playerHandControl>();
         MyHandControl.ownerPlayer = LocalPlayer;
 
+        //注册一下输入系统
+        if (TouchInputHandler.Instance != null)
+            TouchInputHandler.Instance.GetPlayerHand(MyHandControl);
+
         if (PlayerRespawnManager.Instance.IsGameStart)
         {
             //重生后获取当前战备

@@ -43,7 +43,6 @@ public class playerHandControl : NetworkBehaviour
     public bool _isHolsterAnimaPlaying = false;
     #endregion
 
-
     #region 网络同步状态（SyncVar）
     [SyncVar(hook = nameof(OnRotationValueSynced))]
     private float _currentRotationValue_Z = 0f;
@@ -217,7 +216,7 @@ public class playerHandControl : NetworkBehaviour
                 //在这里将新的物体加入到管理
                 ownerPlayer.mySortingLayerControl.RemoveSpriteRendererFromManager(OldInjection.GetComponentInChildren<SpriteRenderer>());//移除管理
             }
-          
+
         }
 
         if (NewInjection != null && NewInjection != OldInjection)
@@ -287,12 +286,12 @@ public class playerHandControl : NetworkBehaviour
 
         if (IsHolsterGun || _isHolsterAnimaPlaying)
         {
-            if (IsStartAim) HandleMouseAimAngle();
+            if (IsStartAim) HandleTouchAimAngle(); // 【修改】改为触摸控制
             UpdateThrowAimPoints();
             return;
         }
 
-        if (!_isReloading) HandleMouseRotation_Bidirectional();
+        if (!_isReloading) HandleTouchRotation_Bidirectional(); // 【修改】改为触摸控制
         else ResetRotationOnReload();
     }
 
@@ -333,7 +332,7 @@ public class playerHandControl : NetworkBehaviour
     #endregion
 
     #region 手臂旋转核心逻辑
-    private void HandleMouseRotation_Bidirectional()
+    private void HandleTouchRotation_Bidirectional()
     {
         if (mainCamera == null || !mainCamera.orthographic)
         {
@@ -341,19 +340,22 @@ public class playerHandControl : NetworkBehaviour
             return;
         }
 
-        Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(new Vector3(
-            Input.mousePosition.x, Input.mousePosition.y,
-            transform.position.z - mainCamera.transform.position.z
-        ));
-        mouseWorldPos.z = transform.position.z;
+        TouchInputHandler touchHandler = TouchInputHandler.Instance;
+        if (touchHandler == null || !touchHandler.IsTouchActive)
+        {
+            return; 
+        }
 
-        bool isMouseInValidArea = mouseWorldPos.x >= transform.position.x;
+        Vector3 targetWorldPos = touchHandler.CurrentTouchWorldPos;
+
+        // 原有逻辑保持不变
+        bool isMouseInValidArea = targetWorldPos.x >= transform.position.x;
         if (!isMouseInValidArea) return;
 
-        Vector2 dirToMouse = new Vector2(mouseWorldPos.x - transform.position.x, mouseWorldPos.y - transform.position.y);
-        if (dirToMouse.sqrMagnitude < 0.001f) return;
+        Vector2 dirToTarget = new Vector2(targetWorldPos.x - transform.position.x, targetWorldPos.y - transform.position.y);
+        if (dirToTarget.sqrMagnitude < 0.001f) return;
 
-        float rawAngle = Mathf.Atan2(dirToMouse.y, dirToMouse.x) * Mathf.Rad2Deg;
+        float rawAngle = Mathf.Atan2(dirToTarget.y, dirToTarget.x) * Mathf.Rad2Deg;
         rawAngle = Mathf.DeltaAngle(0, rawAngle);
 
         float targetAngle = rawAngle;
@@ -476,7 +478,7 @@ public class playerHandControl : NetworkBehaviour
         if (MilitaryManager.Instance == null)
         { Debug.LogError("[CmdCreateThrowObj] MilitaryManager.Instance 为 null！", this); return; }
         var throwObjPrefab = MilitaryManager.Instance.GetTactic(Type);
-        if (throwObjPrefab == null) 
+        if (throwObjPrefab == null)
         { Debug.LogError($"[CmdCreateThrowObj] GetTactic({Type}) 返回 null！", this); return; }
         if (throwObjPrefab.GetComponent<ThrowObj>() == null)
         { Debug.LogError($"[CmdCreateThrowObj] 预制体缺少 ThrowObj 脚本！", this); return; }
@@ -522,7 +524,6 @@ public class playerHandControl : NetworkBehaviour
 
     #region 投掷物瞄准点系统 (优化版)
     private GameObject[] _aimPoints;
-    // 新增：用于平滑移动的速度缓存数组
     private Vector2[] _aimPointVelocities;
 
     public Vector2 LaunchForce;
@@ -654,31 +655,35 @@ public class playerHandControl : NetworkBehaviour
         _aimPointVelocities = null;
     }
 
-    private void HandleMouseAimAngle()
+    // 【纯触摸版】投掷物瞄准角度逻辑
+    private void HandleTouchAimAngle()
     {
         if (mainCamera == null || !mainCamera.orthographic)
             return;
         if (TacticRootTransform == null)
             return;
 
-        Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(new Vector3(
-            Input.mousePosition.x, Input.mousePosition.y,
-            TacticRootTransform.position.z - mainCamera.transform.position.z
-        ));
-        mouseWorldPos.z = TacticRootTransform.position.z;
+        TouchInputHandler touchHandler = TouchInputHandler.Instance;
+        if (touchHandler == null || !touchHandler.IsTouchActive)
+        {
+            return; // 没有触摸输入，直接返回
+        }
 
-        Vector2 dirToMouse = new Vector2(
-            mouseWorldPos.x - TacticRootTransform.position.x,
-            mouseWorldPos.y - TacticRootTransform.position.y
+        Vector3 targetWorldPos = touchHandler.CurrentTouchWorldPos;
+
+        // 原有逻辑保持不变
+        Vector2 dirToTarget = new Vector2(
+            targetWorldPos.x - TacticRootTransform.position.x,
+            targetWorldPos.y - TacticRootTransform.position.y
         );
 
-        if (dirToMouse.sqrMagnitude < 0.001f)
+        if (dirToTarget.sqrMagnitude < 0.001f)
             return;
-        float targetAngle = Mathf.Atan2(dirToMouse.y, dirToMouse.x) * Mathf.Rad2Deg;
+        float targetAngle = Mathf.Atan2(dirToTarget.y, dirToTarget.x) * Mathf.Rad2Deg;
 
         CalculateLaunchForce(targetAngle);
 
-        if (_isDebug) Debug.DrawLine(TacticRootTransform.position, mouseWorldPos, Color.green);
+        if (_isDebug) Debug.DrawLine(TacticRootTransform.position, targetWorldPos, Color.green);
     }
     #endregion
 

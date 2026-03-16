@@ -1,18 +1,19 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!1 &226220557074148758
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8786465371846273668}
   - component: {fileID: 7351246227567536437}
   - component: {fileID: 6170514814682770557}
   - component: {fileID: 4236870625622223695}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: DoubleInteractionWarn2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,10 +98,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 489951651309630765}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Sliding Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -133,13 +135,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8989615958458071143}
   - component: {fileID: 2177805655611402409}
   - component: {fileID: 9006170168370972597}
   - component: {fileID: 9143064466123511653}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Scrollbar Vertical
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -259,12 +262,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 92351641964019725}
   - component: {fileID: 6043793046283097214}
   - component: {fileID: 5939453953386512206}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Handle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -334,13 +338,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6965933363987059956}
   - component: {fileID: 6216942344353196962}
   - component: {fileID: 2841419252757513708}
   - component: {fileID: 7825231253414704343}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: CancelButton_DealInteraction
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -455,12 +460,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3203486273595024025}
   - component: {fileID: 8208166145398767317}
   - component: {fileID: 6746066149029698091}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: TopicText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -515,6 +521,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u53CC\u5411\u4EA4\u4E92\u8B66\u544A"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -589,12 +596,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2543455734530306319}
   - component: {fileID: 5494447170769633177}
   - component: {fileID: 616313041172500197}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: TopicText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -649,6 +657,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u5355\u5411\u4EA4\u4E92\u8B66\u544A"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -723,13 +732,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3019487802829235045}
   - component: {fileID: 730314818227095779}
   - component: {fileID: 2365947533512412683}
   - component: {fileID: 779075216856933154}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: CancelButton_DoubleInteraction
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -844,7 +854,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2140754610854832159}
   - component: {fileID: 2735296275809999863}
@@ -852,6 +862,7 @@ GameObject:
   - component: {fileID: 8643246888660239210}
   - component: {fileID: 7407957505806824465}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: WarnPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -948,7 +959,7 @@ MonoBehaviour:
   IsCanDestroy: 1
   IsUseRealTime: 0
   IsUseSpecialCanvas: 0
-  PriorityIndex: -10
+  PriorityIndex: -30
   _canvasPixelPerfect: 0
   _canvasSortingOrder: 10
   _canvasSortingLayer: UI
@@ -964,13 +975,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5422565252216416698}
   - component: {fileID: 8764733875513258357}
   - component: {fileID: 9030578221815191714}
   - component: {fileID: 2223620899558125210}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Viewport
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1054,12 +1066,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 658944085169561624}
   - component: {fileID: 5397173499403907869}
   - component: {fileID: 7406853393766064522}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1114,6 +1127,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u53D6\u6D88"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -1188,10 +1202,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8970295095778999799}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Content
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1224,13 +1239,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5802366489661426317}
   - component: {fileID: 2202674323519612895}
   - component: {fileID: 6956259214445057112}
   - component: {fileID: 5136411249648601528}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: DealInteractionWarn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1316,13 +1332,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1219485152423229251}
   - component: {fileID: 1811030497496551065}
   - component: {fileID: 2011788517986751598}
   - component: {fileID: 32018610124852432}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: ConfirmButton_DoubleInteraction
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1437,12 +1454,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1460376589530192291}
   - component: {fileID: 6169311611022563108}
   - component: {fileID: 9017641262420178357}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1497,6 +1515,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u786E\u8BA4"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -1571,12 +1590,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6032822089778841273}
   - component: {fileID: 8293512978294245604}
   - component: {fileID: 8602862681649304156}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1631,6 +1651,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u786E\u8BA4"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -1705,12 +1726,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2165242122959918253}
   - component: {fileID: 8453059722685789958}
   - component: {fileID: 7982996288463320540}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1765,6 +1787,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u53D6\u6D88"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -1839,13 +1862,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3238390149309463291}
   - component: {fileID: 5933340022144131381}
   - component: {fileID: 8917808998355902632}
   - component: {fileID: 8709163660252706771}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: ConfirmButton_DealInteraction
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1960,12 +1984,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3075484816483163046}
   - component: {fileID: 649267709029323793}
   - component: {fileID: 4624169150527910367}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: WarnContent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2021,6 +2046,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u52A8\u753B\u56DE\u8C03\u52A0\u68C0\u67E5\uFF1A\u6355\u83B7\u7EC4\u4EF6\u5F15\u7528\u5E76\u68C0\u67E5\u662F\u5426\u5B58\u6D3B\uFF0C\u907F\u514D\u8BBF\u95EE\u5DF2\u9500\u6BC1\u5BF9\u8C61\uFF1B\n\u9500\u6BC1\u524D\u505C\u52A8\u753B\uFF1A\u5728\u5173\u95ED\u9762\u677F\u65F6\u4E3B\u52A8\u505C\u6B62\u6240\u6709\u672A\u5B8C\u6210\u7684\u63D2\u503C\u52A8\u753B\uFF1B\nUpdate
     \u52A0\u515C\u5E95\u68C0\u67E5\uFF1A\u9632\u6B62\u7EC4\u4EF6\u9500\u6BC1\u540E\u903B\u8F91\u7EE7\u7EED\u6267\u884C\uFF1B\n\u5DE5\u5177\u7C7B\u8865\u5145\u505C\u6B62\u65B9\u6CD5\uFF1A\u7CBE\u51C6\u63A7\u5236\u52A8\u753B\u751F\u547D\u5468\u671F\u3002"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -2095,13 +2121,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5300612345795900014}
   - component: {fileID: 6039042857037601674}
   - component: {fileID: 4673226503716310345}
   - component: {fileID: 7562270041211471958}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: ConfirmButton_DoubleInteraction2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2216,13 +2243,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1051482627386561822}
   - component: {fileID: 7522549730252121520}
   - component: {fileID: 3326351776768443823}
   - component: {fileID: 8600628130439406601}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: SingleInteractionWarn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2307,12 +2335,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2777134371324003314}
   - component: {fileID: 1024440243262388593}
   - component: {fileID: 5574672396044302664}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2367,6 +2396,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u786E\u8BA4"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -2441,13 +2471,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5770368521635261686}
   - component: {fileID: 8564527181553350514}
   - component: {fileID: 3958990498142400277}
   - component: {fileID: 5339994001030170582}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: NoInteractionWarn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2530,12 +2561,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1101186884711867529}
   - component: {fileID: 628246105861892503}
   - component: {fileID: 9074842802791925737}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: WarnContent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2590,6 +2622,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u6210\u529F\u5C06AUG\u88C5\u914D\u914D\u6218\u5907\u69FD\u4F4D1"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -2664,12 +2697,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1574366621992624030}
   - component: {fileID: 3002464641642732957}
   - component: {fileID: 5800491130608646285}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2724,6 +2758,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u786E\u8BA4"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -2798,13 +2833,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5128886542695523497}
   - component: {fileID: 3881176229745831414}
   - component: {fileID: 1767742180745635633}
   - component: {fileID: 1293666902683080676}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: 'DoubleInteractionWarn '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2890,13 +2926,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7748001330787208227}
   - component: {fileID: 9029239253419735179}
   - component: {fileID: 5527995980315593967}
   - component: {fileID: 4167231766330462311}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Scroll View
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2998,12 +3035,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8343050924792488260}
   - component: {fileID: 61503394347568008}
   - component: {fileID: 6101747604012241614}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: 'Text '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3058,6 +3096,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: 
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -3132,13 +3171,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8283612831200350019}
   - component: {fileID: 7020314820832999215}
   - component: {fileID: 4317602001211969165}
   - component: {fileID: 8321912055662088163}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: ConfirmButton_SingleInteraction
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3253,13 +3293,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8163974302004644062}
   - component: {fileID: 8435363744275209102}
   - component: {fileID: 2017181064637787556}
   - component: {fileID: 6048935545709634767}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: CancelButton_DoubleInteraction2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3374,12 +3415,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2424947017418067952}
   - component: {fileID: 8110631751842219450}
   - component: {fileID: 2347310306467131108}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: WarnContent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3435,6 +3477,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u52A8\u753B\u56DE\u8C03\u52A0\u68C0\u67E5\uFF1A\u6355\u83B7\u7EC4\u4EF6\u5F15\u7528\u5E76\u68C0\u67E5\u662F\u5426\u5B58\u6D3B\uFF0C\u907F\u514D\u8BBF\u95EE\u5DF2\u9500\u6BC1\u5BF9\u8C61\uFF1B\n\u9500\u6BC1\u524D\u505C\u52A8\u753B\uFF1A\u5728\u5173\u95ED\u9762\u677F\u65F6\u4E3B\u52A8\u505C\u6B62\u6240\u6709\u672A\u5B8C\u6210\u7684\u63D2\u503C\u52A8\u753B\uFF1B\nUpdate
     \u52A0\u515C\u5E95\u68C0\u67E5\uFF1A\u9632\u6B62\u7EC4\u4EF6\u9500\u6BC1\u540E\u903B\u8F91\u7EE7\u7EED\u6267\u884C\uFF1B\n\u5DE5\u5177\u7C7B\u8865\u5145\u505C\u6B62\u65B9\u6CD5\uFF1A\u7CBE\u51C6\u63A7\u5236\u52A8\u753B\u751F\u547D\u5468\u671F\u3002"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -3509,12 +3552,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 101925477560067984}
   - component: {fileID: 509305206973516026}
   - component: {fileID: 8518329746574720436}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3569,6 +3613,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u53D6\u6D88"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -3643,12 +3688,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 132617143861929151}
   - component: {fileID: 5073828930494428285}
   - component: {fileID: 1577127222137240389}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: TopicText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3703,6 +3749,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u53CC\u5411\u4EA4\u4E92\u8B66\u544A"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -3777,12 +3824,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7145942823845844279}
   - component: {fileID: 6346636557179599491}
   - component: {fileID: 2145975543373155072}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: TopicText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3837,6 +3885,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u53CC\u5411\u4EA4\u4E92\u534F\u8BAE"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
