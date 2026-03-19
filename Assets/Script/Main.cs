@@ -3,6 +3,7 @@ using Localization;
 using Mirror;
 using UnityEngine;
 using UnityEngine.Playables;
+using UnityEngine.Android;
 
 public class Main : SingleMonoAutoBehavior<Main>
 {
@@ -27,7 +28,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         AnimaVC.MoveToTopOfPrioritySubqueue(); // 强制插队到最前面
         if (brain != null)
         {
-            // 设置过渡时间：0.1秒 (你也可以设为 0 表示瞬间切)
+            // 设置过渡时间：0.1秒 
             brain.m_DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.EaseInOut, 0.001f);
             Debug.Log("已切换到 AnimaVC，快速转场");
         }
@@ -51,14 +52,49 @@ public class Main : SingleMonoAutoBehavior<Main>
         CustomNetworkManager.OnClientConnectedSuccess += OnClientConnectedSuccess;
 
         Debug.Log("[Main] 已监听CustomNetworkManager事件，服务端启动时将自动生成重生管理器");
-    }
+        
 
+
+#if UNITY_ANDROID && !UNITY_EDITOR
+        try
+        {
+            // 安卓9.0+ 强制开启明文网络请求（解决联机时明文IP访问被拦截）
+            AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+            AndroidJavaObject currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+            AndroidJavaObject application = currentActivity.Call<AndroidJavaObject>("getApplication");
+            
+            // 获取安卓系统版本
+            AndroidJavaClass buildVersion = new AndroidJavaClass("android.os.Build$VERSION");
+            int sdkVersion = buildVersion.GetStatic<int>("SDK_INT");
+            
+            // Android 9.0 (API 28) 及以上需要手动开启明文流量
+            if (sdkVersion >= 28)
+            {
+                AndroidJavaObject packageManager = currentActivity.Call<AndroidJavaObject>("getPackageManager");
+                AndroidJavaObject packageInfo = packageManager.Call<AndroidJavaObject>(
+                    "getPackageInfo", Application.identifier, 0
+                );
+                AndroidJavaObject appInfo = packageInfo.Get<AndroidJavaObject>("applicationInfo");
+                appInfo.Set<bool>("cleartextTrafficPermitted", true);
+            }
+            
+            Debug.Log("安卓网络配置初始化成功，已允许明文流量");
+        }
+        catch (System.Exception e)
+        {
+            // 即使配置失败，也不影响游戏运行（仅打印警告）
+            Debug.LogWarning("安卓网络配置初始化警告：" + e.Message);
+        }
+#endif
+
+
+
+    }
     /// <summary>
     /// 服务端启动时，自动生成全局重生管理器
     /// </summary>
     private void OnServerStarted()
     {
-        // 双重校验：仅服务端执行
         if (!NetworkServer.active)
         {
             Debug.LogWarning("[Main] 非服务端环境，跳过重生管理器生成");
@@ -103,6 +139,7 @@ public class Main : SingleMonoAutoBehavior<Main>
 
     void Start()
     {
+        FPSDisplayPanel.Instance.ShowFPS();//显示帧率
         // // 原有UI和测试按钮逻辑
         // // 枪械测试按钮
         // Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械AKM", () => { Player.LocalPlayer.SpawnAndPickGun("AKM"); }, "枪械获取");
@@ -153,12 +190,12 @@ public class Main : SingleMonoAutoBehavior<Main>
         // Developer_GUITestManger.Instance.RegisterGuiButton("播放第二个动画", () => { CG.PlayAnima2(); });
         //// Developer_GUITestManger.Instance.RegisterGuiButton("翻转画面", () => { CameraFlipper.Instance.ToggleFlip(); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("播放场景二动画", () => { Map2StartAnimaCG.Instance.TimeLine.Play(); SwitchToAnimaVCFast();UImanager.Instance.GetPanel<PlayerPanel>().SimpleHidePanel(); });
-   //      Developer_GUITestManger.Instance.RegisterGuiButton("释放冲击波", () => { BorderWaveController.Instance.StartFlash(); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("恢复", () => { HealBorderEffect.Instance.StartEffect(); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("受伤", () => { ScreenPulseController.Instance.StartPulse(); });
     }
 
     private void Update()
     {
-        // 预留Update逻辑
     }
 
     public void GameStart()//游戏开始

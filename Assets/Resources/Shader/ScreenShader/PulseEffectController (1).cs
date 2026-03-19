@@ -4,6 +4,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Image))]
 public class ScreenPulseController : MonoBehaviour
 {
+    public static ScreenPulseController Instance;
     [Header("脉冲设置")]
     public Color pulseColor = Color.green;
     [Range(0.01f, 2f)] public float pulseSpeed = 0.8f;
@@ -17,6 +18,7 @@ public class ScreenPulseController : MonoBehaviour
 
     void Awake()
     {
+        Instance= this;
         // 获取Image
         _pulseImage = GetComponent<Image>();
 
@@ -30,12 +32,6 @@ public class ScreenPulseController : MonoBehaviour
 
     void Update()
     {
-        // 按 V 键触发脉冲
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-            StartPulse();
-        }
-
         // 执行脉冲动画
         if (_isPulsing)
         {

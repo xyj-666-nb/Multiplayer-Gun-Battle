@@ -1,18 +1,19 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!1 &714904950051476537
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5474335394639379812}
   - component: {fileID: 6142090476837084541}
   - component: {fileID: 1450697591754067707}
   - component: {fileID: 3760903208857718404}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Button_ScreenHight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -127,12 +128,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7344452604296819272}
   - component: {fileID: 8169706290044058565}
   - component: {fileID: 8777736886887394289}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -187,6 +189,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u4F4E\u6548\u679C"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -261,13 +264,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7693208901811648002}
   - component: {fileID: 2197641783562561491}
   - component: {fileID: 639435085609858797}
   - component: {fileID: 7787642202191516412}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Button_ScreenLow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -382,12 +386,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3645855875304574228}
   - component: {fileID: 5424267432386484162}
   - component: {fileID: 6162702637261750956}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -442,6 +447,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: 120FPS
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -516,13 +522,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3065171031114934937}
   - component: {fileID: 2832287170078995095}
   - component: {fileID: 3890172356826638241}
   - component: {fileID: 1646117160047154771}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Button_FPS120
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -637,13 +644,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 973212394044633702}
   - component: {fileID: 8804552057780602257}
   - component: {fileID: 3724166764601797473}
   - component: {fileID: 1929283925809455430}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Button_ScreenMiddle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -758,12 +766,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5435668104200770302}
   - component: {fileID: 3033102208812588633}
   - component: {fileID: 4187922824000835841}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -818,6 +827,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: 90FPS
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -892,12 +902,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6627898959085211753}
   - component: {fileID: 7302548743632846984}
   - component: {fileID: 5258273572339385690}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -952,6 +963,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u9AD8\u6548\u679C"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -1026,13 +1038,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8688584596758637812}
   - component: {fileID: 4742831346631671080}
   - component: {fileID: 8480502945155253041}
   - component: {fileID: 8422498407196451364}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: ScreenSetting
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1090,6 +1103,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u753B\u9762\u6548\u679C"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -1190,13 +1204,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1510942694076079181}
   - component: {fileID: 7596274607677852136}
   - component: {fileID: 7870935776820168125}
   - component: {fileID: 2378607747291952357}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: FPSText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1254,6 +1269,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "FPS\u8BBE\u7F6E"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -1354,13 +1370,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6654017099386966937}
   - component: {fileID: 2568588420408316830}
   - component: {fileID: 6242545369224589734}
   - component: {fileID: 5937220369187816905}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Button_FPS90
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1475,13 +1492,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8008605421568425783}
   - component: {fileID: 7553069229374000522}
   - component: {fileID: 8209499109272261948}
   - component: {fileID: 6312504319403174751}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: ScreenSettingPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1578,12 +1596,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 898799739062110465}
   - component: {fileID: 7480367410732859949}
   - component: {fileID: 5185035243327545643}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1638,6 +1657,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u4E2D\u6548\u679C"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -1712,13 +1732,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7152817530486921780}
   - component: {fileID: 3807573954270936848}
   - component: {fileID: 8407061065460439140}
   - component: {fileID: 1608285086387653286}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Button_FPS60
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1833,12 +1854,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3827681575494197475}
   - component: {fileID: 4899660862918108966}
   - component: {fileID: 2738256407472448810}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1893,6 +1915,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: 60FPS
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

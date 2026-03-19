@@ -30,7 +30,6 @@ namespace Mirror
 
         /// <summary>Should the server auto-start when 'Server Build' is checked in build settings</summary>
         [Header("Auto-Start Options")]
-
         [Tooltip("Choose whether Server or Client should auto-start in headless builds")]
         public HeadlessStartOptions headlessStartMode = HeadlessStartOptions.DoNothing;
 
@@ -364,6 +363,8 @@ namespace Mirror
 
         void SetupClient()
         {
+            // 【客户端连接日志】初始化客户端配置（连接前置检查）
+            Debug.Log("[客户端连接日志] 开始初始化客户端配置，准备连接服务器");
             InitializeSingleton();
 
             // apply settings before initializing anything
@@ -377,24 +378,37 @@ namespace Mirror
             {
                 authenticator.OnStartClient();
                 authenticator.OnClientAuthenticated.AddListener(OnClientAuthenticated);
+                Debug.Log("[客户端连接日志] 客户端认证组件已初始化，连接后将执行认证流程");
             }
-
+            else
+            {
+                Debug.LogWarning("[客户端连接日志] 未配置认证组件，连接后将跳过认证");
+            }
         }
 
         /// <summary>Starts the client, connects it to the server with networkAddress.</summary>
         public void StartClient()
         {
+            // 【客户端连接日志】入口检查 - 快速定位基础错误
+            Debug.Log("[客户端连接日志] 调用StartClient，开始连接流程");
+
             // Do checks and short circuits before setting anything up.
             // If / when we retry, we won't have conflict issues.
             if (NetworkClient.active)
             {
-                Debug.LogWarning("Client already started.");
+                Debug.LogError("[客户端连接日志] 连接失败：客户端已处于激活状态，无法重复启动");
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(networkAddress))
             {
-                Debug.LogError("Must set the Network Address field in the manager");
+                Debug.LogError("[客户端连接日志] 连接失败：NetworkAddress为空，请检查服务器地址配置");
+                return;
+            }
+
+            if (transport == null || !Transport.active)
+            {
+                Debug.LogError("[客户端连接日志] 连接失败：未配置Transport组件或Transport未激活");
                 return;
             }
 
@@ -407,7 +421,18 @@ namespace Mirror
 
             RegisterClientMessages();
 
-            NetworkClient.Connect(networkAddress);
+            // 【客户端连接日志】发起连接 - 捕获连接异常
+            Debug.Log($"[客户端连接日志] 开始连接服务器，目标地址：{networkAddress}，Transport类型：{transport.GetType().Name}");
+            try
+            {
+                NetworkClient.Connect(networkAddress);
+                Debug.Log("[客户端连接日志] 连接请求已发送，等待服务器响应");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[客户端连接日志] 连接请求发送失败：{e.Message}\n异常堆栈：{e.StackTrace}");
+                return;
+            }
 
             OnStartClient();
         }
@@ -415,9 +440,24 @@ namespace Mirror
         /// <summary>Starts the client, connects it to the server via Uri</summary>
         public void StartClient(Uri uri)
         {
+            // 【客户端连接日志】Uri连接入口检查
+            Debug.Log("[客户端连接日志] 调用StartClient(Uri)，开始Uri连接流程");
+
             if (NetworkClient.active)
             {
-                Debug.LogWarning("Client already started.");
+                Debug.LogError("[客户端连接日志] 连接失败：客户端已处于激活状态，无法重复启动");
+                return;
+            }
+
+            if (uri == null || !uri.IsWellFormedOriginalString())
+            {
+                Debug.LogError("[客户端连接日志] 连接失败：Uri无效或格式错误");
+                return;
+            }
+
+            if (transport == null || !Transport.active)
+            {
+                Debug.LogError("[客户端连接日志] 连接失败：未配置Transport组件或Transport未激活");
                 return;
             }
 
@@ -427,10 +467,20 @@ namespace Mirror
 
             RegisterClientMessages();
 
-            // Debug.Log($"NetworkManager StartClient address:{uri}");
             networkAddress = uri.Host;
 
-            NetworkClient.Connect(uri);
+            // 【客户端连接日志】Uri方式发起连接 - 捕获异常
+            Debug.Log($"[客户端连接日志] 通过Uri连接服务器，Uri：{uri}，Transport类型：{transport.GetType().Name}");
+            try
+            {
+                NetworkClient.Connect(uri);
+                Debug.Log("[客户端连接日志] Uri连接请求已发送，等待服务器响应");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[客户端连接日志] Uri连接请求发送失败：{e.Message}\n异常堆栈：{e.StackTrace}");
+                return;
+            }
 
             OnStartClient();
         }
@@ -668,7 +718,7 @@ namespace Mirror
             if (Utils.IsHeadless())
             {
                 Application.targetFrameRate = sendRate;
-                // Debug.Log($"Server Tick Rate set to {Application.targetFrameRate} Hz.");
+                 Debug.Log($"Server Tick Rate set to {Application.targetFrameRate} Hz.");
             }
         }
 
@@ -708,16 +758,18 @@ namespace Mirror
 
             // This tries to avoid missing transport errors and more clearly tells user what to fix.
             if (transport == null)
+            {
                 if (TryGetComponent(out Transport newTransport))
                 {
-                    Debug.LogWarning($"No Transport assigned to Network Manager - Using {newTransport} found on same object.");
+                    Debug.LogWarning($"[客户端连接日志] 未手动指定Transport，自动使用同对象的{newTransport.GetType().Name}（建议手动配置）");
                     transport = newTransport;
                 }
                 else
                 {
-                    Debug.LogError("No Transport on Network Manager...add a transport and assign it.");
+                    Debug.LogError("[客户端连接日志] 初始化失败：未找到任何Transport组件！这是连接失败的核心原因，请添加并配置Transport（如Telepathy、UNET）");
                     return false;
                 }
+            }
 
             Transport.active = transport;
             return true;
@@ -737,6 +789,9 @@ namespace Mirror
 
         void RegisterClientMessages()
         {
+            // 【客户端连接日志】注册消息处理器（确保连接后能接收服务器响应）
+            Debug.Log("[客户端连接日志] 注册客户端消息处理器，确保能接收服务器响应");
+
             NetworkClient.OnConnectedEvent = OnClientConnectInternal;
             NetworkClient.OnDisconnectedEvent = OnClientDisconnectInternal;
             NetworkClient.OnErrorEvent = OnClientError;
@@ -1196,12 +1251,14 @@ namespace Mirror
 
         void OnClientConnectInternal()
         {
-            //Debug.Log("NetworkManager.OnClientConnectInternal");
+            // 【客户端连接日志】核心节点 - 成功与服务器建立TCP/UDP连接（未到业务认证）
+            Debug.Log("[客户端连接日志] 成功与服务器建立底层网络连接！进入认证流程（若配置了认证组件）");
 
             if (authenticator != null)
             {
                 // we have an authenticator - let it handle authentication
                 authenticator.OnClientAuthenticate();
+                Debug.Log("[客户端连接日志] 开始执行认证流程，等待服务器认证响应");
             }
             else
             {
@@ -1213,7 +1270,8 @@ namespace Mirror
         // called after successful authentication
         void OnClientAuthenticated()
         {
-            //Debug.Log("NetworkManager.OnClientAuthenticated");
+            // 【客户端连接日志】核心节点 - 认证成功（连接的关键里程碑）
+            Debug.Log("[客户端连接日志] 客户端认证成功！连接流程已完成核心步骤");
 
             // set connection to authenticated
             NetworkClient.connection.isAuthenticated = true;
@@ -1239,6 +1297,9 @@ namespace Mirror
         //   Disconnect() -> ask Transport -> Transport.OnDisconnected -> Cleanup
         void OnClientDisconnectInternal()
         {
+            // 【客户端连接日志】核心节点 - 连接断开（定位断开原因的关键）
+            Debug.Log($"[客户端连接日志] 客户端断开连接！当前运行模式：{mode}，是否已认证：{NetworkClient.connection?.isAuthenticated ?? false}");
+
             //Debug.Log("NetworkManager.OnClientDisconnectInternal");
 
             // Only let this run once. StopClient in Host mode changes to ServerOnly
@@ -1369,6 +1430,9 @@ namespace Mirror
         /// <summary>Called on the client when connected to a server. By default it sets client as ready and adds a player.</summary>
         public virtual void OnClientConnect()
         {
+            // 【客户端连接日志】最终确认 - 连接完成并进入业务逻辑
+            Debug.Log($"[客户端连接日志] 客户端连接流程完成！是否需要等待场景加载：{clientLoadedScene}");
+
             // OnClientConnect by default calls AddPlayer but it should not do
             // that when we have online/offline scenes. so we need the
             // clientLoadedScene flag to prevent it.
@@ -1385,13 +1449,101 @@ namespace Mirror
         }
 
         /// <summary>Called on clients when disconnected from a server.</summary>
-        public virtual void OnClientDisconnect() { }
+        /// <summary>Called on clients when disconnected from a server.</summary>
+        public virtual void OnClientDisconnect()
+        {
+            Debug.LogWarning("[客户端连接日志] ====== 客户端断开连接 - 诊断信息开始 ======");
 
-        /// <summary>Called on client when transport raises an exception.</summary>
-        public virtual void OnClientError(TransportError error, string reason) { }
+            // 1. 基础状态（Mirror原生字段，无报错）
+            Debug.LogWarning($"[客户端连接日志] 当前模式: {mode}");
+            Debug.LogWarning($"[客户端连接日志] 连接地址: {networkAddress}");
+            Debug.LogWarning($"[客户端连接日志] 客户端是否激活: {NetworkClient.active}");
+            Debug.LogWarning($"[客户端连接日志] 是否正在加载场景: {NetworkClient.isLoadingScene}");
 
-        /// <summary>Called on client when transport raises an exception.</summary>
-        public virtual void OnClientTransportException(Exception exception) { }
+            // 2. 连接认证状态（安全访问，无空引用）
+            bool isAuthenticated = NetworkClient.connection != null && NetworkClient.connection.isAuthenticated;
+            Debug.LogWarning($"[客户端连接日志] 连接是否完成认证: {isAuthenticated}");
+
+            // 3. Transport 信息（不强制转换外部类型，无编译错误）
+            if (transport != null)
+            {
+                Debug.LogWarning($"[客户端连接日志] Transport: {transport.GetType().Name}");
+                Debug.LogWarning($"[客户端连接日志] Transport是否启用: {transport.enabled}");
+            }
+            else
+            {
+                Debug.LogError("[客户端连接日志] Transport 为空！");
+            }
+
+            // 4. 场景信息
+            Debug.LogWarning($"[客户端连接日志] 当前场景: {SceneManager.GetActiveScene().name}");
+            Debug.LogWarning($"[客户端连接日志] 网络场景: {networkSceneName}");
+            Debug.LogWarning($"[客户端连接日志] 离线场景: {offlineScene}");
+            Debug.LogWarning($"[客户端连接日志] 在线场景: {onlineScene}");
+
+            // 5. 移动端网络状态（使用Unity现代API，无废弃报错）
+#if UNITY_ANDROID || UNITY_IOS
+            Debug.LogWarning($"[客户端连接日志] 设备网络状态: {Application.internetReachability}");
+            Debug.LogWarning($"[客户端连接日志] 运行平台: {Application.platform}");
+#endif
+
+            // 6. 关键诊断（你手机连不上的核心提示）
+            if (!isAuthenticated)
+            {
+                Debug.LogError("[客户端连接日志] 断开原因：连接未完成认证！常见问题：\n" +
+                    "1. 手机UDP被防火墙/路由器拦截\n" +
+                    "2. Relay房间已失效\n" +
+                    "3. 端口不匹配（utp/utp2）\n" +
+                    "4. 网络延迟过高，握手超时");
+            }
+
+            Debug.LogWarning("[客户端连接日志] 进入业务层断开回调，可处理重连/提示");
+            Debug.LogWarning("[客户端连接日志] ====== 客户端断开连接 - 诊断信息结束 ======");
+        }
+
+        /// <summary>Called on client when transport raises an error（连接失败的核心错误日志）</summary>
+        /// <summary>Called on client when transport raises an error（连接失败的核心错误日志）</summary>
+        public virtual void OnClientError(TransportError error, string reason)
+        {
+            // 【客户端连接日志】关键错误 - Transport层错误（连接失败的直接原因）
+            Debug.LogError($"[客户端连接日志] Transport层错误（连接失败）：错误类型={error}，原因={reason}");
+
+            // 基于Mirror官方TransportError枚举的精准错误解读
+            switch (error)
+            {
+                case TransportError.DnsResolve:
+                    Debug.LogError("[客户端连接日志] 错误解读：DNS解析失败（域名无法解析/网络DNS配置错误/目标主机名不存在）");
+                    break;
+                case TransportError.Refused:
+                    Debug.LogError("[客户端连接日志] 错误解读：连接被拒绝（服务器未启动/服务器端口错误/服务器满员/防火墙拦截）");
+                    break;
+                case TransportError.Timeout:
+                    Debug.LogError("[客户端连接日志] 错误解读：连接超时（服务器无响应/网络延迟过高/目标地址不可达/网络中断）");
+                    break;
+                case TransportError.Congestion:
+                    Debug.LogError("[客户端连接日志] 错误解读：网络拥塞（发送/接收消息量超过Transport/网络承载能力，导致连接异常）");
+                    break;
+                case TransportError.InvalidReceive:
+                    Debug.LogError("[客户端连接日志] 错误解读：接收无效数据包（可能是恶意攻击/Transport协议不兼容/数据包损坏）");
+                    break;
+                case TransportError.InvalidSend:
+                    Debug.LogError("[客户端连接日志] 错误解读：发送无效数据（发送空数据/数据长度超限/数据格式不符合Transport要求）");
+                    break;
+                case TransportError.ConnectionClosed:
+                    Debug.LogError("[客户端连接日志] 错误解读：连接被关闭（服务器主动断开/网络异常断开/客户端主动调用Disconnect）");
+                    break;
+                case TransportError.Unexpected:
+                    Debug.LogError("[客户端连接日志] 错误解读：意外错误（Transport内部异常/代码BUG，需要排查Transport实现或Mirror版本兼容性）");
+                    break;
+            }
+        }
+
+        /// <summary>Called on client when transport raises an exception（连接异常的堆栈日志）</summary>
+        public virtual void OnClientTransportException(Exception exception)
+        {
+            // 【客户端连接日志】致命异常 - Transport层抛出异常（连接失败的底层原因）
+            Debug.LogError($"[客户端连接日志] Transport层抛出异常（连接失败）：{exception.Message}\n异常堆栈：{exception.StackTrace}");
+        }
 
         /// <summary>Called on clients when a servers tells the client it is no longer ready, e.g. when switching scenes.</summary>
         public virtual void OnClientNotReady() { }

@@ -434,7 +434,7 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
     }
     #endregion
 
-    #region 统一打开所有的调试信息(FPS调试，物理信息调试。输入系统的调试)
+    #region 统一打开所有的调试信息
     public void IsShowAllInfo(bool IsShow)
     {
         if (IsShow)
@@ -449,7 +449,6 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
             InputInfoManager.Instance.SetKeyCheckState(false);
             FPSDisplayPanel.Instance.HideFPS();
         }
-
     }
     #endregion
     #endregion

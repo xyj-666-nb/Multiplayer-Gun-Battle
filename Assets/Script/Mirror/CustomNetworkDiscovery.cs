@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Net.Sockets;
 using kcp2k;
 using Mirror;
 using Mirror.Discovery;
@@ -19,12 +20,11 @@ public struct ServerResponse : NetworkMessage
     public string roomName;
     public int playerCount;
     public int maxPlayers;
-    public GameMode GameMode;
+    public GameMode GameMode; // 若未定义GameMode，需补充枚举：public enum GameMode { Default }
     public string PlayerName;
     public int gameTime;
     public int GoldScore;
 }
-
 
 public class CustomNetworkDiscovery : NetworkDiscoveryBase<ServerRequest, ServerResponse>
 {
@@ -40,21 +40,17 @@ public class CustomNetworkDiscovery : NetworkDiscoveryBase<ServerRequest, Server
     public int GoldScore = 0;
 
     [Header("Network Config")]
-    public ushort port;
+    public ushort port = 7777; // 默认KCP端口
 
-    [NonSerialized] 
-    public UnityEvent<ServerResponse> OnServerFound;
+    [NonSerialized]
+    public new UnityEvent<ServerResponse> OnServerFound;
 
     private void Awake()
     {
         if (instance == null)
         {
             instance = this;
-            // 初始化事件（防止空引用）
-            if (OnServerFound == null)
-            {
-                OnServerFound = new UnityEvent<ServerResponse>();
-            }
+            OnServerFound ??= new UnityEvent<ServerResponse>(); // 简化判空
         }
         else
         {
@@ -63,59 +59,74 @@ public class CustomNetworkDiscovery : NetworkDiscoveryBase<ServerRequest, Server
         }
     }
 
+    /// <summary>
+    ///获取本机真实局域网IP
+    /// </summary>
+    private string GetLocalLanIp()
+    {
+        foreach (IPAddress ip in Dns.GetHostEntry(Dns.GetHostName()).AddressList)
+        {
+            if (ip.AddressFamily == AddressFamily.InterNetwork &&
+                !ip.ToString().StartsWith("127.") &&
+                !ip.ToString().StartsWith("169."))
+            {
+                return ip.ToString();
+            }
+        }
+        return "127.0.0.1"; // 兜底
+    }
+
     protected override ServerRequest GetRequest() => new ServerRequest();
 
     protected override ServerResponse ProcessRequest(ServerRequest request, IPEndPoint endpoint)
     {
-        Uri uri = transport.ServerUri();
+        string realLanIp = GetLocalLanIp();
+        int realPort = port;
 
+        // 从KcpTransport获取实际端口
         if (transport is KcpTransport kcpTransport)
         {
-            var uriBuilder = new UriBuilder(uri)
-            {
-                Port = kcpTransport.Port
-            };
-            uri = uriBuilder.Uri;
+            realPort = kcpTransport.Port;
         }
+
+        Uri realUri = new UriBuilder("kcp", realLanIp, realPort).Uri;
 
         return new ServerResponse
         {
             serverId = ServerId,
-            ipAddress = uri.Host,
-            port = uri.Port,
-            uri = uri,
+            ipAddress = realLanIp, // 存储真实IP
+            port = realPort,       // 存储真实端口
+            uri = realUri,         // 传递完整Uri（kcp://真实IP:端口）
             roomName = roomName,
             playerCount = playerCount,
             maxPlayers = maxPlayers,
             PlayerName = playerName,
             gameTime = gameTime,
-            GoldScore = GoldScore
+            GoldScore = GoldScore,
+            GameMode = GameMode.Team_Battle // 补充默认值，避免空引用
         };
     }
 
     protected override void ProcessResponse(ServerResponse response, IPEndPoint endpoint)
     {
-        Debug.Log($"CLIENT: Received broadcast from {endpoint.Address}:{endpoint.Port} | 房间端口：{response.port}");
+        string realSenderIp = endpoint.Address.ToString();
+        int realSenderPort = response.port > 0 ? response.port : port;
 
-        if (response.uri != null)
+        Uri fixedUri = new UriBuilder(response.uri)
         {
-            string host = response.uri.Host;
-            if (host == "localhost" || host == "127.0.0.1" || host == "0.0.0.0")
-            {
-                var uriBuilder = new UriBuilder(response.uri)
-                {
-                    Host = response.ipAddress,
-                    Port = response.port
-                };
-                response.uri = uriBuilder.Uri;
-            }
-        }
+            Host = realSenderIp,
+            Port = realSenderPort
+        }.Uri;
 
-        // 安全调用：先判空再触发事件
-        if (OnServerFound != null)
-        {
-            OnServerFound.Invoke(response);
-        }
+  
+        response.uri = fixedUri;
+        response.ipAddress = realSenderIp;
+        response.port = realSenderPort;
+
+        Debug.Log($"CLIENT: Received broadcast from {realSenderIp}:{endpoint.Port} | 房间端口：{realSenderPort}");
+
+        // 安全触发事件
+        OnServerFound?.Invoke(response);
     }
 
     public new void StopDiscovery()
@@ -126,7 +137,7 @@ public class CustomNetworkDiscovery : NetworkDiscoveryBase<ServerRequest, Server
 
     public void SetPort(int port)
     {
-        if (port < 0 || port > 65535)
+        if (port is < 0 or > 65535)
         {
             Debug.LogError($"[CustomNetworkDiscovery] 端口{port}超出范围（0-65535），使用默认端口7777");
             this.port = 7777;
@@ -140,15 +151,8 @@ public class CustomNetworkDiscovery : NetworkDiscoveryBase<ServerRequest, Server
 
     private void OnDestroy()
     {
-        if (instance == this)
-        {
-            instance = null;
-        }
+        if (instance == this) instance = null;
         StopDiscovery();
-        // 清空事件订阅，防止内存泄漏
-        if (OnServerFound != null)
-        {
-            OnServerFound.RemoveAllListeners();
-        }
+        OnServerFound?.RemoveAllListeners(); // 简化判空
     }
 }

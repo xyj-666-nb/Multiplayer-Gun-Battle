@@ -114,6 +114,7 @@ public class Remote_EnterRoomPanel : BasePanel
             UnsubscribeQuery();
             Debug.Log($"【面板】查询成功，开始连接，房间码：{code}");
             StartConnectRelay(code); 
+
         }
 
         void OnQueryRoomFailed(string msg)
@@ -145,20 +146,17 @@ public class Remote_EnterRoomPanel : BasePanel
     /// </summary>
     private void StartConnectRelay(string roomCode)
     {
-        if (CustomNetworkManager.Instance != null)
-        {
-            CustomNetworkManager.Instance.SwitchToRelayMode();
-        }
+        Debug.LogError("【面板】StartConnectRelay 开始执行");
 
         // 显示“正在连接”状态
         if (statusText != null)
         {
             statusText.text = "正在连接...";
             statusText.DOKill();
-            statusText.DOColor(Color.green, 0.2f); // 连接用绿色
+            statusText.DOColor(Color.green, 0.2f);
         }
 
-        // 订阅连接事件
+        // 取消订阅连接事件
         void UnsubscribeConnect()
         {
             UOSRelaySimple.OnRelaySuccess -= OnJoinSuccess;
@@ -167,6 +165,7 @@ public class Remote_EnterRoomPanel : BasePanel
 
         void OnJoinSuccess(string c)
         {
+            Debug.Log("连接成功！");
             UnsubscribeConnect();
             if (statusText != null)
             {
@@ -196,7 +195,17 @@ public class Remote_EnterRoomPanel : BasePanel
 
         UOSRelaySimple.OnRelaySuccess += OnJoinSuccess;
         UOSRelaySimple.OnRelayFailed += OnJoinFailed;
-        UOSRelaySimple.Instance.StartRelayClient(roomCode);
+
+        Debug.LogError("【面板】准备调用 UOSRelaySimple.Instance.StartRelayClient，Instance 是否为空：" + (UOSRelaySimple.Instance == null ? "是" : "否"));
+        if (UOSRelaySimple.Instance != null)
+        {
+            UOSRelaySimple.Instance.StartRelayClient(roomCode);
+            Debug.LogError("【面板】StartRelayClient 调用完成");
+        }
+        else
+        {
+            Debug.LogError("【面板】UOSRelaySimple.Instance 为 null，无法调用 StartRelayClient");
+        }
     }
 
     private void ShowPromptError(string msg)
@@ -228,11 +237,9 @@ public class Remote_EnterRoomPanel : BasePanel
 
     protected override void SpecialAnimator_Show()
     {
-        throw new System.NotImplementedException();
     }
 
     protected override void SpecialAnimator_Hide()
     {
-        throw new System.NotImplementedException();
     }
 }

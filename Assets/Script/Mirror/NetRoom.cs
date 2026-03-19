@@ -33,6 +33,7 @@ public class NetRoom : MonoBehaviour//房间列表中每一行的UI逻辑脚本，负责显示房间
                 Name = "爆破模式";
                 break;
         }
+        Debug.Log(uri);
         gameModeTMesh.text = $"游戏模式：{Name}";
         EnterButton.onClick.RemoveAllListeners();
         EnterButton.onClick.AddListener(() => { UImanager.Instance.HidePanel<EnterRoomPanel>(); onJoin(uri);

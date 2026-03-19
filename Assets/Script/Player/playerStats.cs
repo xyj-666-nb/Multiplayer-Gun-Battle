@@ -51,6 +51,7 @@ public class playerStats : CharacterStats
     public float JumpBuff_MovePowerBonus = 1f;//黄色针剂的跳跃力提升(跳跃力加1)
 
 
+
     // 内部私有变量
     private bool _isYellowBuffActive = false;
 
@@ -257,6 +258,7 @@ public class playerStats : CharacterStats
     {
         if (!PlayerRespawnManager.Instance.IsGameStart)
             return;//游戏如果没开始就无法死亡
+        //在这里丢出头盔
 
         base.Death(killer);
         if (MyMonster.currentGun != null)
