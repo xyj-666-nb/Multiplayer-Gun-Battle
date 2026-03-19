@@ -75,7 +75,7 @@ public class playerStats : CharacterStats
             }
         }
 
-        // 初始化时记录原始属性（非常重要）
+        // 初始化时记录原始属性
         _originalMaxHealth = maxHealth;
         _originalMaxXSpeed = MaxXSpeed;
 
@@ -91,11 +91,11 @@ public class playerStats : CharacterStats
     {
         if (infoPack == null) return;
 
-        // 基于原始值计算新属性 (防止反复穿戴导致叠加)
+        // 基于原始值计算新属性 
         maxHealth = _originalMaxHealth + infoPack.HealthAdd;
         MaxXSpeed = _originalMaxXSpeed + infoPack.SpeedAdd;
 
-        //  回血逻辑 (只有服务器和本地玩家需要处理数值)
+        //  回血逻辑 
         if (isLocalPlayer || isServer)
         {
             // 确保当前血量不超过新的最大血量，且至少回一点
