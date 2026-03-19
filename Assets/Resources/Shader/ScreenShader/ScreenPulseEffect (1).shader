@@ -2,6 +2,9 @@ Shader "Custom/ScreenPulse_UI"
 {
     Properties
     {
+        // 加一行这个，解决报错！
+        _MainTex ("Texture", 2D) = "white" {}
+        
         _PulseColor("脉冲颜色", Color) = (0,1,0,1)
         _PulseCenter("脉冲中心", Vector) = (0.5,0.5,0,0)
         _PulseRadius("脉冲半径", Float) = 0
@@ -35,6 +38,10 @@ Shader "Custom/ScreenPulse_UI"
                 float4 vertex : SV_POSITION;
             };
 
+            // 声明变量
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
+            
             float4 _PulseColor;
             float2 _PulseCenter;
             float _PulseRadius;
@@ -45,7 +52,7 @@ Shader "Custom/ScreenPulse_UI"
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = v.uv;
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 return o;
             }
 
