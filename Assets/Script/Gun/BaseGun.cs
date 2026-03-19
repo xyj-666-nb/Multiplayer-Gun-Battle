@@ -249,7 +249,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region 核心Command方法（客户端→服务器）
+    #region 核心Command方法
     [Command]
     public void ChangeAimState(bool IsEnter)
     {
@@ -282,7 +282,6 @@ public class BaseGun : NetworkBehaviour
         }
         _currentMagazineBulletCount = Mathf.Max(0, _currentMagazineBulletCount - 1);
 
-        // 【新增】声明目标点变量，作用域提到 if 外面，以便最后调用 Rpc
         Vector2 bulletTargetPos = Vector2.zero;
 
         if (firePoint != null && gunInfo != null && ownerPlayer != null)
@@ -341,8 +340,6 @@ public class BaseGun : NetworkBehaviour
         }
 
         RpcPlaySingleShootVFX();
-
-        // 【修改】RpcDrawBulletSegment 现在只传一个参数 bulletTargetPos
         if (isDebug)
             RpcDrawBulletSegment(bulletTargetPos);
     }

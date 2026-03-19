@@ -95,7 +95,6 @@ public class PlayerTacticControl : MonoBehaviour
     public CanvasGroup MyCanvasGroup;
     private Sequence MyCanvasGroupAnima;
 
-    // 新增：标记是否启用Update逻辑（退出房间时禁用）
     private bool _isLogicEnabled = true;
 
     public void SetTacticControl(bool IsActive)

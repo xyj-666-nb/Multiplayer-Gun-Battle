@@ -148,6 +148,12 @@ public abstract class CharacterStats : NetworkBehaviour
         if (isLocalPlayer)
         {
             HealthUI.Instance?.SetValue(newValue / Mathf.Max(maxHealth, 1f));
+            //调用受攻特效
+            if(oldValue >= newValue)
+              HealBorderEffect.Instance.StartEffect(); 
+            else
+              ScreenPulseController.Instance.StartPulse();//调用回血
+
         }
        
 

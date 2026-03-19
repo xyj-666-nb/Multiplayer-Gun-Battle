@@ -190,8 +190,9 @@ public class Main : SingleMonoAutoBehavior<Main>
         // Developer_GUITestManger.Instance.RegisterGuiButton("播放第二个动画", () => { CG.PlayAnima2(); });
         //// Developer_GUITestManger.Instance.RegisterGuiButton("翻转画面", () => { CameraFlipper.Instance.ToggleFlip(); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("播放场景二动画", () => { Map2StartAnimaCG.Instance.TimeLine.Play(); SwitchToAnimaVCFast();UImanager.Instance.GetPanel<PlayerPanel>().SimpleHidePanel(); });
-        Developer_GUITestManger.Instance.RegisterGuiButton("恢复", () => { HealBorderEffect.Instance.StartEffect(); });
-        Developer_GUITestManger.Instance.RegisterGuiButton("受伤", () => { ScreenPulseController.Instance.StartPulse(); });
+        //Developer_GUITestManger.Instance.RegisterGuiButton("受击", () => { HealBorderEffect.Instance.StartEffect(); });
+        //Developer_GUITestManger.Instance.RegisterGuiButton("恢复", () => { ScreenPulseController.Instance.StartPulse(); });
+        //Developer_GUITestManger.Instance.RegisterGuiButton("丢弃头盔", () => { Player.LocalPlayer.myStats.MyHelmet.TriggerHelmetDrop(); });
     }
 
     private void Update()

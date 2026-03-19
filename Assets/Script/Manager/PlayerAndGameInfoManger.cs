@@ -120,7 +120,8 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
     public TacticInfo GetCurrentTacticInfo(int Index)
     {
-        if (CurrentSlotInfoPack == null) return null;
+        if (CurrentSlotInfoPack == null) 
+            return null;
 
         if (Index == 1)
             return CurrentSlotInfoPack.CurrentTactic_1Info;
@@ -136,7 +137,7 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         base.Awake();
         BackupDefaultData();
         LoadPlayerData();
-        ApplyGraphicsSettings(); // 加载后立即应用图形设置
+        ApplyGraphicsSettings(); 
         SetSlotInfoPack(SlotCount);
     }
 

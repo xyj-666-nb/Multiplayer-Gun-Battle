@@ -7,24 +7,23 @@ public class RoomPlayerCheck : BaseSceneInteract
     public SpriteGroup SpriteGroup;//控制房子外围
 
     [Header("门列表")]
-    public List<Door> InnerAllDoors;//房间内部所有的门（复数命名，更易读）
-    public List<Door> OutsideAllDoors;//房间外部所有的门（修复命名）
+    public List<Door> InnerAllDoors;//房间内部所有的门
+    public List<Door> OutsideAllDoors;//房间外部所有的门
 
     [Header("碰撞体控制")]
     public Collider2D InterCollider;//内部碰撞体
-    public BoxCollider2D OutsideCollider1;//外部碰撞体1（大写首字母）
-    public BoxCollider2D OutsideCollider2;//外部碰撞体2（大写首字母）
+    public Collider2D InterCollider2;//内部碰撞体
+    public BoxCollider2D OutsideCollider1;//外部碰撞体1
+    public BoxCollider2D OutsideCollider2;//外部碰撞体2
 
     [Header("离开判断配置")]
-    public int EnterDir = 1;//内部方向(1为右，-1为左)（修复命名）
-    [Tooltip("位置判断阈值（避免微小偏移误判，建议0.1~0.5）")]
-    public float PositionCheckThreshold = 0.1f;
+    public int EnterDir = 1;//内部方向
 
     private bool IsEnterRoom = false;//更语义化的命名：是否进入房间
 
-    private void Awake()
+    public override void Awake()
     {
-        // 初始化：内部门禁用，外部门启用（加判空保护）
+        base.Awake();
         SetFalseAllInnerDoors();
         SetAllOutsideDoorsCanUse();
 
@@ -41,14 +40,13 @@ public class RoomPlayerCheck : BaseSceneInteract
     {
         if (SpriteGroup != null) SpriteGroup.FadeOut();//快速淡出房子外围
 
-        // 门状态切换：内部门可用，外部门禁用（加判空）
+        // 门状态切换：内部门可用，外部门禁用
         SetAllInnerDoorsCanUse();
         SetFalseAllOutsideDoors();
 
-        // 碰撞体切换
         if (InterCollider != null) InterCollider.isTrigger = false;
         if (OutsideCollider1 != null) OutsideCollider1.isTrigger = true;
-        if (OutsideCollider2 != null) OutsideCollider2.isTrigger = false;
+        if (OutsideCollider2 != null) OutsideCollider2.isTrigger = true; 
 
         IsEnterRoom = true;//标记已进入房间
                            //设置玩家进入房间
@@ -86,7 +84,7 @@ public class RoomPlayerCheck : BaseSceneInteract
     }
     #endregion
 
-    #region 外部门控制方法（修复遍历列表+加判空）
+    #region 外部门控制方法
     public void SetAllOutsideDoorsCanUse()
     {
         if (OutsideAllDoors == null || OutsideAllDoors.Count == 0)
@@ -124,27 +122,26 @@ public class RoomPlayerCheck : BaseSceneInteract
     public override void triggerExitRange()
     {
         // 空引用保护：本地玩家不存在则直接返回
-        if (Player.LocalPlayer == null) 
+        if (Player.LocalPlayer == null)
             return;
 
         // 未进入房间则无需处理离开逻辑
-        if (!IsEnterRoom) 
+        if (!IsEnterRoom)
             return;
 
-        // 计算玩家是否真正离开房间（结合方向+阈值）
-        bool isPlayerReallyLeave = false;
         float playerPosX = Player.LocalPlayer.transform.position.x;
         float roomPosX = transform.position.x;
+        bool isPlayerReallyLeave = false;
 
-        if (EnterDir > 0)
+        Debug.Log($"离开判断日志 → 玩家X：{playerPosX} | 房间锚点X：{roomPosX} | EnterDir：{EnterDir}| ");
+
+        if (EnterDir == 1)
         {
-            // 内部朝右：玩家x < 房间x - 阈值 → 真正离开（跑到房间左边）
-            isPlayerReallyLeave = (playerPosX < roomPosX - PositionCheckThreshold);
+            isPlayerReallyLeave = playerPosX < roomPosX;
         }
-        else
+        else if (EnterDir == -1)
         {
-            // 内部朝左：玩家x > 房间x + 阈值 → 真正离开（跑到房间右边）
-            isPlayerReallyLeave = (playerPosX > roomPosX + PositionCheckThreshold);
+            isPlayerReallyLeave = playerPosX > roomPosX;
         }
 
         // 只有真正离开时，才执行恢复逻辑
@@ -156,11 +153,11 @@ public class RoomPlayerCheck : BaseSceneInteract
             SetAllOutsideDoorsCanUse();//启用外部门
 
             // 恢复碰撞体状态
-            if (InterCollider != null) 
+            if (InterCollider != null)
                 InterCollider.isTrigger = true;
-            if (OutsideCollider1 != null) 
+            if (OutsideCollider1 != null)
                 OutsideCollider1.isTrigger = false;
-            if (OutsideCollider2 != null) 
+            if (OutsideCollider2 != null)
                 OutsideCollider2.isTrigger = false;
 
             IsEnterRoom = false;

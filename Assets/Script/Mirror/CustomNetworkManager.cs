@@ -137,6 +137,9 @@ public class CustomNetworkManager : NetworkManager
         {
             UOSRelaySimple.Instance.TriggerRelaySuccess(UOSRelaySimple.Instance.currentRoomCode);
         }
+        //打开训练地图
+        AllMapManager.Instance.TriggerMap(MapType.Training,true);//回到最开始
+        AllMapManager.Instance.TriggerMap(MapType.StartCG, false);//回到最开始
     }
 
     public override void OnStopServer()
@@ -155,6 +158,9 @@ public class CustomNetworkManager : NetworkManager
         {
             SwitchToLanMode();
         }
+
+        //关闭地图 
+       AllMapManager.Instance.CloseAllMap(MapType.StartCG);//回到最开始
     }
 
     public override void OnServerAddPlayer(NetworkConnectionToClient conn)
@@ -219,6 +225,9 @@ public class CustomNetworkManager : NetworkManager
         UImanager.Instance.HidePanel<EnterRoomPanel>();
         ModeChooseSystem.instance.ExitSystem();//退出系统
         UImanager.Instance.HidePanel<Remote_EnterRoomPanel>();
+        //打开训练地图
+        AllMapManager.Instance.TriggerMap(MapType.Training, true);//回到最开始
+        AllMapManager.Instance.TriggerMap(MapType.StartCG, false);//回到最开始
     }
     #endregion
 

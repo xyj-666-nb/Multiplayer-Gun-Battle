@@ -89,7 +89,8 @@ public class playerStats : CharacterStats
     // 获取护甲效果，现在接收具体的属性包
     public void AddArmorEffect(ArmorInfoPack infoPack)
     {
-        if (infoPack == null) return;
+        if (infoPack == null)
+            return;
 
         // 基于原始值计算新属性 
         maxHealth = _originalMaxHealth + infoPack.HealthAdd;
@@ -154,7 +155,7 @@ public class playerStats : CharacterStats
     }
 
     /// <summary>
-    /// 受伤特效（所有客户端执行）
+    /// 受伤特效
     /// </summary>
     public override void RpcPlayWoundEffect(Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
     {

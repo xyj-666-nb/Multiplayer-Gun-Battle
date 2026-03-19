@@ -386,7 +386,6 @@ public class MapChooseWall : MonoBehaviour
 
     public void EnterVC()//进入转场视角
     {
-        // 【核心修改】转场开始，立刻禁用所有主按钮，防止玩家重复操作
         SetMainButtonsInteractable(false);
 
         PlayerRespawnManager.Instance.CmdRequestDecideFinalMap();//判断地图
@@ -394,9 +393,16 @@ public class MapChooseWall : MonoBehaviour
         CountDownManager.Instance.CreateTimer(false, 100, () => {
             SetCinemachineBlendTime(defaultBlendTime + 3f); // 比默认慢1秒
             if (PlayerRespawnManager.Instance.CurrentMapIndex == 0)
+            {
+                //切换地图
+                AllMapManager.Instance.TriggerMap(MapType.map1, true);
                 SwitchCamera(CameraView.Helicopter, helicopterVC);
+            }
             else
+            {
+                AllMapManager.Instance.TriggerMap(MapType.map2, true);
                 SwitchCamera(CameraView.MapScene2, Map2SceneVC);
+            }
             CountDownManager.Instance.CreateTimer(false, (int)((defaultBlendTime + 3.5f) * 1000), () => {
                 //播放动画
                 TriggerMapAnima();

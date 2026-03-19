@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 1481291244929692657}
   - component: {fileID: 2191309080278232829}
   - component: {fileID: 615438950243144881}
-  m_Layer: 3
+  m_Layer: 9
   m_HasEditorInfo: 1
   m_Name: Helmet
   m_TagString: Untagged
@@ -149,7 +149,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HelmetTimeLine: {fileID: 2154681539427252243}
   MyCollider: {fileID: 615438950243144881}
-  RecycleTime: 4
+  RecycleTime: 3
+  MySprite: {fileID: 4993374979199365464}
 --- !u!60 &615438950243144881
 PolygonCollider2D:
   m_ObjectHideFlags: 0

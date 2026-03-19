@@ -77,6 +77,8 @@ public class MapManager : MonoBehaviour
 
     public void AnimaEnd()
     {
+        //先失活训练场地图
+        AllMapManager.Instance.TriggerMap(MapType.Training, false);
         //进行翻转
         if (Player.LocalPlayer.CurrentTeam == Team.Red)
             GlobalPictureFlipManager.Instance.TriggerGlobalFlip(false);
