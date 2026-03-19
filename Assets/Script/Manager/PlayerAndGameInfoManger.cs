@@ -35,7 +35,7 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
     private const string SAVE_FILE_NAME = "PlayerGameData";
 
-    // ================= 逻辑修复  =================
+    // ================= 逻辑修复 =================
 
     public void AddCustomUIInfoList(PlayerCustomUIInfo info)
     {
@@ -88,13 +88,13 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
             Player.LocalPlayer.CmdGetArmor(cachedArmorType);
         }
 
-        if (CountDownManager.Instance == null) 
+        if (CountDownManager.Instance == null)
             return;
 
         CountDownManager.Instance.CreateTimer(false, 1500, () => {
-            if (this == null || Instance == null) 
+            if (this == null || Instance == null)
                 return;
-            if (Player.LocalPlayer == null) 
+            if (Player.LocalPlayer == null)
                 return;
 
             if (!string.IsNullOrEmpty(cachedGunName))
@@ -103,6 +103,7 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
             }
         });
     }
+
     public void ShowTactic()
     {
         if (PlayerTacticControl.Instance != null)
@@ -135,12 +136,12 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         base.Awake();
         BackupDefaultData();
         LoadPlayerData();
+        ApplyGraphicsSettings(); // 加载后立即应用图形设置
         SetSlotInfoPack(SlotCount);
     }
 
     private void BackupDefaultData()
     {
-
         _defaultSlotInfoBackup = new List<SlotInfoPack>(PlayerSlotInfoPacksList);
         Debug.Log($"[PlayerAndGameInfoManger] 已备份默认配置，共 {_defaultSlotInfoBackup.Count} 个槽位");
     }
@@ -218,6 +219,82 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         {
             Debug.LogError("备份数据也丢失了！");
         }
+    }
+
+    // ================= 图形设置应用方法 =================
+
+    /// <summary>
+    /// 应用当前的图形设置
+    /// </summary>
+    public void ApplyGraphicsSettings()
+    {
+        QualitySettings.vSyncCount = 0;
+
+        // 应用帧率（适配移动端，不超过屏幕刷新率）
+        int targetFrameRate = GetTargetFrameRate(CurrentFPS);
+        Application.targetFrameRate = targetFrameRate;
+        Debug.Log($"[PlayerAndGameInfoManger] 设置目标帧率: {targetFrameRate}");
+
+        // 应用画质
+        int qualityLevel = GetQualityLevel(CurrentScreen);
+        QualitySettings.SetQualityLevel(qualityLevel, true);
+        Debug.Log($"[PlayerAndGameInfoManger] 设置画质级别: {qualityLevel} ({CurrentScreen})");
+    }
+
+    /// <summary>
+    /// 根据 FpsType 获取目标帧率，自动适配屏幕刷新率
+    /// </summary>
+    private int GetTargetFrameRate(FpsType fpsType)
+    {
+        int target = 60; // 默认
+        switch (fpsType)
+        {
+            case FpsType.Standard: target = 60; break;
+            case FpsType.High: target = 90; break;
+            case FpsType.Ultra: target = 120; break;
+        }
+
+        double refreshRateValue = Screen.currentResolution.refreshRateRatio.value;
+        int refreshRate = (int)System.Math.Round(refreshRateValue);
+
+        if (refreshRate > 0 && target > refreshRate)
+        {
+            Debug.LogWarning($"目标帧率 {target} 高于屏幕刷新率 {refreshRate}，已限制为 {refreshRate}");
+            target = refreshRate;
+        }
+        return target;
+    }
+    /// <summary>
+    /// 根据 ScreenType 映射到 Unity 质量设置索引
+    /// </summary>
+    private int GetQualityLevel(ScreenType screenType)
+    {
+        // 获取所有质量等级的名称
+        string[] qualityNames = QualitySettings.names;
+        if (qualityNames == null || qualityNames.Length == 0)
+        {
+            Debug.LogWarning("项目中未定义质量等级，返回当前级别");
+            return QualitySettings.GetQualityLevel();
+        }
+
+        string targetName = "";
+        switch (screenType)
+        {
+            case ScreenType.Standard: targetName = "Standard"; break;
+            case ScreenType.High: targetName = "High"; break;
+            case ScreenType.Ultra: targetName = "Ultra"; break;
+        }
+
+        // 查找第一个包含目标名称的索引（不区分大小写）
+        for (int i = 0; i < qualityNames.Length; i++)
+        {
+            if (qualityNames[i].IndexOf(targetName, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                return i;
+        }
+
+        // 若未找到，返回当前级别并警告
+        Debug.LogWarning($"未找到匹配的画质名称 '{targetName}'，使用当前级别");
+        return QualitySettings.GetQualityLevel();
     }
 }
 

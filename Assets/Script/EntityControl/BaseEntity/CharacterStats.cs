@@ -37,6 +37,11 @@ public abstract class CharacterStats : NetworkBehaviour
     private int BreatheHealTaskId;//呼吸回血的任务Id
     private bool IsEnterBreather = false;
 
+    [Header("头盔控制")]
+    public Helmet MyHelmet;
+    [Header("血量显示")]
+    public PlayerWordUI MyWorldUI;
+
     [Server]
     public void HandleBreatheHealTime()
     {
@@ -141,10 +146,17 @@ public abstract class CharacterStats : NetworkBehaviour
         CurrentHealth = newValue;
 
         if (isLocalPlayer)
+        {
             HealthUI.Instance?.SetValue(newValue / Mathf.Max(maxHealth, 1f));
+        }
+       
 
         if (oldValue >= newValue)
+        {
             EntityWoundEvent?.Invoke();
+            //打开受伤显示的血条
+            MyWorldUI?.ShowInfo();//显示UI
+        }
     }
 
     private void OnIsDeadChanged(bool oldValue, bool newValue)
@@ -166,6 +178,7 @@ public abstract class CharacterStats : NetworkBehaviour
 
         if (value < 0 || !PlayerRespawnManager.Instance.IsGameRealStart)//游戏未真正开始就无法扣血
             return;
+
         float newHealth = CurrentHealth + value;
         newHealth = Mathf.Clamp(newHealth, 0, maxHealth);
 
@@ -182,7 +195,7 @@ public abstract class CharacterStats : NetworkBehaviour
     [Server]
     public virtual void ServerApplyDamage(float damage, Vector2 hitPoint, Vector2 hitNormal, CharacterStats attacker)
     {
-        if (IsDead)
+        if (IsDead || !PlayerRespawnManager.Instance.IsGameRealStart)
             return;
 
         float healthBefore = CurrentHealth;
@@ -298,6 +311,7 @@ public abstract class CharacterStats : NetworkBehaviour
     #region 客户端视觉表现
     protected virtual void ClientHandleDeathVisual()
     {
+        MyHelmet.TriggerHelmetDrop();//触发头盔掉落
         if (isLocalPlayer)
         {
             Debug.Log("[ClientHandleDeathVisual] 本地玩家死亡，清理输入/摄像机");

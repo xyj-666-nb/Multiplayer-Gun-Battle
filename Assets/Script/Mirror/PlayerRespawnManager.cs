@@ -334,7 +334,8 @@ public class PlayerRespawnManager : NetworkBehaviour
                 PlayerName = info.Monster.PlayerName,
                 Team = info.Team,
                 KillCount = info.KillCount,
-                DeathCount = info.DeathCount
+                DeathCount = info.DeathCount,
+                GunName = info.Monster?.currentGun?.gunInfo.Name,//注册一下枪械的信息
             };
             dataList.Add(data);
         }
@@ -1315,7 +1316,6 @@ public class PlayerRespawnManager : NetworkBehaviour
         }
         if (Main.Instance != null && Main.Instance.CurrentMode == NetworkMode.LAN)
         {
-            // 局域网模式：使用原来的强制端口清理
             Debug.Log("[退出] 局域网模式，执行 KCP 端口清理...");
             if (CustomNetworkManager.Instance != null)
             {
@@ -1324,7 +1324,6 @@ public class PlayerRespawnManager : NetworkBehaviour
         }
         else
         {
-            // 【核心修改】远程模式：适配 UOSRelaySimple 单例
             Debug.Log("[退出] 远程模式，执行 UOS Relay 清理...");
             if (UOSRelaySimple.Instance != null)
             {
@@ -1432,6 +1431,7 @@ public struct NetworkPlayerInfo
     public Team Team;
     public int KillCount;
     public int DeathCount;
+    public string GunName;//枪械名称
 }
 
 public class InteractObj

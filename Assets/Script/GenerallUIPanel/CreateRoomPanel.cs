@@ -56,7 +56,8 @@ public class CreateRoomPanel : BasePanel
     /// </summary>
     private void SafeRegisterButtonGroups()
     {
-        if (_isButtonGroupRegistered) return;
+        if (_isButtonGroupRegistered)
+            return;
 
         try
         {
@@ -213,11 +214,9 @@ public class CreateRoomPanel : BasePanel
 
     private IEnumerator CreateLanRoomAfterFrame()
     {
-        // 等 2 帧，确保 Unity 完成组件的启用/禁用状态更新
         yield return null;
         yield return null;
 
-        // 局域网逻辑
         var roomName = string.IsNullOrWhiteSpace(CurrentRoomName) ? "Room" : CurrentRoomName;
         var hostName = string.IsNullOrWhiteSpace(CurrentPlayerName) ? "Host" : CurrentPlayerName;
 

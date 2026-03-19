@@ -35,7 +35,8 @@ public class WarRecordPanel : BasePanel
     private void UpdateTeamList(Transform parent, List<PlayerWarRecordUI> uiList, List<NetworkPlayerInfo> dataList)
     {
         // 判空保护
-        if (parent == null || playerInfoPrefabs == null) return;
+        if (parent == null || playerInfoPrefabs == null)
+            return;
 
         for (int i = 0; i < dataList.Count; i++)
         {
@@ -55,7 +56,10 @@ public class WarRecordPanel : BasePanel
             if (ui != null)
             {
                 ui.gameObject.SetActive(true);
-                ui.UpdateInfo(dataList[i].KillCount.ToString(), dataList[i].DeathCount.ToString() , dataList[i].PlayerName, null);
+                if (dataList[i].GunName!=null)
+                    ui.UpdateInfo(dataList[i].KillCount.ToString(), dataList[i].DeathCount.ToString(), dataList[i].PlayerName, MilitaryManager.Instance.GetInfo(dataList[i].GunName).GunSprite);//传入枪械的UI图
+                else
+                  ui.UpdateInfo(dataList[i].KillCount.ToString(), dataList[i].DeathCount.ToString() , dataList[i].PlayerName, null);
             }
         }
 

@@ -24,19 +24,15 @@ public class CustomNetworkManager : NetworkManager
 
     #region 双模式切换
     /// <summary>
-    /// 切换到局域网模式（KCP）
+    /// 切换到局域网模式
     /// </summary>
     public void SwitchToLanMode()
     {
         _isRelayModeActive = false;
-        Debug.Log("[CustomNetworkManager] 正在切换到【局域网模式（KCP）】...");
 
         // 先停止所有网络活动
         StopAllNetworkActivity();
-
-        // 禁用 UOS 相关的一切
         DisableUOSRelayEverything();
-
         // 确保有 KCP 组件，没有就添加
         KcpTransport kcp = GetComponent<KcpTransport>();
         if (kcp == null)
@@ -51,11 +47,11 @@ public class CustomNetworkManager : NetworkManager
         {
             uosRelay.enabled = false;
         }
-
         // 告诉 Mirror 使用 KCP
         transport = kcp;
+        Transport.active = kcp;
 
-        Debug.Log("[CustomNetworkManager] 已切换到【局域网模式（KCP）】");
+        Debug.Log($"[CustomNetworkManager] 切换到LAN模式，Transport类型：{transport.GetType().Name}，KCP启用：{kcp.enabled}");
     }
 
     /// <summary>
@@ -64,14 +60,12 @@ public class CustomNetworkManager : NetworkManager
     public void SwitchToRelayMode()
     {
         _isRelayModeActive = true;
-        Debug.Log("[CustomNetworkManager] 正在切换到【Relay模式（UOS）】...");
 
         // 先停止所有网络活动
         StopAllNetworkActivity();
 
         // 启用 UOS 相关的一切
         EnableUOSRelayEverything();
-
         // 确保有 Relay 组件，没有就添加
         RelayTransportMirror uosRelay = GetComponent<RelayTransportMirror>();
         if (uosRelay == null)
@@ -95,8 +89,6 @@ public class CustomNetworkManager : NetworkManager
         {
             UOSRelaySimple.Instance.relayTransport = uosRelay;
         }
-
-        Debug.Log("[CustomNetworkManager]  已切换到【Relay模式（UOS）】");
     }
 
     /// <summary>
@@ -119,7 +111,6 @@ public class CustomNetworkManager : NetworkManager
         if (UOSRelaySimple.Instance != null)
         {
             UOSRelaySimple.Instance.enabled = false;
-            Debug.Log("[CustomNetworkManager] 已禁用 UOSRelaySimple");
         }
     }
 
@@ -132,7 +123,6 @@ public class CustomNetworkManager : NetworkManager
         if (UOSRelaySimple.Instance != null)
         {
             UOSRelaySimple.Instance.enabled = true;
-            Debug.Log("[CustomNetworkManager] 已启用 UOSRelaySimple");
         }
     }
     #endregion
@@ -142,8 +132,11 @@ public class CustomNetworkManager : NetworkManager
     {
         base.OnStartServer();
         OnServerStartedEvent?.Invoke();
-        string transportName = transport != null ? transport.GetType().Name : "未知";
-        Debug.Log($"[CustomNetworkManager] 服务端启动（模式：{(_isRelayModeActive ? "Relay" : "局域网")}，传输层：{transportName}）");
+
+        if (UOSRelaySimple.Instance != null)
+        {
+            UOSRelaySimple.Instance.TriggerRelaySuccess(UOSRelaySimple.Instance.currentRoomCode);
+        }
     }
 
     public override void OnStopServer()
@@ -175,7 +168,7 @@ public class CustomNetworkManager : NetworkManager
 
         if (playerPrefab == null)
         {
-            Debug.LogError("[CustomNetworkManager] Player Prefab未赋值！");
+            Debug.LogError("[CustomNetworkManager] 严重错误：Player Prefab未赋值！准备断开连接");
             conn.Disconnect();
             return;
         }
@@ -221,7 +214,7 @@ public class CustomNetworkManager : NetworkManager
     {
         base.OnClientConnect();
         OnClientConnectedSuccess?.Invoke();
-        Debug.Log("[CustomNetworkManager] 客户端连接成功");
+
         //处理其他信息
         UImanager.Instance.HidePanel<EnterRoomPanel>();
         ModeChooseSystem.instance.ExitSystem();//退出系统
@@ -232,7 +225,10 @@ public class CustomNetworkManager : NetworkManager
     #region 局域网端口管理
     public void ForceStopCurrentPort()
     {
-        if (_isRelayModeActive) return;
+        if (_isRelayModeActive)
+        {
+            return;
+        }
 
         if (NetworkServer.active || NetworkClient.isConnected)
         {
@@ -288,7 +284,7 @@ public class CustomNetworkManager : NetworkManager
         }
         catch (System.Exception ex)
         {
-            Debug.LogWarning($"清理KCP套接字警告：{ex.Message}");
+            Debug.LogError($"[CustomNetworkManager] 清理KCP套接字异常：{ex.Message}");
         }
     }
 
@@ -320,7 +316,10 @@ public class CustomNetworkManager : NetworkManager
 
     public int AllocateAvailablePort()
     {
-        if (_isRelayModeActive) return 7777;
+        if (_isRelayModeActive)
+        {
+            return 7777;
+        }
 
         if (maxPort > 65535) maxPort = 65535;
         if (minPort < 0) minPort = 0;
@@ -339,17 +338,21 @@ public class CustomNetworkManager : NetworkManager
                 return port;
             }
         }
-        Debug.LogError("无可用端口！");
+        Debug.LogError("[CustomNetworkManager] 严重错误：无可用端口！");
         return -1;
     }
 
     public int PrepareForCreateRoom()
     {
-        if (_isRelayModeActive) return 0;
+        if (_isRelayModeActive)
+        {
+            return 0;
+        }
 
         ForceStopCurrentPort();
         System.Threading.Thread.Sleep(200);
-        return AllocateAvailablePort();
+        int port = AllocateAvailablePort();
+        return port;
     }
     #endregion
 

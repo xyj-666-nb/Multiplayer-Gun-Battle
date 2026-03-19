@@ -40,6 +40,7 @@ public class ScreenSettingPanel : BasePanel
     public override void ClickButton(string controlName)
     {
         base.ClickButton(controlName);
+        WarnTriggerManager.Instance.TriggerNoInteractionWarn(1, "设置成功");
         switch (controlName)
         {
             // --- 帧率设置 ---
@@ -71,16 +72,18 @@ public class ScreenSettingPanel : BasePanel
     private void SetFpsType(FpsType fpsType)
     {
         PlayerAndGameInfoManger.Instance.CurrentFPS = fpsType;
+        PlayerAndGameInfoManger.Instance.ApplyGraphicsSettings(); // 立即应用
+        PlayerAndGameInfoManger.Instance.SavePlayerData();       // 保存到本地
         Debug.Log($"已记录帧率: {fpsType}");
-
         RefreshFpsButtons(fpsType);
     }
 
     private void SetScreenType(ScreenType screenType)
     {
         PlayerAndGameInfoManger.Instance.CurrentScreen = screenType;
+        PlayerAndGameInfoManger.Instance.ApplyGraphicsSettings(); // 立即应用
+        PlayerAndGameInfoManger.Instance.SavePlayerData();       // 保存到本地
         Debug.Log($"已记录画质: {screenType}");
-
         RefreshScreenButtons(screenType);
     }
     #endregion
@@ -199,6 +202,7 @@ public class ScreenSettingPanel : BasePanel
     #endregion
 }
 
+// 枚举定义（如果已定义在其他地方，此处可省略）
 public enum FpsType
 {
     Standard,

@@ -443,9 +443,12 @@ namespace Mirror
         /// </summary>
         public override void OnClientConnect()
         {
+            Debug.Log($"[CustomNetworkManager] OnClientConnect: networkAddress={networkAddress}, transport={transport?.GetType().Name}");
             OnRoomClientConnect();
             base.OnClientConnect();
         }
+  
+
 
         /// <summary>
         /// Called on clients when disconnected from a server.
@@ -453,6 +456,7 @@ namespace Mirror
         /// </summary>
         public override void OnClientDisconnect()
         {
+            Debug.Log($"[CustomNetworkManager] OnClientDisconnect: networkAddress={networkAddress}, transport={transport?.GetType().Name}");
             OnRoomClientDisconnect();
             base.OnClientDisconnect();
         }

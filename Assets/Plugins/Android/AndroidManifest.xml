@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.zhangshan.mygame"
+    android:installLocation="preferExternal"
+    android:versionCode="1"
+    android:versionName="1.0">
+
+	<!-- 适配 Android 15 (API 35) ，最低支持 Android 5.1 (API 22) -->
+	<uses-sdk
+        android:minSdkVersion="22"
+        android:targetSdkVersion="35" />
+
+	<!-- 基础网络权限（安装即授予） -->
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+	<uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
+	<!-- 前台服务权限（Android 14+ 必须指定类型，安装即授予） -->
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" android:minSdkVersion="34" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" android:minSdkVersion="34" />
+
+	<!-- 定位权限（分前台+后台，需运行时申请） -->
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+	<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" android:minSdkVersion="29" />
+
+	<!-- 注意：无 USE_BACKGROUND_NETWORK 权限，该权限不存在于 Android 系统中。
+         如需后台联网，仅需 INTERNET 权限（已包含）。若需后台持续运行，请结合前台服务实现。 -->
+
+	<application
+        android:allowBackup="true"
+        android:hardwareAccelerated="true"
+        android:usesCleartextTraffic="true"
+        android:foregroundServiceType="connectedDevice|dataSync">
+
+		<!-- Unity 主 Activity -->
+		<activity
+            android:name="com.unity3d.player.UnityPlayerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="fullSensor"
+            android:exported="true">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+
+		<!-- 前台服务声明（UDP 长连接保活等用途） -->
+		<service
+            android:name="com.unity3d.player.UnityPlayerForegroundService"
+            android:foregroundServiceType="connectedDevice|dataSync"
+            android:exported="false" />
+
+	</application>
+
+</manifest>

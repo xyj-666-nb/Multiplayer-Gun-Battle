@@ -104,10 +104,13 @@ public class EnterRoomPanel : BasePanel
 
     #region 创建房间并传入信息
 
-    private void HandleServerFound(ServerResponse info)//当接收到服务器广播时，更新UI列表（这里接受的是房主传来的信息包资源）
+    private void HandleServerFound(ServerResponse info)
     {
-        if (CurrentCreateRoomDic.TryGetValue(info.serverId, out var row))//如果已经存在对应服务器ID的UI行，就更新显示信息（房间名称、人数等），否则生成一行新的UI
+        Debug.Log($"[EnterRoomPanel] 收到房间广播：serverId={info.serverId}, roomName={info.roomName}, ip={info.ipAddress}, uri={info.uri}");
+
+        if (CurrentCreateRoomDic.TryGetValue(info.serverId, out var row))
         {
+            Debug.Log($"[EnterRoomPanel] 更新房间人数：serverId={info.serverId}, playerCount={info.playerCount}/{info.maxPlayers}");
             row.UpdateCount(info.playerCount, info.maxPlayers);
             return;
         }
@@ -117,7 +120,8 @@ public class EnterRoomPanel : BasePanel
         var netRoom = go.GetComponent<NetRoom>();
         CurrentCreateRoomDic[info.serverId] = netRoom;
 
-        // 绑定显示与加入逻辑
+        Debug.Log($"[EnterRoomPanel] 新增房间UI：serverId={info.serverId}, roomName={info.roomName}");
+
         netRoom.Bind(
             name: info.roomName,
             playerCount: info.playerCount,
@@ -127,9 +131,13 @@ public class EnterRoomPanel : BasePanel
             GameTime: info.gameTime,
             GameScore: info.GoldScore,
             uri: info.uri,
-            onJoin: (uri) => lanRoomClientBrowser.JoinByUri(uri)
+            onJoin: (uri) => {
+                Debug.Log($"[EnterRoomPanel] 点击加入房间：serverId={info.serverId}, uri={uri}");
+                lanRoomClientBrowser.JoinByUri(uri);
+            }
         );
     }
+
     #endregion
 
 }

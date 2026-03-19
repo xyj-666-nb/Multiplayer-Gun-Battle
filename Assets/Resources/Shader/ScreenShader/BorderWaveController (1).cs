@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 public class HealBorderEffect : MonoBehaviour
 {
+    public static HealBorderEffect Instance;
     public Image borderImage;
     public Color color = Color.green;
     public float borderWidth = 0.1f;
@@ -19,23 +20,19 @@ public class HealBorderEffect : MonoBehaviour
 
     void Awake()
     {
+        Instance=this;
         mat = borderImage.material;
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.V) && !isPlaying)
-        {
-            StartEffect();
-        }
-
         if (isPlaying)
         {
             Animate();
         }
     }
 
-    void StartEffect()
+  public  void StartEffect()
     {
         isPlaying = true;
         currentFlash = 0;
