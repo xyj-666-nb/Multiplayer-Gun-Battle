@@ -1167,10 +1167,10 @@ public class PlayerRespawnManager : NetworkBehaviour
         Debug.Log("[传送] 所有客户端传送通知发送完成！");
         //进行地图的一个初始化
         IsGameRealStart = true;//启动游戏
-        PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentMapIndex].MapInit();//地图初始化
         //对所有玩家进行初始化
         ClearAllPlayerGun();
         ClearAllPlayerArmor();
+        PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentMapIndex].MapInit();//地图初始化
     }
 
     [TargetRpc]

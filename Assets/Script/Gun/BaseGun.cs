@@ -249,6 +249,21 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
+    #region 对子弹的补充
+    [Command]
+    public void CmdBulletSupplement()
+    {
+        if (!isServer)
+        {
+            Debug.LogError($"[服务器] CmdBulletSupplement非服务器环境！");
+            return;
+        }
+        _allReserveBulletCount = gunInfo.AllBulletAmount;
+
+        Debug.Log($"[备弹补充] 完成！备弹已加满至 {_allReserveBulletCount}");
+    }
+    #endregion
+
     #region 核心Command方法
     [Command]
     public void ChangeAimState(bool IsEnter)
@@ -385,7 +400,7 @@ public class BaseGun : NetworkBehaviour
             return;
         hitEffectObj.transform.position = hitPos;
         hitEffectObj.transform.rotation = Quaternion.LookRotation(Vector3.forward, hitNormal);
-        CountDownManager.Instance.CreateTimer(false, 1000, () => { PoolManage.Instance.PushObj(hitwalleffect, hitEffectObj); });
+        CountDownManager.Instance.CreateTimer(false, 500, () => { PoolManage.Instance.PushObj(hitwalleffect, hitEffectObj); });
     }
 
     [ClientRpc]
@@ -458,7 +473,7 @@ public class BaseGun : NetworkBehaviour
         fly.Init(lr, startPos, targetPos, shootDir, bulletSegmentLength, bulletFlySpeed, bulletShowDuration, template);
 
         float totalDuration = Vector2.Distance(startPos, targetPos) / bulletFlySpeed + bulletShowDuration;
-        CountDownManager.Instance.CreateTimer(false, (int)(totalDuration * 1000), () =>
+        CountDownManager.Instance.CreateTimer(false, (int)(totalDuration * 500), () =>
         {
             if (bulletObj != null) PoolManage.Instance.PushObj(template, bulletObj);
         });
@@ -549,7 +564,7 @@ public class BaseGun : NetworkBehaviour
             rb2D.AddTorque(Random.Range(-5f, 5f));
         }
 
-        CountDownManager.Instance.CreateTimer(false, 3000, () =>
+        CountDownManager.Instance.CreateTimer(false, 1000, () =>
         {
             cartridgeObj.transform.localScale = cartridgeFixedScale;
             PoolManage.Instance.PushObj(cartridgeCasePrefab, cartridgeObj);
@@ -574,15 +589,23 @@ public class BaseGun : NetworkBehaviour
     #region 服务器辅助逻辑
     private Vector2 CalculateBulletScattering(Vector2 centerDir)
     {
-        if (gunInfo == null) { Debug.LogError($"[服务器] gunInfo未赋值！"); return centerDir; }
-        int baseAngle = 20;
-        float maxAngle = baseAngle * (1 - _localAccuracy / 100f);
-        float randomAngle = Random.Range(-maxAngle, maxAngle);
-        return Quaternion.Euler(0, 0, randomAngle) * centerDir;
+        if (gunInfo == null)
+        { Debug.LogError($"[服务器] gunInfo未赋值！"); return centerDir; }
+        if (_localAccuracy < 100)
+        {
+            int baseAngle = 20;
+            float maxAngle = baseAngle * (1 - _localAccuracy / 100f);
+            float randomAngle = Random.Range(-maxAngle, maxAngle);
+            return Quaternion.Euler(0, 0, randomAngle) * centerDir;
+        }
+        else
+        {
+            return centerDir;//无任何偏转
+        }
     }
 
     /// <summary>
-    /// 服务器端：完成换弹逻辑（直接修改状态）
+    /// 服务器端：完成换弹逻辑
     /// </summary>
     [Server]
     private void ServerFinishReload()

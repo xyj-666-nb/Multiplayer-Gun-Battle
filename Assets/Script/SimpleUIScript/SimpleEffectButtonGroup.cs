@@ -15,7 +15,16 @@ public class SimpleEffectButtonGroup : SingleMonoAutoBehavior<SimpleEffectButton
 
     #region 注册与创建组
 
-    public SimpleEffectButtonGroupPack RegisterGroup(string groupName, List<Button> buttons)
+    /// <summary>
+    /// 注册按钮组
+    /// </summary>
+    /// <param name="groupName">组名</param>
+    /// <param name="buttons">按钮列表</param>
+    /// <param name="isNeedColorChange">是否需要颜色变化（默认true）</param>
+    /// <param name="defaultScale">常规状态的缩放（默认1）</param>
+    /// <param name="pressScale">按下时的缩放（默认0.85）</param>
+    /// <param name="stayScale">悬停时的缩放（默认0.95）</param>
+    public SimpleEffectButtonGroupPack RegisterGroup(string groupName, List<Button> buttons, bool isNeedColorChange = true, float defaultScale = 1f, float pressScale = 0.85f, float stayScale = 0.95f)
     {
         if (GetGroupByName(groupName) != null)
         {
@@ -24,6 +33,12 @@ public class SimpleEffectButtonGroup : SingleMonoAutoBehavior<SimpleEffectButton
         }
 
         SimpleEffectButtonGroupPack newGroup = new SimpleEffectButtonGroupPack(groupName, buttons);
+        // 应用自定义配置
+        newGroup.IsNeedColorChange = isNeedColorChange;
+        newGroup.CustomDefaultScale = defaultScale;
+        newGroup.CustomPressScale = pressScale;
+        newGroup.CustomStayScale = stayScale;
+
         AllButtonGroups.Add(newGroup);
         newGroup.Init();
         return newGroup;
@@ -85,13 +100,16 @@ public class SimpleEffectButtonGroup : SingleMonoAutoBehavior<SimpleEffectButton
         AllButtonGroups.Remove(group);
     }
 
-    #endregion
-
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
         foreach (var group in AllButtonGroups) group?.ClearEvents();
         DOTween.Kill(this);
     }
+
+    #endregion
+
+
 }
 
 #region 按钮组数据包
@@ -107,7 +125,13 @@ public class SimpleEffectButtonGroupPack
     public ButtonState DefaultState;
     public ButtonState StayState;   // 悬停
     public ButtonState PressState;  // 按下
-    public ButtonState BallState;   // 回弹 (仅作为动画过渡使用)
+    public ButtonState BallState;   // 回弹 
+
+    [Header("自定义配置")]
+    public bool IsNeedColorChange = false; // 是否需要颜色变化
+    public float CustomDefaultScale = 1f;  // 自定义常规缩放
+    public float CustomPressScale = 0.85f; // 自定义按下缩放
+    public float CustomStayScale = 0.95f;  // 自定义悬停缩放
 
     // 内部存储：记录每个按钮的交互状态
     private Dictionary<Button, ButtonInteractionInfo> _btnInfoDict = new Dictionary<Button, ButtonInteractionInfo>();
@@ -274,10 +298,10 @@ public class SimpleEffectButtonGroupPack
 
     #endregion
 
-    #region 状态转换核心逻辑 (DOTween 动画曲线优化版)
+    #region 状态转换核心逻辑 (支持自定义配置)
 
     /// <summary>
-    /// 过渡到指定状态（根据状态类型自动选择动画曲线）
+    /// 过渡到指定状态（支持自定义缩放和颜色开关）
     /// </summary>
     public void ConvertState(Button btn, ButtonState targetState, TweenCallback onComplete = null)
     {
@@ -286,7 +310,22 @@ public class SimpleEffectButtonGroupPack
         btn.transform.DOKill();
         if (btn.TryGetComponent(out Graphic graphic)) graphic.DOKill();
 
-        // --- 核心优化：根据不同状态选择不同的动画时长和曲线 ---
+        // --- 1. 确定目标缩放（优先使用自定义配置） ---
+        float targetScale = targetState.StateScale;
+        if (targetState.StateType == ButtonStateType.Default)
+        {
+            targetScale = CustomDefaultScale;
+        }
+        else if (targetState.StateType == ButtonStateType.Press)
+        {
+            targetScale = CustomPressScale;
+        }
+        else if (targetState.StateType == ButtonStateType.Stay)
+        {
+            targetScale = CustomStayScale;
+        }
+
+        // --- 2. 动画曲线配置 ---
         float duration = 0.15f;
         Ease scaleEase = Ease.OutQuad;
         Ease colorEase = Ease.OutQuad;
@@ -294,37 +333,33 @@ public class SimpleEffectButtonGroupPack
         switch (targetState.StateType)
         {
             case ButtonStateType.Press:
-                // 按下：要快，要干脆，有瞬间被按下去的感觉
                 duration = 0.08f;
-                scaleEase = Ease.OutQuad; // 快速下沉
+                scaleEase = Ease.OutQuad;
                 colorEase = Ease.OutQuad;
                 break;
 
             case ButtonStateType.Ball:
-                // 回弹：这是重点！使用 OutBack 产生弹性效果
-                // 稍微拉长一点时间让弹性播完
                 duration = 0.25f;
-                scaleEase = Ease.OutBack; // 关键：OutBack 会先超过目标值，再弹回来，形成果冻感
+                scaleEase = Ease.OutBack;
                 colorEase = Ease.OutQuad;
                 break;
 
             case ButtonStateType.Stay:
             case ButtonStateType.Default:
             default:
-                // 悬停/默认：平滑过渡即可
                 duration = 0.15f;
                 scaleEase = Ease.OutQuad;
                 colorEase = Ease.OutQuad;
                 break;
         }
 
-        // 执行缩放动画
-        btn.transform.DOScale(targetState.StateScale, duration)
+        // --- 3. 执行缩放动画（始终执行） ---
+        btn.transform.DOScale(targetScale, duration)
             .SetEase(scaleEase)
             .SetLink(btn.gameObject);
 
-        // 执行颜色动画
-        if (graphic != null)
+        // --- 4. 执行颜色动画（仅当 IsNeedColorChange 为 true 时） ---
+        if (graphic != null && IsNeedColorChange)
         {
             var tween = graphic.DOColor(targetState.StateColor, duration)
                 .SetEase(colorEase)
@@ -337,6 +372,7 @@ public class SimpleEffectButtonGroupPack
         }
         else
         {
+            // 不需要颜色变化时，直接调用完成回调
             onComplete?.Invoke();
         }
     }
@@ -344,8 +380,29 @@ public class SimpleEffectButtonGroupPack
     private void SetStateImmediately(Button btn, ButtonState state)
     {
         if (btn == null || state == null) return;
-        btn.transform.localScale = Vector3.one * state.StateScale;
-        if (btn.TryGetComponent(out Graphic graphic)) graphic.color = state.StateColor;
+
+        // 初始缩放也优先考虑自定义配置
+        float initialScale = state.StateScale;
+        if (state.StateType == ButtonStateType.Default)
+        {
+            initialScale = CustomDefaultScale;
+        }
+        else if (state.StateType == ButtonStateType.Press)
+        {
+            initialScale = CustomPressScale;
+        }
+        else if (state.StateType == ButtonStateType.Stay)
+        {
+            initialScale = CustomStayScale;
+        }
+
+        btn.transform.localScale = Vector3.one * initialScale;
+
+        // 初始颜色仅在需要时设置
+        if (btn.TryGetComponent(out Graphic graphic) && IsNeedColorChange)
+        {
+            graphic.color = state.StateColor;
+        }
     }
 
     public ButtonState GetStateTypeInfo(ButtonStateType type)

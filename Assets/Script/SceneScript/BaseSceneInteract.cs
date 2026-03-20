@@ -90,6 +90,7 @@ public abstract class BaseSceneInteract : MonoBehaviour//基础场景交互
                 triggerEnterRange();
                 CountDownManager.Instance.CreateTimer(false, (int)(1000 * CoolDownTime), () => { IsInCoolTime = false; });
                 _isTriggerChecked = true;
+
             }
         }
     }
@@ -113,14 +114,20 @@ public abstract class BaseSceneInteract : MonoBehaviour//基础场景交互
                     UImanager.Instance.GetPanel<PlayerPanel>().SetActiveInteractButton(false);
                 }
                 _isTriggerChecked = false;
+                triggerExitRange_Player();// 触发玩家退出函数
             }
         }
         triggerExitRange();
     }
 
+    public virtual void triggerExitRange_Player()
+    {
+
+    }
+
     public abstract void triggerExitRange();
 
-    private void Update()
+    public virtual void Update()
     {
         if (!CanUse)
             return;

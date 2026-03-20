@@ -22,7 +22,7 @@ public class GunInfo : ScriptableObject
     public float Accuracy;
 
     [Header("伤害")]
-    [Range(0, 100)] // Damage：0到100的滑动条
+    [Range(0, 150)] // Damage：0到100的滑动条
     public float Damage;
 
     [Header("射程")]

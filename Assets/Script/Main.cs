@@ -154,6 +154,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         // Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械98K", () => { Player.LocalPlayer.SpawnAndPickGun("98K"); }, "枪械获取");
         // Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械AUG", () => { Player.LocalPlayer.SpawnAndPickGun("AUG"); }, "枪械获取");
         // Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械M249", () => { Player.LocalPlayer.SpawnAndPickGun("M249"); }, "枪械获取");
+       // Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械M762", () => { Player.LocalPlayer.SpawnAndPickGun("M762"); }, "枪械获取");
         // // 面板测试按钮
         // Developer_GUITestManger.Instance.RegisterGuiButton("打开军械库面板", () => { UImanager.Instance.ShowPanel<ArmamentPanel>(); }, "面板测试");
         // Developer_GUITestManger.Instance.RegisterGuiButton("打开设置面板", () => { UImanager.Instance.ShowPanel<SettingPanel>(); }, "面板测试");

@@ -117,6 +117,10 @@ public class PlayerPanel : BasePanel
             GunImage.rectTransform.localScale = new Vector3(-1f, 0.8f, 1f);
             GunImage.rectTransform.anchoredPosition = new Vector3(-30, 0, 0);
         }
+        else if (CurrentGun.gunInfo.Name == "M762")
+        {
+            GunImage.rectTransform.anchoredPosition = new Vector3(-10, -20, 0);
+        }
         else
         {
             GunImage.rectTransform.localScale = new Vector3(-1f, 1f, 1f);

@@ -26,6 +26,13 @@ public class Player : Base_Entity
 
     public bool IsEnterRoom = false;//是否进入房屋
 
+    //补充弹药
+    public void CmdBulletSupplement()
+    {
+        currentGun?.CmdBulletSupplement();
+        //播放本地的获取弹药的音效
+    }
+
     [Command]
     public void CmdChangeEnterRoomState(bool isEnterRoom)
     {

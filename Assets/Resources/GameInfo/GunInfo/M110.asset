@@ -1,5 +1,5 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21,14 +21,14 @@ MonoBehaviour:
   Bullet_capacity: 10
   AllBulletAmount: 40
   RateOfFires: 0
-  Accuracy: 60
-  Damage: 32.8
-  Range: 206
+  Accuracy: 90
+  Damage: 85
+  Range: 400
   ReloadTime: 0
   BulletSpeed: 0
   Recoil: 2
   Recoil_Enemy: 0
-  ViewRange: 0.1
+  ViewRange: 0.18
   GunBodySprite: {fileID: 1086061370, guid: 087fa61e2f30c52489f46a3b9059ea6e, type: 3}
   ShootAudio: {fileID: 8300000, guid: e8b6c1f7237d37f43ac6daf2e226e4e8, type: 3}
   BulletFill: {fileID: 0}
@@ -37,9 +37,6 @@ MonoBehaviour:
   ShackTime: 0.2
   ShackStrength_Enemy: 0
   ShackTime_Enemy: 0
-  ShotgunBulletAmount: 0
-  shotgunBatchInterval: 0.05
-  shotgunScatterAngle: 15
   smokeColor: {r: 1, g: 1, b: 1, a: 1}
   smokeSizeMin: 0.001
   smokeSizeMax: 0.001
