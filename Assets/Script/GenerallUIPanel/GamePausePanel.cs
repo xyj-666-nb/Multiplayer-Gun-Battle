@@ -55,11 +55,14 @@ public class GamePausePanel : BasePanel
                 break;
             case "ExitCurrentRoom":
                 //在这里退出链接
+                //打开场景
+                AllMapManager.Instance.TriggerMap(MapType.StartCG,true);
                 UImanager.Instance.HidePanel<GamePausePanel>();
                 PlayerRespawnManager.Instance.CleanupAndExitGame();//退出链接
                 UImanager.Instance.ShowPanel<RoomPanel>();
                 //返回视角系统
                 ModeChooseSystem.instance.EnterSystem_Quick();//快速回到主界面
+           
                 break;
             case "OperationSettingButton":
                 //打开自定义UI面板

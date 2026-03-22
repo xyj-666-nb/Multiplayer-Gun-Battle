@@ -1,18 +1,19 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!1 &829796564893978883
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 921477547516560900}
   - component: {fileID: 3110308597225395487}
   - component: {fileID: 7388596286922470110}
   - component: {fileID: 6183545360181224566}
   m_Layer: 9
+  m_HasEditorInfo: 1
   m_Name: cartridgeCasePrefab
   m_TagString: cartridgeCase
   m_Icon: {fileID: 0}
@@ -52,6 +53,10 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_virtualGeometry: 0
+  m_virtualGeometryShadow: 0
+  m_ShadingRate: 0
+  m_ForceDisableGRD: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -165,12 +170,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2933714593519944784}
   - component: {fileID: 8702912179357874049}
   - component: {fileID: 7415360447497501566}
   m_Layer: 9
+  m_HasEditorInfo: 1
   m_Name: Check
   m_TagString: cartridgeCase
   m_Icon: {fileID: 0}

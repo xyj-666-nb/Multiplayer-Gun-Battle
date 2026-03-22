@@ -309,8 +309,6 @@ public class SimpleEffectButtonGroupPack
 
         btn.transform.DOKill();
         if (btn.TryGetComponent(out Graphic graphic)) graphic.DOKill();
-
-        // --- 1. 确定目标缩放（优先使用自定义配置） ---
         float targetScale = targetState.StateScale;
         if (targetState.StateType == ButtonStateType.Default)
         {

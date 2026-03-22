@@ -153,9 +153,7 @@ public abstract class CharacterStats : NetworkBehaviour
               HealBorderEffect.Instance.StartEffect(); 
             else
               ScreenPulseController.Instance.StartPulse();//µ÷ÓÃ»ØÑª
-
         }
-       
 
         if (oldValue >= newValue)
         {

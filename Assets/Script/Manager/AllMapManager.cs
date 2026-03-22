@@ -6,13 +6,21 @@ public class AllMapManager : SingleMonoAutoBehavior<AllMapManager>
 {
     public List<MapPack> mapPacksList;
 
-    public void TriggerMap(MapType type,bool IsActive)
+    public void TriggerMap(MapType type, bool IsActive)
     {
         foreach (MapPack pack in mapPacksList)
         {
-            if(pack.Type== type)
+            if (pack.Type == type)
             {
                 pack.Obj.SetActive(IsActive);
+                if(IsActive)
+                {
+                    pack.ScreenObj= GameObject.Instantiate(pack.Screen, pack.Obj.transform);
+                }
+                else
+                {
+                    GameObject.Destroy(pack.ScreenObj);
+                }
             }
         }
     }
@@ -22,15 +30,18 @@ public class AllMapManager : SingleMonoAutoBehavior<AllMapManager>
         foreach (MapPack pack in mapPacksList)
         {
             pack.Obj.SetActive(false);
+            GameObject.Destroy(pack.ScreenObj);
         }
     }
     public void CloseAllMap(MapType Type)
     {
         foreach (MapPack pack in mapPacksList)
         {
-            if(pack.Type==Type)
+            if (pack.Type == Type)
                 continue;
+
             pack.Obj.SetActive(false);
+            GameObject.Destroy(pack.ScreenObj);
         }
     }
 
@@ -49,10 +60,10 @@ public class AllMapManager : SingleMonoAutoBehavior<AllMapManager>
 
 public enum MapType
 {
-map1,//地图1
-map2,//地图2
-Training,//模式选择地图
-StartCG,//训练场
+    map1,//地图1
+    map2,//地图2
+    Training,//模式选择地图
+    StartCG,//训练场
 }
 
 [System.Serializable]
@@ -60,7 +71,7 @@ public class MapPack
 {
     public MapType Type;
     public GameObject Obj;
+    public GameObject Screen;//需要创建的地图
+    public GameObject ScreenObj;
 
 }
-
-

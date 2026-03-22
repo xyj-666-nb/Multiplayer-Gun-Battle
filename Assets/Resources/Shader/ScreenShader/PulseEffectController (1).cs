@@ -7,9 +7,9 @@ public class ScreenPulseController : MonoBehaviour
     public static ScreenPulseController Instance;
     [Header("脉冲设置")]
     public Color pulseColor = Color.green;
-    [Range(0.01f, 2f)] public float pulseSpeed = 0.8f;
-    [Range(0.01f, 1f)] public float pulseWidth = 0.15f;
-    [Range(0.1f, 5f)] public float pulseIntensity = 2f;
+    [Range(0.01f, 3f)] public float pulseSpeed = 0.8f;
+    [Range(0.01f, 2f)] public float pulseWidth = 0.15f;
+    [Range(0.1f, 7f)] public float pulseIntensity = 2f;
 
     private Image _pulseImage;
     private Material _pulseMat;
@@ -28,6 +28,7 @@ public class ScreenPulseController : MonoBehaviour
 
         // 初始隐藏
         _pulseImage.enabled = false;
+        _pulseImage.color= ColorManager.SetColorAlpha(_pulseImage.color,1f);
     }
 
     void Update()

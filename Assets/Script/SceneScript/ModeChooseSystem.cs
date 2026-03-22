@@ -255,6 +255,7 @@ public class ModeChooseSystem : MonoBehaviour
         ConfirmOnlineButton.gameObject.SetActive(true);
 
         OnlineButtonCanvasGroup.interactable= true;
+        OnlineButtonCanvasGroup.blocksRaycasts = true;
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(OnlineButtonCanvasGroup, ref OnlineSequence, true, () => {
         
         
@@ -267,6 +268,7 @@ public class ModeChooseSystem : MonoBehaviour
     private void ShowStandaloneUI()
     {
         StandaloneButtonCanvasGroup.interactable = true;
+        StandaloneButtonCanvasGroup.blocksRaycasts = true;
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(StandaloneButtonCanvasGroup, ref StandaloneSequence, true, () => {
 
 

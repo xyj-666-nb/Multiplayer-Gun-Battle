@@ -70,7 +70,7 @@ public class SettingPanel : BasePanel
         _currentTypingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask("²Ù×÷ÉèÖÃ", CurrentTopic);
         if (PanelParentObj != null )
         {
-            var changeKeyPanel = UImanager.Instance.ShowPanel<ChangeKeypanel>();
+            var changeKeyPanel = UImanager.Instance.ShowPanel<MoveSettingPanel>();
             if (changeKeyPanel != null )
             {
                 changeKeyPanel.transform.SetParent(PanelParentObj);
@@ -94,7 +94,7 @@ public class SettingPanel : BasePanel
 
         try
         {
-            UImanager.Instance.HidePanel<ChangeKeypanel>();
+            UImanager.Instance.HidePanel<MoveSettingPanel>();
         }
         catch (System.Exception e)
         {

@@ -45,8 +45,8 @@ public class CreateRoomPanel : BasePanel
         if (InputField != null)
             InputField.onValueChanged.AddListener(str => CurrentRoomName = str);
         if (InputField_PlayerName != null)
-            InputField_PlayerName.onValueChanged.AddListener(str => CurrentPlayerName = str);
-
+            InputField_PlayerName.onValueChanged.AddListener(
+                str => UOSRelaySimple.Instance.GetPlayerName(str));//获取姓名
         // 安全注册按钮组
         SafeRegisterButtonGroups();
     }

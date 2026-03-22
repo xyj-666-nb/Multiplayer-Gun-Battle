@@ -1,16 +1,17 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!1 &359752124552246633
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1049421646774174886}
   - component: {fileID: 1142674446002204533}
   m_Layer: 7
+  m_HasEditorInfo: 1
   m_Name: GunLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -88,11 +89,12 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 9095075737825507449}
   - component: {fileID: 4004624657787412825}
   m_Layer: 7
+  m_HasEditorInfo: 1
   m_Name: TimeLine_Shoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -137,12 +139,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5084742133388896574}
   - component: {fileID: 7528774665857934972}
   - component: {fileID: 2535298908676812590}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: BulletCount
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -197,6 +200,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: 30/120
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -271,12 +275,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1204606011536702024}
   - component: {fileID: 4736388788607933998}
   - component: {fileID: 1437720107925914974}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: GunName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -331,6 +336,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: AKM
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -405,7 +411,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8063191646436221989}
   - component: {fileID: 4155283488784747305}
@@ -414,6 +420,7 @@ GameObject:
   - component: {fileID: 2270699499893366399}
   - component: {fileID: 1909441304098277168}
   m_Layer: 7
+  m_HasEditorInfo: 1
   m_Name: GeneralGunPrefabs
   m_TagString: Gun
   m_Icon: {fileID: 0}
@@ -458,6 +465,10 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_virtualGeometry: 0
+  m_virtualGeometryShadow: 0
+  m_ShadingRate: 0
+  m_ForceDisableGRD: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -646,6 +657,7 @@ MonoBehaviour:
   bulletFlySpeed: 80
   bulletShowDuration: 0.5
   bulletSegmentPrefab: {fileID: 0}
+  DamageFloatObj: {fileID: 2756252371298464814, guid: 3e7323927bac5b346a9ad9150c883b53, type: 3}
   originalWorldScale: {x: 0, y: 0, z: 0}
   GunInfoManager: {fileID: 0}
   Duration: 0.5
@@ -658,7 +670,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 672828941342278494}
   - component: {fileID: 6849080399422440511}
@@ -668,6 +680,7 @@ GameObject:
   - component: {fileID: 2341808586438985844}
   - component: {fileID: 416513107323823654}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -844,11 +857,12 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8128442613212161581}
   - component: {fileID: 2999494638184496926}
   m_Layer: 7
+  m_HasEditorInfo: 1
   m_Name: TimeLine_Reload
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -893,10 +907,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1819957440663555437}
   m_Layer: 7
+  m_HasEditorInfo: 1
   m_Name: ShootPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -924,10 +939,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8462302234359539498}
   m_Layer: 7
+  m_HasEditorInfo: 1
   m_Name: BulletCasings
   m_TagString: Untagged
   m_Icon: {fileID: 0}

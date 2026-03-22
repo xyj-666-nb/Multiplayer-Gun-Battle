@@ -1,12 +1,12 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!1 &1536262827342383487
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4148787354797681088}
   - component: {fileID: 3000980216029647201}
@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 6762492358011145880}
   - component: {fileID: 8373636447753207482}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -192,12 +193,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6707189564370986798}
   - component: {fileID: 2600453792840059407}
   - component: {fileID: 1849318291628752508}
   m_Layer: 7
+  m_HasEditorInfo: 1
   m_Name: TimeLine_Shoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -293,12 +295,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4301648271357473811}
   - component: {fileID: 2440181412530502425}
   - component: {fileID: 5065239534023078834}
   m_Layer: 7
+  m_HasEditorInfo: 1
   m_Name: GunLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -372,7 +375,7 @@ MonoBehaviour:
   - {x: -0.5, y: 0.5, z: 0}
 --- !u!95 &5065239534023078834
 Animator:
-  serializedVersion: 5
+  serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -383,6 +386,8 @@ Animator:
   m_Controller: {fileID: 0}
   m_CullingMode: 0
   m_UpdateMode: 0
+  m_UpdateFrequencyMode: 0
+  m_UpdateFrequency: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
@@ -397,12 +402,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8051527322795670282}
   - component: {fileID: 5170741676549644611}
   - component: {fileID: 3535999121650943860}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: BulletCount
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -457,6 +463,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: 5/30
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -531,12 +538,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8397758026550218397}
   - component: {fileID: 7403892783614279495}
   - component: {fileID: 8711010342215549607}
   m_Layer: 7
+  m_HasEditorInfo: 1
   m_Name: TimeLine_Reload
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -615,10 +623,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4408486395475835964}
   m_Layer: 7
+  m_HasEditorInfo: 1
   m_Name: ShootPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -646,10 +655,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7284038798313767283}
   m_Layer: 7
+  m_HasEditorInfo: 1
   m_Name: BulletCasings
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -677,7 +687,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8597278298658860559}
   - component: {fileID: 4444944332246661359}
@@ -687,6 +697,7 @@ GameObject:
   - component: {fileID: 4366057838611984722}
   - component: {fileID: 6048468781755476598}
   m_Layer: 7
+  m_HasEditorInfo: 1
   m_Name: AWP
   m_TagString: Gun
   m_Icon: {fileID: 0}
@@ -731,6 +742,10 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_virtualGeometry: 0
+  m_virtualGeometryShadow: 0
+  m_ShadingRate: 0
+  m_ForceDisableGRD: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -856,6 +871,7 @@ MonoBehaviour:
   bulletFlySpeed: 80
   bulletShowDuration: 0.2
   bulletSegmentPrefab: {fileID: 0}
+  DamageFloatObj: {fileID: 2756252371298464814, guid: 3e7323927bac5b346a9ad9150c883b53, type: 3}
   originalWorldScale: {x: 0, y: 0, z: 0}
   GunInfoManager: {fileID: 0}
   Duration: 0.5
@@ -864,7 +880,7 @@ MonoBehaviour:
   _localAccuracy: 0
 --- !u!95 &4366057838611984722
 Animator:
-  serializedVersion: 5
+  serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -875,6 +891,8 @@ Animator:
   m_Controller: {fileID: 9100000, guid: 6f9b01e0a61967d45bab4a0db5eb2c35, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
+  m_UpdateFrequencyMode: 0
+  m_UpdateFrequency: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
@@ -948,12 +966,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1899373115400303127}
   - component: {fileID: 6627863065068125787}
   - component: {fileID: 4044700394062309517}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: GunName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1008,6 +1027,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: AWP
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

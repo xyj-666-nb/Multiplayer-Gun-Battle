@@ -18,7 +18,8 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
     public List<MapManager> AllMapManagerList = new List<MapManager>();
 
     [Header("控制系统记录")]
-    public bool IsUseSinglePress_AimButton = false;
+    public bool IsUseSinglePress_AimButton = false; // false=点击, true=长按
+    public float AimSensitivity = 1.0f; // 瞄准灵敏度 (0.5 ~ 2.0)
 
     [Header("自定义面板的数据")]
     public List<PlayerCustomUIInfo> playerCustomUIInfoList = new List<PlayerCustomUIInfo>();
@@ -120,7 +121,7 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
     public TacticInfo GetCurrentTacticInfo(int Index)
     {
-        if (CurrentSlotInfoPack == null) 
+        if (CurrentSlotInfoPack == null)
             return null;
 
         if (Index == 1)
@@ -137,7 +138,7 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         base.Awake();
         BackupDefaultData();
         LoadPlayerData();
-        ApplyGraphicsSettings(); 
+        ApplyGraphicsSettings();
         SetSlotInfoPack(SlotCount);
     }
 
@@ -152,6 +153,8 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         base.OnDestroy();
     }
 
+    // ================= 数据保存与加载 (已深度更新) =================
+
     public void SavePlayerData()
     {
         PlayerGameSaveData saveData = new PlayerGameSaveData
@@ -160,7 +163,11 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
             CurrentSlotIndex = this.SlotCount,
             playerCustomUIInfoList = this.playerCustomUIInfoList,
             CurrentFPS = (int)this.CurrentFPS,
-            CurrentScreen = (int)this.CurrentScreen
+            CurrentScreen = (int)this.CurrentScreen,
+
+            // 新增：保存控制系统数据
+            IsUseSinglePress_AimButton = this.IsUseSinglePress_AimButton,
+            AimSensitivity = this.AimSensitivity
         };
 
         JsonManager.Instance.SaveData(saveData, SAVE_FILE_NAME, JsonType.JsonUtlity);
@@ -174,21 +181,28 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         if (loadData == null)
         {
             Debug.Log("[PlayerAndGameInfoManger] 未找到存档，使用默认配置");
-            RestoreDefaultData(); // 恢复备份
+            RestoreDefaultDataAndSave(); // 恢复并覆盖存档
             return;
         }
 
+        // 1. 检查 List 本身是否有效
         bool hasValidSlotData = loadData.PlayerSlotInfoPacksList != null && loadData.PlayerSlotInfoPacksList.Count > 0;
+
+        // 2. 如果 List 有效，进一步深度检查内部每个字段
+        if (hasValidSlotData)
+        {
+            hasValidSlotData = CheckAllSlotDataIntegrity(loadData.PlayerSlotInfoPacksList);
+        }
 
         if (hasValidSlotData)
         {
             this.PlayerSlotInfoPacksList = loadData.PlayerSlotInfoPacksList;
-            Debug.Log("[PlayerAndGameInfoManger] 已加载存档槽位数据");
+            Debug.Log("[PlayerAndGameInfoManger] 已加载存档槽位数据 (数据完整性校验通过)");
         }
         else
         {
-            Debug.LogWarning("[PlayerAndGameInfoManger] 存档中的槽位数据为空，回退到默认配置");
-            RestoreDefaultData(); // 恢复备份
+            Debug.LogWarning("[PlayerAndGameInfoManger] 存档数据损坏或内容为空，回退到默认配置并覆盖旧存档");
+            RestoreDefaultDataAndSave(); // 恢复并覆盖存档
         }
 
         if (loadData.CurrentSlotIndex > 0)
@@ -196,15 +210,81 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
             this.SlotCount = loadData.CurrentSlotIndex;
         }
 
-        // 恢复自定义UI数据
+        // 加载自定义UI数据
         if (loadData.playerCustomUIInfoList != null)
         {
             this.playerCustomUIInfoList = loadData.playerCustomUIInfoList;
         }
 
-        // 恢复画面设置
+        // 加载画面设置
         this.CurrentFPS = (FpsType)loadData.CurrentFPS;
         this.CurrentScreen = (ScreenType)loadData.CurrentScreen;
+
+        // 新增：加载控制系统数据 (带默认值保护)
+        this.IsUseSinglePress_AimButton = loadData.IsUseSinglePress_AimButton;
+        this.AimSensitivity = loadData.AimSensitivity == 0 ? 1.0f : loadData.AimSensitivity;
+    }
+
+    /// <summary>
+    /// 【新增】深度检查所有槽位数据的完整性
+    /// </summary>
+    private bool CheckAllSlotDataIntegrity(List<SlotInfoPack> listToCheck)
+    {
+        if (listToCheck == null || listToCheck.Count == 0) return false;
+
+        foreach (var slot in listToCheck)
+        {
+            // 只要有一个槽位的核心数据为空，就认为整个存档无效
+            if (!IsSingleSlotValid(slot))
+            {
+                Debug.LogWarning($"[数据校验] 发现无效槽位数据，触发回退机制");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// 【新增】检查单个槽位是否有效
+    /// </summary>
+    private bool IsSingleSlotValid(SlotInfoPack slot)
+    {
+        if (slot == null) return false;
+
+        // 规则：枪械信息不能为空
+        if (slot.CurrentGunInfo == null)
+        {
+            Debug.LogWarning("[数据校验] 槽位中的 CurrentGunInfo 为空");
+            return false;
+        }
+
+        // 规则：战术道具1不能为空 (根据你的需求，如果允许为空可去掉此判断)
+        if (slot.CurrentTactic_1Info == null)
+        {
+            Debug.LogWarning("[数据校验] 槽位中的 CurrentTactic_1Info 为空");
+            return false;
+        }
+
+        // 规则：战术道具2不能为空 (根据你的需求，如果允许为空可去掉此判断)
+        if (slot.CurrentTactic_2Info == null)
+        {
+            Debug.LogWarning("[数据校验] 槽位中的 CurrentTactic_2Info 为空");
+            return false;
+        }
+
+        // 注意：ArmorType 是 Enum，通常不会为 null (默认0)，这里不做检查
+
+        return true;
+    }
+
+    /// <summary>
+    /// 【新增】恢复默认数据并立即覆盖保存
+    /// </summary>
+    private void RestoreDefaultDataAndSave()
+    {
+        RestoreDefaultData();
+        // 恢复后立即保存，把当前面板里的默认值写入存档，覆盖掉坏档
+        SavePlayerData();
     }
 
     private void RestoreDefaultData()
@@ -215,6 +295,7 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         if (_defaultSlotInfoBackup != null)
         {
             PlayerSlotInfoPacksList.AddRange(_defaultSlotInfoBackup);
+            Debug.Log($"[PlayerAndGameInfoManger] 已从备份恢复 {_defaultSlotInfoBackup.Count} 个槽位");
         }
         else
         {
@@ -224,30 +305,22 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
     // ================= 图形设置应用方法 =================
 
-    /// <summary>
-    /// 应用当前的图形设置
-    /// </summary>
     public void ApplyGraphicsSettings()
     {
         QualitySettings.vSyncCount = 0;
 
-        // 应用帧率（适配移动端，不超过屏幕刷新率）
         int targetFrameRate = GetTargetFrameRate(CurrentFPS);
         Application.targetFrameRate = targetFrameRate;
         Debug.Log($"[PlayerAndGameInfoManger] 设置目标帧率: {targetFrameRate}");
 
-        // 应用画质
         int qualityLevel = GetQualityLevel(CurrentScreen);
         QualitySettings.SetQualityLevel(qualityLevel, true);
         Debug.Log($"[PlayerAndGameInfoManger] 设置画质级别: {qualityLevel} ({CurrentScreen})");
     }
 
-    /// <summary>
-    /// 根据 FpsType 获取目标帧率，自动适配屏幕刷新率
-    /// </summary>
     private int GetTargetFrameRate(FpsType fpsType)
     {
-        int target = 60; // 默认
+        int target = 60;
         switch (fpsType)
         {
             case FpsType.Standard: target = 60; break;
@@ -265,12 +338,9 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         }
         return target;
     }
-    /// <summary>
-    /// 根据 ScreenType 映射到 Unity 质量设置索引
-    /// </summary>
+
     private int GetQualityLevel(ScreenType screenType)
     {
-        // 获取所有质量等级的名称
         string[] qualityNames = QualitySettings.names;
         if (qualityNames == null || qualityNames.Length == 0)
         {
@@ -286,19 +356,18 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
             case ScreenType.Ultra: targetName = "Ultra"; break;
         }
 
-        // 查找第一个包含目标名称的索引（不区分大小写）
         for (int i = 0; i < qualityNames.Length; i++)
         {
             if (qualityNames[i].IndexOf(targetName, System.StringComparison.OrdinalIgnoreCase) >= 0)
                 return i;
         }
 
-        // 若未找到，返回当前级别并警告
         Debug.LogWarning($"未找到匹配的画质名称 '{targetName}'，使用当前级别");
         return QualitySettings.GetQualityLevel();
     }
 }
 
+// ================= 存档数据类 =================
 public class PlayerGameSaveData
 {
     public List<SlotInfoPack> PlayerSlotInfoPacksList = new List<SlotInfoPack>();
@@ -306,4 +375,8 @@ public class PlayerGameSaveData
     public List<PlayerCustomUIInfo> playerCustomUIInfoList = new List<PlayerCustomUIInfo>();
     public int CurrentFPS;
     public int CurrentScreen;
+
+    // 新增：控制系统数据
+    public bool IsUseSinglePress_AimButton;
+    public float AimSensitivity;
 }

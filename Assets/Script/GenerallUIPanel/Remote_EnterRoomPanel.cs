@@ -35,6 +35,10 @@ public class Remote_EnterRoomPanel : BasePanel
                 if (statusText != null) statusText.text = "";
             });
         }
+        PlayerNameInputField.onValueChanged.AddListener((str) =>{
+        UOSRelaySimple.Instance.GetPlayerName(str);//×¢²áÍæ¼ÒÐÕÃû
+        
+        });
     }
 
     public override void ShowMe(bool IsNeedDefalutAnimator = true)

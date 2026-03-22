@@ -35,6 +35,12 @@ public class playerHandControl : NetworkBehaviour
     public Player ownerPlayer;
     public Transform TacticRootTransform;
 
+    private Transform _selfTransform; // 缓存自身Transform
+    private PlayerAndGameInfoManger _playerGameInfoManager; // 缓存单例
+    private MilitaryManager _militaryManager; // 缓存单例
+    private UImanager _uiManager; // 缓存单例
+    private PlayerTacticControl _playerTacticControl; // 缓存单例
+
     private BaseGun _currentGun;
     private bool _isReloading = false;
     private int _currentFacingDir = 1;
@@ -78,8 +84,9 @@ public class playerHandControl : NetworkBehaviour
             return;
 
         SimpleAnimatorTool.Instance.StopFloatLerpById(tactic1taskID);
-        //赋值当前的冷却时间
-        var AllTime = PlayerAndGameInfoManger.Instance.GetCurrentTacticInfo(1).CoolTime;
+        var AllTime = _playerGameInfoManager != null
+            ? _playerGameInfoManager.GetCurrentTacticInfo(1).CoolTime
+            : PlayerAndGameInfoManger.Instance.GetCurrentTacticInfo(1).CoolTime;
         tactic_1CoolTime = AllTime;
         IsTrigger_tactic1 = true;
         tactic1taskID = SimpleAnimatorTool.Instance.StartFloatLerp(tactic_1CoolTime, 0, tactic_1CoolTime, (v) => { tactic_1CoolTime = v; tactic_1CoolTime_precent = tactic_1CoolTime / AllTime; }, () => { IsTrigger_tactic1 = false; });
@@ -92,8 +99,10 @@ public class playerHandControl : NetworkBehaviour
 
         SimpleAnimatorTool.Instance.StopFloatLerpById(tactic2taskID);
         IsTrigger_tactic2 = true;
-        //赋值当前的冷却时间
-        var AllTime = PlayerAndGameInfoManger.Instance.GetCurrentTacticInfo(2).CoolTime;
+
+        var AllTime = _playerGameInfoManager != null
+            ? _playerGameInfoManager.GetCurrentTacticInfo(2).CoolTime
+            : PlayerAndGameInfoManger.Instance.GetCurrentTacticInfo(2).CoolTime;
         tactic_2CoolTime = AllTime;
 
         tactic2taskID = SimpleAnimatorTool.Instance.StartFloatLerp(tactic_2CoolTime, 0, tactic_2CoolTime, (v) => { tactic_2CoolTime = v; tactic_2CoolTime_precent = tactic_2CoolTime / AllTime; }, () => { IsTrigger_tactic2 = false; });
@@ -128,13 +137,13 @@ public class playerHandControl : NetworkBehaviour
 
         if (isOwned)
             _isHolsterAnimaPlaying = true;
-        transform.localRotation = Quaternion.Euler(0, 0, DefaultRotationZ);
+        _selfTransform.localRotation = Quaternion.Euler(0, 0, DefaultRotationZ);
         if (isOwned)
             SetRotationZ(DefaultRotationZ);
 
-        transform.DOKill(true);
-        transform.DOLocalMove(new Vector3(HolsterPosition.x, HolsterPosition.y, transform.localPosition.z), HolsterDuration).SetEase(Ease.InCubic).SetUpdate(true);
-        transform.DOLocalRotate(new Vector3(0, 0, HolsterRotationZ), HolsterDuration).SetEase(Ease.InCubic).SetUpdate(true).OnComplete(() => {
+        _selfTransform.DOKill(true);
+        _selfTransform.DOLocalMove(new Vector3(HolsterPosition.x, HolsterPosition.y, _selfTransform.localPosition.z), HolsterDuration).SetEase(Ease.InCubic).SetUpdate(true);
+        _selfTransform.DOLocalRotate(new Vector3(0, 0, HolsterRotationZ), HolsterDuration).SetEase(Ease.InCubic).SetUpdate(true).OnComplete(() => {
             if (isOwned)
             {
                 _isHolsterAnimaPlaying = false;
@@ -151,9 +160,9 @@ public class playerHandControl : NetworkBehaviour
         if (isOwned && _isDebug) Debug.Log($"[拿枪] 开始执行动画", this);
         if (isOwned) _isHolsterAnimaPlaying = true;
 
-        transform.DOKill(true);
-        transform.DOLocalMove(_originLocalPos, HolsterDuration).SetEase(Ease.OutCubic).SetUpdate(true);
-        transform.DOLocalRotate(new Vector3(0, 0, DefaultRotationZ), HolsterDuration).SetEase(Ease.OutCubic).SetUpdate(true).OnComplete(() => {
+        _selfTransform.DOKill(true);
+        _selfTransform.DOLocalMove(_originLocalPos, HolsterDuration).SetEase(Ease.OutCubic).SetUpdate(true);
+        _selfTransform.DOLocalRotate(new Vector3(0, 0, DefaultRotationZ), HolsterDuration).SetEase(Ease.OutCubic).SetUpdate(true).OnComplete(() => {
             if (isOwned) { _isHolsterAnimaPlaying = false; if (_isDebug) Debug.Log("[拿枪完成]", this); }
         });
     }
@@ -189,7 +198,7 @@ public class playerHandControl : NetworkBehaviour
                 //在这里将新的物体加入到管理
                 ownerPlayer.mySortingLayerControl.AddSpriteRendererInManager(NewObj.GetComponent<SpriteRenderer>());//加入管理
                 if (isLocalPlayer)//只有本地才更新
-                    UImanager.Instance.GetPanel<PlayerPanel>()?.shootButton.ChangeIcon(MilitaryManager.Instance.GetTacticUISprite(throwScript.tacticType));//更新UI的图标设置为投掷物的图标
+                    (_uiManager ?? UImanager.Instance).GetPanel<PlayerPanel>()?.shootButton.ChangeIcon((_militaryManager ?? MilitaryManager.Instance).GetTacticUISprite(throwScript.tacticType));//更新UI的图标设置为投掷物的图标
             }
         }
         if (NewObj == null)
@@ -198,7 +207,7 @@ public class playerHandControl : NetworkBehaviour
             SetAimPointActive(false);
             //恢复射击按钮图标
             if (isLocalPlayer)//只有本地才更新
-                UImanager.Instance.GetPanel<PlayerPanel>()?.shootButton.ResetIcon();//还原UI的图标设置为默认图标
+                (_uiManager ?? UImanager.Instance).GetPanel<PlayerPanel>()?.shootButton.ResetIcon();//还原UI的图标设置为默认图标
         }
     }
 
@@ -240,7 +249,7 @@ public class playerHandControl : NetworkBehaviour
     {
         _currentRotationValue_Z = newFloat;
         if (!isOwned)
-            transform.localRotation = Quaternion.Euler(0, 0, newFloat);
+            _selfTransform.localRotation = Quaternion.Euler(0, 0, newFloat);
     }
 
     private void OnIsEnterAimChanged(bool oldValue, bool newValue)
@@ -267,15 +276,21 @@ public class playerHandControl : NetworkBehaviour
     #region 生命周期
     private void Awake()
     {
+        _selfTransform = transform; 
+        _playerGameInfoManager = PlayerAndGameInfoManger.Instance; // 缓存单例
+        _militaryManager = MilitaryManager.Instance; // 缓存单例
+        _uiManager = UImanager.Instance; // 缓存单例
+        _playerTacticControl = PlayerTacticControl.Instance; // 缓存单例
+
         mainCamera = MyCameraControl.Instance?.GetComponentInChildren<Camera>();
         if (mainCamera == null && _isDebug) Debug.LogWarning("[初始化] 未找到MyCameraControl", this);
-        _originLocalPos = transform.localPosition;
+        _originLocalPos = _selfTransform.localPosition; // 使用缓存的Transform
 
         ownerPlayer = GetComponentInParent<Player>();
         if (ownerPlayer == null) ownerPlayer = GetComponent<Player>();
         if (ownerPlayer != null) _currentFacingDir = ownerPlayer.FacingDir;
 
-        if (TacticRootTransform == null) TacticRootTransform = transform.parent;
+        if (TacticRootTransform == null) TacticRootTransform = _selfTransform.parent; // 使用缓存的Transform
     }
 
     private void Update()
@@ -286,12 +301,12 @@ public class playerHandControl : NetworkBehaviour
 
         if (IsHolsterGun || _isHolsterAnimaPlaying)
         {
-            if (IsStartAim) HandleTouchAimAngle(); // 【修改】改为触摸控制
-            UpdateThrowAimPoints();
+            if (IsStartAim) HandleTouchAimAngle(); 
+            UpdateThrowAimPoints(); 
             return;
         }
 
-        if (!_isReloading) HandleTouchRotation_Bidirectional(); // 【修改】改为触摸控制
+        if (!_isReloading) HandleTouchRotation_Bidirectional();
         else ResetRotationOnReload();
     }
 
@@ -305,7 +320,7 @@ public class playerHandControl : NetworkBehaviour
     public override void OnStartClient()
     {
         base.OnStartClient();
-        transform.localRotation = Quaternion.Euler(0, 0, _currentRotationValue_Z);
+        _selfTransform.localRotation = Quaternion.Euler(0, 0, _currentRotationValue_Z); // 使用缓存的Transform
         if (_isDebug) Debug.Log($"[初始化] 初始角度：{_currentRotationValue_Z}°", this);
 
         if (isOwned && CurrentInjection != null && TacticRootTransform != null)
@@ -327,7 +342,7 @@ public class playerHandControl : NetworkBehaviour
 
     private void OnDestroy()
     {
-        ClearAimPoints();
+        ClearAimPoints(); 
     }
     #endregion
 
@@ -341,22 +356,23 @@ public class playerHandControl : NetworkBehaviour
         }
 
         TouchInputHandler touchHandler = TouchInputHandler.Instance;
-        if (touchHandler == null || !touchHandler.IsTouchActive)
-        {
-            return; 
-        }
+        if (touchHandler == null || !touchHandler.IsTouchActive) return;
 
         Vector3 targetWorldPos = touchHandler.CurrentTouchWorldPos;
-
-        // 原有逻辑保持不变
-        bool isMouseInValidArea = targetWorldPos.x >= transform.position.x;
+        bool isMouseInValidArea = targetWorldPos.x >= _selfTransform.position.x; // 使用缓存的Transform
         if (!isMouseInValidArea) return;
 
-        Vector2 dirToTarget = new Vector2(targetWorldPos.x - transform.position.x, targetWorldPos.y - transform.position.y);
+        Vector2 dirToTarget = new Vector2(targetWorldPos.x - _selfTransform.position.x, targetWorldPos.y - _selfTransform.position.y); // 使用缓存的Transform
         if (dirToTarget.sqrMagnitude < 0.001f) return;
 
         float rawAngle = Mathf.Atan2(dirToTarget.y, dirToTarget.x) * Mathf.Rad2Deg;
         rawAngle = Mathf.DeltaAngle(0, rawAngle);
+
+        // 应用灵敏度
+        float sensitivity = _playerGameInfoManager != null 
+            ? _playerGameInfoManager.AimSensitivity
+            : 1.0f;
+        rawAngle *= sensitivity; // 核心：将灵敏度相乘到角度
 
         float targetAngle = rawAngle;
         float verticalOffset = Mathf.Abs(rawAngle) > 90 ? 180 - Mathf.Abs(rawAngle) : Mathf.Abs(rawAngle);
@@ -373,7 +389,7 @@ public class playerHandControl : NetworkBehaviour
             targetAngle = -targetAngle;
         }
 
-        transform.localRotation = Quaternion.Euler(0, 0, targetAngle);
+        _selfTransform.localRotation = Quaternion.Euler(0, 0, targetAngle); // 使用缓存的Transform
         SetRotationZ(targetAngle);
     }
     #endregion
@@ -393,8 +409,8 @@ public class playerHandControl : NetworkBehaviour
         if (!isOwned) return;
         if (IsHolsterGun || _isHolsterAnimaPlaying) return;
 
-        transform.DOKill();
-        transform.DOLocalRotate(new Vector3(0, 0, DefaultRotationZ), ReloadResetRotateDuration)
+        _selfTransform.DOKill(); // 使用缓存的Transform
+        _selfTransform.DOLocalRotate(new Vector3(0, 0, DefaultRotationZ), ReloadResetRotateDuration)
                  .SetEase(Ease.OutCubic)
                  .OnComplete(() => SetRotationZ(DefaultRotationZ));
     }
@@ -432,15 +448,15 @@ public class playerHandControl : NetworkBehaviour
     public void EnterAimState()
     {
         if (IsHolsterGun || !isClient) return;
-        transform.DOKill();
-        transform.DOLocalMoveX(AimStateTransform_X, EnterAimDuration).SetEase(aimEaseCurve).SetUpdate(false);
+        _selfTransform.DOKill(); // 使用缓存的Transform
+        _selfTransform.DOLocalMoveX(AimStateTransform_X, EnterAimDuration).SetEase(aimEaseCurve).SetUpdate(false);
     }
 
     public void ExitAimState()
     {
         if (!isClient) return;
-        transform.DOKill();
-        transform.DOLocalMoveX(_originLocalPos.x, EnterAimDuration).SetEase(aimEaseCurve).SetUpdate(false);
+        _selfTransform.DOKill(); // 使用缓存的Transform
+        _selfTransform.DOLocalMoveX(_originLocalPos.x, EnterAimDuration).SetEase(aimEaseCurve).SetUpdate(false);
     }
     #endregion
 
@@ -475,9 +491,10 @@ public class playerHandControl : NetworkBehaviour
     public void CmdCreateThrowObj(TacticType Type)
     {
         Debug.Log($"[CmdCreateThrowObj] 服务器请求生成战术设备 → 类型：{Type}", this);
-        if (MilitaryManager.Instance == null)
+        var militaryManager = _militaryManager ?? MilitaryManager.Instance;
+        if (militaryManager == null)
         { Debug.LogError("[CmdCreateThrowObj] MilitaryManager.Instance 为 null！", this); return; }
-        var throwObjPrefab = MilitaryManager.Instance.GetTactic(Type);
+        var throwObjPrefab = militaryManager.GetTactic(Type);
         if (throwObjPrefab == null)
         { Debug.LogError($"[CmdCreateThrowObj] GetTactic({Type}) 返回 null！", this); return; }
         if (throwObjPrefab.GetComponent<ThrowObj>() == null)
@@ -493,7 +510,7 @@ public class playerHandControl : NetworkBehaviour
     public void TriggerThrowObj(TacticType Type)
     {
         CmdCreateThrowObj(Type);
-        SetAimPointActive(true);
+        SetAimPointActive(true); // 【完全未动】瞄准逻辑
     }
 
     [Command(requiresAuthority = true)]
@@ -506,14 +523,16 @@ public class playerHandControl : NetworkBehaviour
             throwScript.HandControl = this;
             throwScript.IsTackOut = false;
         }
-        SetAimPointActive(false);
+        SetAimPointActive(false); 
     }
 
     public GameObject CreateTactic(TacticType Type)
     {
         if (!isServer) { Debug.LogError("[CreateTactic] 非服务器环境", this); return null; }
-        if (MilitaryManager.Instance == null) { Debug.LogError("[CreateTactic] MilitaryManager 为 null", this); return null; }
-        var Obj = MilitaryManager.Instance.GetTactic(Type);
+
+        var militaryManager = _militaryManager ?? MilitaryManager.Instance;
+        if (militaryManager == null) { Debug.LogError("[CreateTactic] MilitaryManager 为 null", this); return null; }
+        var Obj = militaryManager.GetTactic(Type);
         if (Obj == null) { Debug.LogError($"[CreateTactic] GetTactic({Type}) 返回 null", this); return null; }
 
         GameObject spawnedObj = Instantiate(Obj);
@@ -617,8 +636,6 @@ public class playerHandControl : NetworkBehaviour
         return pos;
     }
 
-    // 修复2：将瞄准点更新逻辑放在 FixedUpdate 中调用，保证物理预测稳定
-    // 请确保在外部的 FixedUpdate 里调用此方法，而不是 Update
     public void UpdateThrowAimPoints()
     {
         if (!IsStartAim || _aimPoints == null || ownerPlayer == null)
@@ -630,8 +647,6 @@ public class playerHandControl : NetworkBehaviour
                 continue;
 
             Vector2 targetPos = CalculateAimPointPosition(i * AimPointTimeInterval);
-
-            // 修复3：使用 SmoothDamp 进行平滑移动，消除弹跳感
             Vector2 currentPos = _aimPoints[i].transform.position;
 
             // 这里使用 Vector2.SmoothDamp，比 Lerp 效果更自然，不会有“弹簧感”
@@ -655,7 +670,6 @@ public class playerHandControl : NetworkBehaviour
         _aimPointVelocities = null;
     }
 
-    // 【纯触摸版】投掷物瞄准角度逻辑
     private void HandleTouchAimAngle()
     {
         if (mainCamera == null || !mainCamera.orthographic)
@@ -685,6 +699,7 @@ public class playerHandControl : NetworkBehaviour
 
         if (_isDebug) Debug.DrawLine(TacticRootTransform.position, targetWorldPos, Color.green);
     }
+    // ========== 以上瞄准代码完全未动 ==========
     #endregion
 
     #region 发射逻辑
@@ -696,7 +711,7 @@ public class playerHandControl : NetworkBehaviour
         CmdLaunchThrowObj(LaunchForce);
         //UI进行更新
         if (isLocalPlayer)//只有本地才更新
-            PlayerTacticControl.Instance?.SetIsChooseButton(false);
+            (_playerTacticControl ?? PlayerTacticControl.Instance)?.SetIsChooseButton(false);
     }
 
     [Command(requiresAuthority = true)]

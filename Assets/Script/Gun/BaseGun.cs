@@ -86,6 +86,50 @@ public class BaseGun : NetworkBehaviour
     public float bulletShowDuration = 0.5f;
     [SerializeField]
     public GameObject bulletSegmentPrefab;
+
+    [Header("伤害数字显示")]
+    public GameObject DamageFloatObj;
+    #endregion
+
+    #region 伤害数字本地显示 (仅攻击者可见)
+
+    /// <summary>
+    /// 通知攻击者的客户端显示伤害数字
+    /// </summary>
+    private void ServerNotifyShowDamage(float damage, Vector2 hitPos, Player attackerPlayer)
+    {
+        if (attackerPlayer == null || attackerPlayer.connectionToClient == null) return;
+
+        // 只发送给攻击者的客户端
+        TargetShowDamageNumber(attackerPlayer.connectionToClient, damage, hitPos);
+    }
+
+    /// <summary>
+    /// 仅在攻击者客户端执行
+    /// </summary>
+    [TargetRpc]
+    private void TargetShowDamageNumber(NetworkConnectionToClient target, float damage, Vector2 hitPos)
+    {
+        ShowDamageNumberLocal(damage, hitPos);
+    }
+
+    /// <summary>
+    /// 真正生成对象池物体的地方
+    /// </summary>
+    private void ShowDamageNumberLocal(float damage, Vector2 hitPos)
+    {
+        if (DamageFloatObj == null || PoolManage.Instance == null) return;
+
+        // 从对象池获取物体
+        var Obj = PoolManage.Instance.GetObj(DamageFloatObj);
+        if (Obj != null)
+        {
+            // 设置位置
+            Obj.transform.position = hitPos;
+            // 调用你的初始化方法 
+            Obj.GetComponent<DamageFloat>()?.Init(damage, Obj.transform);
+        }
+    }
     #endregion
 
     #region 内部缓存字段
@@ -324,6 +368,7 @@ public class BaseGun : NetworkBehaviour
                             Debug.LogError($"[BaseGun] 攻击者{ownerPlayer.name} 无myStats组件！");
                             return;
                         }
+                        ServerNotifyShowDamage(gunInfo.Damage, hit.point, ownerPlayer);//调用生成数字
                         hitTarget.ServerApplyDamage(gunInfo.Damage, hit.point, hit.normal, attackerStats);
                     }
                 }
@@ -485,8 +530,6 @@ public class BaseGun : NetworkBehaviour
     {
         if (applyAutoEjectCartridge)
             SpawnCartridgeCase();
-
-
         ApplyRecoil();
         MuzzleSmokeManager.Instance?.PlayMuzzleSmoke(firePoint, gunInfo);
 
@@ -717,6 +760,7 @@ public class BaseGun : NetworkBehaviour
     #endregion
 
     #region 子弹线段模板管理
+    private Material _bulletLineMaterial;
     private void InitBulletSegmentTemplate()
     {
         if (bulletSegmentPrefab != null)
@@ -730,7 +774,17 @@ public class BaseGun : NetworkBehaviour
         _autoBulletSegmentTemplate.transform.SetParent(this.transform);
 
         LineRenderer templateLr = _autoBulletSegmentTemplate.AddComponent<LineRenderer>();
-        templateLr.material = new Material(Shader.Find("Sprites/Default"));
+
+        // 核心优化：复用材质，仅创建一次（消除每次新建Material的GC）
+        if (_bulletLineMaterial == null)
+        {
+            _bulletLineMaterial = new Material(Shader.Find("Sprites/Default"));
+            _bulletLineMaterial.name = "BulletLineMaterial"; // 命名便于调试
+            _bulletLineMaterial.hideFlags = HideFlags.DontSaveInBuild; // 减少内存占用
+        }
+        templateLr.material = _bulletLineMaterial;
+
+        // 原有配置保留（保证视觉效果不变）
         templateLr.startColor = bulletColor;
         templateLr.endColor = bulletColor;
         templateLr.startWidth = bulletLineWidth;
@@ -740,7 +794,6 @@ public class BaseGun : NetworkBehaviour
         templateLr.enabled = false;
 
         _autoBulletSegmentTemplate.AddComponent<BulletSegmentFly>();
-        Debug.Log($"[子弹线段] 自动创建模板：{_bulletSegmentTemplateName}");
     }
 
     private GameObject GetBulletSegmentTemplate()
@@ -801,6 +854,9 @@ public class BaseGun : NetworkBehaviour
 
     public void EnterAimState()
     {
+        // 优化：仅本地玩家执行瞄准Lerp（远程玩家无需计算，减少CPU）
+        if (ownerPlayer != null && !ownerPlayer.isLocalPlayer) return;
+
         StopAllAimLerp();
         AnimationID_Recoil = SimpleAnimatorTool.Instance.StartFloatLerp(
             _localRecoil,
@@ -824,6 +880,8 @@ public class BaseGun : NetworkBehaviour
 
     public void ExitAimState()
     {
+        if (ownerPlayer != null && !ownerPlayer.isLocalPlayer) return;
+
         StopAllAimLerp();
         AnimationID_Recoil = SimpleAnimatorTool.Instance.StartFloatLerp(
             _localRecoil,
@@ -1043,4 +1101,4 @@ public class BulletSegmentFly : MonoBehaviour
         _lr.endColor = currentColor;
     }
 }
-#endregion
+# endregion

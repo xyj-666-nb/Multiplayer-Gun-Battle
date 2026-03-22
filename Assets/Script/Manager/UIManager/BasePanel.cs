@@ -5,10 +5,11 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using DG.Tweening;
+using System.Collections; 
 
 public abstract class BasePanel : MonoBehaviour
 {
-    #region 字段定义（核心数据/配置）
+    #region 字段定义
 
     #region 对UI控件的缓存
     public Dictionary<string, UIBehaviour> controlDic = new Dictionary<string, UIBehaviour>();
@@ -68,6 +69,11 @@ public abstract class BasePanel : MonoBehaviour
 
     #endregion
 
+    #region 协程引用
+    private Coroutine _fadeInCoroutine; // 淡入协程
+    private Coroutine _fadeOutCoroutine; // 淡出协程
+    #endregion
+
     public bool IsInAnimator
     {
         get => IsInShowing || IsInHiding;
@@ -100,15 +106,8 @@ public abstract class BasePanel : MonoBehaviour
             gameObject.AddComponent<CanvasGroup>();
         // 优先查找交互类UI组件
         FindChildControl<Button>();
-        FindChildControl<Toggle>();
         FindChildControl<Slider>();
-        FindChildControl<Scrollbar>();
         FindChildControl<Dropdown>();
-        FindChildControl<InputField>();
-        FindChildControl<TMP_InputField>();
-
-        FindChildControl<Text>();
-        FindChildControl<Image>();
         FindChildControl<TextMeshProUGUI>();
 
         // 初始化CanvasGroup
@@ -140,7 +139,7 @@ public abstract class BasePanel : MonoBehaviour
     public virtual void InputFieldValueChange(string inputFieldName, string value) { }
     #endregion
 
-    #region 面板显示逻辑
+    #region 面板显示逻辑（重构：启动淡入协程）
     /// <summary>
     /// 显示面板
     /// </summary>
@@ -150,11 +149,14 @@ public abstract class BasePanel : MonoBehaviour
         gameObject.SetActive(true);
         IsUseDefaultAnimator_Show = isNeedDefaultAnimator;
         IsInHiding = false; // 终止隐藏动画
+        StopFadeOutCoroutine(); // 停止可能正在运行的淡出协程
 
         if (isNeedDefaultAnimator)
         {
             canvasGroup.alpha = 0;
             IsInShowing = true; // 标记为正在显示
+            // 启动淡入协程（替代Update里的渐变逻辑）
+            _fadeInCoroutine = StartCoroutine(FadeInCoroutine());
         }
         else
         {
@@ -176,12 +178,13 @@ public abstract class BasePanel : MonoBehaviour
         IsUseDefaultAnimator_Show = false;
         // 确保交互状态开启
         canvasGroup.interactable = true;
+        StopFadeInCoroutine(); // 终止淡入协程
     }
 
     /// <summary>
     /// 动画框架逻辑
     /// </summary>
-    protected  void UseSpecialAnimator_Show()
+    protected void UseSpecialAnimator_Show()
     {
         // 先销毁旧动画，防止内存泄漏
         SpecialShowAnima?.Kill();
@@ -204,11 +207,11 @@ public abstract class BasePanel : MonoBehaviour
 
     #region 简单面板显隐功能
 
-    private  Sequence MyPanelSimpleAnima;
+    private Sequence MyPanelSimpleAnima;
     public virtual void SimpleHidePanel()
     {
-        canvasGroup.interactable = false; 
-        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(canvasGroup,ref MyPanelSimpleAnima, false, () => { });
+        canvasGroup.interactable = false;
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(canvasGroup, ref MyPanelSimpleAnima, false, () => { });
     }
     public virtual void SimpleShowPanel()
     {
@@ -229,6 +232,7 @@ public abstract class BasePanel : MonoBehaviour
         HideCallback = callback;
         IsUseDefaultAnimator_Hide = isNeedDefaultAnimator;
         IsInShowing = false; // 终止显示动画
+        StopFadeInCoroutine(); // 停止可能正在运行的淡入协程
 
         canvasGroup.interactable = false;
 
@@ -236,6 +240,8 @@ public abstract class BasePanel : MonoBehaviour
         {
             canvasGroup.alpha = 1;
             IsInHiding = true; // 标记为正在隐藏
+            // 启动淡出协程
+            _fadeOutCoroutine = StartCoroutine(FadeOutCoroutine());
         }
         else
         {
@@ -260,13 +266,14 @@ public abstract class BasePanel : MonoBehaviour
         {
             gameObject.SetActive(false);
         }
+        StopFadeOutCoroutine(); // 终止淡出协程
     }
 
     /// <summary>
     /// 动画框架逻辑（子类无需关注）
     /// </summary>
     /// <param name="callback">隐藏完成回调</param>
-    protected  void UseSpecialAnimator_Hide(UnityAction callback)
+    protected void UseSpecialAnimator_Hide(UnityAction callback)
     {
         // 先销毁旧动画，防止内存泄漏
         SpecialHideAnima?.Kill();
@@ -369,38 +376,85 @@ public abstract class BasePanel : MonoBehaviour
     }
     #endregion
 
-    #region 帧更新与工具方法
-    private float deltaTime;
+    #region 新增：淡入/淡出协程
     /// <summary>
-    /// 淡入淡出逻辑
+    /// 淡入协程
     /// </summary>
-    protected virtual void Update()
+    private IEnumerator FadeInCoroutine()
     {
-        if (IsInAnimator)//只有在动画播放的时候才进行赋值
-            deltaTime = IsUseRealTime ? Time.unscaledDeltaTime : Time.deltaTime;
-
-        // 默认淡入逻辑
-        if (IsInShowing && IsUseDefaultAnimator_Show)
+        while (IsInShowing && IsUseDefaultAnimator_Show)
         {
+            float deltaTime = IsUseRealTime ? Time.unscaledDeltaTime : Time.deltaTime;
             canvasGroup.alpha += alphaSpeed * deltaTime;
             canvasGroup.alpha = Mathf.Clamp01(canvasGroup.alpha);
 
+            // 淡入完成
             if (Mathf.Approximately(canvasGroup.alpha, 1f))
             {
                 ShowAnimationComplete();
+                yield break; // 终止协程
             }
+            yield return null; // 每帧执行一次
         }
-        // 默认淡出逻辑
-        else if (IsInHiding && IsUseDefaultAnimator_Hide)
+    }
+
+    /// <summary>
+    /// 淡出协程
+    /// </summary>
+    private IEnumerator FadeOutCoroutine()
+    {
+        while (IsInHiding && IsUseDefaultAnimator_Hide)
         {
+            float deltaTime = IsUseRealTime ? Time.unscaledDeltaTime : Time.deltaTime;
             canvasGroup.alpha -= alphaSpeed * deltaTime;
             canvasGroup.alpha = Mathf.Clamp01(canvasGroup.alpha);
 
+            // 淡出完成
             if (Mathf.Approximately(canvasGroup.alpha, 0f))
             {
                 HideAnimationComplete();
+                yield break; // 终止协程
             }
+            yield return null; // 每帧执行一次
         }
+    }
+
+    /// <summary>
+    /// 停止淡入协程
+    /// </summary>
+    private void StopFadeInCoroutine()
+    {
+        if (_fadeInCoroutine != null)
+        {
+            StopCoroutine(_fadeInCoroutine);
+            _fadeInCoroutine = null;
+        }
+    }
+
+    /// <summary>
+    /// 停止淡出协程
+    /// </summary>
+    private void StopFadeOutCoroutine()
+    {
+        if (_fadeOutCoroutine != null)
+        {
+            StopCoroutine(_fadeOutCoroutine);
+            _fadeOutCoroutine = null;
+        }
+    }
+    #endregion
+
+    #region 帧更新与工具方法
+    private float deltaTime;
+    /// <summary>
+    /// Update仅保留必要逻辑，移除渐变判断
+    /// </summary>
+    protected virtual void Update()
+    {
+        // 仅保留动画状态标记的deltaTime计算
+        if (IsInAnimator)
+            deltaTime = IsUseRealTime ? Time.unscaledDeltaTime : Time.deltaTime;
+
     }
 
     /// <summary>
@@ -432,6 +486,11 @@ public abstract class BasePanel : MonoBehaviour
     #region 生命周期销毁
     protected virtual void OnDestroy()
     {
+        // 停止所有渐变协程，防止内存泄漏
+        StopFadeInCoroutine();
+        StopFadeOutCoroutine();
+
+        // 原有逻辑保留
         SpecialShowAnima?.Kill();
         SpecialHideAnima?.Kill();
         SpecialShowAnima = null;

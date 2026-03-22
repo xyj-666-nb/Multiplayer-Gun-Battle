@@ -22,8 +22,6 @@ public class TouchInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandle
     [Tooltip("最大点击容错像素，移动小于这个值算点击，大于算拖拽/瞄准")]
     public float MaxClickTolerance = 40f;
 
-    [Tooltip("是否启用调试日志")]
-    public bool ShowDebugLog = true;
 
     // 内部状态
     private int _currentControlFingerId = -1; // 当前控制手臂/瞄准的手指ID
@@ -40,11 +38,6 @@ public class TouchInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandle
     {
         Instance = this;
         GameCamera = MyCameraControl.Instance.MainCamera;
-        if (ShowDebugLog)
-        {
-            if (GameCamera == null) 
-                Debug.LogError("【TouchInput】未找到 GameCamera！");
-        }
     }
 
     public void GetPlayerHand(playerHandControl HandControl)
@@ -69,9 +62,6 @@ public class TouchInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandle
 
         // 计算初始世界坐标
         UpdateTouchWorldPos(eventData.position);
-
-        if (ShowDebugLog)
-            Debug.Log($"【TouchInput】手指 {_currentControlFingerId} 按下，屏幕坐标：{_pressScreenPos}，世界坐标：{CurrentTouchWorldPos}");
     }
 
     // 触摸拖拽
@@ -93,8 +83,6 @@ public class TouchInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandle
         if (moveDistance > MaxClickTolerance && !_isDragging)
         {
             _isDragging = true;
-            if (ShowDebugLog)
-                Debug.Log($"【TouchInput】手指 {_currentControlFingerId} 开始拖拽/瞄准");
         }
     }
 
@@ -105,10 +93,6 @@ public class TouchInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandle
             return;
         // 只处理当前控制的手指
         if (eventData.pointerId != _currentControlFingerId) return;
-
-        if (ShowDebugLog)
-            Debug.Log($"【TouchInput】手指 {_currentControlFingerId} 抬起，是否有效点击：{!_isDragging}");
-
         // 重置状态
         _currentControlFingerId = -1;
         _isValidTouch = false;

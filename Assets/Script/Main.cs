@@ -22,7 +22,8 @@ public class Main : SingleMonoAutoBehavior<Main>
 
     public void SwitchToAnimaVCFast()
     {
-        if (AnimaVC == null) return;
+        if (AnimaVC == null) 
+            return;
 
         AnimaVC.Priority = 999; // 优先级拉满
         AnimaVC.MoveToTopOfPrioritySubqueue(); // 强制插队到最前面
@@ -52,6 +53,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         CustomNetworkManager.OnClientConnectedSuccess += OnClientConnectedSuccess;
 
         Debug.Log("[Main] 已监听CustomNetworkManager事件，服务端启动时将自动生成重生管理器");
+        AllMapManager.Instance.TriggerMap(MapType.StartCG, true);
         
 
 
@@ -139,7 +141,6 @@ public class Main : SingleMonoAutoBehavior<Main>
 
     void Start()
     {
-        FPSDisplayPanel.Instance.ShowFPS();//显示帧率
         // // 原有UI和测试按钮逻辑
         // // 枪械测试按钮
         // Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械AKM", () => { Player.LocalPlayer.SpawnAndPickGun("AKM"); }, "枪械获取");
@@ -191,8 +192,10 @@ public class Main : SingleMonoAutoBehavior<Main>
         // Developer_GUITestManger.Instance.RegisterGuiButton("播放第二个动画", () => { CG.PlayAnima2(); });
         //// Developer_GUITestManger.Instance.RegisterGuiButton("翻转画面", () => { CameraFlipper.Instance.ToggleFlip(); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("播放场景二动画", () => { Map2StartAnimaCG.Instance.TimeLine.Play(); SwitchToAnimaVCFast();UImanager.Instance.GetPanel<PlayerPanel>().SimpleHidePanel(); });
-        //Developer_GUITestManger.Instance.RegisterGuiButton("受击", () => { HealBorderEffect.Instance.StartEffect(); });
-        //Developer_GUITestManger.Instance.RegisterGuiButton("恢复", () => { ScreenPulseController.Instance.StartPulse(); });
+       //Developer_GUITestManger.Instance.RegisterGuiButton("训练场", () => { AllMapManager.Instance.TriggerMap(MapType.Training, true); });
+       // Developer_GUITestManger.Instance.RegisterGuiButton("地图1", () => { AllMapManager.Instance.TriggerMap(MapType.map1, true); });
+       // Developer_GUITestManger.Instance.RegisterGuiButton("地图2", () => { AllMapManager.Instance.TriggerMap(MapType.map2, true); });
+       // Developer_GUITestManger.Instance.RegisterGuiButton("恢复", () => { ScreenPulseController.Instance.StartPulse(); });
         //Developer_GUITestManger.Instance.RegisterGuiButton("丢弃头盔", () => { Player.LocalPlayer.myStats.MyHelmet.TriggerHelmetDrop(); });
     }
 

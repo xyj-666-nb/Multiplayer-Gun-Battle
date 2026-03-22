@@ -64,9 +64,6 @@ public class UOSRelaySimple : MonoBehaviour
                 relayTransport = GetComponent<RelayTransportMirror>();
             }
         }
-
-        // ========== 修复1：删除强制覆盖transport的逻辑 ==========
-        // 原错误代码已移除，仅在Relay模式下才赋值transport
     }
 
     private void Start()
@@ -90,7 +87,7 @@ public class UOSRelaySimple : MonoBehaviour
     private void InitializePlayerData()
     {
         playerUuid = Guid.NewGuid().ToString();
-        playerName = "Player-" + playerUuid.Substring(0, 8);
+        playerName = "DefaultPlayer";
 
         if (relayTransport != null)
         {
@@ -101,6 +98,12 @@ public class UOSRelaySimple : MonoBehaviour
             Debug.LogError("【UOS】严重错误：relayTransport为null，无法设置玩家数据");
             OnRelayFailed?.Invoke("RelayTransport组件未找到");
         }
+    }
+
+    //重新获取姓名
+    public void GetPlayerName(string PlayerName)
+    {
+        playerName = PlayerName;
     }
 
     /// <summary>
@@ -114,7 +117,6 @@ public class UOSRelaySimple : MonoBehaviour
             return;
         }
 
-        // ========== 修复2：Relay模式下才设置transport ==========
         customManager.transport = relayTransport;
         Transport.active = relayTransport;
 
@@ -172,7 +174,6 @@ public class UOSRelaySimple : MonoBehaviour
             return;
         }
 
-        // ========== 修复3：Relay模式下才设置transport ==========
         customManager.transport = relayTransport;
         Transport.active = relayTransport;
 
@@ -281,7 +282,6 @@ public class UOSRelaySimple : MonoBehaviour
             return;
         }
 
-        // ========== 修复4：Relay模式下才设置transport ==========
         customManager.transport = relayTransport;
         Transport.active = relayTransport;
 

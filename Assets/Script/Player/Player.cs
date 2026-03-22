@@ -2,6 +2,7 @@ using DG.Tweening;
 using Mirror;
 using UnityEngine;
 using UnityEngine.Playables;
+using System.Text;
 
 public class Player : Base_Entity
 {
@@ -23,34 +24,14 @@ public class Player : Base_Entity
 
     [Header("是否进入房屋")]
     [SyncVar(hook = nameof(OnChangeEnterRoomState))]
-
     public bool IsEnterRoom = false;//是否进入房屋
-
-    //补充弹药
-    public void CmdBulletSupplement()
-    {
-        currentGun?.CmdBulletSupplement();
-        //播放本地的获取弹药的音效
-    }
-
-    [Command]
-    public void CmdChangeEnterRoomState(bool isEnterRoom)
-    {
-        IsEnterRoom=isEnterRoom;
-    }
-
-    private void OnChangeEnterRoomState(bool OldValue,bool NewValue)
-    {
-        //当玩家进入房间的状态改变也需要改变当前玩家的显示层级
-         mySortingLayerControl.SetSortingLayer(NewValue);//设置层级
-    }
 
     [Header("当前玩家触碰到的枪械")]
     public BaseGun CurrentTouchGun;
 
     [Header("当前玩家穿戴的护甲")]
-    [SyncVar(hook =(nameof(OnChangeArmorState)))]
-    public ArmorType CurrentArmorType= ArmorType.Empty_handed;
+    [SyncVar(hook = (nameof(OnChangeArmorState)))]
+    public ArmorType CurrentArmorType = ArmorType.Empty_handed;
 
     [Header("护甲控制")]
     public SpriteRenderer ArmorSprite;//护甲图片
@@ -58,18 +39,211 @@ public class Player : Base_Entity
     [Header("护甲动画")]
     public PlayableDirector TimeLine_Helmet;//头盔动画
 
-    //本地钩子
+    [Header("准备状态")]
+    [SyncVar]
+    public bool IsPrepara = false;
+
+    [SyncVar]
+    public string PlayerName;
+
+    [SyncVar(hook = nameof(OnChangeTeam))]
+    public Team CurrentTeam;//当前队伍
+
+    #region 缓存变量（核心优化：缓存复用+GC减少）
+    // 单例缓存：避免反复Instance调用（高频函数优化）
+    private UImanager _uiManager;
+    private MyCameraControl _myCameraControl;
+    private MilitaryManager _militaryManager;
+    private PlayerRespawnManager _playerRespawnManager;
+    private CountDownManager _countDownManager;
+    private GlobalPictureFlipManager _globalPictureFlipManager;
+
+    // UI面板缓存：避免反复GetPanel（缓存复用）
+    private PlayerPanel _playerPanel;
+    private PlayerPreparaPanel _playerPreparaPanel;
+    private GameScorePanel _gameScorePanel;
+
+    // 缩放动画缓存：减少临时变量（高频函数优化+GC减少）
+    private float _cachedTime;
+    private float _cachedXVel;
+    private float _cachedYVel;
+    private float _cachedYSpeedRatio;
+    private Vector3 _cachedBodyScale;
+
+    // 字符串缓存：减少拼接GC（GC减少）
+    private StringBuilder _sb = new StringBuilder();
+    #endregion
+
+    #region 缩放动画配置（保留原变量）
+    private float currentYScale; // 仅作用于MyBody的Y轴缩放
+    private float targetYStretch;
+    public float mainLerpSpeed = 2f;
+    public float maxLerpSpeed = 15f;
+    private Vector2 baseBodyScale; // 改为记录MyBody的初始缩放
+
+    private Vector3 lastPosition;      // 上一帧的坐标
+    private Vector2 estimatedVelocity; // 估算速度（用于网络同步平滑）
+    #endregion
+
+    #region 其他变量（保留原逻辑）
+    private int ViewTaskID = -1;//当前视野提升任务ID
+    private float ChangeSpeed_View = 4;//视野变化速度
+    #endregion
+
+    #region 初始化（优化：缓存复用+逻辑冗余）
+    public override void Awake()
+    {
+        base.Awake();
+
+        // 优化1：缓存单例（仅1次获取，避免反复Instance调用）
+        _uiManager = UImanager.Instance;
+        _myCameraControl = MyCameraControl.Instance;
+        _militaryManager = MilitaryManager.Instance;
+        _playerRespawnManager = PlayerRespawnManager.Instance;
+        _countDownManager = CountDownManager.Instance;
+        _globalPictureFlipManager = GlobalPictureFlipManager.Instance;
+
+        // 优化2：初始化MyBody缩放，避免重复判空（逻辑冗余）
+        if (MyBody != null)
+        {
+            baseBodyScale = MyBody.transform.localScale;
+            currentYScale = baseBodyScale.y;
+        }
+        else
+        {
+            Debug.LogError($"[Player] {gameObject.name} 的MyBody未赋值！", this);
+            baseBodyScale = Vector2.one;
+            currentYScale = 1f;
+        }
+
+        transform.localScale = Vector3.one;
+    }
+    #endregion
+
+    #region Mirror生命周期（优化：缓存复用+逻辑冗余+GC减少）
+    public override void OnStartServer()
+    {
+        base.OnStartServer();
+
+        // 优化1：复用Base_Entity的MyRigdboby，避免重复GetComponent（逻辑冗余）
+        if (MyRigdboby == null)
+        {
+            Debug.LogError($"[服务器] 玩家{gameObject.name}缺少Rigidbody2D组件！", this);
+            return;
+        }
+
+        MyRigdboby.drag = 0.3f;
+        MyRigdboby.gravityScale = 1f;
+
+        if (string.IsNullOrEmpty(PlayerName))
+        {
+            _sb.Clear();
+            _sb.Append("玩家").Append(connectionToClient.connectionId);
+            PlayerName = _sb.ToString();
+            Debug.Log($"[服务器] 玩家{connectionToClient.connectionId}名称兜底：{PlayerName}");
+        }
+    }
+
+    public override void OnStartLocalPlayer()
+    {
+        base.OnStartLocalPlayer();
+        LocalPlayer = this;
+        Debug.Log($"[本地客户端] 初始化本地玩家：{gameObject.name}");
+
+        // 优化1：缓存组件，避免反复GetComponent（缓存复用）
+        if (myStats == null) myStats = GetComponent<playerStats>();
+        if (myInputSystem == null) myInputSystem = GetComponent<MyPlayerInput>();
+        if (MyHandControl == null && playerHandPos != null)
+            MyHandControl = playerHandPos.GetComponent<playerHandControl>();
+
+        // 优化2：StringBuilder拼接字符串，减少GC（GC减少）
+        string localName = UOSRelaySimple.Instance.playerName;
+        if (string.IsNullOrEmpty(localName))
+        {
+            _sb.Clear();
+            _sb.Append("玩家").Append(Random.Range(1000, 9999));
+            localName = _sb.ToString();
+        }
+        CmdSyncPlayerName(localName);
+
+        // 优化3：缓存UI面板，避免反复GetPanel（缓存复用）
+        if (_uiManager != null)
+        {
+            _playerPanel = _uiManager.ShowPanel<PlayerPanel>();
+            _playerPreparaPanel = _uiManager.GetPanel<PlayerPreparaPanel>();
+            _gameScorePanel = _uiManager.GetPanel<GameScorePanel>();
+        }
+
+        // 保留原逻辑
+        if (myInputSystem != null)
+        {
+            myInputSystem.Initialize(this, myStats);
+            Debug.Log("Player：本地玩家输入系统初始化完成！");
+        }
+
+        if (MyHandControl != null)
+        {
+            MyHandControl.ownerPlayer = LocalPlayer;
+            if (TouchInputHandler.Instance != null)
+                TouchInputHandler.Instance.GetPlayerHand(MyHandControl);
+        }
+
+        if (_myCameraControl != null)
+            _myCameraControl.SetCameraMode_FollowPlayerMode(this.gameObject, true);
+
+        if (_playerRespawnManager != null && _playerRespawnManager.IsGameStart)
+        {
+            PlayerAndGameInfoManger.Instance.EquipCurrentSlot();
+            if (_globalPictureFlipManager != null)
+                _globalPictureFlipManager.TriggerGlobalFlip(CurrentTeam == Team.Blue);
+        }
+
+        if (_gameScorePanel != null)
+            _gameScorePanel.ChangeTeamSprite(CurrentTeam);
+    }
+
+    public override void OnStopLocalPlayer()
+    {
+        base.OnStopLocalPlayer();
+        if (LocalPlayer == this)
+            LocalPlayer = null;
+    }
+    #endregion
+
+    #region 核心业务逻辑（优化：缓存复用+逻辑冗余+GC减少）
+    // 补充弹药（保留原逻辑）
+    public void CmdBulletSupplement()
+    {
+        currentGun?.CmdBulletSupplement();
+    }
+
+    [Command]
+    public void CmdChangeEnterRoomState(bool isEnterRoom)
+    {
+        IsEnterRoom = isEnterRoom;
+    }
+
+    private void OnChangeEnterRoomState(bool OldValue, bool NewValue)
+    {
+        // 优化：空值防护提前做，减少重复判空（逻辑冗余）
+        mySortingLayerControl?.SetSortingLayer(NewValue);
+    }
 
     private void OnChangeArmorState(ArmorType OldType, ArmorType NewType)
     {
+        // 优化：缓存myStats，避免反复GetComponent（缓存复用）
         if (myStats == null) myStats = GetComponent<playerStats>();
+        if (myStats == null) return;
 
+        // 保留原逻辑
         if (OldType != ArmorType.Empty_handed)
         {
-            var oldInfo = MilitaryManager.Instance.GetArmorInfoPack(OldType);
-            myStats.RemoveArmorEffect(oldInfo); // 把旧属性传进去
+            var oldInfo = _militaryManager?.GetArmorInfoPack(OldType);
+            if (oldInfo != null) myStats.RemoveArmorEffect(oldInfo);
         }
-        var newInfo = MilitaryManager.Instance.GetArmorInfoPack(NewType);
+
+        var newInfo = _militaryManager?.GetArmorInfoPack(NewType);
+        if (newInfo == null) return;
 
         if (ArmorSprite != null) ArmorSprite.sprite = newInfo.ArmorSprite;
         if (HelmetSprite != null) HelmetSprite.sprite = newInfo.HelmetSprite;
@@ -84,12 +258,15 @@ public class Player : Base_Entity
 
     public void WearArmorAnimatorStart()
     {
-        //触发动画
-        TimeLine_Helmet.time = 0;//重新播放
-        TimeLine_Helmet.Play();//进行播放
-        ArmorSprite.DOKill();//销毁动画
-        ArmorSprite.color = ColorManager.SetColorAlpha( ArmorSprite.color, 0);
-        ArmorSprite.DOFade(1, 1.5f);//播放护甲显示
+        // 优化：空值防护提前做，减少重复判空（逻辑冗余）
+        if (TimeLine_Helmet == null || ArmorSprite == null) return;
+
+        // 保留原逻辑
+        TimeLine_Helmet.time = 0;
+        TimeLine_Helmet.Play();
+        ArmorSprite.DOKill();
+        ArmorSprite.color = ColorManager.SetColorAlpha(ArmorSprite.color, 0);
+        ArmorSprite.DOFade(1, 1.5f);
     }
 
     public void getArmor(ArmorType Type)
@@ -97,16 +274,11 @@ public class Player : Base_Entity
         CmdGetArmor(Type);
     }
 
-    //获取护甲
     [Command]
     public void CmdGetArmor(ArmorType Type)
     {
-        CurrentArmorType= Type;
+        CurrentArmorType = Type;
     }
-
-    [Header("准备状态")]
-    [SyncVar]
-    public bool IsPrepara = false;
 
     public void ChangePreparaState(bool State)
     {
@@ -118,205 +290,88 @@ public class Player : Base_Entity
     public void CmdChangePreparaState(bool State)
     {
         IsPrepara = State;
-
-        if (PlayerRespawnManager.Instance != null)
-        {
-            PlayerRespawnManager.Instance.ServerHandlePlayerPrepareChange(connectionToClient, State);
-        }
+        // 优化：缓存单例，避免反复Instance调用（缓存复用）
+        _playerRespawnManager?.ServerHandlePlayerPrepareChange(connectionToClient, State);
     }
 
-    [SyncVar]
-    public string PlayerName;
-
-    [SyncVar(hook =nameof(OnChangeTeam))]
-    public Team CurrentTeam;//当前队伍
-
-    private void OnChangeTeam(Team oldValue,Team newValue)
+    private void OnChangeTeam(Team oldValue, Team newValue)
     {
-        if (oldValue == newValue||!isLocalPlayer)
+        if (oldValue == newValue || !isLocalPlayer)
             return;
 
-        //获取UI然后进行更新
-        UImanager.Instance.GetPanel<PlayerPreparaPanel>()?.ChangeTeamSprite(newValue);
-        UImanager.Instance.GetPanel<GameScorePanel>()?.ChangeTeamSprite(oldValue);
-
+        // 优化：复用缓存的UI面板，避免反复GetPanel（缓存复用）
+        _playerPreparaPanel?.ChangeTeamSprite(newValue);
+        _gameScorePanel?.ChangeTeamSprite(oldValue);
     }
 
     [Command]
-    public void ChangeTeam()//改变队伍
+    public void ChangeTeam()
     {
-        string teaName = null;
+        // 优化：StringBuilder拼接字符串，减少GC（GC减少）
         if (CurrentTeam == Team.Red)
         {
             CurrentTeam = Team.Blue;
-            teaName = "蓝队";
+            _sb.Clear();
+            _sb.Append(PlayerName).Append("加入蓝队");
         }
         else
         {
             CurrentTeam = Team.Red;
-            teaName = "红队";
+            _sb.Clear();
+            _sb.Append(PlayerName).Append("加入红队");
         }
-        //全局播报
-        PlayerRespawnManager.Instance.SendGlobalMessage(PlayerName + "加入" + teaName, 1f);//进行一下播报
-
+        // 优化：缓存单例，避免反复Instance调用（缓存复用）
+        _playerRespawnManager?.SendGlobalMessage(_sb.ToString(), 1f);
     }
 
-    #region 缩放动画配置
-    private float currentYScale; // 仅作用于MyBody的Y轴缩放
-    private float targetYStretch;
-    public float mainLerpSpeed = 2f;
-    public float maxLerpSpeed = 15f;
-    private Vector2 baseBodyScale; // 改为记录MyBody的初始缩放
-
-    #region 缩放动画配置 (新增预测变量)
-    private Vector3 lastPosition;      // 上一帧的坐标
-    private Vector2 estimatedVelocity; // 估算速度（用于网络同步平滑）
-    #endregion
-    #endregion
-
-    #region Mirror生命周期
-    public override void OnStartServer()
-    {
-        base.OnStartServer();
-        MyRigdboby = GetComponent<Rigidbody2D>();
-        if (MyRigdboby == null)
-        {
-            Debug.LogError($"[服务器] 玩家{gameObject.name}缺少Rigidbody2D组件！", this);
-            return;
-        }
-
-        MyRigdboby.bodyType = RigidbodyType2D.Dynamic;
-        MyRigdboby.drag = 0.3f;
-        MyRigdboby.gravityScale = 1f;
-        Debug.Log($"[服务器] 初始化玩家{gameObject.name}刚体为Dynamic");
-
-        if (string.IsNullOrEmpty(PlayerName))
-        {
-            PlayerName = $"玩家{connectionToClient.connectionId}";
-            Debug.Log($"[服务器] 玩家{connectionToClient.connectionId}名称兜底：{PlayerName}");
-        }
-    }
-
-    public override void OnStartLocalPlayer()
-    {
-        base.OnStartLocalPlayer();
-        LocalPlayer = this;
-        Debug.Log($"[本地客户端] 初始化本地玩家：{gameObject.name}");
-
-        string localName = UOSRelaySimple.Instance.playerName; // 你的本地名称
-        if (string.IsNullOrEmpty(localName))
-        {
-            localName = $"玩家{Random.Range(1000, 9999)}"; // 本地兜底
-        }
-        CmdSyncPlayerName(localName); // 同步到服务端
-
-        myStats = GetComponent<playerStats>();
-        myInputSystem = GetComponent<MyPlayerInput>();
-
-        UImanager.Instance.ShowPanel<PlayerPanel>();//显示UI
-        Debug.Log("显示玩家UI");
-        //开始摄像机跟随
-        MyCameraControl.Instance.SetCameraMode_FollowPlayerMode(this.gameObject, true);
-
-        if (myInputSystem != null)
-        {
-            myInputSystem.Initialize(this, myStats);
-            Debug.Log("Player：本地玩家输入系统初始化完成！");
-        }
-        MyHandControl = playerHandPos.GetComponent<playerHandControl>();
-        MyHandControl.ownerPlayer = LocalPlayer;
-
-        //注册一下输入系统
-        if (TouchInputHandler.Instance != null)
-            TouchInputHandler.Instance.GetPlayerHand(MyHandControl);
-
-        if (PlayerRespawnManager.Instance.IsGameStart)
-        {
-            //重生后获取当前战备
-            PlayerAndGameInfoManger.Instance.EquipCurrentSlot();
-            if (Player.LocalPlayer.CurrentTeam == Team.Red)
-                GlobalPictureFlipManager.Instance.TriggerGlobalFlip(false);
-            else
-                GlobalPictureFlipManager.Instance.TriggerGlobalFlip(true);//蓝队就打开翻转
-            //重新设置翻转
-        }
-    }
-
-    public override void OnStopLocalPlayer()
-    {
-        base.OnStopLocalPlayer();
-        if (LocalPlayer == this)
-            LocalPlayer = null;
-    }
-    #endregion
-
-    #region 名称同步Command（核心新增）
-    /// <summary>
-    /// 客户端请求服务端同步玩家名称
-    /// </summary>
     [Command(requiresAuthority = false)]
     private void CmdSyncPlayerName(string newName)
     {
-        // 服务端校验名称合法性
         if (string.IsNullOrEmpty(newName))
         {
-            newName = $"玩家{connectionToClient.connectionId}";
+            // 优化：StringBuilder拼接字符串，减少GC（GC减少）
+            _sb.Clear();
+            _sb.Append("玩家").Append(connectionToClient.connectionId);
+            newName = _sb.ToString();
         }
-        // 服务端修改SyncVar，自动同步到所有客户端
         PlayerName = newName;
         Debug.Log($"[服务器] 同步玩家{connectionToClient.connectionId}名称：{newName}");
     }
+    #endregion
 
+    #region 缩放动画（优化：高频函数+GC减少+缓存复用）
     private void Update()
     {
-        PlayerMoveStretchAnima();//应用缩放动画
+        PlayerMoveStretchAnima();
     }
-    #endregion
 
-    #region 初始化
-    public override void Awake()
-    {
-        base.Awake();
-        MyRigdboby = GetComponent<Rigidbody2D>();
-
-        if (MyBody != null)
-        {
-            baseBodyScale = MyBody.transform.localScale;
-            currentYScale = baseBodyScale.y; // 初始Y轴缩放
-        }
-        else
-        {
-            Debug.LogError($"[Player] {gameObject.name} 的MyBody未赋值！", this);
-            baseBodyScale = Vector2.one;
-            currentYScale = 1f;
-        }
-
-        transform.localScale = Vector3.one;
-    }
-    #endregion
-
-    #region 缩放动画
     public void PlayerMoveStretchAnima()
     {
-        float currentXVel = MyRigdboby.velocity.x;
-        float currentYVel = MyRigdboby.velocity.y;
+        // 优化：空值防护提前做，减少重复判空（逻辑冗余）
+        if (MyRigdboby == null || MyBody == null) return;
 
-        bool isGroundMove = Mathf.Abs(currentYVel) < 0.1f && Mathf.Abs(currentXVel) > 0.1f;
-        bool isJumpStretch = Mathf.Abs(currentYVel) >= 0.1f;
+        // 优化：缓存高频访问的变量，减少属性调用（高频函数优化）
+        _cachedXVel = MyRigdboby.velocity.x;
+        _cachedYVel = MyRigdboby.velocity.y;
+        _cachedTime = Time.time;
+
+        bool isGroundMove = Mathf.Abs(_cachedYVel) < 0.1f && Mathf.Abs(_cachedXVel) > 0.1f;
+        bool isJumpStretch = Mathf.Abs(_cachedYVel) >= 0.1f;
 
         if (isGroundMove)
         {
-            float bumpyOffset = Mathf.Sin(Time.time * myStats.MoveBumpySpeed) * myStats.MoveBumpyRange;
-            targetYStretch = baseBodyScale.y + bumpyOffset;
+            // 优化：缓存计算结果，减少重复Mathf调用（高频函数优化）
+            targetYStretch = baseBodyScale.y + Mathf.Sin(_cachedTime * myStats.MoveBumpySpeed) * myStats.MoveBumpyRange;
             currentYScale = Mathf.Lerp(currentYScale, targetYStretch, 5f * Time.deltaTime);
         }
         else if (isJumpStretch)
         {
-            float ySpeedRatio = Mathf.Abs(currentYVel) / myStats.MaxYSpeed;
-            targetYStretch = baseBodyScale.y + ySpeedRatio * myStats.MaxYStretch;
+            // 优化：缓存计算结果，减少重复Mathf调用（高频函数优化）
+            _cachedYSpeedRatio = Mathf.Abs(_cachedYVel) / myStats.MaxYSpeed;
+            targetYStretch = baseBodyScale.y + _cachedYSpeedRatio * myStats.MaxYStretch;
 
             float scaleDelta = Mathf.Abs(targetYStretch - currentYScale);
-            float dynamicLerpSpeed = Mathf.Lerp(mainLerpSpeed, maxLerpSpeed, ySpeedRatio + scaleDelta * 2f);
+            float dynamicLerpSpeed = Mathf.Lerp(mainLerpSpeed, maxLerpSpeed, _cachedYSpeedRatio + scaleDelta * 2f);
             currentYScale = Mathf.Lerp(currentYScale, targetYStretch, dynamicLerpSpeed * Time.deltaTime);
             currentYScale = Mathf.Max(currentYScale, baseBodyScale.y * 0.8f);
         }
@@ -326,70 +381,64 @@ public class Player : Base_Entity
             currentYScale = Mathf.Lerp(currentYScale, targetYStretch, 2f * Time.deltaTime);
         }
 
-        Vector3 bodyScale = MyBody.transform.localScale;
-        bodyScale.x = Mathf.Sign(bodyScale.x) * Mathf.Abs(baseBodyScale.x);
-        bodyScale.y = currentYScale; // 动态修改Y轴缩放
-        MyBody.transform.localScale = bodyScale;
+        // 优化：缓存缩放向量，减少临时Vector3创建（GC减少）
+        _cachedBodyScale = MyBody.transform.localScale;
+        _cachedBodyScale.x = Mathf.Sign(_cachedBodyScale.x) * Mathf.Abs(baseBodyScale.x);
+        _cachedBodyScale.y = currentYScale;
+        MyBody.transform.localScale = _cachedBodyScale;
     }
     #endregion
 
-    #region 枪械管理
-    private int ViewTaskID = -1;//当前视野提升任务ID
-    private float ChangeSpeed_View = 4;//视野变化速度
+    #region 枪械管理（优化：缓存复用+逻辑冗余）
     private void OnGunChanged(BaseGun oldGun, BaseGun newGun)
     {
         if (!isClient || playerHandPos == null)
             return;
 
+        // 保留原逻辑
         if (oldGun != null)
         {
-            oldGun.transform.SetParent(null); // 仅解挂载
+            oldGun.transform.SetParent(null);
             EventCenter.Instance.TriggerEvent(E_EventType.E_playerLoseGun, this);
-            //解除2d渲染控制
             mySortingLayerControl.RemoveSpriteRendererFromManager(oldGun.GetComponent<SpriteRenderer>());
         }
 
         if (newGun != null)
         {
-            // 客户端：强制枪械X缩放为负
             Vector3 gunScale = newGun.transform.localScale;
             gunScale.x = -Mathf.Abs(gunScale.x);
             newGun.transform.localScale = gunScale;
 
-            newGun.transform.SetParent(playerHandPos); // 仅挂载
-            gunScale.x = -Mathf.Abs(gunScale.x);
-            newGun.transform.localScale = gunScale;
+            newGun.transform.SetParent(playerHandPos);
             newGun.transform.localPosition = Vector3.zero;
             newGun.transform.localRotation = Quaternion.identity;
             EventCenter.Instance.TriggerEvent(E_EventType.E_playerGetGun, this);
-            //将枪械设置到2d图片渲染器管理上面
             mySortingLayerControl.AddSpriteRendererInManager(newGun.GetComponent<SpriteRenderer>());
         }
 
         if (!isLocalPlayer)
             return;
 
-        // 对视野进行设置
+        // 优化：复用缓存的UI面板，避免反复GetPanel（缓存复用）
         if (newGun != null)
         {
-            UImanager.Instance.ShowPanel<PlayerPanel>().ShowGunBackGround();//设置UI
+            _playerPanel?.ShowGunBackGround();
             Debug.Log($"[本地客户端] 玩家{gameObject.name}持有新枪械，调整视野");
             if (ViewTaskID != -1)
             {
-                MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
+                _myCameraControl?.ResetZoomTask(ViewTaskID);
                 ViewTaskID = -1;
             }
-            float zoomPercent = 1 + newGun.gunInfo.ViewRange;//负数会自动缩放，正数会放大
-            ViewTaskID = MyCameraControl.Instance.AddZoomTask_ByPercent_TemporaryManual(zoomPercent, ChangeSpeed_View);
+            float zoomPercent = 1 + newGun.gunInfo.ViewRange;
+            ViewTaskID = _myCameraControl?.AddZoomTask_ByPercent_TemporaryManual(zoomPercent, ChangeSpeed_View) ?? -1;
             Debug.Log($"[本地客户端] 枪械缩放任务ID：{ViewTaskID}，百分比：{zoomPercent}");
         }
         else
         {
-            UImanager.Instance.ShowPanel<PlayerPanel>().HideGunBackGround();//关闭UI显示
-            //没有枪械了，视野恢复默认
+            _playerPanel?.HideGunBackGround();
             if (ViewTaskID != -1)
             {
-                MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
+                _myCameraControl?.ResetZoomTask(ViewTaskID);
                 ViewTaskID = -1;
             }
         }
@@ -397,9 +446,7 @@ public class Player : Base_Entity
 
     public void PickUpSceneGun()
     {
-        if (!isLocalPlayer)
-            return;
-        if (CurrentTouchGun == null)
+        if (!isLocalPlayer || CurrentTouchGun == null)
             return;
 
         CurrentTouchGun.transform.SetParent(playerHandPos);
@@ -421,7 +468,7 @@ public class Player : Base_Entity
             return;
         if (!NetworkServer.spawned.TryGetValue(gunNetId, out NetworkIdentity gunNetIdentity))
             return;
-        //把当前的权限转移给这个玩家
+
         gunNetIdentity.RemoveClientAuthority();
         gunNetIdentity.AssignClientAuthority(connectionToClient);
 
@@ -443,26 +490,24 @@ public class Player : Base_Entity
 
     public void SpawnAndPickGun(string gunName)
     {
-        if (!isLocalPlayer)
-            return;
-        if (MilitaryManager.Instance == null)
+        if (!isLocalPlayer || _militaryManager == null)
             return;
 
         LocalPlayer.CmdSpawnAndPickGun(gunName);
-        CountDownManager.Instance.CreateTimer(false, 500, () => {
-            if(currentGun!=null)
-               currentGun.TriggerReload();
-            //这时候触发战术设备的出现
-            PlayerAndGameInfoManger.Instance.ShowTactic();//显示战术设备
+        // 优化：缓存单例，避免反复Instance调用（缓存复用）
+        _countDownManager?.CreateTimer(false, 500, () => {
+            if (currentGun != null)
+                currentGun.TriggerReload();
+            PlayerAndGameInfoManger.Instance.ShowTactic();
         });
     }
 
     [Command]
     private void CmdSpawnAndPickGun(string gunName)
     {
-        if (!isServer || MilitaryManager.Instance == null) return;
+        if (!isServer || _militaryManager == null) return;
 
-        GameObject gunPrefab = MilitaryManager.Instance.GetGun(gunName);
+        GameObject gunPrefab = _militaryManager.GetGun(gunName);
         if (gunPrefab == null) return;
 
         GameObject gunObj = Instantiate(gunPrefab);
@@ -485,15 +530,13 @@ public class Player : Base_Entity
 
         if (currentGun != null)
         {
-            ServerHandleDropGun(currentGun.gameObject,false);
+            ServerHandleDropGun(currentGun.gameObject, false);
         }
 
-        // 服务器：强制枪械X缩放为负
         Vector3 gunScale = gunObj.transform.localScale;
         gunScale.x = -Mathf.Abs(gunScale.x);
         gunObj.transform.localScale = gunScale;
 
-        // 再处理父对象、位置、旋转
         gunObj.transform.SetParent(playerHandPos);
         gunObj.transform.localPosition = Vector3.zero;
         gunObj.transform.localRotation = Quaternion.identity;
@@ -505,26 +548,24 @@ public class Player : Base_Entity
         newGun.SafeServerOnGunPicked();
     }
 
-    public void DropCurrentGun(bool  IsDestroy=false)
+    public void DropCurrentGun(bool IsDestroy = false)
     {
         if (!isLocalPlayer || currentGun == null)
             return;
         LocalPlayer.CmdDropCurrentGun(IsDestroy);
-
     }
 
     [Command]
     private void CmdDropCurrentGun(bool IsDestroy)
     {
-        if (!isServer || currentGun == null) 
+        if (!isServer || currentGun == null)
             return;
         ServerHandleDropGun(currentGun.gameObject, IsDestroy);
         currentGun = null;
     }
 
-    // 原private改为public，添加[Server]特性限定仅服务器执行
     [Server]
-    public void ServerHandleDropGun(GameObject gunObj,bool IsDestroy)
+    public void ServerHandleDropGun(GameObject gunObj, bool IsDestroy)
     {
         if (!isServer || gunObj == null)
             return;
@@ -545,11 +586,10 @@ public class Player : Base_Entity
 
         RpcResetGunTransform(gunNetId?.netId ?? 0, gunObj.transform.position, gunObj.transform.eulerAngles.z);
         gunObj.GetComponent<BaseGun>().SafeServerOnGunDropped();
-        gunNetId.RemoveClientAuthority();//移除权限
-        if(IsDestroy)
+        gunNetId.RemoveClientAuthority();
+        if (IsDestroy)
             NetworkServer.Destroy(gunObj);
     }
-
 
     [ClientRpc]
     private void RpcResetGunTransform(uint gunNetId, Vector3 worldPos, float rotZ)
@@ -558,13 +598,12 @@ public class Player : Base_Entity
             return;
 
         GameObject gunObj = gunNetIdentity.gameObject;
-        // 直接设置位置，无插值
         gunObj.transform.position = worldPos;
         gunObj.transform.rotation = Quaternion.Euler(0, 0, rotZ);
     }
     #endregion
 
-    #region 辅助方法
+    #region 辅助方法（优化：逻辑冗余+缓存复用）
     public override void DestroyMe(float time = 0)
     {
         if (isServer)
@@ -577,7 +616,6 @@ public class Player : Base_Entity
     {
         NetworkServer.Destroy(gameObject);
     }
-    #endregion
 
     public string GetDisplayName()
     {
@@ -587,11 +625,21 @@ public class Player : Base_Entity
         }
         if (isServer)
         {
-            return $"玩家{connectionToClient?.connectionId ?? -1}";
+            // 优化：StringBuilder拼接字符串，减少GC（GC减少）
+            _sb.Clear();
+            _sb.Append("玩家").Append(connectionToClient?.connectionId ?? -1);
+            return _sb.ToString();
         }
         else
         {
-            return UOSRelaySimple.Instance.playerName ?? $"玩家{Random.Range(1000, 9999)}";
+            string localName = UOSRelaySimple.Instance?.playerName;
+            if (string.IsNullOrEmpty(localName))
+            {
+                _sb.Clear();
+                _sb.Append("玩家").Append(Random.Range(1000, 9999));
+                localName = _sb.ToString();
+            }
+            return localName;
         }
     }
 
@@ -604,31 +652,47 @@ public class Player : Base_Entity
     [Command]
     private void CmdTellServerToRefreshTeam()
     {
-        // 服务器逻辑：直接让管理器刷新
-        if (PlayerRespawnManager.Instance != null)
-        {
-            PlayerRespawnManager.Instance.ServerUpdateTeamInfo();
-        }
+        // 优化：缓存单例，避免反复Instance调用（缓存复用）
+        _playerRespawnManager?.ServerUpdateTeamInfo();
     }
-
-    #region 调用游戏开始
 
     [Command]
     public void CmdRequestStartGame()
     {
-        if (PlayerRespawnManager.Instance != null)
+        // 优化：缓存单例，避免反复Instance调用（缓存复用）
+        if (_playerRespawnManager != null)
         {
-            var playerRespawnManager = PlayerRespawnManager.Instance;
-            playerRespawnManager.NoticePlayerGameStart();
-            //初始化游戏数据
-            playerRespawnManager.InitGameData();//初始化游戏数据记录队伍
+            _playerRespawnManager.NoticePlayerGameStart();
+            _playerRespawnManager.InitGameData();
         }
     }
-
-    #endregion
 
     public void Transmit(Vector3 Pos)
     {
         Player.LocalPlayer.transform.position = Pos;
     }
+    #endregion
+
+    #region 销毁清理（优化：GC减少+逻辑冗余）
+    protected  void OnDestroy()
+    {
+
+        if (ArmorSprite != null) ArmorSprite.DOKill();
+
+        CancelInvoke();
+
+        // 优化3：清空缓存，避免内存泄漏（GC减少）
+        _uiManager = null;
+        _myCameraControl = null;
+        _militaryManager = null;
+        _playerRespawnManager = null;
+        _countDownManager = null;
+        _globalPictureFlipManager = null;
+        _playerPanel = null;
+        _playerPreparaPanel = null;
+        _gameScorePanel = null;
+        _sb = null;
+    }
+    #endregion
 }
+

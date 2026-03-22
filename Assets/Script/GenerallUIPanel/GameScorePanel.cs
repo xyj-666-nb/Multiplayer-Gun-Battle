@@ -39,6 +39,7 @@ public class GameScorePanel : BasePanel
     //更新当前的面板
     public void UpdateScoreInfo( )
     {
+        teamSprite.sprite = Player.LocalPlayer.CurrentTeam == Team.Red ? PlayerAndGameInfoManger.Instance.RedTeamSprite : PlayerAndGameInfoManger.Instance.BlueTeamSprite;
         RedScoreText.text = PlayerRespawnManager.Instance.RedTeamScoreCount.ToString();
         BlueScoreText.text = PlayerRespawnManager.Instance.BlueTeamScoreCount.ToString();
     }
