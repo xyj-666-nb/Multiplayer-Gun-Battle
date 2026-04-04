@@ -4,7 +4,7 @@ using Mirror;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Android;
-//using TapSDK.Login.Internal;
+using TapSDK.Login.Internal;
 
 public class Main : SingleMonoAutoBehavior<Main>
 {
