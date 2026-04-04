@@ -48,16 +48,20 @@ public class GameSettlementPanel : BasePanel
     public override void Awake()
     {
         base.Awake();
-        //获取胜利的一方
-        if (WinTeam == Team.Red)
-            WinText.text = "红方胜利";
-        else
-            WinText.text = "蓝方胜利";
+        if (PlayerRespawnManager.Instance != null)
+        {
+            //获取胜利的一方
+            if (WinTeam == Team.Red)
+                WinText.text = "红方胜利";
+            else
+                WinText.text = "蓝方胜利";
 
-        //获取一下当前的比分
-        RedScore.text = PlayerRespawnManager.Instance.RedTeamScoreCount.ToString();
-        BlueScore.text= PlayerRespawnManager.Instance.BluePlayerCount.ToString();
+            //获取一下当前的比分
+            RedScore.text = PlayerRespawnManager.Instance.RedTeamScoreCount.ToString();
+            BlueScore.text = PlayerRespawnManager.Instance.BlueTeamScoreCount.ToString();
+        }
     }
+
     public override void Start()
     {
         base.Start();
@@ -75,17 +79,27 @@ public class GameSettlementPanel : BasePanel
     #endregion
 
     #region UI控件
-
     public override void ClickButton(string controlName)
     {
         base.ClickButton(controlName);
-        if(controlName== "ExitButton")
+        if (controlName == "ExitButton")
         {
             Debug.Log("房间退出");
-            //点击退出,如果是房主就关闭房间，如果是客户端就断开链接
-            //返回创建界面
-            PlayerRespawnManager.Instance.CleanupAndExitGame();
-            UImanager.Instance.HidePanel<GameSettlementPanel>();
+
+            AllMapManager.Instance?.TriggerMap(MapType.StartCG, true);
+            ModeChooseSystem.instance?.EnterSystem_Quick();
+
+            UImanager.Instance?.HidePanel<GameSettlementPanel>();
+            UImanager.Instance.ShowPanel<GameStartPanel>();
+
+            if (PlayerRespawnManager.Instance != null)
+            {
+                PlayerRespawnManager.Instance.CleanupAndExitGame();
+            }
+            else
+            {
+                Debug.LogWarning("PlayerRespawnManager 已不存在，执行强制UI清理");
+            }
         }
     }
     #endregion

@@ -25,7 +25,7 @@ public class MyPlayerInput : NetworkBehaviour
     #endregion
 
     #region 视野缩放相关
-    private int ViewTaskID;//视野缩放任务ID
+    private int ViewTaskID=-1;//视野缩放任务ID
     private float ChangeSpeed_View = 4;//缩放视野的速度
     #endregion
 
@@ -44,6 +44,12 @@ public class MyPlayerInput : NetworkBehaviour
         this.Myplayer = player;
         this.MyStats = stats;
         TriggerBinding();
+        // 仅本地玩家监听事件
+        if (isLocalPlayer)
+        {
+            Myplayer.OnGroundStateChanged -= OnGroundStateChangedHandler;
+            Myplayer.OnGroundStateChanged += OnGroundStateChangedHandler;
+        }
     }
 
     public void TriggerBinding()
@@ -57,8 +63,8 @@ public class MyPlayerInput : NetworkBehaviour
         if (Myplayer.isLocalPlayer)
         {
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.Jump, Jump_Start, null, Jump_End, Jump_Continue);
-            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.RightMove, null, null, null, Move_Right_Continue);
-            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.LeftMove, null, null, null, Move_Left_Continue);
+            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.RightMove, null, null, Move_End, Move_Right_Continue);
+            InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.LeftMove, null, null, Move_End, Move_Left_Continue);
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.Attack, Shoot_Start, null, null, Shoot_Continue);
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.Reload, Reload_start, null, null);
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.PickUpGun, PickUpGnn_Start, null, null);
@@ -107,6 +113,15 @@ public class MyPlayerInput : NetworkBehaviour
     #endregion
 
     #region 跳跃逻辑
+
+    // 事件处理器，只有状态变化时才执行
+    private void OnGroundStateChangedHandler(bool isGrounded)
+    {
+        if (isGrounded)
+        {
+            CmdPlaySound("Music/正式/落地");
+        }
+    }
     public void Jump_Start(InputAction.CallbackContext Content)
     {
         // 第一步：通用校验
@@ -127,6 +142,7 @@ public class MyPlayerInput : NetworkBehaviour
                 Myplayer.MyRigdboby.AddForce(new Vector2(0, jumpPower), ForceMode2D.Impulse);
 
             IsCanJump = false;
+            CmdPlaySound("Music/正式/起跳");
             return; // 地面跳触发后，直接结束，不执行墙跳逻辑
         }
 
@@ -152,9 +168,11 @@ public class MyPlayerInput : NetworkBehaviour
             Myplayer.FacingDir = targetFacingDir;     
             Myplayer.ApplyFlipVisual(targetFacingDir); 
             Myplayer.CmdRequestFlip(targetFacingDir);
+            CmdPlaySound("Music/正式/起跳");
         }
 
         CountDownManager.Instance.CreateTimer(false, 50, () => { IsJumpCheck = true; });//0.2秒后才开启检测
+        //播放跳跃音效
     }
 
     /// <summary>
@@ -208,6 +226,7 @@ public class MyPlayerInput : NetworkBehaviour
             // 落地后立即恢复水平移动
             IsCanHorizontalMove = true;
             CancelInvoke(nameof(ResetHorizontalMove));
+            //播放落地音效
             return;
         }
     }
@@ -219,16 +238,14 @@ public class MyPlayerInput : NetworkBehaviour
     /// </summary>
     /// <param name="moveDirection">移动方向：-1=左，1=右</param>
     /// <param name="targetFacingDir">目标朝向：-1=左，1=右</param>
-    /// <summary>
-    /// 通用移动逻辑处理
-    /// </summary>
     private void HandleMoveLogic(float moveDirection, int targetFacingDir)
     {
         if (!CheckCommonTriggerCondition())
             return;
         if (!IsCanHorizontalMove)
             return;
-
+        //在这里也设置一下表情的朝向
+        Myplayer.MyExpressionSystem.SetParentRectDir(targetFacingDir);
         float dynamicMaxSpeed = Myplayer.MyHandControl != null && Myplayer.MyHandControl.IsEnterAim
             ? MyStats.AimMoveMaxSpeed : MyStats.MaxXSpeed;
 
@@ -242,15 +259,108 @@ public class MyPlayerInput : NetworkBehaviour
 
         Myplayer.MyRigdboby.velocity = new Vector2(smoothedVelocityX, Myplayer.MyRigdboby.velocity.y);
 
+        // 只有实际有水平移动，才开启脚步协程
+        bool isActuallyMoving = Mathf.Abs(Myplayer.MyRigdboby.velocity.x) > 0.1f;
+        if (isActuallyMoving && !IsInMove)
+        {
+            IsInMove = true;
+            // 安全开启协程：先停旧的，再开新的，绝对避免重复开启
+            if (SoundMoveCoroutine != null)
+            {
+                StopCoroutine(SoundMoveCoroutine);
+                SoundMoveCoroutine = null;
+            }
+            SoundMoveCoroutine = StartCoroutine(playerMoveMusic());
+        }
+        //没实际移动时，直接结束脚步状态
+        else if (!isActuallyMoving && IsInMove)
+        {
+            Move_End(default);
+        }
+
         if (Myplayer.FacingDir != targetFacingDir)
         {
             // 本地立刻强行表现翻转，不依赖服务器回传
             Myplayer.FacingDir = targetFacingDir;
             Myplayer.ApplyFlipVisual(targetFacingDir);
-
- 
             Myplayer.CmdRequestFlip(targetFacingDir);
         }
+    }
+
+    //移动协程
+    private Coroutine SoundMoveCoroutine;
+    private bool IsInMove = false;
+    [Header("脚步基础配置")]
+    public float BaseStepInterval = 0.6f; // 满速下的脚步基础间隔（秒）
+    public float MinStepInterval = 0.3f;  // 最快脚步间隔
+    public float MaxStepInterval = 1.2f;  // 最慢脚步间隔
+    private float MoveSoundTimer = 0f;
+
+    private string SoundPath_Move = "Music/正式/脚步";
+    private int SoundId = 1;
+    private int currentStepSoundIndex = 1; // 脚步轮换索引
+
+    IEnumerator playerMoveMusic()
+    {
+        // 每次开启协程，重置计时器和索引，避免残留值
+        MoveSoundTimer = 0f;
+        currentStepSoundIndex = 1;
+
+        while (IsInMove)
+        {
+            // 只有在地面+实际有水平移动，才累加计时器
+            bool isGrounded = Myplayer.IsGroundDetected();
+            bool isMoving = Mathf.Abs(Myplayer.MyRigdboby.velocity.x) > 0.1f;
+
+            if (isGrounded && isMoving)
+            {
+                // 动态计算脚步间隔，匹配当前移速
+                float currentMoveSpeed = Mathf.Abs(Myplayer.MyRigdboby.velocity.x);
+                float maxSpeed = MyStats.MaxXSpeed;
+                // 移速越快，间隔越短；移速越慢，间隔越长
+                float dynamicInterval = BaseStepInterval * (maxSpeed / Mathf.Max(currentMoveSpeed, 0.1f));
+                // 限制间隔上下限，防止极端情况
+                dynamicInterval = Mathf.Clamp(dynamicInterval, MinStepInterval, MaxStepInterval);
+
+                MoveSoundTimer += Time.deltaTime;
+                if (MoveSoundTimer >= dynamicInterval)
+                {
+                    // 1→2→3循环轮换播放
+                    SoundId = currentStepSoundIndex;
+                    currentStepSoundIndex++;
+                    if (currentStepSoundIndex > 3)
+                    {
+                        currentStepSoundIndex = 1;
+                    }
+
+                    CmdPlaySound(SoundPath_Move + SoundId);
+                    MoveSoundTimer = 0f; // 重置计时器
+                }
+            }
+            else
+            {
+                // 空中/没移动时，暂停计时器，不做累加
+                MoveSoundTimer = 0f;
+            }
+
+            // 每帧等待，保证协程正常执行
+            yield return null;
+        }
+    }
+
+    public void Move_End(InputAction.CallbackContext Content)
+    {
+        IsInMove = false;
+
+        // 安全停止协程，彻底清理状态
+        if (SoundMoveCoroutine != null)
+        {
+            StopCoroutine(SoundMoveCoroutine);
+            SoundMoveCoroutine = null;
+        }
+        // 重置计时器和索引，下次移动从零开始
+        MoveSoundTimer = 0f;
+        currentStepSoundIndex = 1;
     }
 
     // 左移
@@ -258,7 +368,7 @@ public class MyPlayerInput : NetworkBehaviour
     {
         if (!GlobalPictureFlipManager.Instance.IsFlipped)
             HandleMoveLogic(-1, -1); // 左移：方向=-1，目标朝向=-1
-       else
+        else
             HandleMoveLogic(1, 1);
     }
 
@@ -270,6 +380,21 @@ public class MyPlayerInput : NetworkBehaviour
         else
             HandleMoveLogic(-1, -1);
     }
+    #endregion
+
+    #region 全局音效播放3D
+    [Command]
+    public void CmdPlaySound(string SoundPath)
+    {
+        RpcPlaySound(SoundPath);
+    }
+
+    [ClientRpc]
+    void RpcPlaySound(string SoundPath)
+    {
+        MusicManager.Instance.PlayEffect3D(SoundPath, 20f, owner: this.transform);//默认两倍
+    }
+
     #endregion
 
     #region 射击相关
@@ -324,9 +449,20 @@ public class MyPlayerInput : NetworkBehaviour
         if (Myplayer.currentGun == null || Myplayer.MyHandControl.IsHolsterGun)
             return;
 
+
         //判断当前换弹条件
         if (Myplayer.currentGun.IsCanReload())
+        {
+            //如果正在处于瞄准状态，先退出瞄准状态
+            if (IsEnterAim)
+            {
+                AimState_Exit();
+                IsEnterAim = false;
+            }
             Myplayer.currentGun.TriggerReload();//调用换弹
+            //通知UI开始显示
+            UImanager.Instance.GetPanel<PlayerPanel>()?.EnterReloadPrompt(Myplayer.currentGun.gunInfo.ReloadTime);//传入换弹时间
+        }
     }
     #endregion
 
@@ -355,10 +491,16 @@ public class MyPlayerInput : NetworkBehaviour
             return;
 
         Debug.Log("正在判断丢弃条件");
-        if (Myplayer.currentGun != null && !Myplayer.currentGun.IsInReload && !Myplayer.currentGun.IsInShoot)
+        if (Myplayer != null
+      && Myplayer.currentGun != null
+      && !Myplayer.currentGun.IsInReload
+      && !Myplayer.currentGun.IsInShoot)
         {
             //触发丢弃
             Myplayer.DropCurrentGun();//丢弃当前的枪械
+        }
+        else
+        {
         }
     }
     #endregion
@@ -381,6 +523,8 @@ public class MyPlayerInput : NetworkBehaviour
 
         IsEnterAim = true;
         AimState_Enter();
+        //播放瞄准音效
+        MusicManager.Instance.PlayEffect("Music/正式/瞄准");
         return true;
     }
 
@@ -418,7 +562,7 @@ public class MyPlayerInput : NetworkBehaviour
         Myplayer.MyHandControl.SetAimState(true);
         //缩放视野
         MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
-        ViewTaskID = MyCameraControl.Instance.AddZoomTask_ByPercent_TemporaryManual(1 + Myplayer.myStats.AimViewBonus, ChangeSpeed_View);//通过数据进行缩放
+        ViewTaskID = MyCameraControl.Instance.AddZoomTask_ByPercent_TemporaryManual(1 + Myplayer.myStats.AimViewBonus, ChangeSpeed_View, Player.LocalPlayer.CameraSizeBaseValue);//对记录的基础摄像机大小进行缩放
     }
 
 
@@ -447,6 +591,7 @@ public class MyPlayerInput : NetworkBehaviour
         Myplayer.MyHandControl.SetAimState(false);
         //停止任务
         MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
+        CmdPlaySound("Music/正式/瞄准");
     }
 
     private void GunAim_End(InputAction.CallbackContext Content)
@@ -458,7 +603,7 @@ public class MyPlayerInput : NetworkBehaviour
     #region 交互逻辑
     public void Interact_Start(InputAction.CallbackContext Content)
     {
-        // 第一步：通用校验（保持和其他输入逻辑一致的校验规则）
+        // 第一步：通用校验
         if (!CheckCommonTriggerCondition())
             return;
 
@@ -469,6 +614,26 @@ public class MyPlayerInput : NetworkBehaviour
         IsInteractButtonTrigger = true;
         //开启计时器
         SimpleAnimatorTool.Instance.StartFloatLerp(1,0, InteractCoolTime, (v) => {
+            UImanager.Instance.GetPanel<PlayerPanel>()?.UpdateInteractButtonCool(v);//进行UI更新  
+        }, () => { IsInCooldown = false; });
+
+        StartCoroutine(ResetInteractTriggerAfterOneFrame());
+    }
+
+    //提供给外部的触发按钮
+    public void ExtraInteractTrigger()
+    {
+        // 第一步：通用校验
+        if (!CheckCommonTriggerCondition())
+            return;
+
+        if (IsInCooldown)
+            return;
+
+        IsInCooldown = true;
+        IsInteractButtonTrigger = true;
+        //开启计时器
+        SimpleAnimatorTool.Instance.StartFloatLerp(1, 0, InteractCoolTime, (v) => {
             UImanager.Instance.GetPanel<PlayerPanel>()?.UpdateInteractButtonCool(v);//进行UI更新  
         }, () => { IsInCooldown = false; });
 
@@ -499,4 +664,37 @@ public class MyPlayerInput : NetworkBehaviour
     {
         CancelInvoke(nameof(ResetHorizontalMove));
     }
+
+    #region 移动端拉杆专用接口
+    /// <summary>
+    /// 移动端拉杆直接调用的移动接口
+    /// </summary>
+    /// <param name="direction">移动方向：-1=左，0=停止，1=右</param>
+    public void SetMoveDirection(int direction)
+    {
+        // 停止移动：直接调用原有结束逻辑
+        if (direction == 0)
+        {
+            Move_End(default);
+            return;
+        }
+
+        // 完全复用你原有左右移动的翻转逻辑
+        if (!GlobalPictureFlipManager.Instance.IsFlipped)
+        {
+            if (direction == 1)
+                HandleMoveLogic(1, 1); // 右移
+            else if (direction == -1)
+                HandleMoveLogic(-1, -1); // 左移
+        }
+        else
+        {
+            // 画面翻转时，方向反转，和你原有逻辑完全一致
+            if (direction == 1)
+                HandleMoveLogic(-1, -1);
+            else if (direction == -1)
+                HandleMoveLogic(1, 1);
+        }
+    }
+    #endregion
 }

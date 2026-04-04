@@ -6,7 +6,6 @@ using UnityEngine.UI;
 public class SettingPanel : BasePanel
 {
     #region 面板控件字段
-    public TextMeshProUGUI CurrentTopic;
     public RectTransform PanelParentObj;
 
     private TypingWritingTask _currentTypingWritingTask;
@@ -67,7 +66,6 @@ public class SettingPanel : BasePanel
     #region 按钮选中/取消事件
     public void ChooseButton_ChangeKey()
     {
-        _currentTypingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask("操作设置", CurrentTopic);
         if (PanelParentObj != null )
         {
             var changeKeyPanel = UImanager.Instance.ShowPanel<MoveSettingPanel>();
@@ -104,7 +102,6 @@ public class SettingPanel : BasePanel
 
     public void ChooseButton_MusicSetting()
     {
-        _currentTypingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask("音乐设置", CurrentTopic);
         if (PanelParentObj != null )
         {
             var musicPanel = UImanager.Instance.ShowPanel<MusicPanel>();
@@ -140,8 +137,6 @@ public class SettingPanel : BasePanel
             _currentTypingWritingTask.StopTyping();
             _currentTypingWritingTask = null;
         }
-        _currentTypingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask("画面设置", CurrentTopic);
-
         var musicPanel = UImanager.Instance.ShowPanel<ScreenSettingPanel>();
         if (musicPanel != null)
         {
@@ -179,7 +174,6 @@ public class SettingPanel : BasePanel
             _currentTypingWritingTask.StopTyping();
             _currentTypingWritingTask = null;
         }
-        _currentTypingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask("语言设置", CurrentTopic);
         var musicPanel = UImanager.Instance.ShowPanel<LanguePanel>();
         if (musicPanel != null)
         {

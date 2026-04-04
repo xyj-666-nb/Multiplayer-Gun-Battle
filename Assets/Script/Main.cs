@@ -4,6 +4,7 @@ using Mirror;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Android;
+//using TapSDK.Login.Internal;
 
 public class Main : SingleMonoAutoBehavior<Main>
 {
@@ -15,11 +16,24 @@ public class Main : SingleMonoAutoBehavior<Main>
     public NetworkMode CurrentMode;
  
     public Team CurrentTeam;//当前的队伍
-    public PlayableDirector StartTimeLine;
     public GameStartCG CG;
     public CinemachineBrain brain;
     public CinemachineVirtualCamera AnimaVC;//动画虚拟相机
+    [Header("CG开场动画")]
+    public PlayableDirector StartTimeLine;
+    public GameObject SkipCanvasGroup;//跳过Canvas
 
+    [Header("是否启用TapTap服务")]
+    public bool IsUseTapTapServer = true;
+
+    public bool IsInSingleMode = false;//是否处于单人模式
+
+    public void StartCG()
+    {
+        StartTimeLine.Play();
+        SkipCanvasGroup.gameObject.SetActive(true);//激活
+        CG.TriggerGameCG();
+    }
     public void SwitchToAnimaVCFast()
     {
         if (AnimaVC == null) 
@@ -54,8 +68,10 @@ public class Main : SingleMonoAutoBehavior<Main>
 
         Debug.Log("[Main] 已监听CustomNetworkManager事件，服务端启动时将自动生成重生管理器");
         AllMapManager.Instance.TriggerMap(MapType.StartCG, true);
-        
-
+        if(IsUseTapTapServer)
+            UImanager.Instance.ShowPanel<TapTapLoginPanel>();
+        else
+            Main.Instance.StartCG();//开始游戏CG
 
 #if UNITY_ANDROID && !UNITY_EDITOR
         try
@@ -155,7 +171,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         // Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械98K", () => { Player.LocalPlayer.SpawnAndPickGun("98K"); }, "枪械获取");
         // Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械AUG", () => { Player.LocalPlayer.SpawnAndPickGun("AUG"); }, "枪械获取");
         // Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械M249", () => { Player.LocalPlayer.SpawnAndPickGun("M249"); }, "枪械获取");
-       // Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械M762", () => { Player.LocalPlayer.SpawnAndPickGun("M762"); }, "枪械获取");
+        // Developer_GUITestManger.Instance.RegisterGuiButton("给玩家分配枪械M762", () => { Player.LocalPlayer.SpawnAndPickGun("M762"); }, "枪械获取");
         // // 面板测试按钮
         // Developer_GUITestManger.Instance.RegisterGuiButton("打开军械库面板", () => { UImanager.Instance.ShowPanel<ArmamentPanel>(); }, "面板测试");
         // Developer_GUITestManger.Instance.RegisterGuiButton("打开设置面板", () => { UImanager.Instance.ShowPanel<SettingPanel>(); }, "面板测试");
@@ -184,19 +200,31 @@ public class Main : SingleMonoAutoBehavior<Main>
         // Developer_GUITestManger.Instance.RegisterGuiButton_TwoWay("收起枪械", "拿起枪械", () => { Player.LocalPlayer.MyHandControl.SetHolsterState(true); }, () => { Player.LocalPlayer.MyHandControl.SetHolsterState(false); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("清理烟雾", () => { FluidController.Instance.ClearTexture(); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("保存数据", () => { PlayerAndGameInfoManger.Instance.SavePlayerData(); });
-        // Developer_GUITestManger.Instance.RegisterGuiButton("进入地图选择", () => { MapChooseWall.Instance.EnterMapChooseSystem(); });
-        // Developer_GUITestManger.Instance.RegisterGuiButton("退出地图选择", () => { MapChooseWall.Instance.ExitMapChooseSystem(); });
+         Developer_GUITestManger.Instance.RegisterGuiButton("进入地图选择", () => { MapChooseWall.Instance.EnterMapChooseSystem(); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("触发护盾", () => { Player.LocalPlayer.TriggerShield(); });
+         Developer_GUITestManger.Instance.RegisterGuiButton("靶子音效", () => {         MusicManager.Instance.PlayEffect3D("Music/正式/交互/击中靶子1", 10f, owner: this.transform); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("进入飞机视角", () => { MapChooseWall.Instance.EnterVC(); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("测试地图2视角", () => { MapChooseWall.Instance.TestScene2(); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("播放第一个动画", () => { CG.PlayAnima1(); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("播放第二个动画", () => { CG.PlayAnima2(); });
         //// Developer_GUITestManger.Instance.RegisterGuiButton("翻转画面", () => { CameraFlipper.Instance.ToggleFlip(); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("播放场景二动画", () => { Map2StartAnimaCG.Instance.TimeLine.Play(); SwitchToAnimaVCFast();UImanager.Instance.GetPanel<PlayerPanel>().SimpleHidePanel(); });
-       //Developer_GUITestManger.Instance.RegisterGuiButton("训练场", () => { AllMapManager.Instance.TriggerMap(MapType.Training, true); });
-       // Developer_GUITestManger.Instance.RegisterGuiButton("地图1", () => { AllMapManager.Instance.TriggerMap(MapType.map1, true); });
-       // Developer_GUITestManger.Instance.RegisterGuiButton("地图2", () => { AllMapManager.Instance.TriggerMap(MapType.map2, true); });
-       // Developer_GUITestManger.Instance.RegisterGuiButton("恢复", () => { ScreenPulseController.Instance.StartPulse(); });
+        //Developer_GUITestManger.Instance.RegisterGuiButton("训练场", () => { AllMapManager.Instance.TriggerMap(MapType.Training, true); });
+        // Developer_GUITestManger.Instance.RegisterGuiButton("地图1", () => { AllMapManager.Instance.TriggerMap(MapType.map1, true); });
+        // Developer_GUITestManger.Instance.RegisterGuiButton("地图2", () => { AllMapManager.Instance.TriggerMap(MapType.map2, true); });
+        //  Developer_GUITestManger.Instance.RegisterGuiButton("恢复", () => { ScreenPulseController.Instance.Trigger_Heal(); });
+        // Developer_GUITestManger.Instance.RegisterGuiButton("受伤", () => { ScreenPulseController.Instance.Trigger_Wound(); });
         //Developer_GUITestManger.Instance.RegisterGuiButton("丢弃头盔", () => { Player.LocalPlayer.myStats.MyHelmet.TriggerHelmetDrop(); });
+
+        //   Developer_GUITestManger.Instance.RegisterGuiButton("进行登录", () => { TapTapGameLogin.Instance.OnTapLoginClick(); });
+
+           Developer_GUITestManger.Instance.RegisterGuiButton("购买测试商品1", () => { GoodDataManager.Instance.PurchaseGoodToUser(GoodDataManager.Instance.AllGoodsDataList[0]); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("购买测试商品2", () => { GoodDataManager.Instance.PurchaseGoodToUser(GoodDataManager.Instance.AllGoodsDataList[1]); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("置换子弹(紫色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.Bullet, 5); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("置换子弹(默认黄色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.Bullet, 4); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("置换枪口火光(紫色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.MuzzleFlash, 5); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("置换枪口火光(默认黄色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.MuzzleFlash, 4); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("获取所有表情资源", () => { ExpressionSystem.Instance.obtainAllExpression(); });
     }
 
     private void Update()

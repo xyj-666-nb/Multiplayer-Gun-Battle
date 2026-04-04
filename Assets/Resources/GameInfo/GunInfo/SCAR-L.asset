@@ -20,22 +20,24 @@ MonoBehaviour:
   Bullet_capacity: 30
   AllBulletAmount: 120
   RateOfFires: 0
-  Accuracy: 60
+  Accuracy: 65
   Damage: 29
   Range: 320
-  ReloadTime: 0
+  ReloadTime: 2.8
   BulletSpeed: 0
   Recoil: 1
-  Recoil_Enemy: 0
+  Recoil_Enemy: 0.8
+  ControlPower: 60
+  MaxPower: 5
   ViewRange: 0.1
   GunBodySprite: {fileID: 1185724895, guid: 8964925aecc2fcb49807af39646724ac, type: 3}
-  ShootAudio: {fileID: 8300000, guid: 708d7c351e3af5f4fadce0c6a716e9d7, type: 3}
-  BulletFill: {fileID: 0}
+  ShootAudio: {fileID: 8300000, guid: d074f8657cdb5dc4a80bb8db2c582b0f, type: 3}
+  BulletFill: {fileID: 8300000, guid: f4f7722094c4f054ebc1004771210a8b, type: 3}
   GunSprite: {fileID: 21300000, guid: 8818fabdefaa66d4c98f53199df273d2, type: 3}
   ShackStrength: 0.65
   ShackTime: 0.2
-  ShackStrength_Enemy: 0
-  ShackTime_Enemy: 0
+  ShackStrength_Enemy: 0.8
+  ShackTime_Enemy: 0.3
   smokeColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.8}
   smokeSizeMin: 0.001
   smokeSizeMax: 0.001

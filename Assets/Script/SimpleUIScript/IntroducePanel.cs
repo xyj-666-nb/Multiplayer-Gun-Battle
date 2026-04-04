@@ -15,6 +15,13 @@ public class IntroducePanel : MonoBehaviour//介绍面板
         Topic2.text = "";
         Topic3.text = "";
     }
+
+    public void WaitTimeClear()
+    {
+        CountDownManager.Instance.CreateTimer(false, 40000, () => {
+            ReFreshText();
+        });
+    }
    
     //触发文本动画(Timeline调用)
     public void TriggerTextAnima_2()
@@ -30,6 +37,8 @@ public class IntroducePanel : MonoBehaviour//介绍面板
 
         });
 
+        //等待几秒自动清空
+        WaitTimeClear();
     }
     public void TriggerTextAnima_1()
     {
@@ -43,6 +52,7 @@ public class IntroducePanel : MonoBehaviour//介绍面板
             });
 
         });
-
+        //等待几秒自动清空
+        WaitTimeClear();
     }
 }

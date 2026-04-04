@@ -439,7 +439,8 @@ public class RadioButton
         get => _isChoose;
         set
         {
-            if (value == _isChoose) return;
+            if (value == _isChoose) 
+                return;
 
             if (value)
             {
@@ -483,7 +484,6 @@ public class RadioButton
         AddPressEventTrigger(button);
     }
 
-    // 新增：添加EventTrigger监听按下/抬起
     private void AddPressEventTrigger(Button button)
     {
         EventTrigger trigger = button.GetComponent<EventTrigger>();

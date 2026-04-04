@@ -37,6 +37,11 @@ public class GunInfo : ScriptableObject
     public float Recoil;//自身枪械的后座力
     public float Recoil_Enemy;//打到敌人身上的后坐力
 
+    [Header("控制属性")]
+    [Range(0, 100)]
+    public float ControlPower;//控制力（控制力越大，对枪械的控制越容易）
+    public float MaxPower = 2f;//默认最大控制力是2f
+
     [Header("枪械的射击视野(这里是指对视野的百分比的提升，负数就是缩小)")]
     [Range(-2, 2)]
     public float ViewRange;//枪械的射击视野

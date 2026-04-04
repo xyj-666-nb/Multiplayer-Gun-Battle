@@ -3,6 +3,7 @@ using Mirror;
 using UnityEngine;
 using UnityEngine.Playables;
 using System.Text;
+using static Player;
 
 public class Player : Base_Entity
 {
@@ -27,7 +28,38 @@ public class Player : Base_Entity
     public bool IsEnterRoom = false;//是否进入房屋
 
     [Header("当前玩家触碰到的枪械")]
-    public BaseGun CurrentTouchGun;
+    private BaseGun _currentTouchGun;
+
+    [Header("护盾组件")]
+    public ReBornShield reBornShield;
+
+    [Header("表情控制系统")]
+    public playerWorldExpressionSystem MyExpressionSystem;//玩家表情系统
+
+    public void TriggerExpression(int ExpressionID)
+    {
+        MyExpressionSystem.CmdPlayExpression(ExpressionID);
+    }
+
+    public void TriggerShield()
+    {
+        reBornShield.TriggerShield();//触发护盾
+    }
+
+    // 公开属性
+    public BaseGun CurrentTouchGun
+    {
+        get
+        {
+            return _currentTouchGun;
+        }
+        set
+        {
+            _currentTouchGun = value;
+            if (isLocalPlayer)
+                UImanager.Instance.GetPanel<PlayerPanel>().IsTriggerPickUpGunButton(value); //只要是本地玩家触碰到了枪械就触发UI显示
+        }
+    }
 
     [Header("当前玩家穿戴的护甲")]
     [SyncVar(hook = (nameof(OnChangeArmorState)))]
@@ -49,8 +81,7 @@ public class Player : Base_Entity
     [SyncVar(hook = nameof(OnChangeTeam))]
     public Team CurrentTeam;//当前队伍
 
-    #region 缓存变量（核心优化：缓存复用+GC减少）
-    // 单例缓存：避免反复Instance调用（高频函数优化）
+    #region 缓存变量
     private UImanager _uiManager;
     private MyCameraControl _myCameraControl;
     private MilitaryManager _militaryManager;
@@ -58,23 +89,23 @@ public class Player : Base_Entity
     private CountDownManager _countDownManager;
     private GlobalPictureFlipManager _globalPictureFlipManager;
 
-    // UI面板缓存：避免反复GetPanel（缓存复用）
+    // UI面板缓存：避免反复GetPanel
     private PlayerPanel _playerPanel;
     private PlayerPreparaPanel _playerPreparaPanel;
     private GameScorePanel _gameScorePanel;
 
-    // 缩放动画缓存：减少临时变量（高频函数优化+GC减少）
+    // 缩放动画缓存：减少临时变量
     private float _cachedTime;
     private float _cachedXVel;
     private float _cachedYVel;
     private float _cachedYSpeedRatio;
     private Vector3 _cachedBodyScale;
 
-    // 字符串缓存：减少拼接GC（GC减少）
+    // 字符串缓存：减少拼接GC
     private StringBuilder _sb = new StringBuilder();
     #endregion
 
-    #region 缩放动画配置（保留原变量）
+    #region 缩放动画配置
     private float currentYScale; // 仅作用于MyBody的Y轴缩放
     private float targetYStretch;
     public float mainLerpSpeed = 2f;
@@ -82,20 +113,35 @@ public class Player : Base_Entity
     private Vector2 baseBodyScale; // 改为记录MyBody的初始缩放
 
     private Vector3 lastPosition;      // 上一帧的坐标
-    private Vector2 estimatedVelocity; // 估算速度（用于网络同步平滑）
+    private Vector2 estimatedVelocity; // 估算速度
     #endregion
 
-    #region 其他变量（保留原逻辑）
+    #region 其他变量
     private int ViewTaskID = -1;//当前视野提升任务ID
     private float ChangeSpeed_View = 4;//视野变化速度
     #endregion
 
-    #region 初始化（优化：缓存复用+逻辑冗余）
+    #region 清除身上所有的物体
+
+    [Command]
+    public void CmdClearAllPlayerObj()
+    {
+        if(currentGun!=null)
+        {
+            //清除
+            NetworkServer.Destroy(currentGun.gameObject);
+        }
+        CurrentArmorType = ArmorType.Empty_handed;//清理护甲
+        MyHandControl.ClearAllHandObj();//清理投掷物
+    }
+
+    #endregion
+
+    #region 初始化
     public override void Awake()
     {
         base.Awake();
 
-        // 优化1：缓存单例（仅1次获取，避免反复Instance调用）
         _uiManager = UImanager.Instance;
         _myCameraControl = MyCameraControl.Instance;
         _militaryManager = MilitaryManager.Instance;
@@ -103,7 +149,7 @@ public class Player : Base_Entity
         _countDownManager = CountDownManager.Instance;
         _globalPictureFlipManager = GlobalPictureFlipManager.Instance;
 
-        // 优化2：初始化MyBody缩放，避免重复判空（逻辑冗余）
+
         if (MyBody != null)
         {
             baseBodyScale = MyBody.transform.localScale;
@@ -117,7 +163,17 @@ public class Player : Base_Entity
         }
 
         transform.localScale = Vector3.one;
+        Debug.Log("护盾触发");
+        reBornShield.TriggerShield();//重生就触发护盾
     }
+
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+        Debug.Log("护盾触发");
+        reBornShield.TriggerShield();//重生就触发护盾
+    }
+
     #endregion
 
     #region Mirror生命周期（优化：缓存复用+逻辑冗余+GC减少）
@@ -125,7 +181,6 @@ public class Player : Base_Entity
     {
         base.OnStartServer();
 
-        // 优化1：复用Base_Entity的MyRigdboby，避免重复GetComponent（逻辑冗余）
         if (MyRigdboby == null)
         {
             Debug.LogError($"[服务器] 玩家{gameObject.name}缺少Rigidbody2D组件！", this);
@@ -144,19 +199,18 @@ public class Player : Base_Entity
         }
     }
 
+
     public override void OnStartLocalPlayer()
     {
         base.OnStartLocalPlayer();
         LocalPlayer = this;
         Debug.Log($"[本地客户端] 初始化本地玩家：{gameObject.name}");
 
-        // 优化1：缓存组件，避免反复GetComponent（缓存复用）
         if (myStats == null) myStats = GetComponent<playerStats>();
         if (myInputSystem == null) myInputSystem = GetComponent<MyPlayerInput>();
         if (MyHandControl == null && playerHandPos != null)
             MyHandControl = playerHandPos.GetComponent<playerHandControl>();
 
-        // 优化2：StringBuilder拼接字符串，减少GC（GC减少）
         string localName = UOSRelaySimple.Instance.playerName;
         if (string.IsNullOrEmpty(localName))
         {
@@ -166,7 +220,6 @@ public class Player : Base_Entity
         }
         CmdSyncPlayerName(localName);
 
-        // 优化3：缓存UI面板，避免反复GetPanel（缓存复用）
         if (_uiManager != null)
         {
             _playerPanel = _uiManager.ShowPanel<PlayerPanel>();
@@ -184,7 +237,6 @@ public class Player : Base_Entity
         if (MyHandControl != null)
         {
             MyHandControl.ownerPlayer = LocalPlayer;
-            if (TouchInputHandler.Instance != null)
                 TouchInputHandler.Instance.GetPlayerHand(MyHandControl);
         }
 
@@ -210,8 +262,8 @@ public class Player : Base_Entity
     }
     #endregion
 
-    #region 核心业务逻辑（优化：缓存复用+逻辑冗余+GC减少）
-    // 补充弹药（保留原逻辑）
+    #region 核心业务逻辑
+    // 补充弹药
     public void CmdBulletSupplement()
     {
         currentGun?.CmdBulletSupplement();
@@ -225,21 +277,29 @@ public class Player : Base_Entity
 
     private void OnChangeEnterRoomState(bool OldValue, bool NewValue)
     {
-        // 优化：空值防护提前做，减少重复判空（逻辑冗余）
         mySortingLayerControl?.SetSortingLayer(NewValue);
     }
 
     private void OnChangeArmorState(ArmorType OldType, ArmorType NewType)
     {
-        // 优化：缓存myStats，避免反复GetComponent（缓存复用）
-        if (myStats == null) myStats = GetComponent<playerStats>();
-        if (myStats == null) return;
+        if (myStats == null) 
+            myStats = GetComponent<playerStats>();
+        if (myStats == null)
+            return;
 
+     
         // 保留原逻辑
         if (OldType != ArmorType.Empty_handed)
         {
             var oldInfo = _militaryManager?.GetArmorInfoPack(OldType);
-            if (oldInfo != null) myStats.RemoveArmorEffect(oldInfo);
+            if (oldInfo != null)
+                myStats.RemoveArmorEffect(oldInfo);
+        }
+        else
+        {
+            //如果为空就直接清除身上的图片
+            ArmorSprite.sprite = null;
+            HelmetSprite.sprite = null;
         }
 
         var newInfo = _militaryManager?.GetArmorInfoPack(NewType);
@@ -258,8 +318,9 @@ public class Player : Base_Entity
 
     public void WearArmorAnimatorStart()
     {
-        // 优化：空值防护提前做，减少重复判空（逻辑冗余）
-        if (TimeLine_Helmet == null || ArmorSprite == null) return;
+
+        if (TimeLine_Helmet == null || ArmorSprite == null)
+            return;
 
         // 保留原逻辑
         TimeLine_Helmet.time = 0;
@@ -290,7 +351,6 @@ public class Player : Base_Entity
     public void CmdChangePreparaState(bool State)
     {
         IsPrepara = State;
-        // 优化：缓存单例，避免反复Instance调用（缓存复用）
         _playerRespawnManager?.ServerHandlePlayerPrepareChange(connectionToClient, State);
     }
 
@@ -299,7 +359,6 @@ public class Player : Base_Entity
         if (oldValue == newValue || !isLocalPlayer)
             return;
 
-        // 优化：复用缓存的UI面板，避免反复GetPanel（缓存复用）
         _playerPreparaPanel?.ChangeTeamSprite(newValue);
         _gameScorePanel?.ChangeTeamSprite(oldValue);
     }
@@ -307,7 +366,6 @@ public class Player : Base_Entity
     [Command]
     public void ChangeTeam()
     {
-        // 优化：StringBuilder拼接字符串，减少GC（GC减少）
         if (CurrentTeam == Team.Red)
         {
             CurrentTeam = Team.Blue;
@@ -320,7 +378,6 @@ public class Player : Base_Entity
             _sb.Clear();
             _sb.Append(PlayerName).Append("加入红队");
         }
-        // 优化：缓存单例，避免反复Instance调用（缓存复用）
         _playerRespawnManager?.SendGlobalMessage(_sb.ToString(), 1f);
     }
 
@@ -329,7 +386,6 @@ public class Player : Base_Entity
     {
         if (string.IsNullOrEmpty(newName))
         {
-            // 优化：StringBuilder拼接字符串，减少GC（GC减少）
             _sb.Clear();
             _sb.Append("玩家").Append(connectionToClient.connectionId);
             newName = _sb.ToString();
@@ -339,7 +395,7 @@ public class Player : Base_Entity
     }
     #endregion
 
-    #region 缩放动画（优化：高频函数+GC减少+缓存复用）
+    #region 缩放动画
     private void Update()
     {
         PlayerMoveStretchAnima();
@@ -347,10 +403,9 @@ public class Player : Base_Entity
 
     public void PlayerMoveStretchAnima()
     {
-        // 优化：空值防护提前做，减少重复判空（逻辑冗余）
-        if (MyRigdboby == null || MyBody == null) return;
+        if (MyRigdboby == null || MyBody == null) 
+            return;
 
-        // 优化：缓存高频访问的变量，减少属性调用（高频函数优化）
         _cachedXVel = MyRigdboby.velocity.x;
         _cachedYVel = MyRigdboby.velocity.y;
         _cachedTime = Time.time;
@@ -360,13 +415,12 @@ public class Player : Base_Entity
 
         if (isGroundMove)
         {
-            // 优化：缓存计算结果，减少重复Mathf调用（高频函数优化）
             targetYStretch = baseBodyScale.y + Mathf.Sin(_cachedTime * myStats.MoveBumpySpeed) * myStats.MoveBumpyRange;
             currentYScale = Mathf.Lerp(currentYScale, targetYStretch, 5f * Time.deltaTime);
         }
         else if (isJumpStretch)
         {
-            // 优化：缓存计算结果，减少重复Mathf调用（高频函数优化）
+
             _cachedYSpeedRatio = Mathf.Abs(_cachedYVel) / myStats.MaxYSpeed;
             targetYStretch = baseBodyScale.y + _cachedYSpeedRatio * myStats.MaxYStretch;
 
@@ -381,7 +435,6 @@ public class Player : Base_Entity
             currentYScale = Mathf.Lerp(currentYScale, targetYStretch, 2f * Time.deltaTime);
         }
 
-        // 优化：缓存缩放向量，减少临时Vector3创建（GC减少）
         _cachedBodyScale = MyBody.transform.localScale;
         _cachedBodyScale.x = Mathf.Sign(_cachedBodyScale.x) * Mathf.Abs(baseBodyScale.x);
         _cachedBodyScale.y = currentYScale;
@@ -389,10 +442,10 @@ public class Player : Base_Entity
     }
     #endregion
 
-    #region 枪械管理（优化：缓存复用+逻辑冗余）
+    #region 枪械管理
     private void OnGunChanged(BaseGun oldGun, BaseGun newGun)
     {
-        if (!isClient || playerHandPos == null)
+        if ( playerHandPos == null)
             return;
 
         // 保留原逻辑
@@ -401,15 +454,20 @@ public class Player : Base_Entity
             oldGun.transform.SetParent(null);
             EventCenter.Instance.TriggerEvent(E_EventType.E_playerLoseGun, this);
             mySortingLayerControl.RemoveSpriteRendererFromManager(oldGun.GetComponent<SpriteRenderer>());
+            //判断当前是否处于换弹
+           if(UImanager.Instance.GetPanel<PlayerPanel>().IsInReloadProcess)
+           {
+                UImanager.Instance.GetPanel<PlayerPanel>().StopReloadPrompt();
+           }
         }
 
         if (newGun != null)
         {
             Vector3 gunScale = newGun.transform.localScale;
-            gunScale.x = -Mathf.Abs(gunScale.x);
-            newGun.transform.localScale = gunScale;
 
             newGun.transform.SetParent(playerHandPos);
+            gunScale.x = -Mathf.Abs(gunScale.x);
+            newGun.transform.localScale = gunScale;
             newGun.transform.localPosition = Vector3.zero;
             newGun.transform.localRotation = Quaternion.identity;
             EventCenter.Instance.TriggerEvent(E_EventType.E_playerGetGun, this);
@@ -419,7 +477,6 @@ public class Player : Base_Entity
         if (!isLocalPlayer)
             return;
 
-        // 优化：复用缓存的UI面板，避免反复GetPanel（缓存复用）
         if (newGun != null)
         {
             _playerPanel?.ShowGunBackGround();
@@ -430,9 +487,10 @@ public class Player : Base_Entity
                 ViewTaskID = -1;
             }
             float zoomPercent = 1 + newGun.gunInfo.ViewRange;
-            ViewTaskID = _myCameraControl?.AddZoomTask_ByPercent_TemporaryManual(zoomPercent, ChangeSpeed_View) ?? -1;
-            Debug.Log($"[本地客户端] 枪械缩放任务ID：{ViewTaskID}，百分比：{zoomPercent}");
-        }
+            ViewTaskID = _myCameraControl?.AddZoomTask_ByPercent_TemporaryManual(zoomPercent, ChangeSpeed_View, (value) => {
+                CameraSizeBaseValue=value;//复制基础值
+            }) ?? -1;
+            Debug.Log($"[本地客户端] 枪械缩放任务ID：{ViewTaskID}，百分比：{zoomPercent}");        }
         else
         {
             _playerPanel?.HideGunBackGround();
@@ -443,6 +501,8 @@ public class Player : Base_Entity
             }
         }
     }
+
+    public float CameraSizeBaseValue;//当前摄像机大小基础值
 
     public void PickUpSceneGun()
     {
@@ -493,25 +553,45 @@ public class Player : Base_Entity
         if (!isLocalPlayer || _militaryManager == null)
             return;
 
-        LocalPlayer.CmdSpawnAndPickGun(gunName);
-        // 优化：缓存单例，避免反复Instance调用（缓存复用）
-        _countDownManager?.CreateTimer(false, 500, () => {
+
+        GunType gunType = MilitaryManager.Instance.GetGunType(gunName);
+        GunSkinInfo skinInfo = new GunSkinInfo();//声明结构体
+        var bulletConfig = GameSkinManager.Instance.ReturnBulletVisualConfig(gunType);
+        var flashConfig = GameSkinManager.Instance.ReturnMuzzleFlashConfig(gunType);
+
+        // 做空值保护，避免空引用报错
+        skinInfo.BulletID = bulletConfig != null ? bulletConfig.BulletID : 0;
+        skinInfo.MuzzleFlashID = flashConfig != null ? flashConfig.MuzzleFlashID : 0;
+
+        LocalPlayer.CmdSpawnAndPickGun(gunName, skinInfo);
+
+        _countDownManager?.CreateTimer(false, 100, () => {
             if (currentGun != null)
                 currentGun.TriggerReload();
             PlayerAndGameInfoManger.Instance.ShowTactic();
         });
     }
 
-    [Command]
-    private void CmdSpawnAndPickGun(string gunName)
+    public struct GunSkinInfo
     {
-        if (!isServer || _militaryManager == null) return;
+        public int MuzzleFlashID;
+        public int BulletID;//子弹ID
+    }
+
+    [Command]
+    private void CmdSpawnAndPickGun(string gunName, GunSkinInfo skinInfo)
+    {
+        if (!isServer || _militaryManager == null)
+            return;
 
         GameObject gunPrefab = _militaryManager.GetGun(gunName);
         if (gunPrefab == null) return;
 
         GameObject gunObj = Instantiate(gunPrefab);
         NetworkServer.Spawn(gunObj, connectionToClient);
+
+        BaseGun gun = gunObj.GetComponent<BaseGun>();
+        gun.SetGunConfig(skinInfo.MuzzleFlashID, skinInfo.BulletID);
 
         ServerHandlePickUpGun(gunObj);
     }
@@ -603,7 +683,7 @@ public class Player : Base_Entity
     }
     #endregion
 
-    #region 辅助方法（优化：逻辑冗余+缓存复用）
+    #region 辅助方法
     public override void DestroyMe(float time = 0)
     {
         if (isServer)
@@ -625,7 +705,6 @@ public class Player : Base_Entity
         }
         if (isServer)
         {
-            // 优化：StringBuilder拼接字符串，减少GC（GC减少）
             _sb.Clear();
             _sb.Append("玩家").Append(connectionToClient?.connectionId ?? -1);
             return _sb.ToString();
@@ -652,14 +731,12 @@ public class Player : Base_Entity
     [Command]
     private void CmdTellServerToRefreshTeam()
     {
-        // 优化：缓存单例，避免反复Instance调用（缓存复用）
         _playerRespawnManager?.ServerUpdateTeamInfo();
     }
 
     [Command]
     public void CmdRequestStartGame()
     {
-        // 优化：缓存单例，避免反复Instance调用（缓存复用）
         if (_playerRespawnManager != null)
         {
             _playerRespawnManager.NoticePlayerGameStart();
@@ -673,15 +750,22 @@ public class Player : Base_Entity
     }
     #endregion
 
-    #region 销毁清理（优化：GC减少+逻辑冗余）
-    protected  void OnDestroy()
-    {
+    #region 销毁清理
 
-        if (ArmorSprite != null) ArmorSprite.DOKill();
+
+    protected override void DeserializeSyncVars(NetworkReader reader, bool initialState)
+    {
+        base.DeserializeSyncVars(reader, initialState);
+    }
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+        if (ArmorSprite != null) 
+            ArmorSprite.DOKill();
 
         CancelInvoke();
 
-        // 优化3：清空缓存，避免内存泄漏（GC减少）
         _uiManager = null;
         _myCameraControl = null;
         _militaryManager = null;
@@ -693,6 +777,7 @@ public class Player : Base_Entity
         _gameScorePanel = null;
         _sb = null;
     }
+
     #endregion
 }
 

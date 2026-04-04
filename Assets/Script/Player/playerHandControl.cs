@@ -8,7 +8,7 @@ public class playerHandControl : NetworkBehaviour
     #region 基础配置与引用
     [Header("手臂旋转核心配置")]
     public float RotateSpeed = 500f;
-    public float VerticalAngleLimit = 30f;
+    public float VerticalAngleLimit = 30f; // 手臂最大旋转角度限制
     public float DefaultRotationZ = 0f;
 
     [Header("换弹归位配置")]
@@ -30,16 +30,21 @@ public class playerHandControl : NetworkBehaviour
     [SerializeField] private int AimPointCount = 5;
     [SerializeField] private float LaunchForceBase = 10f;
 
+    [Header("后坐力配置（开枪向上抬枪）")]
+    public float RecoilRecoverySpeed = 8f;   // 后坐力回弹阻力
+    public float RecoilPower = 1.2f;         // 后坐力强度
+    public float MaxRecoilAngle = 25f;        // 最大向上抬枪角度
+
     [Header("依赖引用")]
     public Camera mainCamera;
     public Player ownerPlayer;
     public Transform TacticRootTransform;
 
-    private Transform _selfTransform; // 缓存自身Transform
-    private PlayerAndGameInfoManger _playerGameInfoManager; // 缓存单例
-    private MilitaryManager _militaryManager; // 缓存单例
-    private UImanager _uiManager; // 缓存单例
-    private PlayerTacticControl _playerTacticControl; // 缓存单例
+    private Transform _selfTransform;
+    private PlayerAndGameInfoManger _playerGameInfoManager;
+    private MilitaryManager _militaryManager;
+    private UImanager _uiManager;
+    private PlayerTacticControl _playerTacticControl;
 
     private BaseGun _currentGun;
     private bool _isReloading = false;
@@ -47,6 +52,9 @@ public class playerHandControl : NetworkBehaviour
     private Vector3 _originLocalPos;
     private bool _isDebug = true;
     public bool _isHolsterAnimaPlaying = false;
+
+    // 后坐力核心变量
+    private float _recoilOffsetZ;
     #endregion
 
     #region 网络同步状态（SyncVar）
@@ -67,18 +75,31 @@ public class playerHandControl : NetworkBehaviour
     public GameObject CurrentThrowObj;
     #endregion
 
+    #region 清理投掷物和针剂
+    [Server]
+    public void ClearAllHandObj()
+    {
+        if (CurrentInjection != null)
+            NetworkServer.Destroy(CurrentInjection);
+        if (CurrentThrowObj != null)
+        {
+            NetworkServer.Destroy(CurrentThrowObj);
+        }
+    }
+    #endregion
+
     #region 战术道具冷却系统
-    public float tactic_1CoolTime;//战术道具1剩余冷却时间
-    public float tactic_2CoolTime;//战术道具2剩余冷却时间
-    public bool IsTrigger_tactic1 = false;//战术道具1触发
-    public bool IsTrigger_tactic2 = false;//战术道具2触发
-    public float tactic_1CoolTime_precent = 0;//剩余百分比时间
-    public float tactic_2CoolTime_precent = 0;//剩余百分比时间
+    public float tactic_1CoolTime;
+    public float tactic_2CoolTime;
+    public bool IsTrigger_tactic1 = false;
+    public bool IsTrigger_tactic2 = false;
+    public float tactic_1CoolTime_precent = 0;
+    public float tactic_2CoolTime_precent = 0;
 
     private int tactic1taskID = 0;
     private int tactic2taskID = 0;
 
-    public void SetTactic_1Trigger()//战术道具1触发
+    public void SetTactic_1Trigger()
     {
         if (IsTrigger_tactic1 == true)
             return;
@@ -92,7 +113,7 @@ public class playerHandControl : NetworkBehaviour
         tactic1taskID = SimpleAnimatorTool.Instance.StartFloatLerp(tactic_1CoolTime, 0, tactic_1CoolTime, (v) => { tactic_1CoolTime = v; tactic_1CoolTime_precent = tactic_1CoolTime / AllTime; }, () => { IsTrigger_tactic1 = false; });
     }
 
-    public void SetTactic_2Trigger()//战术道具2触发
+    public void SetTactic_2Trigger()
     {
         if (IsTrigger_tactic2 == true)
             return;
@@ -132,7 +153,6 @@ public class playerHandControl : NetworkBehaviour
             if (HolsterPosition == Vector2.zero && _isDebug)
                 Debug.LogError("[收枪] HolsterPosition 未配置！", this);
             if (HolsterDuration <= 0 && _isDebug) Debug.LogError("[收枪] HolsterDuration 不能为0！", this);
-            if (_isDebug) Debug.Log($"[收枪] 开始执行动画", this);
         }
 
         if (isOwned)
@@ -145,11 +165,7 @@ public class playerHandControl : NetworkBehaviour
         _selfTransform.DOLocalMove(new Vector3(HolsterPosition.x, HolsterPosition.y, _selfTransform.localPosition.z), HolsterDuration).SetEase(Ease.InCubic).SetUpdate(true);
         _selfTransform.DOLocalRotate(new Vector3(0, 0, HolsterRotationZ), HolsterDuration).SetEase(Ease.InCubic).SetUpdate(true).OnComplete(() => {
             if (isOwned)
-            {
                 _isHolsterAnimaPlaying = false;
-                if (_isDebug)
-                    Debug.Log("[收枪] 动画完成", this);
-            }
         });
     }
 
@@ -157,13 +173,12 @@ public class playerHandControl : NetworkBehaviour
     {
         if (!isClient)
             return;
-        if (isOwned && _isDebug) Debug.Log($"[拿枪] 开始执行动画", this);
         if (isOwned) _isHolsterAnimaPlaying = true;
 
         _selfTransform.DOKill(true);
         _selfTransform.DOLocalMove(_originLocalPos, HolsterDuration).SetEase(Ease.OutCubic).SetUpdate(true);
         _selfTransform.DOLocalRotate(new Vector3(0, 0, DefaultRotationZ), HolsterDuration).SetEase(Ease.OutCubic).SetUpdate(true).OnComplete(() => {
-            if (isOwned) { _isHolsterAnimaPlaying = false; if (_isDebug) Debug.Log("[拿枪完成]", this); }
+            if (isOwned) _isHolsterAnimaPlaying = false;
         });
     }
     #endregion
@@ -178,8 +193,7 @@ public class playerHandControl : NetworkBehaviour
             if (oldThrowScript?.ThrowObjTimeLine != null)
                 oldThrowScript.ThrowObjTimeLine.Stop();
             SetAimPointActive(false);
-            //移除管理
-            ownerPlayer.mySortingLayerControl.RemoveSpriteRendererFromManager(OldObj.GetComponent<SpriteRenderer>());//加入管理
+            ownerPlayer.mySortingLayerControl.RemoveSpriteRendererFromManager(OldObj.GetComponent<SpriteRenderer>());
         }
 
         if (NewObj != null && NewObj != OldObj)
@@ -193,21 +207,17 @@ public class playerHandControl : NetworkBehaviour
             if (throwScript != null)
             {
                 throwScript.IsTackOut = true;
-                if (_isDebug) Debug.Log($"[投掷物挂载] 已挂载", this);
-
-                //在这里将新的物体加入到管理
-                ownerPlayer.mySortingLayerControl.AddSpriteRendererInManager(NewObj.GetComponent<SpriteRenderer>());//加入管理
-                if (isLocalPlayer)//只有本地才更新
-                    (_uiManager ?? UImanager.Instance).GetPanel<PlayerPanel>()?.shootButton.ChangeIcon((_militaryManager ?? MilitaryManager.Instance).GetTacticUISprite(throwScript.tacticType));//更新UI的图标设置为投掷物的图标
+                ownerPlayer.mySortingLayerControl.AddSpriteRendererInManager(NewObj.GetComponent<SpriteRenderer>());
+                if (isLocalPlayer)
+                    (_uiManager ?? UImanager.Instance).GetPanel<PlayerPanel>()?.shootButton.ChangeIcon((_militaryManager ?? MilitaryManager.Instance).GetTacticUISprite(throwScript.tacticType));
             }
         }
         if (NewObj == null)
         {
             SetHolsterState(false);
             SetAimPointActive(false);
-            //恢复射击按钮图标
-            if (isLocalPlayer)//只有本地才更新
-                (_uiManager ?? UImanager.Instance).GetPanel<PlayerPanel>()?.shootButton.ResetIcon();//还原UI的图标设置为默认图标
+            if (isLocalPlayer)
+                (_uiManager ?? UImanager.Instance).GetPanel<PlayerPanel>()?.shootButton.ResetIcon();
         }
     }
 
@@ -222,10 +232,8 @@ public class playerHandControl : NetworkBehaviour
             if (oldInjectionScript?.TimeLine_Inject != null)
             {
                 oldInjectionScript.TimeLine_Inject.Stop();
-                //在这里将新的物体加入到管理
-                ownerPlayer.mySortingLayerControl.RemoveSpriteRendererFromManager(OldInjection.GetComponentInChildren<SpriteRenderer>());//移除管理
+                ownerPlayer.mySortingLayerControl.RemoveSpriteRendererFromManager(OldInjection.GetComponentInChildren<SpriteRenderer>());
             }
-
         }
 
         if (NewInjection != null && NewInjection != OldInjection)
@@ -238,8 +246,6 @@ public class playerHandControl : NetworkBehaviour
             if (injectionScript != null)
             {
                 injectionScript._playerHand = this;
-                if (_isDebug) Debug.Log($"[注射器挂载] 已挂载", this);
-                //在这里将新的物体加入到管理
                 ownerPlayer.mySortingLayerControl.AddSpriteRendererInManager(NewInjection.GetComponentInChildren<SpriteRenderer>());
             }
         }
@@ -276,21 +282,22 @@ public class playerHandControl : NetworkBehaviour
     #region 生命周期
     private void Awake()
     {
-        _selfTransform = transform; 
-        _playerGameInfoManager = PlayerAndGameInfoManger.Instance; // 缓存单例
-        _militaryManager = MilitaryManager.Instance; // 缓存单例
-        _uiManager = UImanager.Instance; // 缓存单例
-        _playerTacticControl = PlayerTacticControl.Instance; // 缓存单例
+        _selfTransform = transform;
+        _playerGameInfoManager = PlayerAndGameInfoManger.Instance;
+        _militaryManager = MilitaryManager.Instance;
+        _uiManager = UImanager.Instance;
+        _playerTacticControl = PlayerTacticControl.Instance;
 
         mainCamera = MyCameraControl.Instance?.GetComponentInChildren<Camera>();
-        if (mainCamera == null && _isDebug) Debug.LogWarning("[初始化] 未找到MyCameraControl", this);
-        _originLocalPos = _selfTransform.localPosition; // 使用缓存的Transform
+        _originLocalPos = _selfTransform.localPosition;
 
         ownerPlayer = GetComponentInParent<Player>();
-        if (ownerPlayer == null) ownerPlayer = GetComponent<Player>();
-        if (ownerPlayer != null) _currentFacingDir = ownerPlayer.FacingDir;
+        if (ownerPlayer == null)
+            ownerPlayer = GetComponent<Player>();
+        if (ownerPlayer != null)
+            _currentFacingDir = ownerPlayer.FacingDir;
 
-        if (TacticRootTransform == null) TacticRootTransform = _selfTransform.parent; // 使用缓存的Transform
+        if (TacticRootTransform == null) TacticRootTransform = _selfTransform.parent;
     }
 
     private void Update()
@@ -301,8 +308,8 @@ public class playerHandControl : NetworkBehaviour
 
         if (IsHolsterGun || _isHolsterAnimaPlaying)
         {
-            if (IsStartAim) HandleTouchAimAngle(); 
-            UpdateThrowAimPoints(); 
+            if (IsStartAim) HandleTouchAimAngle();
+            UpdateThrowAimPoints();
             return;
         }
 
@@ -320,8 +327,7 @@ public class playerHandControl : NetworkBehaviour
     public override void OnStartClient()
     {
         base.OnStartClient();
-        _selfTransform.localRotation = Quaternion.Euler(0, 0, _currentRotationValue_Z); // 使用缓存的Transform
-        if (_isDebug) Debug.Log($"[初始化] 初始角度：{_currentRotationValue_Z}°", this);
+        _selfTransform.localRotation = Quaternion.Euler(0, 0, _currentRotationValue_Z);
 
         if (isOwned && CurrentInjection != null && TacticRootTransform != null)
         {
@@ -342,11 +348,14 @@ public class playerHandControl : NetworkBehaviour
 
     private void OnDestroy()
     {
-        ClearAimPoints(); 
+        ClearAimPoints();
     }
     #endregion
 
-    #region 手臂旋转核心逻辑
+    #region 手臂旋转核心逻辑（增量压枪版）
+    // 记录当前的实际瞄准角度（包含所有后坐力）
+    private float _currentAimAngle;
+
     private void HandleTouchRotation_Bidirectional()
     {
         if (mainCamera == null || !mainCamera.orthographic)
@@ -356,41 +365,78 @@ public class playerHandControl : NetworkBehaviour
         }
 
         TouchInputHandler touchHandler = TouchInputHandler.Instance;
-        if (touchHandler == null || !touchHandler.IsTouchActive) return;
-
-        Vector3 targetWorldPos = touchHandler.CurrentTouchWorldPos;
-        bool isMouseInValidArea = targetWorldPos.x >= _selfTransform.position.x; // 使用缓存的Transform
-        if (!isMouseInValidArea) return;
-
-        Vector2 dirToTarget = new Vector2(targetWorldPos.x - _selfTransform.position.x, targetWorldPos.y - _selfTransform.position.y); // 使用缓存的Transform
-        if (dirToTarget.sqrMagnitude < 0.001f) return;
-
-        float rawAngle = Mathf.Atan2(dirToTarget.y, dirToTarget.x) * Mathf.Rad2Deg;
-        rawAngle = Mathf.DeltaAngle(0, rawAngle);
-
-        // 应用灵敏度
-        float sensitivity = _playerGameInfoManager != null 
-            ? _playerGameInfoManager.AimSensitivity
-            : 1.0f;
-        rawAngle *= sensitivity; // 核心：将灵敏度相乘到角度
-
-        float targetAngle = rawAngle;
-        float verticalOffset = Mathf.Abs(rawAngle) > 90 ? 180 - Mathf.Abs(rawAngle) : Mathf.Abs(rawAngle);
-
-        if (verticalOffset > VerticalAngleLimit)
+        if(touchHandler == null)
         {
-            targetAngle = rawAngle > 0
-                ? (rawAngle > 90 ? 180 - VerticalAngleLimit : VerticalAngleLimit)
-                : (rawAngle < -90 ? -180 + VerticalAngleLimit : -VerticalAngleLimit);
+            if (_isDebug)
+                Debug.LogWarning("[错误] 场景中缺少 TouchInputHandler！", this);
+            return;
         }
 
-        if (_currentFacingDir == -1)
+        if (touchHandler != null && touchHandler.IsTouchActive)
         {
-            targetAngle = -targetAngle;
+            // 获取这一帧手指滑动了多少像素
+            Vector2 touchDelta = touchHandler.TouchDelta;
+
+            // 简单的区域判定：如果在角色左侧，可能不响应或者翻转Y轴，根据需求来
+            // 这里假设只要触摸有效就响应
+
+            // 将像素移动量转化为角度变化量
+            // 注意：这里我们主要用 Y 轴 (上下滑动) 来控制旋转
+            float angleChange = touchDelta.y * touchHandler.TouchSensitivity;
+
+            // 如果是朝左，可能需要反转输入，看你需求
+            if (_currentFacingDir == -1)
+            {
+                angleChange = -angleChange; // 或者根据情况调整
+            }
+
+            // 玩家往下滑 (touchDelta.y 为负) -> angleChange 为负 -> 角度减小 -> 枪口下压
+            _currentAimAngle += angleChange;
         }
 
-        _selfTransform.localRotation = Quaternion.Euler(0, 0, targetAngle); // 使用缓存的Transform
-        SetRotationZ(targetAngle);
+        // ===================== 2. 限制角度范围 =====================
+        // 不管是玩家操作还是后坐力，最终角度不能太离谱
+        _currentAimAngle = Mathf.Clamp(_currentAimAngle, -VerticalAngleLimit, VerticalAngleLimit);
+
+        // ===================== 3. 后坐力逻辑 =====================
+        // 后坐力恢复
+        _recoilOffsetZ = Mathf.Lerp(_recoilOffsetZ, 0, Time.deltaTime * RecoilRecoverySpeed);
+
+        // ===================== 4. 最终旋转 =====================
+        // 注意：这里不再是 aimAngle + recoil，因为 _currentAimAngle 已经是混合体了
+        // 为了让后坐力更清晰，我们保留 _recoilOffsetZ 并直接加在显示上
+        // 但为了手感，我们也可以直接把后坐力加到 _currentAimAngle 里，然后让玩家的输入去对抗它
+
+        // 方案 A (推荐)：后坐力也是物理角度的一部分，玩家的输入直接对抗这个物理角度
+        // 开枪时，我们直接把后坐力加到 _currentAimAngle 上
+
+        float finalAngle = _currentAimAngle + _recoilOffsetZ;
+
+        // 稍微放宽最终显示限制，允许后坐力暂时超出一点
+        finalAngle = Mathf.Clamp(finalAngle, -VerticalAngleLimit - 20, VerticalAngleLimit + 20);
+
+        _selfTransform.localRotation = Quaternion.Euler(0, 0, finalAngle);
+        SetRotationZ(_selfTransform.localEulerAngles.z);
+    }
+
+    // 修改开枪逻辑
+    public void AddGunMomentOfForce()
+    {
+        if (ownerPlayer == null || ownerPlayer.currentGun == null)
+            return;
+
+        var gunInfo = ownerPlayer.currentGun.gunInfo;
+        float recoilPower = (100 - gunInfo.ControlPower) * 0.1f * RecoilPower;
+        recoilPower = Mathf.Min(recoilPower, MaxRecoilAngle);
+
+        // 【关键修改】
+        // 方案A：直接把后坐力加到我们的目标角度上
+        // 这样枪口就会真的上跳，玩家必须向下滑动手指来把 _currentAimAngle 减回去
+        _currentAimAngle += recoilPower;
+
+        // 如果你还想保留一点视觉上的额外抖动，可以保留 _recoilOffsetZ，
+        // 但主要的压枪手感应该来自上面这一行。
+        // _recoilOffsetZ += recoilPower * 0.5f; 
     }
     #endregion
 
@@ -409,7 +455,8 @@ public class playerHandControl : NetworkBehaviour
         if (!isOwned) return;
         if (IsHolsterGun || _isHolsterAnimaPlaying) return;
 
-        _selfTransform.DOKill(); // 使用缓存的Transform
+        _recoilOffsetZ = 0;
+        _selfTransform.DOKill();
         _selfTransform.DOLocalRotate(new Vector3(0, 0, DefaultRotationZ), ReloadResetRotateDuration)
                  .SetEase(Ease.OutCubic)
                  .OnComplete(() => SetRotationZ(DefaultRotationZ));
@@ -434,9 +481,13 @@ public class playerHandControl : NetworkBehaviour
     #region 瞄准状态与动画
     public void SetAimState(bool wantAim)
     {
-        if (IsHolsterGun) return;
-        if (isServer) _isEnterAim = wantAim;
-        else if (isClient && isOwned) CmdSetAimState(wantAim);
+        if (IsHolsterGun) 
+            return;
+        if (isServer)
+            _isEnterAim = wantAim;
+        else if 
+            (isClient && isOwned) 
+            CmdSetAimState(wantAim);
     }
 
     [Command(requiresAuthority = true)]
@@ -448,14 +499,14 @@ public class playerHandControl : NetworkBehaviour
     public void EnterAimState()
     {
         if (IsHolsterGun || !isClient) return;
-        _selfTransform.DOKill(); // 使用缓存的Transform
+        _selfTransform.DOKill();
         _selfTransform.DOLocalMoveX(AimStateTransform_X, EnterAimDuration).SetEase(aimEaseCurve).SetUpdate(false);
     }
 
     public void ExitAimState()
     {
         if (!isClient) return;
-        _selfTransform.DOKill(); // 使用缓存的Transform
+        _selfTransform.DOKill();
         _selfTransform.DOLocalMoveX(_originLocalPos.x, EnterAimDuration).SetEase(aimEaseCurve).SetUpdate(false);
     }
     #endregion
@@ -510,7 +561,7 @@ public class playerHandControl : NetworkBehaviour
     public void TriggerThrowObj(TacticType Type)
     {
         CmdCreateThrowObj(Type);
-        SetAimPointActive(true); // 【完全未动】瞄准逻辑
+        SetAimPointActive(true);
     }
 
     [Command(requiresAuthority = true)]
@@ -523,7 +574,7 @@ public class playerHandControl : NetworkBehaviour
             throwScript.HandControl = this;
             throwScript.IsTackOut = false;
         }
-        SetAimPointActive(false); 
+        SetAimPointActive(false);
     }
 
     public GameObject CreateTactic(TacticType Type)
@@ -541,7 +592,7 @@ public class playerHandControl : NetworkBehaviour
     }
     #endregion
 
-    #region 投掷物瞄准点系统 (优化版)
+    #region 投掷物瞄准点系统
     private GameObject[] _aimPoints;
     private Vector2[] _aimPointVelocities;
 
@@ -550,13 +601,13 @@ public class playerHandControl : NetworkBehaviour
     public bool IsStartAim = false;
 
     [Header("瞄准点设置")]
-    public float AimPointTimeInterval = 0.1f; // 改为时间间隔，物理计算更准确
-    public float SmoothTime = 0.05f; // 平滑时间，越小越快，越大越缓
+    public float AimPointTimeInterval = 0.1f;
+    public float SmoothTime = 0.05f;
 
     private void InitAimPoints()
     {
         _aimPoints = new GameObject[AimPointCount];
-        _aimPointVelocities = new Vector2[AimPointCount]; // 初始化速度数组
+        _aimPointVelocities = new Vector2[AimPointCount];
 
         for (int i = 0; i < AimPointCount; i++)
         {
@@ -565,11 +616,7 @@ public class playerHandControl : NetworkBehaviour
             _aimPoints[i].transform.SetParent(TacticRootTransform);
             SpriteRenderer sr = _aimPoints[i].GetComponent<SpriteRenderer>();
             if (sr == null)
-            {
-                Debug.LogError($"瞄准点实例（索引{i}）缺少SpriteRenderer组件", this);
                 sr = _aimPoints[i].AddComponent<SpriteRenderer>();
-            }
-            sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, 0);
         }
     }
 
@@ -585,18 +632,13 @@ public class playerHandControl : NetworkBehaviour
 
     private IEnumerator UpdateAimPointActive(bool isActive)
     {
-        if (_aimPoints == null)
-            yield break;
-
+        if (_aimPoints == null) yield break;
         IsStartAim = isActive;
+
         for (int i = 0; i < _aimPoints.Length; i++)
         {
-            // 修复1：闭包陷阱，循环内定义局部变量
             int index = i;
-
-            if (this == null || _aimPoints == null || _aimPoints[index] == null)
-                yield break;
-
+            if (_aimPoints[index] == null) continue;
             SpriteRenderer sr = _aimPoints[index].GetComponent<SpriteRenderer>();
             if (sr == null) continue;
 
@@ -607,10 +649,7 @@ public class playerHandControl : NetworkBehaviour
             }
             else
             {
-                sr.DOFade(0, 0.1f).OnComplete(() => {
-                    if (_aimPoints != null && index < _aimPoints.Length && _aimPoints[index] != null)
-                        _aimPoints[index].SetActive(false);
-                });
+                sr.DOFade(0, 0.1f).OnComplete(() => _aimPoints[index].SetActive(false));
             }
             yield return new WaitForSeconds(0.05f);
         }
@@ -629,33 +668,19 @@ public class playerHandControl : NetworkBehaviour
     private Vector2 CalculateAimPointPosition(float t)
     {
         Vector2 forceDisplacement = LaunchForce * t;
-        // 这里的 Physics2D.gravity 是固定的，确保计算稳定
-        Vector2 pos = (Vector2)TacticRootTransform.transform.position
-                    + forceDisplacement
-                    + 0.5f * Physics2D.gravity * t * t;
+        Vector2 pos = (Vector2)TacticRootTransform.transform.position + forceDisplacement + 0.5f * Physics2D.gravity * t * t;
         return pos;
     }
 
     public void UpdateThrowAimPoints()
     {
-        if (!IsStartAim || _aimPoints == null || ownerPlayer == null)
-            return;
+        if (!IsStartAim || _aimPoints == null || ownerPlayer == null) return;
 
         for (int i = 0; i < _aimPoints.Length; i++)
         {
-            if (_aimPoints[i] == null)
-                continue;
-
+            if (_aimPoints[i] == null) continue;
             Vector2 targetPos = CalculateAimPointPosition(i * AimPointTimeInterval);
-            Vector2 currentPos = _aimPoints[i].transform.position;
-
-            // 这里使用 Vector2.SmoothDamp，比 Lerp 效果更自然，不会有“弹簧感”
-            _aimPoints[i].transform.position = Vector2.SmoothDamp(
-                currentPos,
-                targetPos,
-                ref _aimPointVelocities[i], // 引用传递速度
-                SmoothTime
-            );
+            _aimPoints[i].transform.position = Vector2.SmoothDamp(_aimPoints[i].transform.position, targetPos, ref _aimPointVelocities[i], SmoothTime);
         }
     }
 
@@ -666,62 +691,39 @@ public class playerHandControl : NetworkBehaviour
         {
             if (point != null) Destroy(point);
         }
-        _aimPoints = null;
-        _aimPointVelocities = null;
     }
 
     private void HandleTouchAimAngle()
     {
-        if (mainCamera == null || !mainCamera.orthographic)
-            return;
-        if (TacticRootTransform == null)
-            return;
+        if (mainCamera == null || !mainCamera.orthographic || TacticRootTransform == null) return;
 
         TouchInputHandler touchHandler = TouchInputHandler.Instance;
-        if (touchHandler == null || !touchHandler.IsTouchActive)
-        {
-            return; // 没有触摸输入，直接返回
-        }
+        if (touchHandler == null || !touchHandler.IsTouchActive) return;
 
         Vector3 targetWorldPos = touchHandler.CurrentTouchWorldPos;
+        Vector2 dirToTarget = new Vector2(targetWorldPos.x - TacticRootTransform.position.x, targetWorldPos.y - TacticRootTransform.position.y);
+        if (dirToTarget.sqrMagnitude < 0.001f) return;
 
-        // 原有逻辑保持不变
-        Vector2 dirToTarget = new Vector2(
-            targetWorldPos.x - TacticRootTransform.position.x,
-            targetWorldPos.y - TacticRootTransform.position.y
-        );
-
-        if (dirToTarget.sqrMagnitude < 0.001f)
-            return;
         float targetAngle = Mathf.Atan2(dirToTarget.y, dirToTarget.x) * Mathf.Rad2Deg;
-
         CalculateLaunchForce(targetAngle);
-
-        if (_isDebug) Debug.DrawLine(TacticRootTransform.position, targetWorldPos, Color.green);
     }
-    // ========== 以上瞄准代码完全未动 ==========
     #endregion
 
     #region 发射逻辑
     public void LaunchCurrentThrowObj()
     {
-        if (!isOwned || CurrentThrowObj == null || CurrentThrowObj.GetComponent<ThrowObj>().IsInAnimation)//处于动画中就不发射
-            return;
+        if (!isOwned || CurrentThrowObj == null || CurrentThrowObj.GetComponent<ThrowObj>().IsInAnimation) return;
 
         CmdLaunchThrowObj(LaunchForce);
-        //UI进行更新
-        if (isLocalPlayer)//只有本地才更新
-            (_playerTacticControl ?? PlayerTacticControl.Instance)?.SetIsChooseButton(false);
+        if (isLocalPlayer)
+            (_playerTacticControl ?? PlayerTacticControl.Instance).SetIsChooseButton(false);
     }
 
     [Command(requiresAuthority = true)]
     private void CmdLaunchThrowObj(Vector2 serverLaunchForce)
     {
-        if (CurrentThrowObj == null)
-            return;
-
+        if (CurrentThrowObj == null) return;
         ThrowObj throwScript = CurrentThrowObj.GetComponent<ThrowObj>();
-
         if (throwScript == null)
         {
             Debug.LogError("[发射] 缺少 ThrowObj 脚本！", CurrentThrowObj);
@@ -729,9 +731,7 @@ public class playerHandControl : NetworkBehaviour
         }
 
         CurrentThrowObj.transform.SetParent(null);
-
         throwScript.ServerLaunch(serverLaunchForce);
-
         CurrentThrowObj = null;
         SetHolsterState(false);
     }

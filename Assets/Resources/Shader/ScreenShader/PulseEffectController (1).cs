@@ -6,7 +6,12 @@ public class ScreenPulseController : MonoBehaviour
 {
     public static ScreenPulseController Instance;
     [Header("脉冲设置")]
-    public Color pulseColor = Color.green;
+    private Color pulseColor;
+
+    [Header("脉冲颜色设置")]
+    public Color pulseColor_Wound;//受伤颜色
+    public Color pulseColor_Heal;//恢复颜色
+    public Color pulseColor_Yellow;//恢复颜色
     [Range(0.01f, 3f)] public float pulseSpeed = 0.8f;
     [Range(0.01f, 2f)] public float pulseWidth = 0.15f;
     [Range(0.1f, 7f)] public float pulseIntensity = 2f;
@@ -41,10 +46,8 @@ public class ScreenPulseController : MonoBehaviour
     }
 
     // 开始播放脉冲
-    public void StartPulse()
+    private void StartPulse()//私有
     {
-        if (_isPulsing) return;
-
         // 设置参数
         _pulseMat.SetColor("_PulseColor", pulseColor);
         _pulseMat.SetFloat("_PulseWidth", pulseWidth);
@@ -57,12 +60,36 @@ public class ScreenPulseController : MonoBehaviour
         _pulseImage.enabled = true;
     }
 
+    public void Trigger_Wound()//触发受伤
+    {
+        if (_isPulsing)
+            return;
+        pulseColor = pulseColor_Wound;
+        //设置颜色
+        StartPulse();
+    }
+
+    public void Trigger_Heal()//触发回血
+    {
+        if (_isPulsing)
+            return;
+        pulseColor = pulseColor_Heal;
+        StartPulse();
+    }
+    public void Trigger_Yellow()//触发肾上腺素
+    {
+        if (_isPulsing)
+            return;
+        pulseColor = pulseColor_Yellow;
+        StartPulse();
+    }
+
     // 脉冲动画逻辑
     void PulseAnimation()
     {
         // 半径扩大
         _currentRadius += Time.deltaTime * pulseSpeed;
-        _pulseMat.SetFloat("_PulseRadius", _currentRadius);
+        _pulseMat.SetFloat("_PulseRadius", _currentRadius); 
 
         // 扩散超出屏幕后结束
         if (_currentRadius > 1.5f)

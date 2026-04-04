@@ -23,53 +23,42 @@ public class StreetLamp : BaseBulletInteract_NetWork
     public float loseIntensity = 0.3f;
 
     [Header("闪烁配置")]
-    public float slightFlickerInterval = 2f;  // 轻微破坏闪烁间隔
-    public float seriousFlickerInterval = 0.5f;// 严重破坏闪烁间隔
-    public float loseFlickerInterval = 0.15f;  // 完全失效闪烁间隔
-    public float flickerDuration = 0.1f;       // 单次闪烁时长
+    public float slightFlickerInterval = 2f;
+    public float seriousFlickerInterval = 0.5f;
+    public float loseFlickerInterval = 0.15f;
+    public float flickerDuration = 0.1f;
+
+    [Header("场景损坏图")]
+    public SpriteRenderer spriteRenderer;
+    public Sprite NormalSprite;
+    public Sprite SlightSprite;
+    public Sprite SeriousSprite;
+    public Sprite LoseSprite;
 
     // 网络同步：最终显示的破坏程度
     [SyncVar(hook = nameof(OnDegreeChanged))]
     public StreetLampDegreeOfDestruction DegreeOfDestruction;
 
-    // 服务端私有：分别存储自身状态和电闸状态
-    private StreetLampDegreeOfDestruction _selfDegree; // 路灯自己被打坏的程度
-    private StreetLampDegreeOfDestruction _switchDegree; // 电闸影响的程度
+    // 服务端私有：仅服务器存储状态，不同步客户端
+    private StreetLampDegreeOfDestruction _selfDegree;
+    private StreetLampDegreeOfDestruction _switchDegree;
 
     [SyncVar]
-    private double _flickerStartTime; // 闪烁起始的网络时间戳
+    private double _flickerStartTime;
 
-    private bool _isFlickering;        // 客户端是否正在闪烁
+    private bool _isFlickering;
     private Coroutine _flickerCoroutine;
 
 
-    #region 网络生命周期（适配基类）
-    public override void OnStartServer()
-    {
-        base.OnStartServer();
-        Init();
-    }
-
-    public override void OnStartClient()
-    {
-        base.OnStartClient();
-        Init();
-    }
-    #endregion
-
-
     #region 服务端逻辑：状态计算核心
-
     [Server]
     private void RefreshFinalState()
     {
-        // 取两者中最坏的（枚举值最大的）
         StreetLampDegreeOfDestruction worstDegree = (StreetLampDegreeOfDestruction)Mathf.Max((int)_selfDegree, (int)_switchDegree);
 
         if (worstDegree != DegreeOfDestruction)
         {
             DegreeOfDestruction = worstDegree;
-            // 如果进入了需要闪烁的状态，刷新时间戳
             if (worstDegree is StreetLampDegreeOfDestruction.Slight or StreetLampDegreeOfDestruction.Serious or StreetLampDegreeOfDestruction.Lose)
             {
                 _flickerStartTime = NetworkTime.time;
@@ -77,12 +66,9 @@ public class StreetLamp : BaseBulletInteract_NetWork
         }
     }
 
-    // 1. 路灯自身受到攻击时调用
+    // 血量变化（仅服务器执行）
     public override void HealthChangeEffect(float health)
     {
-        if (!isServer)
-            return;
-
         float healthPercent = health / InitHealthValue;
         _selfDegree = healthPercent switch
         {
@@ -92,28 +78,26 @@ public class StreetLamp : BaseBulletInteract_NetWork
             _ => StreetLampDegreeOfDestruction.Lose
         };
 
-        // 状态改变后，重新计算最终显示
         RefreshFinalState();
     }
 
-    // 2. 电闸调用此方法来设置影响
+    // 电闸影响（仅服务器调用）
     [Server]
     public void SetSwitchInfluence(StreetLampDegreeOfDestruction switchState)
     {
         if (_switchDegree == switchState) return;
-
         _switchDegree = switchState;
-
-        // 电闸状态改变后，重新计算最终显示
         RefreshFinalState();
     }
 
     public override void EffectTrigger()
     {
+        // 仅服务器触发逻辑，客户端播放特效
         if (isServer)
         {
             RpcPlayDestroyEffect();
         }
+        Light.gameObject.layer = LayerMask.NameToLayer("Default");
     }
 
     [ClientRpc]
@@ -123,12 +107,12 @@ public class StreetLamp : BaseBulletInteract_NetWork
     }
     #endregion
 
-
-    #region 客户端逻辑：基于网络时间同步闪烁（保持不变）
+    #region 客户端逻辑：灯光&闪烁&Sprite（纯视觉，无数据修改）
     private void OnDegreeChanged(StreetLampDegreeOfDestruction oldDegree, StreetLampDegreeOfDestruction newDegree)
     {
         UpdateLightBaseState(newDegree);
         UpdateFlickerState(newDegree);
+        UpdateSprite(newDegree); // 【新增】同步切换Sprite
     }
 
     private void UpdateLightBaseState(StreetLampDegreeOfDestruction degree)
@@ -136,7 +120,6 @@ public class StreetLamp : BaseBulletInteract_NetWork
         if (Light == null) return;
 
         Light.DOKill();
-
         Light.intensity = degree switch
         {
             StreetLampDegreeOfDestruction.Normal => normalIntensity,
@@ -144,6 +127,19 @@ public class StreetLamp : BaseBulletInteract_NetWork
             StreetLampDegreeOfDestruction.Serious => seriousIntensity,
             StreetLampDegreeOfDestruction.Lose => loseIntensity,
             _ => normalIntensity
+        };
+    }
+    private void UpdateSprite(StreetLampDegreeOfDestruction degree)
+    {
+        if (spriteRenderer == null) return;
+
+        spriteRenderer.sprite = degree switch
+        {
+            StreetLampDegreeOfDestruction.Normal => NormalSprite,
+            StreetLampDegreeOfDestruction.Slight => SlightSprite,
+            StreetLampDegreeOfDestruction.Serious => SeriousSprite,
+            StreetLampDegreeOfDestruction.Lose => LoseSprite,
+            _ => NormalSprite
         };
     }
 
@@ -208,47 +204,60 @@ public class StreetLamp : BaseBulletInteract_NetWork
 
 
     #region 基类抽象方法实现
-    public override void Init()
+    /// <summary>
+    /// 客户端视觉初始化
+    /// </summary>
+    public override void InitClient()
     {
-        if (isServer)
-        {
-            _selfDegree = StreetLampDegreeOfDestruction.Normal;
-            _switchDegree = StreetLampDegreeOfDestruction.Normal;
-            DegreeOfDestruction = StreetLampDegreeOfDestruction.Normal;
-            _flickerStartTime = 0;
-        }
-        else
-        {
-            UpdateLightBaseState(DegreeOfDestruction);
-            UpdateFlickerState(DegreeOfDestruction);
-        }
+        UpdateLightBaseState(DegreeOfDestruction);
+        UpdateFlickerState(DegreeOfDestruction);
+        UpdateSprite(DegreeOfDestruction); // 【新增】初始化时同步Sprite
     }
 
-    public override void ResetObj()
+    /// <summary>
+    /// 客户端视觉重置
+    /// </summary>
+    public override void ResetClient()
     {
-        if (isServer)
+        // 停止所有闪烁协程
+        if (_flickerCoroutine != null)
         {
-            // 重置时，自身状态和电闸影响都恢复正常
-            _selfDegree = StreetLampDegreeOfDestruction.Normal;
-            _switchDegree = StreetLampDegreeOfDestruction.Normal;
-
-            CurrentHealthValue = InitHealthValue;
-            IsTrigger = false;
-
-            // 手动刷新一次最终状态
-            RefreshFinalState();
+            StopCoroutine(_flickerCoroutine);
+            _flickerCoroutine = null;
         }
-        else
-        {
-            if (_flickerCoroutine != null)
-            {
-                StopCoroutine(_flickerCoroutine);
-                _flickerCoroutine = null;
-            }
-            _isFlickering = false;
-            Light?.DOKill();
-            UpdateLightBaseState(StreetLampDegreeOfDestruction.Normal);
-        }
+        _isFlickering = false;
+
+        // 停止DOTween动画，恢复默认灯光
+        Light?.DOKill();
+        UpdateLightBaseState(StreetLampDegreeOfDestruction.Normal);
+        UpdateSprite(StreetLampDegreeOfDestruction.Normal); // 【新增】重置时Sprite归位
+    }
+    #endregion
+
+    #region 服务器数据管理
+    [Server]
+    public override void InitServer()
+    {
+        // 先执行基类服务器初始化
+        base.InitServer();
+
+        // 路灯专属服务器数据初始化
+        _selfDegree = StreetLampDegreeOfDestruction.Normal;
+        _switchDegree = StreetLampDegreeOfDestruction.Normal;
+        _flickerStartTime = 0;
+        RefreshFinalState();
+    }
+
+    [Server]
+    public override void ResetServer()
+    {
+        // 先执行基类服务器重置
+        base.ResetServer();
+
+        // 路灯专属服务器数据重置
+        _selfDegree = StreetLampDegreeOfDestruction.Normal;
+        _switchDegree = StreetLampDegreeOfDestruction.Normal;
+        RefreshFinalState();
     }
     #endregion
 }
@@ -256,8 +265,8 @@ public class StreetLamp : BaseBulletInteract_NetWork
 // 破坏程度枚举
 public enum StreetLampDegreeOfDestruction
 {
-    Normal,  // 普通（0）- 最好
-    Slight,  // 轻微（1）
-    Serious, // 严重（2）
-    Lose     // 失效（3）- 最坏
+    Normal,
+    Slight,
+    Serious,
+    Lose
 }

@@ -72,7 +72,8 @@ public abstract class CharacterStats : NetworkBehaviour
 
             // 开始回血
             float duration = (maxHealth - CurrentHealth) / HealSpeed;
-
+            //触发一次回血的特效
+            ScreenPulseController.Instance.Trigger_Heal();
             BreatheHealTaskId = SimpleAnimatorTool.Instance.StartFloatLerp(
                 CurrentHealth,
                 maxHealth,
@@ -149,10 +150,8 @@ public abstract class CharacterStats : NetworkBehaviour
         {
             HealthUI.Instance?.SetValue(newValue / Mathf.Max(maxHealth, 1f));
             //调用受攻特效
-            if(oldValue >= newValue)
-              HealBorderEffect.Instance.StartEffect(); 
-            else
-              ScreenPulseController.Instance.StartPulse();//调用回血
+            if (oldValue >= newValue)
+                ScreenPulseController.Instance.Trigger_Wound();//触发受伤特效  
         }
 
         if (oldValue >= newValue)

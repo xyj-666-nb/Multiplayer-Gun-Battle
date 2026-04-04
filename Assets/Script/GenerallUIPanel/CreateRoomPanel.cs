@@ -71,7 +71,7 @@ public class CreateRoomPanel : BasePanel
 
             if (ButtonGroupManager.Instance != null && controlDic != null)
             {
-                TryAddRadio(TimeChooseName, "Button_5minute", () => { GameTime = 5; });
+                TryAddRadio(TimeChooseName, "Button_5minute", () => { GameTime = 1; });
                 TryAddRadio(TimeChooseName, "Button_10minute", () => { GameTime = 10; });
                 TryAddRadio(TimeChooseName, "Button_15minute", () => { GameTime = 15; });
                 SafeSelectFirst(TimeChooseName);

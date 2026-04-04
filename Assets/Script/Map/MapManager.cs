@@ -86,12 +86,12 @@ public class MapManager : MonoBehaviour
             GlobalPictureFlipManager.Instance.TriggerGlobalFlip(true);//蓝队就打开翻转
 
         //动画结束
-        UImanager.Instance.GetPanel<PlayerPanel>().SimpleShowPanel();
         UImanager.Instance.ShowPanel<GameScorePanel>();//打开比分面板
         PlayerAndGameInfoManger.Instance.EquipCurrentSlot();//获取战备
         // 动画结束可顺便停止震动
         StopShack();
-
+        //打开队伍显示动画
+        UImanager.Instance.ShowPanel<TeamStartAnimaPanel>();//打开面板
     }
 
     public void StopTimeLine()

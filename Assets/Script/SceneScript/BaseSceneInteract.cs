@@ -18,6 +18,8 @@ public abstract class BaseSceneInteract : MonoBehaviour//基础场景交互
     // 记录UI的初始Scale，用于绝对定位翻转
     private Vector3 _originalUIScale;
 
+    public float InteractTime=0f;//交互时间，只有做完这个时间才能触发交互
+
     public virtual void Awake()
     {
         // 安全校验
@@ -83,6 +85,8 @@ public abstract class BaseSceneInteract : MonoBehaviour//基础场景交互
                 {
                     //打开交互按钮
                     UImanager.Instance.GetPanel<PlayerPanel>().SetActiveInteractButton(true);
+                    //设置当前交互时间
+                    InteractButton.Instance.SetInteractTime(InteractTime);
                 }
                 if (IsInCoolTime)
                     return;

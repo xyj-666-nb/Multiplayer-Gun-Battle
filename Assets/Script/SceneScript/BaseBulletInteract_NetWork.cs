@@ -8,16 +8,15 @@ public abstract class BaseBulletInteract_NetWork : NetworkBehaviour
     [Header("配置")]
     public float InitHealthValue = 100;
 
-    // 完全公开，让外面直接改
     [SyncVar(hook = nameof(OnHealthChanged))]
     public float CurrentHealthValue = 100;
 
     [SyncVar]
-    public bool IsTrigger = false;
+    private bool IsTrigger = false;
 
     public CanvasGroup HpCanvasGroup;
     public Image HpFillImage;
-    public float ShowTime = 3;//默认存在时间是3秒
+    public float ShowTime = 3;
     private float CurrentCoolTime = 3;
     private bool IsShow = false;
     private int CoolDownTaskID = -1;
@@ -29,21 +28,17 @@ public abstract class BaseBulletInteract_NetWork : NetworkBehaviour
         this.gameObject.SetActive(true);
     }
 
-    // 只做一件事：血量变化了通知子类
     private void OnHealthChanged(float oldVal, float newVal)
     {
         HealthChangeEffect(newVal);
 
-        //更新当前的血条
         IsShow = true;
-        CurrentCoolTime = ShowTime;//重置
-        //打开倒计时
+        CurrentCoolTime = ShowTime;
         if (CoolDownTaskID != -1)
             CountDownManager.Instance.StopTimer(CoolDownTaskID);
 
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(HpCanvasGroup, ref HpCanvasGroupSequence, true, () => { });
 
-        //开启新的计时器
         CoolDownTaskID = CountDownManager.Instance.CreateTimer(false, (int)(ShowTime * 1000), () => {
             SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(HpCanvasGroup, ref HpCanvasGroupSequence, false, () => { });
         });
@@ -51,41 +46,73 @@ public abstract class BaseBulletInteract_NetWork : NetworkBehaviour
         if (CoolUpTaskID != -1)
             SimpleAnimatorTool.Instance.StopFloatLerpById(CoolUpTaskID);
 
-        CoolUpTaskID = SimpleAnimatorTool.Instance.StartFloatLerp(HpFillImage.fillAmount, CurrentHealthValue / InitHealthValue, 0.5f, (v) => {
-            HpFillImage.fillAmount = v;//不断设置当前的数值
+        CoolUpTaskID = SimpleAnimatorTool.Instance.StartFloatLerp(HpFillImage.fillAmount, newVal / InitHealthValue, 0.5f, (v) => {
+            HpFillImage.fillAmount = v;
         });
 
-
-        // 服务端逻辑：血量归0
-        if (isServer && newVal <= 0 && !IsTrigger)
+        // 服务端逻辑
+        if (newVal <= 0 && !IsTrigger)
         {
             IsTrigger = true;
             EffectTrigger();
         }
     }
 
-    // 初始化
+    // ==============================================
+    // 【服务器专属】数据初始化
+    // ==============================================
+    [Server]
+    public virtual void InitServer()
+    {
+        IsTrigger = false;
+        HealFull(); // 服务器回血，同步所有客户端
+    }
+
+    // ==============================================
+    // 【客户端专属】视觉初始化
+    // ==============================================
+    public abstract void InitClient();
+
+    // ==============================================
+    // 【服务器专属】数据重置
+    // ==============================================
+    [Server]
+    public virtual void ResetServer()
+    {
+        IsTrigger = false;
+    }
+
+    // ==============================================
+    // 【客户端专属】视觉重置
+    // ==============================================
+    public abstract void ResetClient();
+
+    // 服务器扣血
+    [Server]
+    public void TakeDamage(float damage)
+    {
+        Debug.Log("成功扣血");
+        CurrentHealthValue = Mathf.Max(0, CurrentHealthValue - damage);
+    }
+
+    // 服务器满血
+    [Server]
+    public void HealFull()
+    {
+        CurrentHealthValue = InitHealthValue;
+    }
+
+    public int MapInIndex;//地图索引
+
     public override void OnStartServer()
     {
         base.OnStartServer();
         CurrentHealthValue = InitHealthValue;
         IsTrigger = false;
-
-        // 注册逻辑
-        int mapIndex = transform.root.name.Contains("1") ? 1 : (transform.root.name.Contains("2") ? 2 : -1);
-        if (mapIndex != -1)
-            PlayerRespawnManager.Instance?.InitInteractObj(netIdentity, mapIndex);
-    }
-
-    [Server]
-    public void CmdHeal()
-    {
-        CurrentHealthValue = InitHealthValue;//设置满血量
+       PlayerRespawnManager.Instance?.InitInteractObj(netIdentity, MapInIndex);
     }
 
     // 子类实现
     public abstract void HealthChangeEffect(float Health);
     public abstract void EffectTrigger();
-    public abstract void ResetObj();
-    public abstract void Init();
 }

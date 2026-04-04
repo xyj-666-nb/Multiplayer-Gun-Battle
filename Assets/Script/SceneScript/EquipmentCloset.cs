@@ -7,12 +7,13 @@ public class EquipmentCloset : BaseSceneInteract
     //定义冷却时间30秒
     public bool IsInCooldown=false;
     public TextMeshProUGUI PromptName;
+    public float CoolTime = 3f;
     public override void TriggerEffect()
     {
         if (IsTrigger|| IsInCooldown)
             return;
         //开启冷却
-        CountDownManager.Instance.CreateTimer(false, 30000, () =>
+        CountDownManager.Instance.CreateTimer(false, (int)(CoolTime*1000), () =>
         {
             IsInCooldown = false;
             PromptName.text = "获取当前装备";//获取当前装备

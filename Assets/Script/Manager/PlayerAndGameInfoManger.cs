@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,6 +21,21 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
     [Header("控制系统记录")]
     public bool IsUseSinglePress_AimButton = false; // false=点击, true=长按
     public float AimSensitivity = 1.0f; // 瞄准灵敏度 (0.5 ~ 2.0)
+    private bool isUseJoyStickMove=true;// 是否使用摇杆移动（如果为 false 则使用 按钮 移动）
+    public bool IsUseJoyStickMove {
+        get => isUseJoyStickMove;
+        set
+        {
+            isUseJoyStickMove = value;
+           Debug.Log($"[PlayerAndGameInfoManger] 已设置 IsUseJoyStickMove = {isUseJoyStickMove}");
+            //如果Playerpanel存在就直接更新（否则就留给他自己读取）
+            if (UImanager.Instance.GetPanel<PlayerPanel>())
+            {
+                UImanager.Instance.GetPanel<PlayerPanel>().UpdateMoveButton();//提示更新一下
+            }
+        }
+
+    }
 
     [Header("自定义面板的数据")]
     public List<PlayerCustomUIInfo> playerCustomUIInfoList = new List<PlayerCustomUIInfo>();
@@ -37,7 +53,6 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
     private const string SAVE_FILE_NAME = "PlayerGameData";
 
     // ================= 逻辑修复 =================
-
     public void AddCustomUIInfoList(PlayerCustomUIInfo info)
     {
         if (GetPlayerCustomUIInfo(info.UIType, false) == null)
@@ -73,8 +88,16 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         }
     }
 
+    private bool _canEquip = true;
+
     public void EquipCurrentSlot()
     {
+        if (!_canEquip)
+        {
+            Debug.LogWarning("装备操作冷却中，请稍候再试！");
+            return;
+        }
+
         if (CurrentSlotInfoPack == null)
         {
             Debug.LogWarning("当前槽位信息为空，无法装备！");
@@ -83,6 +106,11 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
         var cachedArmorType = CurrentSlotInfoPack.CurrentArmorType;
         string cachedGunName = CurrentSlotInfoPack.CurrentGunInfo?.Name;
+        //播放音效
+        MusicManager.Instance.PlayEffect("Music/正式/交互/起装",0.7f);
+
+        _canEquip = false;
+        StartCoroutine(EquipCoolDownCoroutine());
 
         if (Player.LocalPlayer != null)
         {
@@ -92,7 +120,7 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         if (CountDownManager.Instance == null)
             return;
 
-        CountDownManager.Instance.CreateTimer(false, 1500, () => {
+        CountDownManager.Instance.CreateTimer(false, 500, () => {
             if (this == null || Instance == null)
                 return;
             if (Player.LocalPlayer == null)
@@ -103,6 +131,23 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
                 Player.LocalPlayer.SpawnAndPickGun(cachedGunName);
             }
         });
+    }
+
+    //3帧冷却协程
+    private IEnumerator EquipCoolDownCoroutine()
+    {
+        // 等待3帧
+        for (int i = 0; i < 3; i++)
+        {
+            // 如果对象被销毁，直接退出协程
+            if (this == null)
+            {
+                yield break;
+            }
+            yield return null;
+        }
+        // 冷却结束，恢复可触发状态
+        _canEquip = true;
     }
 
     public void ShowTactic()
@@ -165,9 +210,9 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
             CurrentFPS = (int)this.CurrentFPS,
             CurrentScreen = (int)this.CurrentScreen,
 
-            // 新增：保存控制系统数据
             IsUseSinglePress_AimButton = this.IsUseSinglePress_AimButton,
-            AimSensitivity = this.AimSensitivity
+            AimSensitivity = this.AimSensitivity,
+            IsUseJoyStickMove = this.IsUseJoyStickMove
         };
 
         JsonManager.Instance.SaveData(saveData, SAVE_FILE_NAME, JsonType.JsonUtlity);
@@ -185,10 +230,8 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
             return;
         }
 
-        // 1. 检查 List 本身是否有效
         bool hasValidSlotData = loadData.PlayerSlotInfoPacksList != null && loadData.PlayerSlotInfoPacksList.Count > 0;
 
-        // 2. 如果 List 有效，进一步深度检查内部每个字段
         if (hasValidSlotData)
         {
             hasValidSlotData = CheckAllSlotDataIntegrity(loadData.PlayerSlotInfoPacksList);
@@ -223,10 +266,11 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         // 新增：加载控制系统数据 (带默认值保护)
         this.IsUseSinglePress_AimButton = loadData.IsUseSinglePress_AimButton;
         this.AimSensitivity = loadData.AimSensitivity == 0 ? 1.0f : loadData.AimSensitivity;
+        this.IsUseJoyStickMove = loadData.IsUseJoyStickMove;
     }
 
     /// <summary>
-    /// 【新增】深度检查所有槽位数据的完整性
+    /// 深度检查所有槽位数据的完整性
     /// </summary>
     private bool CheckAllSlotDataIntegrity(List<SlotInfoPack> listToCheck)
     {
@@ -245,40 +289,35 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
     }
 
     /// <summary>
-    /// 【新增】检查单个槽位是否有效
+    /// 检查单个槽位是否有效
     /// </summary>
     private bool IsSingleSlotValid(SlotInfoPack slot)
     {
         if (slot == null) return false;
 
-        // 规则：枪械信息不能为空
         if (slot.CurrentGunInfo == null)
         {
             Debug.LogWarning("[数据校验] 槽位中的 CurrentGunInfo 为空");
             return false;
         }
 
-        // 规则：战术道具1不能为空 (根据你的需求，如果允许为空可去掉此判断)
         if (slot.CurrentTactic_1Info == null)
         {
             Debug.LogWarning("[数据校验] 槽位中的 CurrentTactic_1Info 为空");
             return false;
         }
 
-        // 规则：战术道具2不能为空 (根据你的需求，如果允许为空可去掉此判断)
         if (slot.CurrentTactic_2Info == null)
         {
             Debug.LogWarning("[数据校验] 槽位中的 CurrentTactic_2Info 为空");
             return false;
         }
 
-        // 注意：ArmorType 是 Enum，通常不会为 null (默认0)，这里不做检查
-
         return true;
     }
 
     /// <summary>
-    /// 【新增】恢复默认数据并立即覆盖保存
+    /// 恢复默认数据并立即覆盖保存
     /// </summary>
     private void RestoreDefaultDataAndSave()
     {
@@ -376,7 +415,7 @@ public class PlayerGameSaveData
     public int CurrentFPS;
     public int CurrentScreen;
 
-    // 新增：控制系统数据
     public bool IsUseSinglePress_AimButton;
     public float AimSensitivity;
+    public bool IsUseJoyStickMove;
 }

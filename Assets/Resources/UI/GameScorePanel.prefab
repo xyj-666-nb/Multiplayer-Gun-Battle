@@ -1,18 +1,19 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!1 &1774441710980037625
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8403860817044762958}
   - component: {fileID: 3302334925770600558}
   - component: {fileID: 2534144959920332480}
   - component: {fileID: 3332309967601632427}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: ShowWarRecordButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -129,12 +130,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1696871008619855311}
   - component: {fileID: 4635949843040589009}
   - component: {fileID: 1330755182757532365}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: BlueScore
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -189,6 +191,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: 30
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -263,12 +266,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 711662361807631521}
   - component: {fileID: 1651861975282043376}
   - component: {fileID: 7344069708946827869}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -323,6 +327,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u65F6\u95F4"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -397,13 +402,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6844168943743090213}
   - component: {fileID: 8247813112761376461}
   - component: {fileID: 4861417169833707381}
   - component: {fileID: 1379095734674623687}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: TeamIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -485,12 +491,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5290153642459386950}
   - component: {fileID: 2906370245781028588}
   - component: {fileID: 2292172947505163645}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: TimeText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -546,6 +553,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "10\uFF1A00"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -620,12 +628,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3924204869748522032}
   - component: {fileID: 887886803039508107}
   - component: {fileID: 5593046481756020187}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Symbol
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -680,6 +689,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\uFF1A"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -754,12 +764,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2540228617468481922}
   - component: {fileID: 4738707256061629200}
   - component: {fileID: 2475595096629600471}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: RedScore
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -814,6 +825,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: 30
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -888,13 +900,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3790715263934061830}
   - component: {fileID: 6566452654599654282}
   - component: {fileID: 8735728466716712973}
   - component: {fileID: 7988137242762612533}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: GameScorePanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -995,12 +1008,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 783257524799135341}
   - component: {fileID: 7491855741186650606}
   - component: {fileID: 2216861164555916408}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: KDText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1054,7 +1068,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u51FB\u6740\u6570\uFF1A20"
+  m_text: "\u51FB\u6740\u6570\uFF1A0"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}

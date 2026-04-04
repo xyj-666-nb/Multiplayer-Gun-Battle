@@ -12,7 +12,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     #region 新增：音效放大配置（可在Inspector面板调整）
     [Header("音效放大设置")]
     [Tooltip("特殊音量最大放大倍数（默认2倍，建议不超过3倍避免严重失真）")]
-    [SerializeField] private float MaxEffectAmplification = 2f;
+    [SerializeField] private float MaxEffectAmplification = 4f;
     #endregion
 
     #region 背景音乐管理
@@ -302,7 +302,6 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         // 音量计算：特殊音量(可>1) * 全局音量(0-1)
         float specificVol = specificEffectVolumes.TryGetValue(clip.name, out float vol) ? vol : 1f;
         float finalVolume = specificVol * effectGlobalVolume;
-     //   Debug.Log($"音效【{clip.name}】最终音量：{finalVolume} (特殊音量{specificVol} × 全局音量{effectGlobalVolume})");
 
         if (is3d)
             // 传递新增的isDetach参数
@@ -333,9 +332,6 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     /// </summary>
     private void Configure3dEffect(GameObject effectObj, AudioSource audioSource, float maxDistance, float minDistance, Transform owner, bool isDetach)
     {
-        // 参数合法性校验
-        minDistance = Mathf.Max(0.1f, minDistance);
-        maxDistance = Mathf.Max(minDistance + 0.1f, maxDistance); // 确保最大距离>最小距离
 
         // 3D音效核心配置
         audioSource.spatialBlend = 1f; // 纯3D音效
@@ -416,7 +412,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         Transform owner = null,
         bool isLoop = false,
         UnityAction<AudioSource> callback = null,
-        bool isDetach = true) // 新增：是否分离播放参数
+        bool isDetach = true) 
     {
         if (string.IsNullOrEmpty(clipPath))
         {
@@ -466,6 +462,126 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         bool isDetach = true) // 新增：是否分离播放参数
     {
         PlayEffectCore(clip, true, SpecialVolume, maxDistance, minDistance, owner, isLoop, callback, isDetach);
+    }
+
+    /// <summary>
+    /// 播放3D音效
+    /// 完全手动计算距离→音量，不用Unity自带的3D衰减
+    /// </summary>
+    /// <param name="clipPath">音效资源路径</param>
+    /// <param name="SpecialVolume">特殊音量（可>1放大）</param>
+    /// <param name="soundSourcePos">音源位置（靶子/墙的位置）</param>
+    /// <param name="listenerPos">听者位置（你自己的位置）</param>
+    /// <param name="minDistance">最小无衰减距离（此距离内音量=1）</param>
+    /// <param name="maxDistance">最大衰减距离（此距离外音量=0）</param>
+    /// <param name="isLoop">是否循环</param>
+    /// <param name="callback">播放完成回调</param>
+    public void PlayEffect3D_Custom(
+        string clipPath,
+        float SpecialVolume = 1f,
+        Vector2 soundSourcePos = default,
+        Vector2 listenerPos = default,
+        float minDistance = 1f,
+        float maxDistance = 15f,
+        bool isLoop = false,
+        UnityAction<AudioSource> callback = null)
+    {
+        if (string.IsNullOrEmpty(clipPath))
+        {
+            Debug.LogWarning("音效路径不能为空！");
+            callback?.Invoke(null);
+            return;
+        }
+
+        ResourcesManager.Instance.LoadAsync<AudioClip>(clipPath, (clip) =>
+        {
+            if (clip == null)
+            {
+                callback?.Invoke(null);
+                return;
+            }
+
+            float distance = Vector2.Distance(soundSourcePos, listenerPos);
+            float volumeFactor = 1f;
+
+            if (distance <= minDistance)
+            {
+                // 距离小于最小距离：满音量
+                volumeFactor = 1f;
+            }
+            else if (distance >= maxDistance)
+            {
+                // 距离大于最大距离：静音
+                volumeFactor = 0f;
+            }
+            else
+            {
+                // 中间距离：线性衰减（你可以改成平方衰减等任何曲线）
+                volumeFactor = 1f - (distance - minDistance) / (maxDistance - minDistance);
+            }
+
+            // 计算最终音量：自定义衰减系数 * 特殊音量 * 全局音量
+            float clampedSpecialVolume = Mathf.Clamp(SpecialVolume, 0f, MaxEffectAmplification);
+            float finalVolume = volumeFactor * clampedSpecialVolume * effectGlobalVolume;
+
+            PlayEffectCore_Custom(clip, finalVolume, listenerPos, isLoop, callback);
+        });
+    }
+
+    /// <summary>
+    /// 自定义播放核心
+    /// </summary>
+    private void PlayEffectCore_Custom(
+        AudioClip clip,
+        float finalVolume,
+        Vector2 playPos,
+        bool isLoop,
+        UnityAction<AudioSource> callback)
+    {
+        GameObject effectObj = null;
+        bool isDynamicObj = effectPrefab == null;
+
+        if (!isDynamicObj)
+        {
+            effectObj = PoolManage.Instance?.GetObj(effectPrefab);
+            if (effectObj == null)
+                isDynamicObj = true;
+        }
+
+        if (isDynamicObj)
+        {
+            effectObj = new GameObject($"DynamicEffect_{clip.name}");
+            if (_dynamicEffectRoot != null)
+                effectObj.transform.SetParent(_dynamicEffectRoot.transform);
+        }
+
+        if (effectObj == null)
+        {
+            callback?.Invoke(null);
+            return;
+        }
+
+        AudioSource audioSource = effectObj.GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = effectObj.AddComponent<AudioSource>();
+
+        // 设置位置（虽然是2D，但位置设为听者位置，方便调试）
+        effectObj.transform.position = new Vector3(playPos.x, playPos.y, 0f);
+
+        // 强制2D播放，完全不用Unity的3D衰减
+        audioSource.spatialBlend = 0f;
+        audioSource.clip = clip;
+        audioSource.loop = isLoop;
+        audioSource.volume = finalVolume;
+        audioSource.Play();
+
+        if (!activeEffectSources.Contains(audioSource))
+            activeEffectSources.Add(audioSource);
+
+        if (isDynamicObj)
+            effectObj.AddComponent<DynamicEffectMarker>();
+
+        callback?.Invoke(audioSource);
     }
 
     /// <summary>

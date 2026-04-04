@@ -6,7 +6,6 @@ public class Map2StartAnimaCG : MonoBehaviour
 {
     public static Map2StartAnimaCG Instance;
     public PlayableDirector TimeLine;//开始动画
-
     public CinemachineVirtualCamera AnimaVC;//动画虚拟相机
 
     [Header("震动配置（仅作用于 AnimaVC）")]
@@ -17,7 +16,7 @@ public class Map2StartAnimaCG : MonoBehaviour
     [Tooltip("普通震动持续时间（秒）")]
     public float shakeDuration = 1f;
     [Tooltip("枪声震动持续时间（秒）")]
-    public float gunShakeDuration = 6f; // 新增：枪声专属时长
+    public float gunShakeDuration = 6f;
 
     [Header("震动强度预设")]
     [Tooltip("剧烈震动强度（0-2为宜，建议比正常大）")]

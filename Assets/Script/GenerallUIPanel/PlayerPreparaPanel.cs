@@ -25,6 +25,7 @@ public class PlayerPreparaPanel : BasePanel
     public CanvasGroup MyTeamImageCanvas;
     private Sequence MyTeamImageCanvasAnima;
     //改变队伍标识
+
     [Header("邀请码面板")]
     public CanvasGroup RoomInfoPanel;
     private Sequence RoomInfoPanelAnima;
@@ -65,18 +66,15 @@ public class PlayerPreparaPanel : BasePanel
         base.Awake();
         ButtonGroupManager.Instance.AddToggleButtonToGroup(PreparaButtonFile, controlDic["PreparaButton"] as Button, "", playerPrepara, CancelPrePara);
 
-        GameStartCanvas.interactable = true;
-        GameStartCanvas.alpha = 1;
-
+        GameStartCanvas.interactable = false;
+        GameStartCanvas.alpha = 0;
         if (!NetworkServer.active||Main.Instance.CurrentMode!=NetworkMode.Remote)//如果是房主就打开,如果不是远程联机模式就关闭
         {
             if (controlDic.ContainsKey("ShowRoomJoinInfoPanelButton"))
             {
                 (controlDic["ShowRoomJoinInfoPanelButton"] as Button).gameObject.SetActive(false);
-
             }
-            GameStartCanvas.interactable = false;
-            GameStartCanvas.alpha = 0;
+
             SetRoomInfoPanelActive(false);
             IsOpenPanel = false;
         }
@@ -135,10 +133,11 @@ public class PlayerPreparaPanel : BasePanel
     }
 
 
-
     public void playerPrepara(string text)
     {
-        if (IsPrepara) return;
+        if (IsPrepara) 
+            return;
+
         IsPrepara = true;
 
         if (Player.LocalPlayer != null)

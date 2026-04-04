@@ -1,3 +1,4 @@
+using Mirror;
 using System.Collections.Generic;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -15,7 +16,8 @@ public class GamePausePanel : BasePanel
         SimpleEffectButtonGroupList.Add(controlDic["EnterEquipPanelButton"] as Button);
         SimpleEffectButtonGroupList.Add(controlDic["ExitCurrentRoom"] as Button);
         SimpleEffectButtonGroupList.Add(controlDic["OperationSettingButton"] as Button);
-        SimpleEffectButtonGroup.Instance.RegisterGroup("GamePausePanel", SimpleEffectButtonGroupList);
+        SimpleEffectButtonGroupList.Add(controlDic["SaveButton"] as Button);
+        SimpleEffectButtonGroup.Instance.RegisterGroup("GamePausePanel", SimpleEffectButtonGroupList,false,1,0.9f);
     }
     public override void Start()
     {
@@ -54,15 +56,27 @@ public class GamePausePanel : BasePanel
                 UImanager.Instance.ShowPanel<EquipmentConfigurationPanel>();//打开战备选择
                 break;
             case "ExitCurrentRoom":
-                //在这里退出链接
-                //打开场景
-                AllMapManager.Instance.TriggerMap(MapType.StartCG,true);
-                UImanager.Instance.HidePanel<GamePausePanel>();
-                PlayerRespawnManager.Instance.CleanupAndExitGame();//退出链接
-                UImanager.Instance.ShowPanel<RoomPanel>();
-                //返回视角系统
-                ModeChooseSystem.instance.EnterSystem_Quick();//快速回到主界面
-           
+                //先弹出提示
+                string warnTopic = NetworkManager.singleton.mode == NetworkManagerMode.Host ? "是否关闭房间" : "是否退出房间";
+                string warnText = NetworkManager.singleton.mode == NetworkManagerMode.Host ? "退出后会踢出所有玩家" : "退出后将返回大厅";
+                WarnTriggerManager.Instance.TriggerDoubleInteractionWarn(warnTopic, warnText,()=> { }, () =>
+                {
+                    //在这里退出链接
+                    //打开场景
+                    AllMapManager.Instance.TriggerMap(MapType.StartCG, true);
+                    UImanager.Instance.HidePanel<GamePausePanel>();
+                    PlayerRespawnManager.Instance.CleanupAndExitGame();//退出链接
+                    if (Main.Instance.IsInSingleMode)
+                    {
+                        UImanager.Instance.ShowPanel<GameStartPanel>();
+                        Main.Instance.IsInSingleMode = false;
+                    }
+                    else
+                        UImanager.Instance.ShowPanel<RoomPanel>();
+
+                    //返回视角系统
+                    ModeChooseSystem.instance.EnterSystem_Quick();//快速回到主界面
+                });
                 break;
             case "OperationSettingButton":
                 //打开自定义UI面板
@@ -78,6 +92,8 @@ public class GamePausePanel : BasePanel
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
     {
         base.HideMe(callback, isNeedDefaultAnimator);
+        //销毁注册
+        SimpleEffectButtonGroup.Instance.UnRegisterGroup("GamePausePanel");
     }
 
     public override void ShowMe(bool isNeedDefaultAnimator = true)

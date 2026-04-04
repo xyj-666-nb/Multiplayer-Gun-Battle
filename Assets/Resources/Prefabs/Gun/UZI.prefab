@@ -27,9 +27,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 116735234568929149}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2239722231300673368}
@@ -272,10 +272,6 @@ PlayableDirector:
   m_SceneBindings:
   - key: {fileID: -5717148733851134557, guid: a62eddf22cec6094fb0a587f5096ea98, type: 2}
     value: {fileID: 2321739799083013754}
-  - key: {fileID: 8407405315293471048, guid: a62eddf22cec6094fb0a587f5096ea98, type: 2}
-    value: {fileID: 1399247744348332093}
-  - key: {fileID: -8851365283514526888, guid: a62eddf22cec6094fb0a587f5096ea98, type: 2}
-    value: {fileID: 4258440172170420464}
   m_ExposedReferences:
     m_References: []
 --- !u!114 &332714515778193415
@@ -497,6 +493,8 @@ MonoBehaviour:
   CurrentGun: {fileID: 4480893729494332758}
   isDebug: 1
   uiFadeDuration: 0.2
+  coroutineInterval: 0
+  triggerCD: 0.1
   HasPickUpPlayer: 0
 --- !u!225 &6246032253070357444
 CanvasGroup:
@@ -553,6 +551,7 @@ GameObject:
   - component: {fileID: 4576797015632813590}
   - component: {fileID: 8543492730726499421}
   - component: {fileID: 1399247744348332093}
+  - component: {fileID: 6956036360477978894}
   m_Layer: 7
   m_HasEditorInfo: 1
   m_Name: GunLight
@@ -560,7 +559,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4576797015632813590
 Transform:
   m_ObjectHideFlags: 0
@@ -649,6 +648,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6956036360477978894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4258440172170420464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 465bb239da212b24b99f96b55d9fe0e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config: {fileID: 0}
+  flashLight: {fileID: 0}
 --- !u!1 &4510920658087047655
 GameObject:
   m_ObjectHideFlags: 0
@@ -680,7 +693,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4510920658087047655}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: -1, y: 0.8, z: 0}
   m_ConstrainProportionsScale: 0
@@ -825,6 +838,11 @@ MonoBehaviour:
   timelineDirector_Reload: {fileID: 852611815390509245}
   timelineDirector_Shoot: {fileID: 3737356294255298378}
   gunInfo: {fileID: 11400000, guid: 999a0c6096b6fca49b6c7cd0fee2b2a5, type: 2}
+  muzzleFlashConfig: {fileID: 0}
+  muzzleFlash: {fileID: 6956036360477978894}
+  bulletVisualConfig: {fileID: 0}
+  muzzleFlashConfigID: 0
+  bulletVisualConfigID: 0
   firePoint: {fileID: 838571673525704359}
   cartridgeCasePrefab: {fileID: 829796564893978883, guid: a0707b7f04f464a4a8047d829fcbead3, type: 3}
   cartridgeEjectPoint: {fileID: 4325583658470307618}
@@ -844,7 +862,6 @@ MonoBehaviour:
   GunInfoManager: {fileID: 0}
   Duration: 0.5
   _localRecoil: 0
-  _localViewRange: 0
   _localAccuracy: 0
 --- !u!95 &2321739799083013754
 Animator:

@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6007744451667076147}
   - component: {fileID: 975572906962973409}
   - component: {fileID: 8190597386396515287}
+  - component: {fileID: 3077526127132587325}
   m_Layer: 7
   m_HasEditorInfo: 1
   m_Name: GunLight
@@ -18,7 +19,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6007744451667076147
 Transform:
   m_ObjectHideFlags: 0
@@ -107,6 +108,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &3077526127132587325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 230556817231370355}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 465bb239da212b24b99f96b55d9fe0e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config: {fileID: 0}
+  flashLight: {fileID: 0}
 --- !u!1 &307242826438360490
 GameObject:
   m_ObjectHideFlags: 0
@@ -156,12 +171,8 @@ PlayableDirector:
   m_DirectorUpdateMode: 1
   m_InitialTime: 0
   m_SceneBindings:
-  - key: {fileID: -2098098695371314438, guid: 6ff8d5a003697274c8dc8aa362cdd53a, type: 2}
-    value: {fileID: 8190597386396515287}
   - key: {fileID: -4637378295703386519, guid: 6ff8d5a003697274c8dc8aa362cdd53a, type: 2}
     value: {fileID: 2056040801058172428}
-  - key: {fileID: 3184510689519502563, guid: 6ff8d5a003697274c8dc8aa362cdd53a, type: 2}
-    value: {fileID: 230556817231370355}
   m_ExposedReferences:
     m_References: []
 --- !u!114 &6900587061892845888
@@ -304,7 +315,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4059803627240856160}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: -2, y: 1.7, z: 0}
   m_ConstrainProportionsScale: 0
@@ -449,6 +460,11 @@ MonoBehaviour:
   timelineDirector_Reload: {fileID: 813261046846135382}
   timelineDirector_Shoot: {fileID: 6103115406788702321}
   gunInfo: {fileID: 11400000, guid: 9c8b4bf7c52358c4583f01bfb440a9a7, type: 2}
+  muzzleFlashConfig: {fileID: 0}
+  muzzleFlash: {fileID: 3077526127132587325}
+  bulletVisualConfig: {fileID: 0}
+  muzzleFlashConfigID: 0
+  bulletVisualConfigID: 0
   firePoint: {fileID: 1390246983190437702}
   cartridgeCasePrefab: {fileID: 829796564893978883, guid: a0707b7f04f464a4a8047d829fcbead3, type: 3}
   cartridgeEjectPoint: {fileID: 9142670758572806120}
@@ -468,7 +484,6 @@ MonoBehaviour:
   GunInfoManager: {fileID: 0}
   Duration: 0.5
   _localRecoil: 0
-  _localViewRange: 0
   _localAccuracy: 0
 --- !u!95 &2056040801058172428
 Animator:
@@ -726,6 +741,8 @@ MonoBehaviour:
   CurrentGun: {fileID: 6026510805813263994}
   isDebug: 1
   uiFadeDuration: 0.2
+  coroutineInterval: 0
+  triggerCD: 0.1
   HasPickUpPlayer: 0
 --- !u!225 &2597119257942712482
 CanvasGroup:

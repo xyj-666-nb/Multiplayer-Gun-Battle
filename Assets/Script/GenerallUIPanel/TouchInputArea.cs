@@ -2,37 +2,31 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-/// <summary>
-/// 纯触摸屏输入控制器
-/// 功能：接收全屏触摸，把触摸坐标转换为世界坐标，驱动 playerHandControl
-/// </summary>
 public class TouchInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
-    // 单例
     public static TouchInputHandler Instance { get; private set; }
 
-    [Header("核心引用（必须赋值）")]
-    [Tooltip("你的 playerHandControl 脚本")]
+    [Header("核心引用")]
     public playerHandControl HandControl;
-
-    [Tooltip("渲染游戏画面的摄像机")]
     public Camera GameCamera;
 
     [Header("触摸设置")]
-    [Tooltip("最大点击容错像素，移动小于这个值算点击，大于算拖拽/瞄准")]
     public float MaxClickTolerance = 40f;
-
+    [Tooltip("触摸灵敏度系数")]
+    public float TouchSensitivity = 0.1f; 
 
     // 内部状态
-    private int _currentControlFingerId = -1; // 当前控制手臂/瞄准的手指ID
-    private Vector2 _pressScreenPos; // 按下时的屏幕坐标
-    private bool _isValidTouch = false; // 是否是有效触摸
-    private bool _isDragging = false; // 是否正在拖拽/瞄准
+    private int _currentControlFingerId = -1;
+    private Vector2 _pressScreenPos;
+    private Vector2 _lastFrameScreenPos; // 
+    private bool _isValidTouch = false;
+    private bool _isDragging = false;
 
     // 对外暴露的属性
-    public Vector2 CurrentTouchWorldPos { get; private set; } // 当前触摸的世界坐标
-    public bool IsTouchActive => _currentControlFingerId != -1; // 是否有有效触摸
-    public bool IsDragging => _isDragging; // 是否正在拖拽/瞄准
+    public Vector2 CurrentTouchWorldPos { get; private set; }
+    public bool IsTouchActive => _currentControlFingerId != -1;
+    public bool IsDragging => _isDragging;
+    public Vector2 TouchDelta { get; private set; } // 新增：这一帧的滑动增量
 
     private void Awake()
     {
@@ -40,45 +34,57 @@ public class TouchInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandle
         GameCamera = MyCameraControl.Instance.MainCamera;
     }
 
-    public void GetPlayerHand(playerHandControl HandControl)
+    private void Start()
     {
-       this.HandControl= HandControl;
+        transform.SetAsFirstSibling();
     }
 
-    // 触摸按下
+    public void GetPlayerHand(playerHandControl HandControl)
+    {
+        this.HandControl = HandControl;
+    }
+
     public void OnPointerDown(PointerEventData eventData)
     {
         if (HandControl == null)
-            return;
-
-        // 如果已经有手指在控制，忽略新的触摸（只支持单指控制）
-        if (_currentControlFingerId != -1)
-            return;
+        {
+            //尝试获取
+            HandControl = Player.LocalPlayer.MyHandControl;
+            if (HandControl == null)
+                return; // 仍然没有就放弃
+        }
+        if (_currentControlFingerId != -1) return;
 
         _currentControlFingerId = eventData.pointerId;
         _pressScreenPos = eventData.position;
+        _lastFrameScreenPos = eventData.position; // 初始化上一帧位置
         _isValidTouch = true;
         _isDragging = false;
 
-        // 计算初始世界坐标
+        TouchDelta = Vector2.zero; // 按下时增量为0
         UpdateTouchWorldPos(eventData.position);
     }
 
-    // 触摸拖拽
     public void OnDrag(PointerEventData eventData)
     {
         if (HandControl == null)
-            return;
-        // 只处理当前控制的手指
-        if (eventData.pointerId != _currentControlFingerId) 
-            return;
-        if (!_isValidTouch)
-            return;
+        {
+            //尝试获取
+            HandControl = Player.LocalPlayer.MyHandControl;
+            if (HandControl == null)
+                return; // 仍然没有就放弃
+        }
+        if (eventData.pointerId != _currentControlFingerId) return;
+        if (!_isValidTouch) return;
 
-        // 更新世界坐标
+        // 计算增量
+        TouchDelta = eventData.position - _lastFrameScreenPos;
+
+        // 更新上一帧位置
+        _lastFrameScreenPos = eventData.position;
+
         UpdateTouchWorldPos(eventData.position);
 
-        // 判断是否超过点击容错距离
         float moveDistance = Vector2.Distance(eventData.position, _pressScreenPos);
         if (moveDistance > MaxClickTolerance && !_isDragging)
         {
@@ -86,30 +92,32 @@ public class TouchInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandle
         }
     }
 
-    // 触摸抬起
     public void OnPointerUp(PointerEventData eventData)
     {
         if (HandControl == null)
-            return;
-        // 只处理当前控制的手指
+        {
+            //尝试获取
+            HandControl = Player.LocalPlayer.MyHandControl;
+            if (HandControl == null)
+                return; // 仍然没有就放弃
+        }
         if (eventData.pointerId != _currentControlFingerId) return;
-        // 重置状态
+
         _currentControlFingerId = -1;
         _isValidTouch = false;
         _isDragging = false;
+        TouchDelta = Vector2.zero; // 抬起时增量归零
     }
 
     private void UpdateTouchWorldPos(Vector2 screenPos)
     {
-        if (GameCamera == null || HandControl == null) return;
-
-        // 使用和原来鼠标逻辑一致的坐标转换
+        if (GameCamera == null || HandControl == null) 
+            return;
         Vector3 worldPos = GameCamera.ScreenToWorldPoint(new Vector3(
             screenPos.x, screenPos.y,
             HandControl.transform.position.z - GameCamera.transform.position.z
         ));
         worldPos.z = HandControl.transform.position.z;
-
         CurrentTouchWorldPos = worldPos;
     }
 }

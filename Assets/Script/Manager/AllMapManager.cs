@@ -12,7 +12,6 @@ public class AllMapManager : SingleMonoAutoBehavior<AllMapManager>
         {
             if (pack.Type == type)
             {
-                pack.Obj.SetActive(IsActive);
                 if(IsActive)
                 {
                     pack.ScreenObj= GameObject.Instantiate(pack.Screen, pack.Obj.transform);
@@ -29,7 +28,6 @@ public class AllMapManager : SingleMonoAutoBehavior<AllMapManager>
     {
         foreach (MapPack pack in mapPacksList)
         {
-            pack.Obj.SetActive(false);
             GameObject.Destroy(pack.ScreenObj);
         }
     }
@@ -40,7 +38,6 @@ public class AllMapManager : SingleMonoAutoBehavior<AllMapManager>
             if (pack.Type == Type)
                 continue;
 
-            pack.Obj.SetActive(false);
             GameObject.Destroy(pack.ScreenObj);
         }
     }

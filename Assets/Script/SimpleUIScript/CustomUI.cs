@@ -223,6 +223,8 @@ public class CustomUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
 
         if (MyCanvasGroup != null)
         {
+            if (MyCanvasGroup.alpha == 0)//如果最开始透明度为零意味着有意隐藏
+                return;
             MyCanvasGroup.alpha = CurrentPlayerCustomUIInfo.Alpha;
         }
     }

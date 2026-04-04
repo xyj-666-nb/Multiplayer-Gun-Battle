@@ -57,7 +57,6 @@ public class DeathPanel : BasePanel
         base.ClickButton(controlName);
         if (controlName == "StartPanelButton")
         {
-            IsStartCountDown = false;
             //打开战备配置面板
             UImanager.Instance.ShowPanel<EquipmentConfigurationPanel>();
         }

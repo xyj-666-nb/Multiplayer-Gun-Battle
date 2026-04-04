@@ -7,28 +7,55 @@ public class Switch : BaseBulletInteract_NetWork
     [Header("电闸配置")]
     public List<StreetLamp> ManageStreetLampList;
 
+    [Header("场景损坏图")]
+    public SpriteRenderer spriteRenderer;
+    public Sprite NormalSprite;
+    public Sprite SlightSprite;
+    public Sprite SeriousSprite;
+
     public override void EffectTrigger()
     {
-        // 可添加特效逻辑
-        gameObject.tag = "BackGround";
         gameObject.layer = LayerMask.NameToLayer("Default");
     }
 
     public override void HealthChangeEffect(float health)
     {
-        if (!isServer) return;
+        UpdateSprite(health);
 
-        // 1. 计算电闸当前的破坏等级
         StreetLampDegreeOfDestruction switchInfluence = health switch
         {
-            > 150 => StreetLampDegreeOfDestruction.Normal,   // 电闸完好，不添乱
-            > 100 => StreetLampDegreeOfDestruction.Slight,   // 电闸损坏，施加轻微影响
-            > 50 => StreetLampDegreeOfDestruction.Serious,   // 电闸快炸了，施加严重影响
-            _ => StreetLampDegreeOfDestruction.Lose           // 电闸炸了，施加失效影响
+            > 150 => StreetLampDegreeOfDestruction.Normal,
+            > 100 => StreetLampDegreeOfDestruction.Slight,
+            > 50 => StreetLampDegreeOfDestruction.Serious,
+            _ => StreetLampDegreeOfDestruction.Lose
         };
 
-        // 2. 将这个影响广播给所有路灯
         SetStreetLampInfluence(switchInfluence);
+    }
+
+    // 【新增】Sprite切换核心逻辑
+    private void UpdateSprite(float health)
+    {
+        if (spriteRenderer == null) return;
+
+        // 根据血量计算对应破坏程度
+        StreetLampDegreeOfDestruction degree = health switch
+        {
+            > 150 => StreetLampDegreeOfDestruction.Normal,
+            > 100 => StreetLampDegreeOfDestruction.Slight,
+            > 50 => StreetLampDegreeOfDestruction.Serious,
+            _ => StreetLampDegreeOfDestruction.Lose
+        };
+
+        // 安全切换Sprite
+        spriteRenderer.sprite = degree switch
+        {
+            StreetLampDegreeOfDestruction.Normal => NormalSprite,
+            StreetLampDegreeOfDestruction.Slight => SlightSprite,
+            StreetLampDegreeOfDestruction.Serious => SeriousSprite,
+            // 如果没有 LoseSprite，默认用 SeriousSprite，你也可以在这里补上
+            _ => SeriousSprite
+        };
     }
 
     [Server]
@@ -45,27 +72,41 @@ public class Switch : BaseBulletInteract_NetWork
         }
     }
 
-    public override void Init()
+    public override void InitClient()
     {
-        if (isServer)
-        {
-            // 初始化时，确保电闸对所有路灯施加 Normal 影响
-            SetStreetLampInfluence(StreetLampDegreeOfDestruction.Normal);
-        }
+        // 纯视觉：恢复标签、层级（所有客户端执行）
+        gameObject.tag = "BulletInteractObj";
+        gameObject.layer = LayerMask.NameToLayer("BulletInteractObj");
+
+        // 【新增】初始化时同步当前血量对应的Sprite
+        UpdateSprite(CurrentHealthValue);
     }
 
-    public override void ResetObj()
+    public override void ResetClient()
     {
-        if (isServer)
-        {
-            CurrentHealthValue = InitHealthValue;
-            IsTrigger = false;
-            // 重置时，恢复对路灯的 Normal 影响
-            SetStreetLampInfluence(StreetLampDegreeOfDestruction.Normal);
-            gameObject.tag = "BulletInteractObj";//设置会回层级然后
-            gameObject.layer = LayerMask.NameToLayer("BulletInteractObj");
-            //恢复血量
-            CmdHeal();
-        }
+        // 纯视觉：恢复标签、层级
+        gameObject.tag = "BulletInteractObj";
+        gameObject.layer = LayerMask.NameToLayer("BulletInteractObj");
+
+        // 【新增】重置时Sprite归位为完好状态
+        UpdateSprite(InitHealthValue);
+    }
+
+    [Server]
+    public override void InitServer()
+    {
+        // 执行基类初始化
+        base.InitServer();
+        // 电闸专属服务器逻辑：恢复对路灯的正常影响
+        SetStreetLampInfluence(StreetLampDegreeOfDestruction.Normal);
+    }
+
+    [Server]
+    public override void ResetServer()
+    {
+        // 执行基类重置
+        base.ResetServer();
+        // 电闸专属服务器逻辑：恢复对路灯的正常影响
+        SetStreetLampInfluence(StreetLampDegreeOfDestruction.Normal);
     }
 }

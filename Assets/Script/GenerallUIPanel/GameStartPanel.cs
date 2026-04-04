@@ -133,6 +133,7 @@ public class GameStartPanel : BasePanel
                 //进入游戏逻辑
                 UImanager.Instance.HidePanel<GameStartPanel>();
                 ModeChooseSystem.instance.EnterSystem();
+                UImanager.Instance.ShowPanel<ModeChoosePanel>();
                 break;
             case "GameExitButton":
                 //弹出警告

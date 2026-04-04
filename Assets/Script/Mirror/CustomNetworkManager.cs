@@ -140,6 +140,7 @@ public class CustomNetworkManager : NetworkManager
         //打开训练地图
         AllMapManager.Instance.TriggerMap(MapType.Training,true);//回到最开始
         AllMapManager.Instance.TriggerMap(MapType.StartCG, false);//回到最开始
+
     }
 
     public override void OnStopServer()
@@ -161,6 +162,7 @@ public class CustomNetworkManager : NetworkManager
 
         //关闭地图 
        AllMapManager.Instance.CloseAllMap(MapType.StartCG);//回到最开始
+        UImanager.Instance.HidePanel<DeathPanel>();//关闭死亡面板
     }
 
     public override void OnServerAddPlayer(NetworkConnectionToClient conn)

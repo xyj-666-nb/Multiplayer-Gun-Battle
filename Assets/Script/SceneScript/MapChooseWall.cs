@@ -52,8 +52,8 @@ public class MapChooseWall : MonoBehaviour
     public float fastBlendTime = 0.6f;
 
     // 优先级配置
-    private readonly int _activePriority = 10;
-    private readonly int _inactivePriority = 0;
+    private readonly int _activePriority = 20;
+    private readonly int _inactivePriority = -10;
 
     // 状态变量
     private CameraView _lastView;
@@ -132,6 +132,13 @@ public class MapChooseWall : MonoBehaviour
         }
 
         mapList[mapIndex].TriggerAnima();
+
+        //在这里做进入地图的准备吧
+        Player.LocalPlayer.MyHandControl.SetAimPointActive(false);//取消投掷点
+        //设置战术设备UI选中取消
+        PlayerTacticControl.Instance.ResetTacticUI();
+        Player.LocalPlayer.MyHandControl.SetHolsterState(false);//直接设置拿枪
+
     }
 
     void Start()
@@ -305,7 +312,12 @@ public class MapChooseWall : MonoBehaviour
     #region 系统入口/出口接口
     public void EnterMapChooseSystem()
     {
-        if (_currentView == CameraView.MapSelect) return;
+        if (_currentView == CameraView.MapSelect) 
+            return;
+
+        //进入系统自动隐藏面板
+        UImanager.Instance.HidePanel<ArmamentPanel>();
+        UImanager.Instance.HidePanel<EquipmentConfigurationPanel>();
 
         CountDownCanvasGroup.alpha = 1;
         SetCinemachineBlendTime(defaultBlendTime);
@@ -390,16 +402,18 @@ public class MapChooseWall : MonoBehaviour
 
         PlayerRespawnManager.Instance.CmdRequestDecideFinalMap();//判断地图
         //等待0.1秒给与时间
-        CountDownManager.Instance.CreateTimer(false, 100, () => {
+        CountDownManager.Instance.CreateTimer(false, 300, () => {
             SetCinemachineBlendTime(defaultBlendTime + 3f); // 比默认慢1秒
             if (PlayerRespawnManager.Instance.CurrentMapIndex == 0)
             {
                 //切换地图
+                Debug.Log("切换到地图1");
                 AllMapManager.Instance.TriggerMap(MapType.map1, true);
                 SwitchCamera(CameraView.Helicopter, helicopterVC);
             }
             else
             {
+                Debug.Log("切换到地图2");
                 AllMapManager.Instance.TriggerMap(MapType.map2, true);
                 SwitchCamera(CameraView.MapScene2, Map2SceneVC);
             }

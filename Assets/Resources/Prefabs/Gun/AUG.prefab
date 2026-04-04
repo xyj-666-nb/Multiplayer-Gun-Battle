@@ -459,6 +459,8 @@ MonoBehaviour:
   CurrentGun: {fileID: 5009337621347810503}
   isDebug: 1
   uiFadeDuration: 0.2
+  coroutineInterval: 0
+  triggerCD: 0.1
   HasPickUpPlayer: 0
 --- !u!225 &7635345885274755268
 CanvasGroup:
@@ -523,10 +525,6 @@ PlayableDirector:
   m_SceneBindings:
   - key: {fileID: -4723635178437013810, guid: d006dbc171fdf5a47853f781f686ae5c, type: 2}
     value: {fileID: 3955143133984142937}
-  - key: {fileID: -4850605554210869448, guid: d006dbc171fdf5a47853f781f686ae5c, type: 2}
-    value: {fileID: 7503626015272034759}
-  - key: {fileID: 6421527085748280377, guid: d006dbc171fdf5a47853f781f686ae5c, type: 2}
-    value: {fileID: 6969513680820568428}
   m_ExposedReferences:
     m_References: []
 --- !u!114 &2747168216819694908
@@ -750,6 +748,11 @@ MonoBehaviour:
   timelineDirector_Reload: {fileID: 5344617123904300012}
   timelineDirector_Shoot: {fileID: 8844295949706402078}
   gunInfo: {fileID: 11400000, guid: 9207a28773c95d84f88cee3c39293f61, type: 2}
+  muzzleFlashConfig: {fileID: 0}
+  muzzleFlash: {fileID: 4226370289902066303}
+  bulletVisualConfig: {fileID: 0}
+  muzzleFlashConfigID: 0
+  bulletVisualConfigID: 0
   firePoint: {fileID: 8017064875071688783}
   cartridgeCasePrefab: {fileID: 829796564893978883, guid: a0707b7f04f464a4a8047d829fcbead3, type: 3}
   cartridgeEjectPoint: {fileID: 113789441179095089}
@@ -769,7 +772,6 @@ MonoBehaviour:
   GunInfoManager: {fileID: 0}
   Duration: 0.5
   _localRecoil: 0
-  _localViewRange: 0
   _localAccuracy: 0
 --- !u!95 &3955143133984142937
 Animator:
@@ -869,6 +871,7 @@ GameObject:
   - component: {fileID: 7001382989498930871}
   - component: {fileID: 5541823159640025181}
   - component: {fileID: 7503626015272034759}
+  - component: {fileID: 4226370289902066303}
   m_Layer: 7
   m_HasEditorInfo: 1
   m_Name: GunLight
@@ -876,7 +879,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &7001382989498930871
 Transform:
   m_ObjectHideFlags: 0
@@ -965,6 +968,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &4226370289902066303
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6969513680820568428}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 465bb239da212b24b99f96b55d9fe0e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config: {fileID: 0}
+  flashLight: {fileID: 0}
 --- !u!1 &7859644692339017287
 GameObject:
   m_ObjectHideFlags: 0

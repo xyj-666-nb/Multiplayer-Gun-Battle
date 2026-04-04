@@ -5,49 +5,70 @@ using UnityEngine.UI;
 public class FireHydrant : BaseBulletInteract_NetWork
 {
     [Header("血条显示的配置")]
-    public WaterEffect waterEffect;//水粒子特效
+    public WaterEffect waterEffect;
+
+    [Header("场景损坏图 (5种状态)")]
+    public SpriteRenderer spriteRenderer;
+    public Sprite NormalSprite;      // 1. 完好状态 (>85血)
+    public Sprite SlightSprite;      // 2. 轻微漏水 (65-85血)
+    public Sprite SeriousSprite;     // 3. 严重漏水 (45-65血)
+    public Sprite BurstSprite;       // 4. 爆裂状态 (20-45血)
+    public Sprite DestroyedSprite;   // 5. 【新增】完全损毁 (<=20血)
 
     public override void EffectTrigger()
     {
-        //改变层级不进行碰撞
-        gameObject.tag = "BackGround";
-        gameObject.layer = LayerMask.NameToLayer("Default");
-
+        // 仅服务器修改状态，客户端同步表现
     }
 
-    //每次血条改变就需要调用血量UI的显示
-    public override void HealthChangeEffect(float Health)//根据血量来触发对应的效果
+    // 血量变化视觉效果
+    public override void HealthChangeEffect(float Health)
     {
-      
-        //根据当前的值依次触发对应的粒子效果
-        if (Health <= 80 && Health > 50)
+        UpdateSprite(Health);
+
+        // 【建议】如果你的 WaterEffect 也有对应第5种特效，可以在这里同步加上
+        if (Health <= 85 && Health > 65)
             waterEffect.triggerParticleSystem(WaterType.ShallowWater);
-        else if(Health <= 50 && Health > 30)
+        else if (Health <= 65 && Health > 45)
             waterEffect.triggerParticleSystem(WaterType.DeepWater);
-        else if(Health <= 30)
+        else if (Health > 20 && Health <= 45)
             waterEffect.triggerParticleSystem(WaterType.BurstWater);
-
+        else if (Health <= 0)
+        {
+            gameObject.layer = LayerMask.NameToLayer("Default");
+        }
     }
 
-    public override void Init()
+    // Sprite切换核心逻辑 (5档细分)
+    private void UpdateSprite(float health)
     {
-        gameObject.tag = "BulletInteractObj";//设置会回层级然后
+        if (spriteRenderer == null) return;
+
+        // 重新划分血量区间，加入第5种完全损毁状态
+        spriteRenderer.sprite = health switch
+        {
+            > 85 => NormalSprite,
+            > 65 => SlightSprite,
+            > 45 => SeriousSprite,
+            > 20 => BurstSprite,
+            _ => DestroyedSprite // <=20血显示完全损毁
+        };
+    }
+
+    public override void InitClient()
+    {
+        gameObject.tag = "BulletInteractObj";
         gameObject.layer = LayerMask.NameToLayer("BulletInteractObj");
-        //恢复血量
-        CmdHeal();
-        //触发粒子结束
         waterEffect.StopAll();
+
+        UpdateSprite(CurrentHealthValue);
     }
 
-    public override void OnStartClient()
-    {
-        base.OnStartClient();
-    }
-
-    public override void ResetObj()
+    public override void ResetClient()
     {
         waterEffect.StopAll();
-    }
+        gameObject.tag = "BulletInteractObj";
+        gameObject.layer = LayerMask.NameToLayer("BulletInteractObj");
 
-   
+        UpdateSprite(InitHealthValue);
+    }
 }

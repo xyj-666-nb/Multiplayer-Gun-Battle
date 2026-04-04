@@ -50,8 +50,6 @@ public class playerStats : CharacterStats
     public float DurationBuff_Bonus = 20f;//黄色针剂的持续时间(持续20秒)
     public float JumpBuff_MovePowerBonus = 1f;//黄色针剂的跳跃力提升(跳跃力加1)
 
-
-
     // 内部私有变量
     private bool _isYellowBuffActive = false;
 
@@ -190,6 +188,7 @@ public class playerStats : CharacterStats
                 Debug.Log($"[本地玩家] 触发绿色针剂回血");
                 if (isLocalPlayer)
                 {
+                    ScreenPulseController.Instance.Trigger_Heal();//触发特效
                     // 触发回血
                     HealAnimaTaskId = SimpleAnimatorTool.Instance.StartFloatLerp(CurrentHealth, maxHealth, InjectionHealTime * 2 + StayTime, (Value) => {
                         CmdChangeHealth(Value, Vector2.zero, Vector2.zero, null);
@@ -205,6 +204,7 @@ public class playerStats : CharacterStats
                 Debug.Log($"[本地玩家] 触发黄色针剂速度buff");
                 if (isLocalPlayer && !_isYellowBuffActive)
                 {
+                    ScreenPulseController.Instance.Trigger_Yellow();//触发特效
                     movePower += SpeedBuff_MovePowerBonus;
                     MaxXSpeed += MaxSpeedBuff_Bonus;
                     AimMovePower += SpeedBuff_MovePowerBonus;

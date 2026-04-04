@@ -154,10 +154,10 @@ public class EquipmentConfigurationPanel : BasePanel
         }
 
         // 注册装备按钮（使用兼容的带参方法）
-        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, gunBtn, ArmamentButtonTriggerEvent);
-        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, tac1Btn, ArmamentButtonTriggerEvent);
-        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, tac2Btn, ArmamentButtonTriggerEvent);
-        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, armorBtn, ArmamentButtonTriggerEvent);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, gunBtn, ArmamentButtonTriggerEvent,chooseColor:ColorManager.LightGreen);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, tac1Btn, ArmamentButtonTriggerEvent, chooseColor: ColorManager.LightGreen);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, tac2Btn, ArmamentButtonTriggerEvent, chooseColor: ColorManager.LightGreen);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, armorBtn, ArmamentButtonTriggerEvent, chooseColor: ColorManager.LightGreen);
 
         // ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(ArmamentButtonGroupName, true);
     }

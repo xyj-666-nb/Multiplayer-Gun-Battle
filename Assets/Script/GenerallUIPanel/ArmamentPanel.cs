@@ -25,6 +25,8 @@ public class ArmamentPanel : BasePanel
     public GameObject SpecialArmamentButtonPrefab;
     private string ButtonGroupRegisterName_SpecialArmament = "SpecialArmamentGroup"; //具体枪械/战术道具分组
     private List<GameObject> CreatedSpecialArmamentButtons = new List<GameObject>();
+    [Header("随机图标")]
+    public List<Sprite> SpecialArmamentSpriteList;
 
     [Header("军备种类的按钮（枪械/投掷物/护甲）")]
     public Button Gun_Button;
@@ -50,6 +52,9 @@ public class ArmamentPanel : BasePanel
     public GunInfo CurrentChooseGunInfo;//当前选择的枪械信息
     public TacticInfo CurrentChooseTacticInfo;//当前选择的战术道具信息
     public ArmorInfoPack CurrentChooseArmorInfoPack;//当前选择的护甲信息
+
+
+
 
     #region 数值滑块管理
     /// <summary>
@@ -227,6 +232,16 @@ public class ArmamentPanel : BasePanel
     /// </summary>
     private void OnArmorButtonClick()
     {
+        ControlDirectGetGunButton(false);
+        //取消直接按钮的获取
+        ControlDirectGetGunButton(true, (Btn) => {
+            Btn.onClick.AddListener(() => {
+                Player.LocalPlayer.CmdGetArmor(CurrentChooseArmorInfoPack.armorType);
+                //进行提示
+                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f,"获取成功");
+            });
+
+        });//打开获取按钮
         ClearCreatedArmamentButtons(); // 清理类型按钮
         ClearCreatedSpecialArmamentButtons(); // 清理具体装备按钮
         ClearValueSliders(); // 清理数值滑块
@@ -399,6 +414,32 @@ public class ArmamentPanel : BasePanel
         }
 
         ButtonGroupManager.Instance?.SelectFirstRadioButtonInGroup(ButtonGroupRegisterName_Armament, true);
+
+        //在这里打开按钮直接获取装备按钮
+        ControlDirectGetGunButton(true, (Btn) => {
+            Btn.onClick.AddListener(() => {
+                //点击后直接获取对应的枪械
+                if (Player.LocalPlayer.currentGun!=null)
+                {
+                    //直接丢弃枪械
+                    Player.LocalPlayer.DropCurrentGun();//丢弃枪械
+                }
+                Player.LocalPlayer.SpawnAndPickGun(CurrentChooseGunInfo.Name);//传入名字
+                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "获取成功");
+            });
+        }); //打开获取按钮
+    }
+
+    public void ControlDirectGetGunButton(bool IsShow,UnityAction<Button> CallBack=null)
+    {
+        var btn = controlDic["DirectgetGunButton"] as Button;
+        btn.gameObject.SetActive(IsShow);
+        CallBack?.Invoke(btn);
+        if(!IsShow)
+        {
+            //清理所有的监听事件
+            btn.onClick.RemoveAllListeners();
+        }
     }
 
     /// <summary>
@@ -406,7 +447,8 @@ public class ArmamentPanel : BasePanel
     /// </summary>
     public void CreateAndRegisterTacticButton()
     {
-        // 核心修复：先清理旧的枪械类型按钮
+        //取消直接按钮的获取
+        ControlDirectGetGunButton(false);
         ClearCreatedArmamentButtons();
         // 清理具体装备按钮和数值滑块
         ClearCreatedSpecialArmamentButtons();
@@ -566,11 +608,13 @@ public class ArmamentPanel : BasePanel
         if (PoolManage.Instance != null)
         {
             buttonObj = PoolManage.Instance.GetObj(SpecialArmamentButtonPrefab);
+            SpecialArmamentButtonPrefab.GetComponent<Image>().sprite = SpecialArmamentSpriteList[UnityEngine.Random.Range(0, SpecialArmamentSpriteList.Count)];
         }
         else
         {
             // 备用方案：对象池为空时直接实例化
             buttonObj = Instantiate(SpecialArmamentButtonPrefab);
+            buttonObj.GetComponent<Image>().sprite=SpecialArmamentSpriteList[UnityEngine.Random.Range(0, SpecialArmamentSpriteList.Count)];
             Debug.LogWarning("PoolManage.Instance 为空，直接实例化特殊装备按钮预制体！");
         }
 
@@ -823,23 +867,23 @@ public class ArmamentPanel : BasePanel
         ClearValueSliders();
 
         // 伤害（最大值100）
-        CreateValueSlider(info.Damage, "伤害", "100");
+        CreateValueSlider(info.Damage, "伤害", "150");
         // 射程（最大值500）
         CreateValueSlider(info.Range, "射程", "500");
         // 后坐力（最大值5）
-        CreateValueSlider(info.Recoil, "后坐力", "5");
-        // 射速（最大值1000）
-        CreateValueSlider(info.RateOfFires, "射速", "1000");
+        CreateValueSlider(info.Recoil, "后坐力", "2");
+        // 单发枪械控制（最大值100）
+        CreateValueSlider(info.ControlPower, "单发枪械控制", "100");
         // 换弹时间（最大值5）
-        CreateValueSlider(info.ReloadTime, "换弹时间", "5");
+        CreateValueSlider(info.ReloadTime, "换弹时间", "7");
         // 精准度（最大值100）
         CreateValueSlider(info.Accuracy, "精准度", "100");
         // 枪械震动（最大值5）
-        CreateValueSlider(info.ShackStrength, "枪械震动", "5");
-        // 子弹速度（最大值1000）
-        CreateValueSlider(info.BulletSpeed, "子弹速度", "1000");
+        CreateValueSlider(info.ShackStrength, "枪械震动", "2");
+        // 对敌打击力（最大值3）
+        CreateValueSlider(info.Recoil_Enemy, "对敌打击力", "3");
         // 单个弹夹弹药量（最大值50）
-        CreateValueSlider(info.Bullet_capacity, "弹夹容量", "50");
+        CreateValueSlider(info.Bullet_capacity, "弹夹容量", "80");
     }
 
     // 重置枪械图片Transform
@@ -1037,6 +1081,7 @@ public class ArmamentPanel : BasePanel
             UImanager.Instance.GetPanel<PlayerPanel>().SimpleShowPanel();
             IsPlayerPanelHide = false;
         }
+        ControlDirectGetGunButton(false);//清理事件
     }
     public override void ShowMe(bool isNeedDefaultAnimator = true)
     {

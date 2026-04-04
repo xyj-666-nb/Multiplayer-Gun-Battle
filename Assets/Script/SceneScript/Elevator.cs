@@ -25,8 +25,6 @@ public class Elevator : NetworkBehaviour
     // 只在服务端初始化
     public override void OnStartServer()
     {
-        base.OnStartServer();
-        Init(); // 服务端启动时调用初始化
     }
 
     // 仅服务端执行
@@ -35,7 +33,7 @@ public class Elevator : NetworkBehaviour
     {
         gameObject.SetActive(true);
         Debug.Log("【Elevator】服务端初始化电梯");
-        // 确保电梯初始位置正确（可选）
+        // 确保电梯初始位置正确
         transform.localPosition = new Vector2(transform.localPosition.x, firstFloorLocalY);
         // 开始电梯循环
         MoveElevator();

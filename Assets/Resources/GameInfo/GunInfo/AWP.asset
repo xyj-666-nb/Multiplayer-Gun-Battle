@@ -27,16 +27,18 @@ MonoBehaviour:
   ReloadTime: 4
   BulletSpeed: 0
   Recoil: 1.7
-  Recoil_Enemy: 0
+  Recoil_Enemy: 3
+  ControlPower: 80
+  MaxPower: 5
   ViewRange: 0.24
   GunBodySprite: {fileID: -890624115, guid: 15534c1a4afd7f644a03efad0883709d, type: 3}
-  ShootAudio: {fileID: 8300000, guid: 184e98b177b3505429f2f172edc7592c, type: 3}
-  BulletFill: {fileID: 0}
+  ShootAudio: {fileID: 8300000, guid: 10cd5a5925420804990278df2cf2a97a, type: 3}
+  BulletFill: {fileID: 8300000, guid: c01d8f74618ee6a4ba9caa742de8ed78, type: 3}
   GunSprite: {fileID: 21300000, guid: ec6008200151ca14ab3e31d8b50a07d2, type: 3}
   ShackStrength: 1
   ShackTime: 0.3
-  ShackStrength_Enemy: 2
-  ShackTime_Enemy: 0.5
+  ShackStrength_Enemy: 3
+  ShackTime_Enemy: 1
   smokeColor: {r: 1, g: 1, b: 1, a: 1}
   smokeSizeMin: 0.001
   smokeSizeMax: 0.001

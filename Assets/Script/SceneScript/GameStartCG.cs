@@ -28,6 +28,10 @@ public class GameStartCG : MonoBehaviour
 
     private void Awake()
     {
+        Instance = this;
+    }
+    public void TriggerGameCG()
+    {
         //先注册一下提示消息
         SimpleAnimatorTool.Instance.AddFadeLoopTask(IsSkipButton.GetComponentInChildren<TextMeshProUGUI>());
         IsSkipButton.onClick.AddListener(() =>
@@ -42,7 +46,6 @@ public class GameStartCG : MonoBehaviour
             });
 
         });
-        Instance =this;
         CountDownManager.Instance.CreateTimer(false, (int)(FirstStartTime * 1000), () => {
             Debug.Log("开始随机动画");
             AnimaId = CountDownManager.Instance.CreateTimer_Permanent(false, 6000, () =>
@@ -53,7 +56,7 @@ public class GameStartCG : MonoBehaviour
                 else
                     PlayAnima2();
             });
-        
+
         });
     }
 

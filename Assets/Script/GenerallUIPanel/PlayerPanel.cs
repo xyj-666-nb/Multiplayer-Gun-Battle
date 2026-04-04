@@ -29,6 +29,61 @@ public class PlayerPanel : BasePanel
     private Sequence InteractBackGroundSequence;
     public Image InteractButtonFillButtonImage;//射击按钮填充图片
 
+    [Header("换弹按钮提示图片")]
+    public Image ReloadProcessImage;
+    private int TimerID=-1;//换弹计时器ID
+    public bool IsInReloadProcess = false;//是否在换弹过程中
+
+    [Header("对捡起枪械按钮的管理")]
+    public CanvasGroup PickupCanvasGroup;//对捡起枪械默认进行隐藏
+    private Sequence PickupCanvasGroupSequence;
+
+    [Header("移动控制")]
+    public GameObject Joystick;//摇杆控制
+    public GameObject MoveButton;//移动按钮
+
+    public void UpdateMoveButton()
+    {
+        if(PlayerAndGameInfoManger.Instance.IsUseJoyStickMove)
+        {
+            Joystick.SetActive(true);
+            MoveButton.SetActive(false);
+        }
+        else
+        {
+            Joystick.SetActive(false);
+            MoveButton.SetActive(true);
+        }
+    }
+
+    //键入换弹提示
+    public void EnterReloadPrompt(float Time)//换弹的时候就触发
+    {
+        if(TimerID!=-1)
+            SimpleAnimatorTool.Instance.StopFloatLerpById(TimerID);//如果之前有计时器了就先停掉，避免重复叠加
+        IsInReloadProcess = true;
+        TimerID = SimpleAnimatorTool.Instance.StartFloatLerp(0, 1, Time, (v) => {
+            ReloadProcessImage.fillAmount = v;//持续更新换弹提示的填充量
+        }, () => { IsInReloadProcess = false; });
+    }
+
+    public void IsTriggerPickUpGunButton(bool IsActive)
+    {
+        PickupCanvasGroup.interactable=IsActive;
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(PickupCanvasGroup, ref PickupCanvasGroupSequence, IsActive, () => { });
+    }
+
+    public void StopReloadPrompt()
+    {
+        if(IsInReloadProcess)
+        {
+            if (TimerID != -1)
+                SimpleAnimatorTool.Instance.StopFloatLerpById(TimerID);//如果之前有计时器了就先停掉，避免重复叠加
+            ReloadProcessImage.fillAmount = 1;//设置未填充状态
+            IsInReloadProcess = false;
+        }
+    }
+
     public void UpdateInteractButtonCool(float amount)
     {
         InteractButtonFillButtonImage.fillAmount = amount;
@@ -147,6 +202,8 @@ public class PlayerPanel : BasePanel
         //注册一下射击按钮单选按钮
         ButtonGroupManager.Instance.AddToggleButtonToGroup(AimButtonButtonGroupName, controlDic[AimButtonButtonGroupName] as Button, isManualTrigger: true);
         SetActiveInteractButton(false);//关闭交互
+        IsTriggerPickUpGunButton(false);//开始隐藏
+        UpdateMoveButton();
     }
 
     public override void Start()

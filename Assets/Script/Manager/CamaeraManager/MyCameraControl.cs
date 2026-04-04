@@ -2,6 +2,7 @@ using UnityEngine;
 using Cinemachine;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Events;
 
 #region 震动信息包
 /// <summary>
@@ -78,6 +79,7 @@ public class CameraShakePack
 #endregion
 
 #region 缩放任务类
+
 /// <summary>
 /// 缩放任务
 /// </summary>
@@ -92,6 +94,7 @@ public class ZoomTask
     public bool IsStaying;           // 是否处于停留阶段
     public bool IsZoomingBack;       // 是否正在还原到基准尺寸
     public bool IsCompleted;         // 任务是否已完成
+    public UnityAction OnCompleted;  // 任务完成回调函数
 
     // 构造函数
     public ZoomTask(int id, ZoomTaskType type, float targetSize, float speed, float stayTime = 0f)
@@ -105,6 +108,7 @@ public class ZoomTask
         IsStaying = false;
         IsZoomingBack = false;
         IsCompleted = false;
+        OnCompleted = null; // 回调默认空
     }
 }
 
@@ -292,8 +296,29 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         if (virtualCamera == null)
             return -1;
 
+        // 恢复原始逻辑：基于当前相机尺寸缩放
         float targetSize = virtualCamera.m_Lens.OrthographicSize * percent;
         return AddZoomTask_TemporaryWithTime(targetSize, stayTime, speed);
+    }
+
+    public float GetCurrentCameraSize() => virtualCamera.m_Lens.OrthographicSize;
+
+    //直接设置基于的摄像机尺寸百分比
+    public void DirectSetValuePrecent(float Precent)
+    {
+        if (virtualCamera == null) 
+            return;
+        // 非法值兜底，保证百分比为正数
+        Precent = Mathf.Max(0.1f, Precent);
+        float targetSize = _baseOrthographicSize * Precent;
+        virtualCamera.m_Lens.OrthographicSize = targetSize;
+    }
+
+    //通过缩放任务到基础值
+    public void ReturnBaseValue()
+    {
+        // 复用现有逻辑：清空所有任务，平滑还原到基准尺寸
+        ClearAllZoomTasks();
     }
 
     /// <summary>
@@ -302,14 +327,31 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     /// <param name="percent">缩放百分比（支持任意正数）</param>
     /// <param name="speed">缩放速度</param>
     /// <returns>任务ID（用于后续手动还原）</returns>
-    public int AddZoomTask_ByPercent_TemporaryManual(float percent, float speed)
+    public int AddZoomTask_ByPercent_TemporaryManual(float percent, float speed,UnityAction<float> targetValue=null )
     {
         if (virtualCamera == null)
             return -1;
 
-        // 计算目标尺寸：当前相机尺寸 * 百分比（支持>1的百分比）
+        // 恢复原始逻辑：基于当前相机尺寸缩放
         float targetSize = virtualCamera.m_Lens.OrthographicSize * percent;
-        // 调用无固定时间的缩放任务方法，返回任务ID
+        targetValue?.Invoke(targetSize);//给与目标大小
+        return AddZoomTask_TemporaryManual(targetSize, speed);
+    }
+
+    /// <summary>
+    /// 自定义一个基础的缩放值进行缩放
+    /// </summary>
+    /// <param name="percent">百分比</param>
+    /// <param name="speed">速度</param>
+    /// <param name="BaseSize">自定义基础值</param>
+    /// <returns></returns>
+    public int AddZoomTask_ByPercent_TemporaryManual(float percent, float speed, float BaseSize)
+    {
+        if (virtualCamera == null)
+            return -1;
+
+        //基于当前相机尺寸缩放
+        float targetSize = BaseSize * percent;
         return AddZoomTask_TemporaryManual(targetSize, speed);
     }
 
@@ -317,7 +359,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     /// 手动还原指定ID的临时缩放任务
     /// </summary>
     /// <param name="taskID">要还原的任务ID</param>
-    public void ResetZoomTask(int taskID)
+    public void ResetZoomTask(int taskID, UnityAction CallBack = null)
     {
         ZoomTask task = _zoomTaskList.Find(t => t.TaskID == taskID && !t.IsCompleted);
         if (task == null)
@@ -329,6 +371,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         // 仅对TemporaryManual类型生效
         if (task.Type == ZoomTaskType.TemporaryManual)
         {
+            task.OnCompleted = CallBack; // 绑定回调
             task.IsZoomingToTarget = false;
             task.IsStaying = false;
             task.IsZoomingBack = true; // 开始还原到基准尺寸
@@ -352,13 +395,19 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     }
 
     /// <summary>
-    /// 强制清空所有缩放任务，立即还原到基准尺寸
+    /// 强制清空所有缩放任务，平滑还原到基准尺寸
     /// </summary>
     public void ClearAllZoomTasks()
     {
-        _zoomTaskList.Clear();
-        virtualCamera.m_Lens.OrthographicSize = _baseOrthographicSize;
-        _nextZoomTaskID = 0;
+        foreach (var task in _zoomTaskList)
+        {
+            if (!task.IsCompleted)
+            {
+                task.IsZoomingToTarget = false;
+                task.IsStaying = false;
+                task.IsZoomingBack = true;
+            }
+        }
     }
 
     #region List缩放任务处理逻辑
@@ -418,46 +467,32 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             if (Mathf.Abs(currentSize - _baseOrthographicSize) <= _sizeErrorThreshold)
             {
                 task.IsZoomingBack = false;
-                task.IsCompleted = true; // 任务完成
+                task.IsCompleted = true;
+                task.OnCompleted?.Invoke(); // 触发回调（核心保留）
             }
         }
     }
 
     /// <summary>
     /// 计算叠加后的最终目标尺寸
-    /// 修复逻辑：支持放大（百分比>1）和缩小（百分比<1）两种场景
-    /// - 若有任务要放大视野（targetSize > 基准），取最大的目标尺寸
-    /// - 若有任务要缩小视野（targetSize < 基准），取最小的目标尺寸
-    /// - 无任务时还原基准尺寸
     /// </summary>
     private float CalculateFinalZoomTargetSize()
     {
-        // 初始化：先收集所有有效任务的目标尺寸
         List<float> validTaskTargets = new List<float>();
 
         foreach (var task in _zoomTaskList)
         {
-            if (task.IsCompleted)
-                continue;
-
-            // 确定当前任务的目标尺寸：还原阶段取基准，否则取任务目标
+            if (task.IsCompleted) continue;
             float taskTarget = task.IsZoomingBack ? _baseOrthographicSize : task.TargetSize;
             validTaskTargets.Add(taskTarget);
         }
 
-        // 无有效任务 → 还原基准尺寸
-        if (validTaskTargets.Count == 0)
-            return _baseOrthographicSize;
+        if (validTaskTargets.Count == 0) return _baseOrthographicSize;
 
-        // 有有效任务 → 计算最终目标：
         float minTarget = validTaskTargets.Min();
         float maxTarget = validTaskTargets.Max();
 
-        if (minTarget < _baseOrthographicSize)
-            return minTarget;
-        // 无缩小任务时，取最大
-        else
-            return maxTarget;
+        return minTarget < _baseOrthographicSize ? minTarget : maxTarget;
     }
 
     /// <summary>
@@ -466,24 +501,12 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     private void ApplyFinalZoom(float finalTargetSize)
     {
         float currentSize = virtualCamera.m_Lens.OrthographicSize;
-        // 误差阈值内直接返回，避免抖动
-        if (Mathf.Abs(currentSize - finalTargetSize) < _sizeErrorThreshold)
-            return;
+        if (Mathf.Abs(currentSize - finalTargetSize) < _sizeErrorThreshold) return;
 
-        // 取所有有效任务的最大速度
-        float maxSpeed = 0f;
-        foreach (var task in _zoomTaskList)
-        {
-            if (!task.IsCompleted && task.Speed > maxSpeed)
-            {
-                maxSpeed = task.Speed;
-            }
-        }
-        maxSpeed = maxSpeed == 0 ? 1f : maxSpeed; // 兜底
+        float maxSpeed = _zoomTaskList.Where(t => !t.IsCompleted).Max(t => t.Speed);
+        maxSpeed = Mathf.Max(maxSpeed, 1f);
 
-        // 稳定插值：无论放大还是缩小，都向finalTargetSize靠近
         float newSize = Mathf.MoveTowards(currentSize, finalTargetSize, maxSpeed * Time.deltaTime);
-        // 额外兜底：避免尺寸过小/过大（可选，根据你的游戏需求调整上下限）
         newSize = Mathf.Clamp(newSize, _baseOrthographicSize * 0.1f, _baseOrthographicSize * 3f);
         virtualCamera.m_Lens.OrthographicSize = newSize;
     }

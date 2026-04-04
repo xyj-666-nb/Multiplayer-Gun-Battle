@@ -66,7 +66,8 @@ public class UIBinding : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     /// </summary>
     private InputInfoManager.CustomInputContext CreateCustomContext()
     {
-        if (_targetInputAction == null) return null;
+        if (_targetInputAction == null) 
+            return null;
 
         return new InputInfoManager.CustomInputContext(
             _targetInputAction,

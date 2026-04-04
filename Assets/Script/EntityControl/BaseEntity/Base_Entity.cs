@@ -1,9 +1,10 @@
 using Mirror;
 using UnityEngine;
+using System;
 
 public class Base_Entity : NetworkBehaviour
 {
-    public bool isFlip = true; // 全局翻转标识（控制是否允许缩放翻转）
+    public bool isFlip = true;
     public Rigidbody2D MyRigdboby;
 
     #region 检测标识线 & 3D区域检测参数
@@ -19,22 +20,25 @@ public class Base_Entity : NetworkBehaviour
     #endregion
 
     #region 缓存变量
-    private RaycastHit2D[] _wallHitCache; // 复用射线检测数组，避免每次新建
-    private ContactFilter2D _wallContactFilter; // 缓存接触过滤器，避免重复创建
+    private RaycastHit2D[] _wallHitCache;
+    private ContactFilter2D _wallContactFilter;
+
+    private bool _lastGroundedState;
+    public event Action<bool> OnGroundStateChanged; // true=刚落地，false=刚离地
     #endregion
 
-    #region 墙壁以及地面检测（优化：高频函数+GC减少）
-    // 2D地面检测（保留原逻辑）
+    #region 墙壁以及地面检测
+    // 2D地面检测
     public virtual bool IsGroundDetected() => Physics2D.Raycast(GroundCheck.position, Vector2.down,
         GroundCheckDistance, Layer_Ground);
 
-    // 2D墙壁检测（优化：复用数组+缓存过滤器，减少GC）
+    // 2D墙壁检测
     public virtual bool IsWallDetected()
     {
         if (WallCheck == null)
             return false;
 
-        // 初始化缓存（仅1次），避免高频新建数组/过滤器
+        // 初始化缓存（仅1次）
         if (_wallHitCache == null) _wallHitCache = new RaycastHit2D[1];
         if (_wallContactFilter.layerMask != Layer_Wall)
         {
@@ -43,7 +47,7 @@ public class Base_Entity : NetworkBehaviour
             _wallContactFilter.useTriggers = false;
         }
 
-        // 复用数组，避免每次new RaycastHit2D[1]产生GC
+        // 复用数组，避免GC
         int hitCount = Physics2D.Raycast(
             WallCheck.position,
             Vector2.right * FacingDir,
@@ -60,7 +64,7 @@ public class Base_Entity : NetworkBehaviour
     }
     #endregion
 
-    #region 生物翻转（保留原逻辑，仅精简冗余判断）
+    #region 生物翻转（保留原逻辑）
     [Header("角色朝向")]
     [SyncVar(hook = nameof(OnFacingDirChanged))]
     public int FacingDir = 1;
@@ -87,7 +91,7 @@ public class Base_Entity : NetworkBehaviour
     }
     #endregion
 
-    #region 生物初始化
+    #region 生物初始化 + 性能优化核心
     public virtual void Awake()
     {
         if (MyRigdboby == null)
@@ -98,6 +102,25 @@ public class Base_Entity : NetworkBehaviour
         }
 
         if (_wallHitCache == null) _wallHitCache = new RaycastHit2D[1];
+
+        if (GroundCheck != null)
+        {
+            _lastGroundedState = IsGroundDetected();
+        }
+    }
+
+    public virtual void FixedUpdate()
+    {
+        if (GroundCheck == null) return;
+
+        bool currentGrounded = IsGroundDetected();
+
+        // 仅当状态变化时触发事件，其余时间0开销
+        if (currentGrounded != _lastGroundedState)
+        {
+            OnGroundStateChanged?.Invoke(currentGrounded);
+            _lastGroundedState = currentGrounded;
+        }
     }
     #endregion
 
@@ -129,7 +152,7 @@ public class Base_Entity : NetworkBehaviour
 
     public virtual void DestroyMe(float Time = 0)
     {
-        CancelInvoke(); // 取消未执行的Invoke，避免内存泄漏
+        CancelInvoke();
         Destroy(this.gameObject, Time);
     }
 
@@ -137,5 +160,6 @@ public class Base_Entity : NetworkBehaviour
     {
         _wallHitCache = null;
         MyRigdboby = null;
+        OnGroundStateChanged = null; // 清理事件，防止内存泄漏
     }
 }

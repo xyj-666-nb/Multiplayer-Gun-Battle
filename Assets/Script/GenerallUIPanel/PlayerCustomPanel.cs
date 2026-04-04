@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [System.Serializable]
@@ -62,6 +63,8 @@ public class PlayerCustomPanel : BasePanel
     {
         foreach (var UI in PlayerAndGameInfoManger.Instance.AllCustomUIPrefabsList)
         {
+            //if (UI.GetComponent<CustomUI>().needCustomUIType == NeedCustomUIType.TouchHandleArea)
+            //    return;//这里就不对瞄准区域做处理
             var Obj = GameObject.Instantiate(UI, this.transform);
             AllCustomUIList.Add(Obj.GetComponent<CustomUI>());
         }
@@ -97,8 +100,14 @@ public class PlayerCustomPanel : BasePanel
             //保存数据
             SaveAllDate();
         }
+        else if (controlName == "DefaultButton")//恢复默认设置
+        {
+            WarnTriggerManager.Instance.TriggerDoubleInteraction2Warn("是否恢复默认", () => { }, () => {
+                //触发逻辑：调用恢复默认UI的方法
+                RestoreDefaultUI();
+            });
+        }
     }
-
 
     public void SaveAllDate()
     {
@@ -181,6 +190,7 @@ public class PlayerCustomPanel : BasePanel
             case NeedCustomUIType.ThrowObjButton: return "战术控制UI";
             case NeedCustomUIType.ScreenFlipButton: return "视角翻转按钮";
             case NeedCustomUIType.TouchHandleArea: return "瞄准控制区域";
+            case NeedCustomUIType.interactButton: return "场景交互按钮";
             default: return "未知按钮";
         }
     }
@@ -201,5 +211,47 @@ public class PlayerCustomPanel : BasePanel
         float currentAlpha = CurrentInfo.Alpha;
         currentAlpha = Mathf.Clamp01(currentAlpha);
         Slider_AlphaValue.value = currentAlpha;
+    }
+
+    /// <summary>
+    /// 恢复默认UI布局与设置
+    /// </summary>
+    private void RestoreDefaultUI()
+    {
+        foreach (var ui in AllCustomUIList)
+        {
+            // 在预制体列表中查找对应的默认Prefab
+            GameObject prefab = PlayerAndGameInfoManger.Instance.AllCustomUIPrefabsList.Find(
+                p => p.GetComponent<CustomUI>().needCustomUIType == ui.needCustomUIType);
+
+            if (prefab != null)
+            {
+                RectTransform prefabRt = prefab.GetComponent<RectTransform>();
+                CanvasGroup prefabCg = prefab.GetComponent<CanvasGroup>();
+
+                // 1. 恢复位置、大小、旋转和缩放
+                ui.RectTransform.anchoredPosition = prefabRt.anchoredPosition;
+                ui.RectTransform.sizeDelta = prefabRt.sizeDelta;
+                ui.RectTransform.localEulerAngles = prefabRt.localEulerAngles;
+                ui.RectTransform.localScale = prefabRt.localScale;
+
+                // 2. 恢复透明度
+                if (ui.CanvasGroup != null)
+                {
+                    ui.CanvasGroup.alpha = prefabCg != null ? prefabCg.alpha : 1f;
+                }
+
+                // 3. 将恢复后的数据立即覆盖写回当前内存数据中
+                ui.UpdateInfo();
+            }
+        }
+
+        // 如果当前有选中的UI，同步刷新一下控制面板底部的滑块显示
+        if (CustomUI.currentSelectedUI != null)
+        {
+            UpdateCurrentControlPanel(CustomUI.currentSelectedUI.Info);
+        }
+
+        WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "已恢复默认设置！(切记点击保存)");
     }
 }

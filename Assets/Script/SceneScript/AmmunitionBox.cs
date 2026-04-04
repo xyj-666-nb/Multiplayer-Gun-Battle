@@ -102,7 +102,6 @@ public class AmmunitionBox : BaseSceneInteract
 
     public override void TriggerEffect()
     {
-
         if (_isCooling || Player.LocalPlayer.currentGun == null)//Ç¹ÐµÎª¿ÕÖ±½Ó·µ»Ø
             return;
 
@@ -112,6 +111,7 @@ public class AmmunitionBox : BaseSceneInteract
         Debug.Log("µ¯Ò©ÒÑ²¹Âú£¡");
         //µ÷ÓÃµ¯Ò©²¹³ä
         Player.LocalPlayer.CmdBulletSupplement();//²¹³äµ¯Ò©
+        MusicManager.Instance.PlayEffect("Music/ÕýÊ½/½»»¥/²¹³ä×Óµ¯",1f);
     }
 
     public override void Update()

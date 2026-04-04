@@ -52,26 +52,6 @@ public class PlayerRespawnManager : NetworkBehaviour
 
     private List<PlayerInfo> _playerInfoList = new List<PlayerInfo>();
 
-    //服务器对玩家的管理
-    [Server]
-    public void ClearAllPlayerGun()
-    {
-        //清除所有玩家手上的枪械
-        foreach (PlayerInfo playerInfoPack in _playerInfoList)
-        {
-            playerInfoPack.Monster.DropCurrentGun(true);//丢弃并销毁当前所有玩家的枪械
-        }
-    }
-    [Server]
-    public void ClearAllPlayerArmor()
-    {
-        //清除所有玩家手上的枪械
-        foreach (PlayerInfo playerInfoPack in _playerInfoList)
-        {
-            playerInfoPack.Monster.CurrentArmorType = ArmorType.Empty_handed;
-        }
-    }
-
     /// <summary>
     /// 游戏正式开始时调用，记录队伍、重置击杀/死亡数、重置比分
     /// </summary>
@@ -105,7 +85,7 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         if (CurrentMapIndex >= 0)
         {
-            PRCInitAllInteractObj(CurrentMapIndex + 1, true);
+            ServerInitMapInteractObjects(CurrentMapIndex + 1);
             Debug.Log($"[交互物体] 游戏开始，初始化地图 {CurrentMapIndex + 1} 的物体");
         }
         else
@@ -168,7 +148,7 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         if (CurrentMapIndex >= 0)//还原地图
         {
-            PRCInitAllInteractObj(CurrentMapIndex + 1, false);
+            ServerResetMapInteractObjects(CurrentMapIndex + 1);
             Debug.Log($"[交互物体] 时间耗尽，重置地图 {CurrentMapIndex + 1} 的物体");
         }
 
@@ -236,7 +216,8 @@ public class PlayerRespawnManager : NetworkBehaviour
     [Server]
     public void AddPlayerKill(NetworkConnectionToClient killerConn)
     {
-        if (!IsGameStart) return; // 游戏开始标识没打开就不处理逻辑
+        if (!IsGameStart) 
+            return; // 游戏开始标识没打开就不处理逻辑
 
         PlayerInfo info = GetOrCreatePlayerInfo(killerConn);
         if (info != null)
@@ -253,7 +234,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// 增加玩家死亡数 (服务端调用)
+    /// 增加玩家死亡数 
     /// </summary>
     [Server]
     public void AddPlayerDeath(NetworkConnectionToClient deadConn)
@@ -317,6 +298,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     #endregion
 
     #region 战绩面板数据同步
+
     /// <summary>
     /// 服务端构建数据并同步给所有客户端
     /// </summary>
@@ -346,6 +328,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     #endregion
 
     #region 玩家人数与队伍同步
+
     // 同步玩家人数 
     [SyncVar(hook = nameof(OnPlayerCountChanged))]
     public int CurrentPlayerCount = 0;
@@ -377,13 +360,13 @@ public class PlayerRespawnManager : NetworkBehaviour
         if (!isClient)
             return;
         //调用本地的更新
-
         MapChooseWall.Instance.UpdatePlayerCount(newVal, Map2ChooseCount);
     }
 
     private void OnMap2CountChanged(int oldVal, int newVal)
     {
-        if (!isClient) return;
+        if (!isClient)
+            return;
         MapChooseWall.Instance.UpdatePlayerCount(Map1ChooseCount, newVal);
     }
 
@@ -439,7 +422,6 @@ public class PlayerRespawnManager : NetworkBehaviour
         OnTeamCountChanged(0, 0);
     }
 
-    // Hook: 总人数变化
     private void OnPlayerCountChanged(int oldVal, int newVal)
     {
         if (!isClient) return;
@@ -607,7 +589,7 @@ public class PlayerRespawnManager : NetworkBehaviour
             IsGameStart=false;
             if (CurrentMapIndex >= 0)
             {
-                PRCInitAllInteractObj(CurrentMapIndex + 1, false);
+                ServerResetMapInteractObjects(CurrentMapIndex + 1);
                 Debug.Log($"[交互物体] 比分达标，重置地图 {CurrentMapIndex + 1} 的物体");
             }
 
@@ -1168,8 +1150,11 @@ public class PlayerRespawnManager : NetworkBehaviour
         //进行地图的一个初始化
         IsGameRealStart = true;//启动游戏
         //对所有玩家进行初始化
-        ClearAllPlayerGun();
-        ClearAllPlayerArmor();
+        foreach (PlayerInfo playerInfoPack in _playerInfoList)
+        {
+            playerInfoPack.Monster.CmdClearAllPlayerObj();
+            //设置当前手部为拿枪状态
+        }
         PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentMapIndex].MapInit();//地图初始化
     }
 
@@ -1292,6 +1277,8 @@ public class PlayerRespawnManager : NetworkBehaviour
     /// <summary>
     /// 全局清理方法（对外暴露）
     /// </summary>
+    // PlayerRespawnManager.cs
+
     public void CleanupAndExitGame()
     {
         IsGameStart = false;
@@ -1300,9 +1287,11 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         bool isNetworkActive = NetworkServer.active || NetworkClient.active;
 
+        ForceCleanupUI();
+
         if (!isNetworkActive)
         {
-            ForceCleanupUI();
+            Debug.Log("[退出] 网络未激活，仅清理UI完成");
             return;
         }
 
@@ -1310,10 +1299,9 @@ public class PlayerRespawnManager : NetworkBehaviour
         {
             RedTeamScoreCount = 0;
             BlueTeamScoreCount = 0;
-
-            // 销毁重生管理器
-            DestroyRespawnManager();
         }
+
+        // 处理端口/Relay清理
         if (Main.Instance != null && Main.Instance.CurrentMode == NetworkMode.LAN)
         {
             Debug.Log("[退出] 局域网模式，执行 KCP 端口清理...");
@@ -1331,12 +1319,21 @@ public class PlayerRespawnManager : NetworkBehaviour
             }
             else
             {
-                // 兜底方案
                 NetworkManager.singleton.StopHost();
             }
         }
+        if (NetworkServer.active)
+        {
+            StartCoroutine(DelayedDestroySelf());
+        }
+    }
 
-        ForceCleanupUI();
+
+    private IEnumerator DelayedDestroySelf()
+    {
+        yield return null; // 等一帧
+        DestroyRespawnManager();
+        Debug.Log("[RespawnManager] 网络清理完成，自我销毁");
     }
 
     /// <summary>
@@ -1351,7 +1348,6 @@ public class PlayerRespawnManager : NetworkBehaviour
             UImanager.Instance.HidePanel<PlayerPanel>();
             UImanager.Instance.HidePanel<PlayerPreparaPanel>();
             UImanager.Instance.HidePanel<GameScorePanel>();
-            UImanager.Instance.ShowPanel<RoomPanel>();
         }
         catch (System.Exception e)
         {
@@ -1364,11 +1360,14 @@ public class PlayerRespawnManager : NetworkBehaviour
     #endregion
 
     #region 管理可交互的全局物体
-    public List<InteractObj> AllBaseBulletInteract_NetWorks=new List<InteractObj>();
+    public List<InteractObj> AllBaseBulletInteract_NetWorks = new List<InteractObj>();
 
-    //进行注册当前的所有信息
+    // 注册交互物体
     public void InitInteractObj(NetworkIdentity identity, int mapIndex)
     {
+        if (!isServer) 
+            return; // 仅限服务器注册
+
         var script = identity.GetComponent<BaseBulletInteract_NetWork>();
         if (script != null)
         {
@@ -1376,9 +1375,10 @@ public class PlayerRespawnManager : NetworkBehaviour
             {
                 Identity = identity,
                 Script = script,
-                MapIndex = mapIndex 
+                MapIndex = mapIndex
             };
             AllBaseBulletInteract_NetWorks.Add(info);
+            Debug.Log($"[交互物体] 注册成功：{script.gameObject.name} 地图{mapIndex}");
         }
         else
         {
@@ -1387,26 +1387,66 @@ public class PlayerRespawnManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// 通知所有客户端初始化所有的场景物体
+    /// 【服务器专属】初始化地图交互物体（血量、状态数据）
     /// </summary>
-    /// <param name="MapIndex">1为地图1，2为地图2</param>
-    [ClientRpc]
-    public void PRCInitAllInteractObj(int MapIndex,bool IsInit)
+    [Server]
+    public void ServerInitMapInteractObjects(int mapIndex)
     {
-        foreach (var Obj in AllBaseBulletInteract_NetWorks)
+        if (!isServer) return;
+        foreach (var obj in AllBaseBulletInteract_NetWorks)
         {
-            if (Obj.MapIndex != MapIndex)
-                continue;//继续
-
-            //统一触发所有地图物体的初始化
-            if(IsInit)
-                Obj.Script.Init();//调用初始化函数
-            else
-                Obj.Script.ResetObj();//调用对应的重置函数
+            if (obj.MapIndex != mapIndex) continue;
+            // 服务器：初始化数据（血量、状态）
+            obj.Script.InitServer();
         }
-
+        // 通知所有客户端：更新视觉表现
+        RpcClientInitMapInteractVisual(mapIndex);
     }
 
+    /// <summary>
+    /// 【服务器专属】重置地图交互物体（数据）
+    /// </summary>
+    [Server]
+    public void ServerResetMapInteractObjects(int mapIndex)
+    {
+        if (!isServer) return;
+        foreach (var obj in AllBaseBulletInteract_NetWorks)
+        {
+            if (obj.MapIndex != mapIndex) continue;
+            // 服务器：重置数据
+            obj.Script.ResetServer();
+        }
+        // 通知所有客户端：更新视觉表现
+        RpcClientResetMapInteractVisual(mapIndex);
+    }
+
+    /// <summary>
+    /// 【ClientRpc】仅客户端执行：初始化视觉（标签、层级、粒子）
+    /// </summary>
+    [ClientRpc]
+    private void RpcClientInitMapInteractVisual(int mapIndex)
+    {
+        foreach (var obj in AllBaseBulletInteract_NetWorks)
+        {
+            if (obj.MapIndex != mapIndex) continue;
+            // 客户端：只做视觉，不改数据！
+            obj.Script.InitClient();
+        }
+    }
+
+    /// <summary>
+    /// 【ClientRpc】仅客户端执行：重置视觉
+    /// </summary>
+    [ClientRpc]
+    private void RpcClientResetMapInteractVisual(int mapIndex)
+    {
+        foreach (var obj in AllBaseBulletInteract_NetWorks)
+        {
+            if (obj.MapIndex != mapIndex) continue;
+            // 客户端：只做视觉
+            obj.Script.ResetClient();
+        }
+    }
     #endregion
 
 }

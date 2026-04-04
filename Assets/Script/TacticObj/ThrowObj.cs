@@ -19,7 +19,7 @@ public class ThrowObj : NetworkBehaviour
 
 
     [Header("通用配置")]
-    public float TriggerTime = 2; // 触发时间（手雷引信/烟雾弹生效延迟）
+    public float TriggerTime = 2; // 触发时间
 
     [Header("烟雾配置")]
     public float Duration = 8;
@@ -61,8 +61,6 @@ public class ThrowObj : NetworkBehaviour
     private void OnIsThrownChanged(bool oldValue, bool newValue)
     {
         if (_rb == null) return;
-
-        // 【修复2】删除这里的 GetComponentInParent，因为扔出去后已经没有父物体了
 
         if (oldValue == false && newValue == true)
         {
@@ -131,6 +129,17 @@ public class ThrowObj : NetworkBehaviour
     #endregion
 
     #region 服务器逻辑
+
+    private bool _smokeSoundPlayed = false;
+
+    [ClientRpc]
+    private void RpcPlaySmokeTriggerSound()
+    {
+        if (_isDestroyed) 
+            return;
+        MusicManager.Instance.PlayEffect3D_Custom("Music/正式/投掷物/烟雾弹生效", soundSourcePos: this.transform.position, listenerPos: Player.LocalPlayer.transform.position);
+    }
+
     [Server]
     private void ServerUpdateSmoke()
     {
@@ -138,12 +147,19 @@ public class ThrowObj : NetworkBehaviour
 
         if (elapsedTime > TriggerTime && elapsedTime < (TriggerTime + Duration))
         {
+            if (!_smokeSoundPlayed)
+            {
+                _smokeSoundPlayed = true;
+                RpcPlaySmokeTriggerSound();
+            }
+
             Vector2 serverPos = transform.position;
             float t = (float)elapsedTime;
             float sizeMultiplier = Mathf.Clamp01(-t * 0.25f + 6.0f);
             RpcSpawnSmoke(serverPos, sizeMultiplier);
         }
     }
+
 
     [Server]
     private IEnumerator ServerSmokeEffectCoroutine()
@@ -188,7 +204,6 @@ public class ThrowObj : NetworkBehaviour
 
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(explosionPos, explosionRadius, LayerMask.GetMask("Player"));
 
-        // 2. 获取攻击者数据
         CharacterStats attackerStats = null;
           attackerStats = HandControl.ownerPlayer.myStats;
 
@@ -198,7 +213,6 @@ public class ThrowObj : NetworkBehaviour
             Vector2 dirToPlayer = (closestPointOnPlayer - explosionPos).normalized;
             Vector2 rayOrigin = explosionPos + dirToPlayer * 0.1f;
 
-            // 3. 遮挡检测 (请确保这里的 "Ground" 与你项目中的层级名称一致)
             RaycastHit2D hit = Physics2D.Raycast(
                 rayOrigin,
                 dirToPlayer,
@@ -211,21 +225,17 @@ public class ThrowObj : NetworkBehaviour
 
             if (!isBlocked)
             {
-                // 4. 计算实际距离
                 float distance = Vector2.Distance(explosionPos, closestPointOnPlayer);
                 // 防止除以0
                 if (distance < 0.1f) distance = 0.1f;
 
-                // 5. 计算伤害
                 int damage = Mathf.RoundToInt(maxDamage * (1 - distance / explosionRadius));
                 damage = Mathf.Max(damage, 10);
 
-                // 6. 计算击退力 (Lerp：距离越近力越大)
                 float forceMultiplier = 1 - (distance / explosionRadius);
                 float currentKnockbackAmount = Mathf.Lerp(minKnockbackForce, maxKnockbackForce, forceMultiplier);
                 Vector2 finalKnockbackForce = dirToPlayer * currentKnockbackAmount;
 
-                // 7. 应用伤害
                 Player targetPlayer = col.GetComponent<Player>();
                 if (targetPlayer != null && targetPlayer.myStats != null)
                 {
@@ -261,6 +271,9 @@ public class ThrowObj : NetworkBehaviour
 
         Debug.Log($"[爆炸特效] 客户端触发：{gameObject.name}");
         GameObject explosion = Instantiate(ExplosionPrefab, transform.position, Quaternion.identity);
+
+        //播放音乐
+        MusicManager.Instance.PlayEffect3D_Custom("Music/正式/投掷物/手雷爆炸", soundSourcePos: this.transform.position, listenerPos: Player.LocalPlayer.transform.position);
         explosion.SetActive(true);
         Destroy(explosion, 2f);
     }
@@ -353,5 +366,25 @@ public class ThrowObj : NetworkBehaviour
             _rb.simulated = true;
             _rb.velocity = velocity;
         }
+        
     }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.collider.CompareTag("Ground")&& IsThrown)//撞击到地面并且被丢弃
+        {
+            if(tacticType==TacticType.Grenade)
+            {
+                //播放手雷落地音效
+                MusicManager.Instance.PlayEffect3D_Custom("Music/正式/投掷物/手雷落地音效");
+            }
+            else if(tacticType == TacticType.Smoke)
+            {
+                //播放烟雾弹落地音效
+                MusicManager.Instance.PlayEffect3D_Custom("Music/正式/投掷物/烟雾弹落地");
+            }
+
+        }
+    }
+
 }
