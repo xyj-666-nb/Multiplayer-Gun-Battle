@@ -1096,7 +1096,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 464497355}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b1dc6d077c84c409560e07c220b3d4, type: 3}
   m_Name: 
@@ -44977,6 +44977,14 @@ PrefabInstance:
       propertyPath: AllMapManagerList.Array.data[1]
       value: 
       objectReference: {fileID: 8703725892787827518}
+    - target: {fileID: 9078745099334897647, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
+      propertyPath: AllCustomUIPrefabsList.Array.size
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 9078745099334897647, guid: 8821bb665f88177478ff7c0c397f4367, type: 3}
+      propertyPath: AllCustomUIPrefabsList.Array.data[11]
+      value: 
+      objectReference: {fileID: 6535854261904567894, guid: e46685a17fcd89c4c8c35336be221538, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

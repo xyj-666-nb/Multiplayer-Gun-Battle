@@ -15,6 +15,22 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         LoadPlayerGood();//加载玩家已获得的商品数据
     }
 
+    public GoodsData GetData()
+    {
+        //这个方法可以根据需要进行扩展，比如根据ID获取数据，或者随机获取数据等
+        //目前我们先简单返回一个随机商品数据，后续可以根据实际需求进行调整
+        if (AllGoodsDataList != null && AllGoodsDataList.Count > 0)
+        {
+            int randomIndex = Random.Range(0, AllGoodsDataList.Count);
+            return AllGoodsDataList[randomIndex];
+        }
+        else
+        {
+            Debug.LogWarning("AllGoodsDataList 为空，请在面板中添加商品数据");
+            return null;
+        }
+    }
+
     //购买商品给玩家
     public void PurchaseGoodToUser( GoodsData Data)
     {

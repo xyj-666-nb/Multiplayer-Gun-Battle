@@ -179,4 +179,62 @@ public class MuzzleSmokeManager : SingleMonoAutoBehavior<MuzzleSmokeManager>
         // 初始化烟雾列表
         smokeInstances = new List<SmokeInstance>();
     }
+
+    /// <summary>
+    /// 全局调用方法：触发抛壳烟雾播放
+    /// 直接复用现有烟雾管理器，无需新建类
+    /// </summary>
+    /// <param name="ejectPoint">抛壳点（决定烟雾位置和方向）</param>
+    /// <param name="bulletConfig">子弹视觉配置（提供抛壳烟雾参数）</param>
+    public void PlayMuzzleSmoke(Transform ejectPoint, BulletVisualConfig bulletConfig)
+    {
+        // 参数校验
+        if (ejectPoint == null || bulletConfig == null || fluidController == null)
+        {
+            Debug.LogWarning("[MuzzleSmokeManager] 抛壳烟雾参数不完整，跳过本次播放！");
+            return;
+        }
+
+        // 创建新的烟雾实例（直接映射BulletVisualConfig的参数）
+        SmokeInstance newSmoke = new SmokeInstance
+        {
+            startTime = Time.time,
+            duration = bulletConfig.smokeDuration,
+            firePoint = ejectPoint, // 这里firePoint复用为抛壳点，逻辑完全一致
+            color = bulletConfig.smokeColor,
+            sizeMin = bulletConfig.smokeSizeMin,
+            sizeMax = bulletConfig.smokeSizeMax,
+            decaySpeed = bulletConfig.smokeDecaySpeed,
+            speedScale = defaultSpeedScale
+        };
+
+        // 添加到实例列表（Update中自动处理）
+        smokeInstances.Add(newSmoke);
+    }
+
+    /// <summary>
+    /// 支持自定义速度缩放的抛壳烟雾
+    /// </summary>
+    public void PlayMuzzleSmoke(Transform ejectPoint, BulletVisualConfig bulletConfig, float speedScale)
+    {
+        if (ejectPoint == null || bulletConfig == null || fluidController == null)
+        {
+            Debug.LogWarning("[MuzzleSmokeManager] 抛壳烟雾参数不完整，跳过本次播放！");
+            return;
+        }
+
+        SmokeInstance newSmoke = new SmokeInstance
+        {
+            startTime = Time.time,
+            duration = bulletConfig.smokeDuration,
+            firePoint = ejectPoint,
+            color = bulletConfig.smokeColor,
+            sizeMin = bulletConfig.smokeSizeMin,
+            sizeMax = bulletConfig.smokeSizeMax,
+            decaySpeed = bulletConfig.smokeDecaySpeed,
+            speedScale = speedScale
+        };
+
+        smokeInstances.Add(newSmoke);
+    }
 }

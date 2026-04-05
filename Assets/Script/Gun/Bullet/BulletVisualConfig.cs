@@ -30,4 +30,15 @@ public class BulletVisualConfig : ScriptableObject
     public GunType gunType; // 关联的枪械类型(是什么枪械的子弹)
     public int BulletID; // 子弹的唯一ID(子弹的唯一ID)
 
+    [Header("弹壳数据")]
+    public Color cartridgeCaseColor = new Color(0.83f, 0.68f, 0.22f); // 默认弹壳颜色
+    public float cartridgeCaseSize = 0.2f;// 弹壳大小
+
+    [Header("蛋壳抛口烟雾参数")]
+    public Color smokeColor = new Color(0.5f, 0.5f, 0.5f, 0.8f); // 烟雾颜色
+    public float smokeSizeMin = 0.5f; // 烟雾最小大小
+    public float smokeSizeMax = 1.2f; // 烟雾最大大小
+    public float smokeDuration = 0.3f; // 烟雾总持续时间
+    public float smokeDecaySpeed = 10f; // 烟雾衰减速度系数
+
 }

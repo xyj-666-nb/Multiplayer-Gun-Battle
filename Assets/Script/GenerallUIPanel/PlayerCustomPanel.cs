@@ -29,7 +29,8 @@ public enum NeedCustomUIType
     ThrowObjButton,//战术控制按钮
     interactButton,//交互按钮
     ScreenFlipButton,//场景翻转按钮
-    TouchHandleArea//瞄准区域
+    TouchHandleArea,//瞄准区域
+    Expression,//表情按钮
 }
 
 public class PlayerCustomPanel : BasePanel
@@ -191,6 +192,7 @@ public class PlayerCustomPanel : BasePanel
             case NeedCustomUIType.ScreenFlipButton: return "视角翻转按钮";
             case NeedCustomUIType.TouchHandleArea: return "瞄准控制区域";
             case NeedCustomUIType.interactButton: return "场景交互按钮";
+            case NeedCustomUIType.Expression: return "表情按钮";
             default: return "未知按钮";
         }
     }

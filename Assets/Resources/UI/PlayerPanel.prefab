@@ -3687,6 +3687,7 @@ GameObject:
   - component: {fileID: 5829770253868798379}
   - component: {fileID: 1605469730055009132}
   - component: {fileID: 8839380769555509546}
+  - component: {fileID: 6898683477152818640}
   m_Layer: 5
   m_HasEditorInfo: 1
   m_Name: ExpressionButton
@@ -3709,12 +3710,13 @@ RectTransform:
   m_Children:
   - {fileID: 4492686389046704003}
   - {fileID: 9214767216701687415}
+  - {fileID: 5847142121224779284}
   m_Father: {fileID: 3000184960118245842}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 45, y: 83}
-  m_SizeDelta: {x: 70, y: 70}
+  m_AnchorMin: {x: 0.0102905985, y: 0.643}
+  m_AnchorMax: {x: 0.040000003, y: 0.7072964}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &7480441078795432251
 CanvasRenderer:
@@ -3820,6 +3822,25 @@ MonoBehaviour:
   ShowEase: 27
   HideEase: 5
   scrollViewCanvasGroup: {fileID: 4959453810033886170}
+--- !u!114 &6898683477152818640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5455324198106214202}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68de92163b3dd394182919264f55bfb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  needCustomUIType: 12
+  selectedOutlineColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  outlineThickness: 2
+  fadeDuration: 0.5
+  showInEditorSceneView: 0
+  isSelected: 0
+  OutLineImage: {fileID: 2771313786359238392}
 --- !u!1 &5521789053876440640
 GameObject:
   m_ObjectHideFlags: 0
@@ -4120,6 +4141,82 @@ MonoBehaviour:
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 0
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!1 &5988390308802000014
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 7
+  m_Component:
+  - component: {fileID: 5847142121224779284}
+  - component: {fileID: 1516003975377078078}
+  - component: {fileID: 2771313786359238392}
+  m_Layer: 5
+  m_HasEditorInfo: 1
+  m_Name: Outline
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &5847142121224779284
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5988390308802000014}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5667180549404057536}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0.35979843, y: -0.50180054}
+  m_SizeDelta: {x: 8.6169, y: 7.2817}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &1516003975377078078
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5988390308802000014}
+  m_CullTransparentMesh: 1
+--- !u!114 &2771313786359238392
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5988390308802000014}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: a91763ba37b93224da2ad3edaed9d642, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -4487,6 +4584,7 @@ MonoBehaviour:
   - {fileID: 4986280916746067469}
   - {fileID: 8126966048007637519}
   - {fileID: 7388348772424064597}
+  - {fileID: 6898683477152818640}
 --- !u!1 &6604826159897384174
 GameObject:
   m_ObjectHideFlags: 0

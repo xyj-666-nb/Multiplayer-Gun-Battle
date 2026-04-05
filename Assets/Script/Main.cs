@@ -181,6 +181,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         // Developer_GUITestManger.Instance.RegisterGuiButton("打开自定义UI面板", () => { UImanager.Instance.ShowPanel<PlayerCustomPanel>(); }, "面板测试");
         // Developer_GUITestManger.Instance.RegisterGuiButton("打开画面设置面板", () => { UImanager.Instance.ShowPanel<ScreenSettingPanel>(); }, "面板测试");
         // Developer_GUITestManger.Instance.RegisterGuiButton("打开胜利设置面板", () => { UImanager.Instance.ShowPanel<GameSettlementPanel>(); }, "面板测试");
+         Developer_GUITestManger.Instance.RegisterGuiButton("打开商店页面", () => { UImanager.Instance.ShowPanel<GoodsPanel>(); }, "面板测试");
 
         // Developer_GUITestManger.Instance.RegisterGuiButton("使用绿针", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Green_injection); }, "战术设备测试");
         // Developer_GUITestManger.Instance.RegisterGuiButton("使用黄色针剂", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Yellow_injection); }, "战术设备测试");
@@ -200,7 +201,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         // Developer_GUITestManger.Instance.RegisterGuiButton_TwoWay("收起枪械", "拿起枪械", () => { Player.LocalPlayer.MyHandControl.SetHolsterState(true); }, () => { Player.LocalPlayer.MyHandControl.SetHolsterState(false); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("清理烟雾", () => { FluidController.Instance.ClearTexture(); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("保存数据", () => { PlayerAndGameInfoManger.Instance.SavePlayerData(); });
-         Developer_GUITestManger.Instance.RegisterGuiButton("进入地图选择", () => { MapChooseWall.Instance.EnterMapChooseSystem(); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("进入地图选择", () => { MapChooseWall.Instance.EnterMapChooseSystem(); });
         Developer_GUITestManger.Instance.RegisterGuiButton("触发护盾", () => { Player.LocalPlayer.TriggerShield(); });
          Developer_GUITestManger.Instance.RegisterGuiButton("靶子音效", () => {         MusicManager.Instance.PlayEffect3D("Music/正式/交互/击中靶子1", 10f, owner: this.transform); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("进入飞机视角", () => { MapChooseWall.Instance.EnterVC(); });
@@ -225,6 +226,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         Developer_GUITestManger.Instance.RegisterGuiButton("置换枪口火光(紫色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.MuzzleFlash, 5); });
         Developer_GUITestManger.Instance.RegisterGuiButton("置换枪口火光(默认黄色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.MuzzleFlash, 4); });
         Developer_GUITestManger.Instance.RegisterGuiButton("获取所有表情资源", () => { ExpressionSystem.Instance.obtainAllExpression(); });
+
     }
 
     private void Update()

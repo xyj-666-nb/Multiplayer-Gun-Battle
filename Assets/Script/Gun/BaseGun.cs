@@ -602,6 +602,11 @@ public class BaseGun : NetworkBehaviour
         ApplyRecoil();
         MuzzleSmokeManager.Instance?.PlayMuzzleSmoke(firePoint, gunInfo);
 
+        if (bulletVisualConfig != null && cartridgeEjectPoint != null)
+        {
+            MuzzleSmokeManager.Instance?.PlayMuzzleSmoke(cartridgeEjectPoint, bulletVisualConfig);
+        }
+
         muzzleFlash.PlayFlash();
         //本地靶子检测
         if (ownerPlayer != null && ownerPlayer.isLocalPlayer && firePoint != null && gunInfo != null)
@@ -684,7 +689,23 @@ public class BaseGun : NetworkBehaviour
 
         cartridgeObj.transform.position = cartridgeEjectPoint.position;
         cartridgeObj.transform.rotation = cartridgeEjectPoint.rotation;
-        cartridgeObj.transform.localScale = cartridgeFixedScale;
+
+        SpriteRenderer cartridgeSr = cartridgeObj.GetComponent<SpriteRenderer>();
+        if (bulletVisualConfig != null)
+        {
+            // 设置弹壳颜色
+            if (cartridgeSr != null)
+                cartridgeSr.color = bulletVisualConfig.cartridgeCaseColor;
+            // 设置弹壳大小
+            cartridgeObj.transform.localScale = Vector3.one * bulletVisualConfig.cartridgeCaseSize;
+        }
+        else
+        {
+            // 没有配置时用默认值
+            if (cartridgeSr != null)
+                cartridgeSr.color = new Color(0.83f, 0.68f, 0.22f); // 默认铜黄色
+            cartridgeObj.transform.localScale = cartridgeFixedScale;
+        }
 
         if (rb2D != null)
         {
@@ -696,7 +717,21 @@ public class BaseGun : NetworkBehaviour
 
         CountDownManager.Instance.CreateTimer(false, 1000, () =>
         {
-            cartridgeObj.transform.localScale = cartridgeFixedScale;
+            // 回收前重置状态，避免对象池污染
+            if (bulletVisualConfig != null)
+                cartridgeObj.transform.localScale = Vector3.one * bulletVisualConfig.cartridgeCaseSize;
+            else
+                cartridgeObj.transform.localScale = cartridgeFixedScale;
+
+            SpriteRenderer sr = cartridgeObj.GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                if (bulletVisualConfig != null)
+                    sr.color = bulletVisualConfig.cartridgeCaseColor;
+                else
+                    sr.color = new Color(0.83f, 0.68f, 0.22f);
+            }
+
             PoolManage.Instance.PushObj(cartridgeCasePrefab, cartridgeObj);
         });
     }
