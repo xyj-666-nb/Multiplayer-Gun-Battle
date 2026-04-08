@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f1a88411762fef44b2b0bc0eac74abc, type: 3}
+  m_Name: SteamRootSkin
+  m_EditorClassIdentifier: 
+  PlayerSkinID: 17
+  PlayerSkinName: "\u84B8\u6C14\u673A\u5668\u4EBA"
+  PlayerSkinDescription: "\u6563\u53D1\u84B8\u6C14\u7684\u6B66\u88C5\u673A\u5668\u4EBA\u76AE\u80A4"
+  IdleSprite: {fileID: 977711149, guid: 27410af987ca8b8449d25d50d41d229b, type: 3}
+  SkinQuality: 2
+  IsHaveAnima: 1
+  AnimaSpriteList:
+  - {fileID: 977711149, guid: 27410af987ca8b8449d25d50d41d229b, type: 3}
+  - {fileID: 1168119639, guid: 27410af987ca8b8449d25d50d41d229b, type: 3}
+  - {fileID: 490137288, guid: 27410af987ca8b8449d25d50d41d229b, type: 3}
+  - {fileID: 1683644680, guid: 27410af987ca8b8449d25d50d41d229b, type: 3}
+  - {fileID: 1951757879, guid: 27410af987ca8b8449d25d50d41d229b, type: 3}
+  - {fileID: -189675754, guid: 27410af987ca8b8449d25d50d41d229b, type: 3}
+  - {fileID: 1073393844, guid: 27410af987ca8b8449d25d50d41d229b, type: 3}
+  - {fileID: 491586916, guid: 27410af987ca8b8449d25d50d41d229b, type: 3}
+  - {fileID: 189463154, guid: 27410af987ca8b8449d25d50d41d229b, type: 3}
+  - {fileID: -442958290, guid: 27410af987ca8b8449d25d50d41d229b, type: 3}
+  - {fileID: 1020505946, guid: 27410af987ca8b8449d25d50d41d229b, type: 3}
+  IsHaveSubAnima: 0
+  SpecialAnimaSpriteList: []

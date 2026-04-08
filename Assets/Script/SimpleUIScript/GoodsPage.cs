@@ -2,6 +2,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections; // 【新增】必须引用
 
 public class GoodsPage : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class GoodsPage : MonoBehaviour
     private Sequence DiscountSequence;
     private Vector3 OriginalPos;
     public RectTransform GoldRect;
+    public Image GoldBackGround;
 
     [Header("商品信息")]
     public Image GoodsImage;
@@ -22,6 +24,8 @@ public class GoodsPage : MonoBehaviour
     [Header("动画参数")]
     public float DiscountShowTime = 1f;
     public float GoldCountTime = 1f;
+    [Tooltip("打字速度（字符/秒）")]
+    public float TypingSpeed = 30f;
 
     [Header("颜色信息配置")]
     public Color NormalColor;
@@ -34,36 +38,63 @@ public class GoodsPage : MonoBehaviour
     public TextMeshProUGUI IntroduceText;
 
     [Header("展开动画参数")]
-    public float ExpandAnimaDuration = 0.5f; // 稍微加快一点，配合弹性更灵动
+    public float ExpandAnimaDuration = 0.5f;
     public float ExpendWight = 750;
     public float IdleWight = 238;
 
     private RectTransform MyRect;
     private GoodsData goodsData;
-    private Button MyButton;
+    [Header("交互展开按钮")]
+    public Button MyButton;
+    [Header("购买按钮")]
+    public Button PurchaseButton;
 
-    private bool isExpanded = false; // 记录当前展开状态
-    private Sequence currentExpandSeq; // 缓存当前的展开/收起序列，防止冲突
+    private bool isExpanded = false;
+    private Sequence currentExpandSeq;
+
+    private Coroutine typingCoroutine;
 
     void Start()
     {
         MyRect = GetComponent<RectTransform>();
         OriginalPos = DiscountRect.anchoredPosition;
-
-        // 获取自身Button组件并绑定事件
-        MyButton = GetComponent<Button>();
         if (MyButton != null)
         {
             MyButton.onClick.AddListener(ToggleExpand);
         }
 
-        // 初始化介绍面板状态
+        PurchaseButton.onClick.AddListener(JudgePurchaseState);
+
         if (IntroduceCanvasGroup != null)
         {
             IntroduceCanvasGroup.alpha = 0;
             IntroduceCanvasGroup.blocksRaycasts = false;
         }
+        
     }
+
+    //判断购买状态
+    public void JudgePurchaseState()
+    {
+        if (GoldSystem.Instance.GetGold() >= goodsData.goodsPrice)
+        {
+            WarnTriggerManager.Instance.TriggerDoubleInteraction2Warn($"是否购买商品:{goodsData.goodsName}", () => { }, () =>
+            {
+                //设置已购买状态
+                SetAlreadyPurchase();//设置购买状态
+                MerchantPeople.instance.MerchantPeopleSpeak("谢谢惠顾！赚大发了！");
+                GoodDataManager.Instance.PurchaseGoodToUser(goodsData);//购买数据
+            });
+        }
+        else
+        {
+            WarnTriggerManager.Instance.TriggerSingleInteractionWarn("金币不足!", "您当前金币不足！请以后再来。",() =>{ });
+        }
+    }
+
+    #region 金币的消耗动画
+
+    #endregion
 
     // 切换展开/收起状态
     public void ToggleExpand()
@@ -79,37 +110,39 @@ public class GoodsPage : MonoBehaviour
     }
 
     // 展开页面
+    // 展开页面
     public void ShowExpandPage()
     {
         isExpanded = true;
-
-        // 如果有正在进行的动画，先杀掉
         currentExpandSeq?.Kill();
 
-        // 初始化宽度
+        StopTyping();
+
         MyRect.sizeDelta = new Vector2(IdleWight, MyRect.sizeDelta.y);
         IntroduceCanvasGroup.alpha = 0;
         IntroduceText.text = "";
 
-        // 创建展开序列
         currentExpandSeq = DOTween.Sequence();
 
-        // 1宽度弹性展开 
         currentExpandSeq.Append(MyRect.DOSizeDelta(new Vector2(ExpendWight, MyRect.sizeDelta.y), ExpandAnimaDuration)
-            .SetEase(Ease.OutBack, 1.2f)); // 1.2f 是弹性幅度
+            .SetEase(Ease.OutBack, 1.2f));
 
-        // 在展开进行到 40% 的时候，插入介绍面板的淡入 
         currentExpandSeq.Insert(ExpandAnimaDuration * 0.4f, IntroduceCanvasGroup.DOFade(1, ExpandAnimaDuration * 0.4f)
             .SetEase(Ease.OutQuad)
             .OnComplete(() =>
             {
                 TriggerIntroduceText();
+                //打开射线检查的交互
+                IntroduceCanvasGroup.blocksRaycasts = true;
             }));
 
-        // 【新增】在整个展开动画结束后，更新父面板宽度
         currentExpandSeq.OnComplete(() =>
         {
-            UImanager.Instance.GetPanel<GoodsPanel>()?.UpdateContentWidth();
+            if (MerchantPeople.instance != null)
+                MerchantPeople.instance.MerchantPeopleSpeak("眼光不错！");
+
+            var panel = UImanager.Instance.GetPanel<GoodsPanel>();
+            panel?.UpdateContentWidth();
         });
     }
 
@@ -117,40 +150,67 @@ public class GoodsPage : MonoBehaviour
     public void HideExpendPage()
     {
         isExpanded = false;
-
         currentExpandSeq?.Kill();
 
-        // 创建收起序列
-        currentExpandSeq = DOTween.Sequence();
+        StopTyping();
 
+        currentExpandSeq = DOTween.Sequence();
+        IntroduceCanvasGroup.blocksRaycasts = false;
         currentExpandSeq.Append(IntroduceCanvasGroup.DOFade(0, ExpandAnimaDuration * 0.3f)
             .SetEase(Ease.InQuad));
 
         currentExpandSeq.AppendCallback(() =>
         {
             IntroduceText.text = "";
-            if (Task != null)
-                SimpleAnimatorTool.Instance.RemoveTypingTask(Task);
         });
 
         currentExpandSeq.Append(MyRect.DOSizeDelta(new Vector2(IdleWight, MyRect.sizeDelta.y), ExpandAnimaDuration * 0.6f)
             .SetEase(Ease.OutSine));
 
-        // 【新增】在整个收起动画结束后，更新父面板宽度
         currentExpandSeq.OnComplete(() =>
         {
-            UImanager.Instance.GetPanel<GoodsPanel>()?.UpdateContentWidth();
+            var panel = UImanager.Instance.GetPanel<GoodsPanel>();
+            panel?.UpdateContentWidth();
         });
     }
 
+    private IEnumerator TypeTextCoroutine(string text)
+    {
+        IntroduceText.text = "";
+        float interval = 1f / TypingSpeed;
+
+        for (int i = 0; i < text.Length; i++)
+        {
+            IntroduceText.text += text[i];
+            yield return new WaitForSeconds(interval);
+        }
+
+        // 打字完成
+        typingCoroutine = null;
+    }
+
+    // 统一的停止方法
+    private void StopTyping()
+    {
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+            typingCoroutine = null;
+        }
+        if (IntroduceText != null)
+        {
+            IntroduceText.text = "";
+        }
+    }
+
     // 触发介绍文本
-    private TypingWritingTask Task;
     public void TriggerIntroduceText()
     {
         if (goodsData != null && !string.IsNullOrEmpty(goodsData.goodsDescription))
         {
-            IntroduceText.text = "";
-            Task = SimpleAnimatorTool.Instance.AddTypingTask(goodsData.goodsDescription, IntroduceText);
+            // 先停后开
+            StopTyping();
+            typingCoroutine = StartCoroutine(TypeTextCoroutine(goodsData.goodsDescription));
         }
     }
 
@@ -169,33 +229,33 @@ public class GoodsPage : MonoBehaviour
         GoodsName.text = goodsData.goodsName;
 
         PlayGoldNumberAnimation();
+        //判断一次是否已经购买，设置购买状态
+        if(GoodDataManager.Instance.JudgeUserHasGood(goodsData))//判断是否有这个商品了
+        {
+            //如果有了，设置已购买状态
+            SetAlreadyPurchase();
+        }
     }
 
     // 在对象池调用前进行重置
     public void ResetPos()
     {
-        // 重置状态
         isExpanded = false;
         currentExpandSeq?.Kill();
 
-        // 重置尺寸
+        StopTyping();
+
         if (MyRect != null)
         {
             MyRect.sizeDelta = new Vector2(IdleWight, MyRect.sizeDelta.y);
         }
 
-        // 重置介绍面板
         if (IntroduceCanvasGroup != null)
         {
             IntroduceCanvasGroup.alpha = 0;
             IntroduceCanvasGroup.blocksRaycasts = false;
         }
-        if (IntroduceText != null)
-        {
-            IntroduceText.text = "";
-        }
 
-        // 重置原有组件
         GoodsImage.color = ColorManager.SetColorAlpha(GoodsImage.color, 0);
         GoldNumber.text = "0";
         DiscountRect.anchoredPosition = OriginalPos;
@@ -245,8 +305,15 @@ public class GoodsPage : MonoBehaviour
             .SetEase(Ease.OutQuad);
     }
 
+    //设置购买状态
     public void SetAlreadyPurchase()
     {
         // 设置已经购买的状态
+        GoldBackGround.DOColor(ColorManager.EmeraldGreen, 1);//购买成功
+        GoldNumber.text = "已购买";
+        GoldNumber.fontSize = 40;//小字体
+        // 禁止购买按钮
+        PurchaseButton.GetComponentInChildren<TextMeshProUGUI>().text= "已购买";
+        PurchaseButton.onClick.RemoveAllListeners();//移除监听
     }
 }

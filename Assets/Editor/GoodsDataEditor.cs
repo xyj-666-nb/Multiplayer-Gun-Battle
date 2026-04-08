@@ -4,18 +4,100 @@ using UnityEditor;
 [CustomEditor(typeof(GoodsData))]
 public class GoodsDataEditor : Editor
 {
+    // 基础字段
+    private SerializedProperty goodsGuid;
+    private SerializedProperty goodsPrice;
+    private SerializedProperty skinType;
+
+    // UI字段
+    private SerializedProperty goodsIcon;
+    private SerializedProperty goodsName;
+    private SerializedProperty goodsDescription;
+    private SerializedProperty quality;
+
+    // 关联数据字段
+    private SerializedProperty bulletPack;
+    private SerializedProperty expressionPacks;
+    private SerializedProperty playerSkinPack;
+    private SerializedProperty gunHitData;
+
+    private void OnEnable()
+    {
+        // 绑定所有序列化属性，确保数据正确保存
+        goodsGuid = serializedObject.FindProperty("goodsGuid");
+        goodsPrice = serializedObject.FindProperty("goodsPrice");
+        skinType = serializedObject.FindProperty("skinType");
+
+        goodsIcon = serializedObject.FindProperty("goodsIcon");
+        goodsName = serializedObject.FindProperty("goodsName");
+        goodsDescription = serializedObject.FindProperty("goodsDescription");
+        quality = serializedObject.FindProperty("quality");
+
+        bulletPack = serializedObject.FindProperty("bulletPack");
+        expressionPacks = serializedObject.FindProperty("expressionPacks");
+        playerSkinPack = serializedObject.FindProperty("playerSkinPack");
+        gunHitData = serializedObject.FindProperty("gunHitData");
+    }
+
     public override void OnInspectorGUI()
     {
-        GoodsData goods = (GoodsData)target;
+        serializedObject.Update();
 
-        // 显示 GUID（只读）
+        // ====================== 1. 商品唯一标识（只读） ======================
+        EditorGUILayout.Space(5);
+        EditorGUILayout.LabelField("【商品唯一标识】", EditorStyles.boldLabel);
         GUI.enabled = false;
-        EditorGUILayout.TextField("商品唯一GUID", goods.goodsGuid);
+        EditorGUILayout.PropertyField(goodsGuid);
         GUI.enabled = true;
+        EditorGUILayout.Space(10);
 
-        GUILayout.Space(10);
+        // ====================== 2. 基础配置（始终显示） ======================
+        EditorGUILayout.LabelField("【基础配置】", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(goodsPrice);
+        EditorGUILayout.PropertyField(skinType);
+        EditorGUILayout.Space(10);
 
-        // 绘制原有字段
-        DrawDefaultInspector();
+        // ====================== 3. UI展示（始终显示） ======================
+        EditorGUILayout.LabelField("【UI展示】", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(goodsIcon);
+        EditorGUILayout.PropertyField(goodsName);
+        EditorGUILayout.PropertyField(goodsDescription);
+        EditorGUILayout.PropertyField(quality);
+        EditorGUILayout.Space(15);
+
+        // ====================== 4. 关联数据（仅对应类型显示） ======================
+        EditorGUILayout.LabelField("【关联数据配置】", EditorStyles.boldLabel);
+        EditorGUILayout.Space(5);
+
+        // 获取当前选择的皮肤类型
+        SkinType currentType = (SkinType)skinType.enumValueIndex;
+
+        // 根据类型动态显示对应字段，其他完全隐藏
+        switch (currentType)
+        {
+            case SkinType.PlayerCharacter:
+                EditorGUILayout.PropertyField(playerSkinPack, new GUIContent("角色皮肤捆绑包"));
+                break;
+
+            case SkinType.SpecialBullet:
+                EditorGUILayout.PropertyField(bulletPack, new GUIContent("特殊子弹捆绑包"), true);
+                break;
+
+            case SkinType.GunHitEffect:
+                EditorGUILayout.PropertyField(gunHitData, new GUIContent("命中特效数据"));
+                break;
+
+            case SkinType.Expression:
+                // 仅显示表情列表，支持展开、添加/删除元素
+                EditorGUILayout.PropertyField(expressionPacks, new GUIContent("表情捆绑包列表"), true);
+                break;
+
+            default:
+                EditorGUILayout.HelpBox("当前商品类型无需配置关联数据", MessageType.Info);
+                break;
+        }
+
+        // 应用所有修改，确保数据保存
+        serializedObject.ApplyModifiedProperties();
     }
 }

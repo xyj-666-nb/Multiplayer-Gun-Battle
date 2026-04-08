@@ -3,51 +3,68 @@ using UnityEngine;
 
 public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
 {
+    [Header("玩家数据")]
     [Header("玩家枪械配置")]
     public List<GunSkinConfig> GunSkinConfigList;
+    [Header("玩家皮肤数据")]
+    public List<PlayerSkinPack> PlayerOwnerSkinPackList;
+    public PlayerSkinPack CurrentPlayerSkinPack;
 
-    [Header("子弹数据预载管理")]
-    public List<BulletVisualConfig> AllBulletVisualConfigList;
-    [Header("枪口火光数据预载管理")]
-    public List<MuzzleFlashConfig> AllMuzzleFlashConfigList;
+    [Header("角色皮肤数据配置预载管理")]
+    public List<PlayerSkinPack> AllPlayerSkinPackList;
+    [Header("打击粒子特效数据预载管理")]
+    public List<GunHitData> AllGunHitDataList;
+    [Header("子弹捆绑包数据预载管理")]
+    public List<SpecialBulletBindPack> AllBulletBundleList = new List<SpecialBulletBindPack>();
 
-    private Dictionary<int, BulletVisualConfig> _bulletConfigDict;
-    private Dictionary<int, MuzzleFlashConfig> _muzzleFlashConfigDict;
+    // 运行时字典
+    private Dictionary<int, SpecialBulletBindPack> _bulletBundleDict;
+
+    // 设置玩家皮肤包
+    public void SetPlayerSkinPack(PlayerSkinPack SkinPack)
+    {
+        CurrentPlayerSkinPack = SkinPack;
+    }
+
     protected override void Awake()
     {
         base.Awake();
-        // 启动时自动把List转成字典
         InitRuntimeDictionaries();
+    }
+
+    public List<SpecialBulletBindPack> GetSpecialBulletBindPackList(GunType Type)
+    {
+        // 优化：使用局部变量，避免全局列表冲突
+        List<SpecialBulletBindPack> resultList = new List<SpecialBulletBindPack>();
+        foreach (SpecialBulletBindPack pack in AllBulletBundleList)
+        {
+            if (pack.gunType == Type)
+            {
+                resultList.Add(pack);
+            }
+        }
+        return resultList;
     }
 
     // 初始化运行时字典
     private void InitRuntimeDictionaries()
     {
-        _bulletConfigDict = new Dictionary<int, BulletVisualConfig>();
-        foreach (var config in AllBulletVisualConfigList)
+        // 初始化子弹捆绑包字典
+        _bulletBundleDict = new Dictionary<int, SpecialBulletBindPack>();
+        foreach (var pack in AllBulletBundleList)
         {
-            if (!_bulletConfigDict.ContainsKey(config.BulletID))
-                _bulletConfigDict.Add(config.BulletID, config);
+            if (pack == null) continue;
+
+            if (!_bulletBundleDict.ContainsKey(pack.BulletBindID))
+            {
+                _bulletBundleDict.Add(pack.BulletBindID, pack);
+            }
             else
-                Debug.LogWarning($"重复子弹ID：{config.BulletID}，已跳过");
+            {
+                Debug.LogWarning($"重复子弹捆绑包ID：{pack.BulletBindID}，已跳过");
+            }
         }
 
-        _muzzleFlashConfigDict = new Dictionary<int, MuzzleFlashConfig>();
-        foreach (var config in AllMuzzleFlashConfigList)
-        {
-            if (!_muzzleFlashConfigDict.ContainsKey(config.MuzzleFlashID))
-                _muzzleFlashConfigDict.Add(config.MuzzleFlashID, config);
-            else
-                Debug.LogWarning($"重复火光ID：{config.MuzzleFlashID}，已跳过");
-        }
-
-        //清空内存
-
-        AllBulletVisualConfigList.Clear();
-        AllBulletVisualConfigList = null;
-
-        AllMuzzleFlashConfigList.Clear();
-        AllMuzzleFlashConfigList = null;
     }
 
     public GunSkinConfig ReturnGunSkinConfig(GunType Type)
@@ -68,84 +85,64 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
       => ReturnGunSkinConfig(Type)?.muzzleFlashConfig;
 
     #region 装备数据
-    public void EquipGunSki(GunSkinConfigType type,int DataID)
-    {
-        switch (type)
-        {
-            case GunSkinConfigType.Bullet:
-                EquipBulletVisualConfig(FindListData<BulletVisualConfig>(DataID));
-                break;
-            case GunSkinConfigType.MuzzleFlash:
-                EquipMuzzleFlashConfig(FindListData<MuzzleFlashConfig>(DataID));
-                break;
-            default:
-                Debug.LogError($"不支持的配置类型：{type}");
-                return;
-        }
 
+    /// <summary>
+    /// 通过ID装备子弹捆绑包
+    /// </summary>
+    public void EquipBulletBindPack(int bundleID)
+    {
+        var pack = FindBulletBindPack(bundleID);
+        if (pack != null)
+        {
+            EquipBulletBindPack(pack);
+        }
     }
 
-
-    public void EquipBulletVisualConfig(BulletVisualConfig BulletConfig)
+    /// <summary>
+    /// 直接装备子弹捆绑包
+    /// </summary>
+    public void EquipBulletBindPack(SpecialBulletBindPack bundlePack)
     {
-        if(BulletConfig==null)
+        if (bundlePack == null)
         {
-            Debug.LogError("无法装备子弹配置，传入的BulletConfig为Null");
+            Debug.LogError("无法装备，传入的子弹捆绑包为Null");
             return;
         }
+
+        bool equipped = false;
         foreach (var config in GunSkinConfigList)
         {
-            //装备该数据
-            if(config.CurrentType == BulletConfig.gunType)
+            if (bundlePack.bulletVisualConfig != null &&
+                config.CurrentType == bundlePack.bulletVisualConfig.gunType)
             {
-                config.bulletConfig = BulletConfig;
-                Debug.Log("装备成功");
+                // 同时装备子弹和火光
+                config.bulletConfig = bundlePack.bulletVisualConfig;
+                config.muzzleFlashConfig = bundlePack.muzzleFlashConfig;
+                Debug.Log($"[装备成功] 枪械 {config.CurrentType} 已装备捆绑包：{bundlePack.BulletBindName}");
+                equipped = true;
             }
         }
-       // Debug.LogError($"未找到枪械类型 {BulletConfig.gunType} 的皮肤配置，装备失败");
-    }
 
-    public void EquipMuzzleFlashConfig(MuzzleFlashConfig MuzzleFlashConfig)
-    {
-        if (MuzzleFlashConfig == null)
+        if (!equipped)
         {
-            Debug.LogError("无法装备火光配置，传入的MuzzleFlashConfig为Null");
-            return;
+            Debug.LogWarning($"未找到匹配的枪械来装备捆绑包：{bundlePack.BulletBindName}");
         }
-        foreach (var config in GunSkinConfigList)
-        {
-            //装备该数据
-            if (config.CurrentType == MuzzleFlashConfig.gunType)
-            {
-                config.muzzleFlashConfig = MuzzleFlashConfig;
-                Debug.Log("装备成功");
-            }
-        }
-        //Debug.LogError($"未找到枪械类型 {MuzzleFlashConfig.gunType} 的皮肤配置，装备失败");
     }
-
 
     #endregion
 
     #region 查询数据
-    public T FindListData<T>(int dataID) where T : ScriptableObject
-    {
-        if (typeof(T) == typeof(BulletVisualConfig))
-        {
-            if (_bulletConfigDict.TryGetValue(dataID, out var config))
-                return config as T;
-            Debug.LogError($"未找到ID为 {dataID} 的子弹配置");
-            return null;
-        }
-        else if (typeof(T) == typeof(MuzzleFlashConfig))
-        {
-            if (_muzzleFlashConfigDict.TryGetValue(dataID, out var config))
-                return config as T;
-            Debug.LogError($"未找到ID为 {dataID} 的火光配置");
-            return null;
-        }
 
-        Debug.LogError($"不支持的配置类型：{typeof(T).Name}");
+    /// <summary>
+    /// 通过ID查找子弹捆绑包
+    /// </summary>
+    public SpecialBulletBindPack FindBulletBindPack(int bundleID)
+    {
+        if (_bulletBundleDict.TryGetValue(bundleID, out var pack))
+        {
+            return pack;
+        }
+        Debug.LogError($"未找到ID为 {bundleID} 的子弹捆绑包");
         return null;
     }
 
@@ -158,10 +155,4 @@ public class GunSkinConfig
     public GunType CurrentType;
     public BulletVisualConfig bulletConfig;
     public MuzzleFlashConfig muzzleFlashConfig;
-}
-
-public enum GunSkinConfigType
-{
-    Bullet,
-    MuzzleFlash
 }

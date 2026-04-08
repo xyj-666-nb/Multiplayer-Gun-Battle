@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-// 继承ScriptableObject，删除多余的Serializable
 [CreateAssetMenu(
     fileName = "NewGoodInfo",
     menuName = "Game/Good Info",
@@ -10,39 +10,44 @@ public class GoodsData : ScriptableObject
 {
     #region 【基础核心信息】
     [Header("基础配置")]
-    public int goodsPrice; // 价格
-    [HideInInspector] public string goodsGuid; //唯一字符串ID
-
-    // 商品类型
+    public int goodsPrice;
+    [HideInInspector] public string goodsGuid;
     public SkinType skinType;
     #endregion
 
     #region 【UI展示信息】
     [Header("UI展示")]
-    public Sprite goodsIcon; // 商品图标
-    public string goodsName; // 商品名称
-    [TextArea(1, 3)] public string goodsDescription; // 描述
-    public GoodsQuality quality; // 品质
+    public Sprite goodsIcon;
+    public string goodsName;
+    [TextArea(1, 3)] public string goodsDescription;
+    public GoodsQuality quality;
     #endregion
 
+    #region 数据关联
+    public SpecialBulletBindPack bulletPack;
+    public List<ExpressionPack> expressionPacks; // 表情列表（你要的List）
+    public PlayerSkinPack playerSkinPack;
+    public GunHitData gunHitData;
+    #endregion
 }
 
 // 皮肤类型
 public enum SkinType
 {
-    PlayerCharacter,  // 角色皮肤
-    GunFireEffect,    // 开火特效
-    GunHitEffect,     // 命中特效
-    GunAppearance,   // 枪械外观
-    Expression,      // 表情
-    GunObject,       // 枪械实体（部分枪械进行锁定）
-    TacticEffect,   // 战术装备特效
+    PlayerCharacter,
+    SpecialBullet,
+    GunHitEffect,
+    GunAppearance,
+    Expression,
+    GunObject,
+    TacticEffect
 }
 
-// 商品品质（UI美化用）
+// 商品品质
 public enum GoodsQuality
 {
-    Normal,    // 普通
-    Rare,      // 稀有
-    Epic,      // 史诗
+    Normal,
+    Rare,
+    Epic
 }
+

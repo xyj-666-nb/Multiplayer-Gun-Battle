@@ -182,6 +182,9 @@ public class Main : SingleMonoAutoBehavior<Main>
         // Developer_GUITestManger.Instance.RegisterGuiButton("打开画面设置面板", () => { UImanager.Instance.ShowPanel<ScreenSettingPanel>(); }, "面板测试");
         // Developer_GUITestManger.Instance.RegisterGuiButton("打开胜利设置面板", () => { UImanager.Instance.ShowPanel<GameSettlementPanel>(); }, "面板测试");
          Developer_GUITestManger.Instance.RegisterGuiButton("打开商店页面", () => { UImanager.Instance.ShowPanel<GoodsPanel>(); }, "面板测试");
+        Developer_GUITestManger.Instance.RegisterGuiButton("打开服装页面", () => { UImanager.Instance.ShowPanel<CostumePanel>(); }, "面板测试");
+        Developer_GUITestManger.Instance.RegisterGuiButton("关闭商店页面", () => { UImanager.Instance.ShowPanel<CostumePanel>(); }, "面板测试");
+        Developer_GUITestManger.Instance.RegisterGuiButton("打开玩家皮肤面板", () => { UImanager.Instance.ShowPanel<PlayerSkipPanel>(); }, "面板测试");
 
         // Developer_GUITestManger.Instance.RegisterGuiButton("使用绿针", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Green_injection); }, "战术设备测试");
         // Developer_GUITestManger.Instance.RegisterGuiButton("使用黄色针剂", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Yellow_injection); }, "战术设备测试");
@@ -221,10 +224,10 @@ public class Main : SingleMonoAutoBehavior<Main>
 
            Developer_GUITestManger.Instance.RegisterGuiButton("购买测试商品1", () => { GoodDataManager.Instance.PurchaseGoodToUser(GoodDataManager.Instance.AllGoodsDataList[0]); });
         Developer_GUITestManger.Instance.RegisterGuiButton("购买测试商品2", () => { GoodDataManager.Instance.PurchaseGoodToUser(GoodDataManager.Instance.AllGoodsDataList[1]); });
-        Developer_GUITestManger.Instance.RegisterGuiButton("置换子弹(紫色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.Bullet, 5); });
-        Developer_GUITestManger.Instance.RegisterGuiButton("置换子弹(默认黄色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.Bullet, 4); });
-        Developer_GUITestManger.Instance.RegisterGuiButton("置换枪口火光(紫色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.MuzzleFlash, 5); });
-        Developer_GUITestManger.Instance.RegisterGuiButton("置换枪口火光(默认黄色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.MuzzleFlash, 4); });
+        //Developer_GUITestManger.Instance.RegisterGuiButton("置换子弹(紫色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.Bullet, 5); });
+        //Developer_GUITestManger.Instance.RegisterGuiButton("置换子弹(默认黄色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.Bullet, 4); });
+        //Developer_GUITestManger.Instance.RegisterGuiButton("置换枪口火光(紫色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.MuzzleFlash, 5); });
+        //Developer_GUITestManger.Instance.RegisterGuiButton("置换枪口火光(默认黄色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.MuzzleFlash, 4); });
         Developer_GUITestManger.Instance.RegisterGuiButton("获取所有表情资源", () => { ExpressionSystem.Instance.obtainAllExpression(); });
 
     }

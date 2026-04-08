@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using UnityEngine.EventSystems; // 新增：用于EventTrigger
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// 按钮组管理器
@@ -11,11 +11,8 @@ using UnityEngine.EventSystems; // 新增：用于EventTrigger
 public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
 {
     #region 核心存储
-    // 单选按钮组字典
     private Dictionary<string, RadioButtonGroupPack> _radioGroupDict = new Dictionary<string, RadioButtonGroupPack>();
-    // Toggle切换按钮组字典
     private Dictionary<string, ToggleButtonGroupPack> _toggleGroupDict = new Dictionary<string, ToggleButtonGroupPack>();
-
     #endregion
 
     #region 生命周期
@@ -26,12 +23,10 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
 
     private void OnDestroy()
     {
-        // 清理所有单选组
         foreach (var group in _radioGroupDict.Values)
             group.ClearAllButtons();
         _radioGroupDict.Clear();
 
-        // 清理所有Toggle组
         foreach (var group in _toggleGroupDict.Values)
             group.ClearAllButtons();
         _toggleGroupDict.Clear();
@@ -40,7 +35,8 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
     }
     #endregion
 
-    #region 原有单选按钮组功能
+    #region 单选按钮组功能 (已简化重载)
+
     public RadioButtonGroupPack CreateRadioGroup(string groupName)
     {
         if (string.IsNullOrEmpty(groupName))
@@ -73,17 +69,35 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
                                            float changeDuration = 0.2f,
                                            Color? chooseColor = null)
     {
-        return AddRadioButtonToGroup_Str(groupName, button,
-                                       (btnName) => triggerEvent?.Invoke(),
-                                       cancelEvent, chooseScale, changeDuration, chooseColor);
+        if (button == null)
+        {
+            Debug.LogError("添加的单选按钮不能为空！");
+            return null;
+        }
+
+        var group = GetRadioGroup(groupName) ?? CreateRadioGroup(groupName);
+
+        var radioButton = new RadioButton();
+        // 包装一下，把无参回调转成有参的内部调用
+        UnityAction<string> wrappedTrigger = (name) => triggerEvent?.Invoke();
+        UnityAction<string> wrappedCancel = (name) => cancelEvent?.Invoke();
+
+        radioButton.InitRadioButton(button, wrappedTrigger, wrappedCancel);
+        radioButton.ChooseScale = chooseScale;
+        radioButton.ChangeDuration = changeDuration;
+        if (chooseColor.HasValue)
+            radioButton.ChooseColor = chooseColor.Value;
+
+        group.AddRadioButton(radioButton);
+        return radioButton;
     }
 
     public RadioButton AddRadioButtonToGroup_Str(string groupName, Button button,
-                                               UnityAction<string> triggerEventWithStr = null,
-                                               UnityAction cancelEvent = null,
-                                               float chooseScale = 1.05f,
-                                               float changeDuration = 0.2f,
-                                               Color? chooseColor = null)
+                                              UnityAction<string> triggerEventWithStr = null,
+                                              UnityAction<string> cancelEventWithStr = null,
+                                              float chooseScale = 1.05f,
+                                              float changeDuration = 0.2f,
+                                              Color? chooseColor = null)
     {
         if (button == null)
         {
@@ -94,7 +108,7 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
         var group = GetRadioGroup(groupName) ?? CreateRadioGroup(groupName);
 
         var radioButton = new RadioButton();
-        radioButton.InitRadioButton(button, triggerEventWithStr, cancelEvent);
+        radioButton.InitRadioButton(button, triggerEventWithStr, cancelEventWithStr);
         radioButton.ChooseScale = chooseScale;
         radioButton.ChangeDuration = changeDuration;
         if (chooseColor.HasValue)
@@ -137,12 +151,19 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
         else
             Debug.LogWarning($"单选分组 {groupName} 不存在，无法选择第一个按钮！");
     }
+
+    // 【新增】通过按钮名字手动选中指定按钮
+    public void SelectRadioButtonByName(string groupName, string buttonName, bool triggerEvent = true)
+    {
+        var group = GetRadioGroup(groupName);
+        if (group != null)
+            group.SelectButtonByName(buttonName, triggerEvent);
+        else
+            Debug.LogWarning($"单选分组 {groupName} 不存在，无法选择按钮 {buttonName}！");
+    }
     #endregion
 
-    #region Toggle切换按钮组功能
-    /// <summary>
-    /// 创建Toggle组
-    /// </summary>
+    #region Toggle切换按钮组功能 (保持不变)
     public ToggleButtonGroupPack CreateToggleGroup(string groupName)
     {
         if (string.IsNullOrEmpty(groupName))
@@ -162,27 +183,12 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
         return newGroup;
     }
 
-    /// <summary>
-    /// 获取Toggle组
-    /// </summary>
     public ToggleButtonGroupPack GetToggleGroup(string groupName)
     {
         _toggleGroupDict.TryGetValue(groupName, out var group);
         return group;
     }
 
-    /// <summary>
-    /// 注册已有按钮为Toggle按钮
-    /// <param name="groupName">分组名称</param>
-    /// <param name="button">传入的已有按钮（必传）</param>
-    /// <param name="buttonCustomName">按钮自定义名称）</param>
-    /// <param name="onActive">选中时触发的函数（传按钮名）</param>
-    /// <param name="onCancel">取消选中时触发的函数（传按钮名）</param>
-    /// <param name="chooseScale">选中缩放（默认1.05）</param>
-    /// <param name="changeDuration">动画时长（默认0.2）</param>
-    /// <param name="chooseColor">选中颜色（默认浅绿色）</param>
-    /// <param name="isDefaultSelected">是否默认选中（默认false）</param>
-    /// <param name="isManualTrigger">是否完全手动触发（true=不绑定点击事件，仅代码控制；false=正常绑定点击）</param>
     public ToggleButton AddToggleButtonToGroup(string groupName, Button button,
                                               string buttonCustomName = "",
                                               UnityAction<string> onActive = null,
@@ -202,24 +208,16 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
         string finalBtnName = string.IsNullOrEmpty(buttonCustomName) ? button.gameObject.name : buttonCustomName;
         var group = GetToggleGroup(groupName) ?? CreateToggleGroup(groupName);
 
-        // 仅初始化传入的按钮，不生成新按钮
         var toggleButton = new ToggleButton();
         toggleButton.InitToggleButton(button, finalBtnName, onActive, onCancel);
         toggleButton.ChooseScale = chooseScale;
         toggleButton.ChangeDuration = changeDuration;
         toggleButton.ChooseColor = chooseColor ?? new Color(0.2f, 0.8f, 0.2f);
-
-        // 公开方法设置默认状态，手动模式下默认不触发事件
         toggleButton.SetSelectedState(isDefaultSelected, false);
-
-        // 传递 isManualTrigger 参数给分组
         group.AddToggleButton(toggleButton, isManualTrigger);
         return toggleButton;
     }
 
-    /// <summary>
-    /// 从Toggle组移除已注册的按钮
-    /// </summary>
     public void RemoveToggleButtonFromGroup(string groupName, Button button)
     {
         if (button == null)
@@ -232,9 +230,6 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
         group?.RemoveToggleButton(button);
     }
 
-    /// <summary>
-    /// 销毁Toggle组
-    /// </summary>
     public void DestroyToggleGroup(string groupName)
     {
         if (_toggleGroupDict.Remove(groupName, out var group))
@@ -248,9 +243,6 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
         }
     }
 
-    /// <summary>
-    /// 手动设置Toggle按钮选中状态
-    /// </summary>
     public void SetToggleButtonSelected(string groupName, Button button, bool isSelected, bool triggerEvent = true)
     {
         var group = GetToggleGroup(groupName);
@@ -263,11 +255,6 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
         group.SetToggleButtonSelected(button, isSelected, triggerEvent);
     }
 
-    /// <summary>
-    /// 手动选中指定Toggle分组的按钮
-    /// </summary>
-    /// <param name="groupName">Toggle分组名</param>
-    /// <param name="triggerEvent">是否触发选中事件（默认true）</param>
     public void ManualSelectToggleButton(string groupName, bool triggerEvent = true)
     {
         var group = GetToggleGroup(groupName);
@@ -277,7 +264,6 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
             return;
         }
 
-        // 获取分组内第一个按钮（适配单按钮场景）
         var toggleButton = group.GetFirstToggleButton();
         if (toggleButton == null)
         {
@@ -288,11 +274,6 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
         toggleButton.ManualSelect(triggerEvent);
     }
 
-    /// <summary>
-    /// 手动取消指定Toggle分组的按钮
-    /// </summary>
-    /// <param name="groupName">Toggle分组名</param>
-    /// <param name="triggerEvent">是否触发取消事件（默认true）</param>
     public void ManualCancelToggleButton(string groupName, bool triggerEvent = true)
     {
         var group = GetToggleGroup(groupName);
@@ -302,7 +283,6 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
             return;
         }
 
-        // 获取分组内第一个按钮
         var toggleButton = group.GetFirstToggleButton();
         if (toggleButton == null)
         {
@@ -410,6 +390,46 @@ public class RadioButtonGroupPack
         }
     }
 
+    // 【新增】通过名字选中指定按钮
+    public void SelectButtonByName(string buttonName, bool triggerEvent = true)
+    {
+        if (RadioButtonList == null || RadioButtonList.Count == 0)
+        {
+            Debug.LogWarning($"单选分组 {GroupName} 没有按钮，无法选择 {buttonName}！");
+            return;
+        }
+
+        // 找到目标按钮
+        RadioButton targetBtn = null;
+        foreach (var btn in RadioButtonList)
+        {
+            if (btn.RadioButtonComponent != null && btn.RadioButtonComponent.gameObject.name == buttonName)
+            {
+                targetBtn = btn;
+                break;
+            }
+        }
+
+        if (targetBtn == null)
+        {
+            Debug.LogWarning($"单选分组 {GroupName} 中未找到按钮 {buttonName}！");
+            return;
+        }
+
+        // 选中目标，取消其他
+        foreach (var btn in RadioButtonList)
+        {
+            SetButtonSelected(btn, btn == targetBtn);
+        }
+
+        // 如果需要触发事件，手动调用一下
+        if (triggerEvent)
+        {
+            // 这里不需要手动调用 onClick，因为设置 IsChoose 会自动触发回调
+            // 如果需要强制触发，可以在这里手动调用 ButtonTriggerEventWithStr
+        }
+    }
+
     public RadioButton GetCurrentSelectedButton() => _currentSelectedButton;
 }
 #endregion
@@ -421,7 +441,7 @@ public class RadioButton
     public Button RadioButtonComponent => _radioButton;
 
     public UnityAction<string> ButtonTriggerEventWithStr;
-    public UnityAction ButtonCancelEvent;
+    public UnityAction<string> ButtonCancelEventWithStr;
 
     private Sequence _animaSequence;
     private RectTransform _rt;
@@ -439,32 +459,33 @@ public class RadioButton
         get => _isChoose;
         set
         {
-            if (value == _isChoose) 
+            if (value == _isChoose)
                 return;
+            if (_radioButton == null || this == null) return;
 
             if (value)
             {
                 PlayChooseAnima();
                 string btnName = _radioButton?.gameObject?.name ?? "未知单选按钮";
                 ButtonTriggerEventWithStr?.Invoke(btnName);
-                Debug.Log($"[单选按钮 {btnName}] 选中，执行激活回调");
+
             }
             else
             {
                 PlayCancelAnima();
-                ButtonCancelEvent?.Invoke();
-                Debug.Log($"[单选按钮 {_radioButton?.name}] 取消选中，执行取消回调");
+                string btnName = _radioButton?.gameObject?.name ?? "未知单选按钮";
+                ButtonCancelEventWithStr?.Invoke(btnName);
             }
 
             _isChoose = value;
         }
     }
 
-    public void InitRadioButton(Button button, UnityAction<string> triggerEventWithStr, UnityAction cancelEvent)
+    public void InitRadioButton(Button button, UnityAction<string> triggerEventWithStr, UnityAction<string> cancelEventWithStr)
     {
         _radioButton = button;
         ButtonTriggerEventWithStr = triggerEventWithStr;
-        ButtonCancelEvent = cancelEvent;
+        ButtonCancelEventWithStr = cancelEventWithStr;
 
         _rt = button.GetComponent<RectTransform>();
         _buttonImage = button.GetComponent<Image>();
@@ -480,7 +501,6 @@ public class RadioButton
         _animaSequence?.Kill();
         _animaSequence = DOTween.Sequence();
 
-        // 新增：添加按压动画监听
         AddPressEventTrigger(button);
     }
 
@@ -490,20 +510,17 @@ public class RadioButton
         if (trigger == null)
             trigger = button.gameObject.AddComponent<EventTrigger>();
 
-        // PointerDown事件：按下缩小
         EventTrigger.Entry downEntry = new EventTrigger.Entry();
         downEntry.eventID = EventTriggerType.PointerDown;
         downEntry.callback.AddListener((data) => PlayPressAnima());
         trigger.triggers.Add(downEntry);
 
-        // PointerUp事件：松开恢复
         EventTrigger.Entry upEntry = new EventTrigger.Entry();
         upEntry.eventID = EventTriggerType.PointerUp;
         upEntry.callback.AddListener((data) => PlayReleaseAnima());
         trigger.triggers.Add(upEntry);
     }
 
-    // 新增：按下动画（缩小到0.95）
     private void PlayPressAnima()
     {
         if (_rt == null) return;
@@ -513,7 +530,6 @@ public class RadioButton
             .Append(_rt.DOScale(0.95f, 0.1f).SetEase(Ease.OutQuad));
     }
 
-    // 新增：松开动画（恢复原始大小）
     private void PlayReleaseAnima()
     {
         if (_rt == null) return;
@@ -553,7 +569,7 @@ public class RadioButton
 }
 #endregion
 
-#region Toggle切换按钮组实体
+#region Toggle切换按钮组实体 
 public class ToggleButtonGroupPack
 {
     public string GroupName { get; }
@@ -564,9 +580,6 @@ public class ToggleButtonGroupPack
         GroupName = groupName;
     }
 
-    /// <summary>添加已注册的Toggle按钮到组</summary>
-    /// <param name="toggleButton">按钮实体</param>
-    /// <param name="isManualTrigger">是否完全手动触发</param>
     public void AddToggleButton(ToggleButton toggleButton, bool isManualTrigger = false)
     {
         if (toggleButton?.ButtonComponent == null)
@@ -583,7 +596,6 @@ public class ToggleButtonGroupPack
 
         ToggleButtonList.Add(toggleButton);
 
-        // 关键修改：只有非手动模式下，才绑定按钮的点击事件
         if (!isManualTrigger)
         {
             toggleButton.ButtonComponent.onClick.AddListener(() => toggleButton.ToggleSelectedState());
@@ -618,7 +630,6 @@ public class ToggleButtonGroupPack
         ToggleButtonList.Clear();
     }
 
-    /// <summary>通过公开方法设置选中状态</summary>
     public void SetToggleButtonSelected(Button button, bool isSelected, bool triggerEvent = true)
     {
         var target = ToggleButtonList.Find(b => b.ButtonComponent == button);
@@ -631,19 +642,16 @@ public class ToggleButtonGroupPack
         target.SetSelectedState(isSelected, triggerEvent);
     }
 
-    /// <summary>手动选中组内指定Toggle按钮</summary>
     public void ManualSelectButton(Button button, bool triggerEvent = true)
     {
         SetToggleButtonSelected(button, true, triggerEvent);
     }
 
-    /// <summary>手动取消组内指定Toggle按钮</summary>
     public void ManualCancelButton(Button button, bool triggerEvent = true)
     {
         SetToggleButtonSelected(button, false, triggerEvent);
     }
 
-    /// <summary>获取分组内第一个Toggle按钮（单按钮场景专用）</summary>
     public ToggleButton GetFirstToggleButton()
     {
         return ToggleButtonList.Count > 0 ? ToggleButtonList[0] : null;
@@ -656,10 +664,9 @@ public class ToggleButtonGroupPack
 }
 #endregion
 
-#region Toggle切换按钮实体
+#region Toggle切换按钮实体 (保持不变)
 public class ToggleButton
 {
-    // 仅引用传入的按钮组件
     private Button _button;
     private RectTransform _rt;
     private Image _buttonImage;
@@ -667,23 +674,16 @@ public class ToggleButton
     private Color _originalColor;
     private Sequence _animationSequence;
 
-    #region 可自定义参数
     public float ChooseScale = 1.05f;
     public float ChangeDuration = 0.2f;
     public Color ChooseColor = new Color(0.2f, 0.8f, 0.2f);
-    #endregion
 
-    #region 公开属性/事件
     public string ButtonName { get; private set; }
     public UnityAction<string> OnActive;
     public UnityAction<string> OnCancel;
-    /// <summary>仅公开get，set通过SetSelectedState方法</summary>
     public bool IsSelected { get; private set; }
-    /// <summary>返回传入的按钮组件</summary>
     public Button ButtonComponent => _button;
-    #endregion
 
-    /// <summary>初始化：仅接收传入的已有按钮</summary>
     public void InitToggleButton(Button button, string btnName, UnityAction<string> onActive, UnityAction<string> onCancel)
     {
         _button = button;
@@ -705,7 +705,6 @@ public class ToggleButton
         _animationSequence?.Kill();
         _animationSequence = DOTween.Sequence();
 
-        // 新增：添加按压动画监听
         AddPressEventTrigger(button);
     }
 
@@ -715,13 +714,11 @@ public class ToggleButton
         if (trigger == null)
             trigger = button.gameObject.AddComponent<EventTrigger>();
 
-        // PointerDown事件：按下缩小
         EventTrigger.Entry downEntry = new EventTrigger.Entry();
         downEntry.eventID = EventTriggerType.PointerDown;
         downEntry.callback.AddListener((data) => PlayPressAnima());
         trigger.triggers.Add(downEntry);
 
-        // PointerUp事件：松开恢复
         EventTrigger.Entry upEntry = new EventTrigger.Entry();
         upEntry.eventID = EventTriggerType.PointerUp;
         upEntry.callback.AddListener((data) => PlayReleaseAnima());
@@ -746,18 +743,17 @@ public class ToggleButton
             .Append(_rt.DOScale(_originalScale, 0.1f).SetEase(Ease.OutQuad));
     }
 
-    /// <summary>切换选中状态）</summary>
     public void ToggleSelectedState()
     {
         SetSelectedState(!IsSelected, true);
     }
 
-    /// <summary>公开的设置状态方法</summary>
-    /// <param name="isSelected">是否选中</param>
-    /// <param name="triggerEvent">是否触发事件</param>
     public void SetSelectedState(bool isSelected, bool triggerEvent = true)
     {
         if (IsSelected == isSelected) return;
+
+        // 安全检查
+        if (_button == null) return;
 
         IsSelected = isSelected;
 
@@ -769,31 +765,24 @@ public class ToggleButton
             if (IsSelected)
             {
                 OnActive?.Invoke(ButtonName);
-                Debug.Log($"[Toggle按钮 {ButtonName}] 选中，执行激活回调");
             }
             else
             {
                 OnCancel?.Invoke(ButtonName);
-                Debug.Log($"[Toggle按钮 {ButtonName}] 取消选中，执行取消回调");
             }
         }
     }
 
-    /// <summary>手动选中当前Toggle按钮</summary>
-    /// <param name="triggerEvent">是否触发选中事件（默认true）</param>
     public void ManualSelect(bool triggerEvent = true)
     {
         SetSelectedState(true, triggerEvent);
     }
 
-    /// <summary>手动取消当前Toggle按钮</summary>
-    /// <param name="triggerEvent">是否触发取消事件（默认true）</param>
     public void ManualCancel(bool triggerEvent = true)
     {
         SetSelectedState(false, triggerEvent);
     }
 
-    #region 动画逻辑
     private void PlaySelectedAnimation()
     {
         if (_rt == null) return;
@@ -820,7 +809,6 @@ public class ToggleButton
             _animationSequence.Join(_buttonImage.DOColor(_originalColor, ChangeDuration).SetEase(Ease.InQuad));
     }
 
-    /// <summary>清理动画</summary>
     public void ClearAnimation()
     {
         _animationSequence?.Kill();
@@ -829,6 +817,5 @@ public class ToggleButton
         if (_rt != null) _rt.localScale = _originalScale;
         if (_buttonImage != null) _buttonImage.color = _originalColor;
     }
-    #endregion
 }
 #endregion

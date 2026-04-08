@@ -14,7 +14,8 @@ public class AllMapManager : SingleMonoAutoBehavior<AllMapManager>
             {
                 if(IsActive)
                 {
-                    pack.ScreenObj= GameObject.Instantiate(pack.Screen, pack.Obj.transform);
+                    if(pack.ScreenObj==null)
+                      pack.ScreenObj= GameObject.Instantiate(pack.Screen, pack.Obj.transform);
                 }
                 else
                 {
