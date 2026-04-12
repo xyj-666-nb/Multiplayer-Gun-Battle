@@ -28,6 +28,8 @@ public class Main : SingleMonoAutoBehavior<Main>
 
     public bool IsInSingleMode = false;//是否处于单人模式
 
+    public SpecialBulletBindPack test;
+
     public void StartCG()
     {
         StartTimeLine.Play();
@@ -184,7 +186,7 @@ public class Main : SingleMonoAutoBehavior<Main>
          Developer_GUITestManger.Instance.RegisterGuiButton("打开商店页面", () => { UImanager.Instance.ShowPanel<GoodsPanel>(); }, "面板测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("打开服装页面", () => { UImanager.Instance.ShowPanel<CostumePanel>(); }, "面板测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("关闭商店页面", () => { UImanager.Instance.ShowPanel<CostumePanel>(); }, "面板测试");
-        Developer_GUITestManger.Instance.RegisterGuiButton("打开玩家皮肤面板", () => { UImanager.Instance.ShowPanel<PlayerSkipPanel>(); }, "面板测试");
+      //  Developer_GUITestManger.Instance.RegisterGuiButton("打开玩家皮肤面板", () => { UImanager.Instance.ShowPanel<PlayerSkipPanel>(); }, "面板测试");
 
         // Developer_GUITestManger.Instance.RegisterGuiButton("使用绿针", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Green_injection); }, "战术设备测试");
         // Developer_GUITestManger.Instance.RegisterGuiButton("使用黄色针剂", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Yellow_injection); }, "战术设备测试");
@@ -205,6 +207,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         // Developer_GUITestManger.Instance.RegisterGuiButton("清理烟雾", () => { FluidController.Instance.ClearTexture(); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("保存数据", () => { PlayerAndGameInfoManger.Instance.SavePlayerData(); });
         Developer_GUITestManger.Instance.RegisterGuiButton("进入地图选择", () => { MapChooseWall.Instance.EnterMapChooseSystem(); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("测试射击", () => { DemoGun.Instance.TestShoot(test); });
         Developer_GUITestManger.Instance.RegisterGuiButton("触发护盾", () => { Player.LocalPlayer.TriggerShield(); });
          Developer_GUITestManger.Instance.RegisterGuiButton("靶子音效", () => {         MusicManager.Instance.PlayEffect3D("Music/正式/交互/击中靶子1", 10f, owner: this.transform); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("进入飞机视角", () => { MapChooseWall.Instance.EnterVC(); });

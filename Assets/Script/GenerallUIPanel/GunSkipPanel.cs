@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using System.Collections;
 
 public class GunSkipPanel : BasePanel
 {
@@ -23,17 +24,72 @@ public class GunSkipPanel : BasePanel
     public Transform GunTypeButtonParent;
     [Header("展示交互按钮")]
     public GameObject skinChoosePrefabs;
-    [Header("展示按钮父对象")]
-    public Transform skinChooseParent;
+    [Header("展示按钮父对象 (ScrollRect-Content)")]
+    public RectTransform skinChooseParent;
+
+    [Header("代表枪械的图")]
+    public CanvasGroup RifleCanvasGroup;
+    public CanvasGroup ChargeCanvasGroup;
+    public CanvasGroup DMRCanvasGroup;
+    public CanvasGroup LightMachineCanvasGroup;
+    public CanvasGroup SnipeCanvasGroup;
+
+    [Header("子弹捆绑包交互对象")]
+    public Image Bullet;
+    public List<Image> CartridgeCaseImageList;
+    public Image GunLightImage;
+
+    [Header("子弹图片配置（按枪械类型分组）")]
+    public Sprite ChargeBullet;
+    public Sprite ChargeCartridgeCase;
+    [Space(10)]
+    public Sprite RifleBullet;
+    public Sprite RifleCartridgeCase;
+    [Space(10)]
+    public Sprite SnipeBullet;
+    public Sprite SnipeCartridgeCase;
+
+    [Header("显示屏幕")]
+    public RawImage DisplayScreen;
+    private float DefaultTop = 300;
+    public float DefaultLeft = 800;
+
+    #region 控制变量
+    private GunType _currentGunType = GunType.Rifle;
+    private const float GUN_FADE_DURATION = 0.15f;
+    private const float SPRITE_FADE_DURATION = 0.12f;
+    private bool _isFirstInit = true;
+
+    private bool IsScale = false;
+
+    private class ButtonOriginalState
+    {
+        public Color showImageColor;
+        public float bulletCanvasAlpha;
+        public Vector3 headLocalScale;
+    }
+    private Dictionary<GameObject, ButtonOriginalState> _btnOriginalStateCache = new Dictionary<GameObject, ButtonOriginalState>();
+
+    // 子弹配置相关
+    private List<GameObject> GunTypeButtonList;
+    private Dictionary<GameObject, SpecialBulletBindPack> DicObjToBulletBind;
+    public SpecialBulletBindPack CurrentChooseSpecialBulletBindPack;
+
+    private Dictionary<GameObject, GunHitData> DicObjToHitData;
+    public GunHitData CurrentChooseGunHitData;
+    private const string HIT_BIND_GROUP = "HitBind";
+    #endregion
 
     #region 生命周期    
     public override void Awake()
     {
         base.Awake();
-        // 初始化列表和字典，防止空引用
         GunTypeButtonList = new List<GameObject>();
         DicObjToBulletBind = new Dictionary<GameObject, SpecialBulletBindPack>();
+        // 初始化打击特效字典
+        DicObjToHitData = new Dictionary<GameObject, GunHitData>();
     }
+
     public override void Start()
     {
         base.Start();
@@ -47,11 +103,13 @@ public class GunSkipPanel : BasePanel
     protected override void OnDestroy()
     {
         base.OnDestroy();
+        KillAllSpriteTweens();
+        _btnOriginalStateCache.Clear();
+        DicObjToHitData.Clear();
     }
     #endregion
 
     #region UI控件
-
     public override void ClickButton(string controlName)
     {
         base.ClickButton(controlName);
@@ -61,8 +119,8 @@ public class GunSkipPanel : BasePanel
             IsActiveButtonGroup(true);
             VCTopic.text = "默认";
             currentPanelType = GunViewType.Normal;
-            // 返回时清空子弹配置按钮
             ClearBulletBindButton();
+            ClearHitEffectButton();
         }
         else if (controlName == "BulletButton")
         {
@@ -70,7 +128,9 @@ public class GunSkipPanel : BasePanel
             IsActiveButtonGroup(false);
             VCTopic.text = "子弹配置";
             currentPanelType = GunViewType.BulletConfig;
-            CreateGunTypeButton();//创建枪械类型按钮
+            ClearHitEffectButton();
+            CreateBulletBind(_currentGunType);
+            PlayDemoGunByCurrentPanel();
         }
         else if (controlName == "GunSkipButton_Test")
         {
@@ -78,41 +138,216 @@ public class GunSkipPanel : BasePanel
             IsActiveButtonGroup(false);
             VCTopic.text = "枪械皮肤";
             currentPanelType = GunViewType.GunSkin;
+            ClearBulletBindButton();
+            ClearHitEffectButton();
+            PlayDemoGunByCurrentPanel();
         }
-        else if (controlName == "HitObjtButton ")
+        else if (controlName == "HitObjtButton")
         {
             gunViewZoom.ChangeView(GunViewType.HitParticle);
             IsActiveButtonGroup(false);
             VCTopic.text = "打击粒子";
             currentPanelType = GunViewType.HitParticle;
+            ClearBulletBindButton();
+            CreateHitEffectBind();
+            PlayDemoGunByCurrentPanel();
+        }
+        else if (controlName == "EffectScreen")
+        {
+            EffectShowCanvasGroup.DOKill();
+            if (IsScale)
+            {
+                EffectShowCanvasGroup.transform.DOScale(Vector2.one, 0.5f);
+            }
+            else
+            {
+                EffectShowCanvasGroup.transform.DOScale(2.2f * Vector2.one, 0.5f);
+            }
+            IsScale = !IsScale;
+        }
+        else if (controlName == "TestButton")
+        {
+            if (currentPanelType == GunViewType.BulletConfig || currentPanelType == GunViewType.HitParticle)
+            {
+                PlayDemoGunByCurrentPanel();
+            }
+        }
+        else if(controlName == "EquipButton")
+        {
+            if(currentPanelType == GunViewType.BulletConfig)
+            {
+                if (CurrentChooseSpecialBulletBindPack != null)
+                {
+                    GameSkinManager.Instance.SetPlayerSkinPack(CurrentChooseSpecialBulletBindPack.BulletBindID);//传入子弹配置ID
+                    // 这里可以添加一些反馈，比如提示已装备，或者直接关闭面板等
+                    WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f,"已装备子弹配置");
+                }
+            }
+            else if(currentPanelType == GunViewType.HitParticle)
+            {
+                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "已装备打击粒子");
+                GameSkinManager.Instance.CurrentOwnerHitObj = CurrentChooseGunHitData;//设置当前打击特效数据
+            }
         }
     }
     #endregion
 
-    private List<GameObject> GunTypeButtonList;
-    private Dictionary<GameObject, SpecialBulletBindPack> DicObjToBulletBind;
-    public SpecialBulletBindPack CurrentChooseSpecialBulletBindPack;
+    #region 联动 DemoGun 核心
+    private void PlayDemoGunByCurrentPanel()
+    {
+        if (DemoGun.Instance == null)
+        {
+            Debug.LogWarning("[GunSkipPanel] 场景中未找到 DemoGun！");
+            return;
+        }
 
+        switch (currentPanelType)
+        {
+            case GunViewType.BulletConfig:
+                if (CurrentChooseSpecialBulletBindPack != null)
+                {
+                    DemoGun.Instance.TestShoot(CurrentChooseSpecialBulletBindPack);
+                }
+                break;
+            case GunViewType.HitParticle:
+                if (CurrentChooseGunHitData != null)
+                {
+                    DemoGun.Instance.HitEffect = CurrentChooseGunHitData.HitObj;
+                    var defaultBullet = GameSkinManager.Instance.ReturnBulletVisualConfig(_currentGunType);
+                    DemoGun.Instance.TestShoot(defaultBullet);
+                }
+                else
+                {
+                    DemoGun.Instance.DebugTestShoot();
+                }
+                break;
+            case GunViewType.GunSkin:
+                DemoGun.Instance.DebugTestShoot();
+                break;
+            case GunViewType.Normal:
+            default:
+                break;
+        }
+    }
+    #endregion
+
+    #region 打击特效按钮逻辑
+    /// <summary>
+    /// 生成打击特效交互按钮
+    /// </summary>
+    public void CreateHitEffectBind()
+    {
+        ClearHitEffectButton();
+
+        if (GameSkinManager.Instance == null)
+        {
+            Debug.LogError("GameSkinManager 未初始化！");
+            return;
+        }
+
+        var hitList = GameSkinManager.Instance.CurrentGunHitDataList;
+        if (hitList == null || hitList.Count == 0)
+        {
+            Debug.LogWarning("当前无打击特效数据！");
+            return;
+        }
+
+        foreach (var hitData in hitList)
+        {
+            GameObject obj = PoolManage.Instance.GetObj(skinChoosePrefabs);
+            obj.transform.SetParent(skinChooseParent, false);
+            obj.name = hitData.HitName;
+
+            ButtonOriginalState originalState = new ButtonOriginalState();
+            Transform showImageTrans = obj.transform.Find("ShowImage");
+            TextMeshProUGUI btnText = obj.GetComponentInChildren<TextMeshProUGUI>();
+
+            btnText.text = hitData.HitName;
+            if (showImageTrans != null && showImageTrans.TryGetComponent(out Image showImage))
+            {
+                originalState.showImageColor = showImage.color;
+                showImage.sprite = hitData.HitIcon;
+                showImage.color = Color.white;
+                showImage.SetAllDirty();
+            }
+
+            _btnOriginalStateCache.Add(obj, originalState);
+            DicObjToHitData.Add(obj, hitData);
+
+            ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(HIT_BIND_GROUP, obj.GetComponent<Button>(), UpdateHitEffectInfo);
+        }
+
+        if (DicObjToHitData.Count > 0)
+        {
+            ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(HIT_BIND_GROUP);
+        }
+
+        StartCoroutine(RefreshContentHeightCoroutine());
+    }
+
+    /// <summary>
+    /// 选中打击特效按钮
+    /// </summary>
+    public void UpdateHitEffectInfo(string buttonName)
+    {
+        foreach (var item in DicObjToHitData)
+        {
+            if (item.Key.name == buttonName)
+            {
+                CurrentChooseGunHitData = item.Value;
+                PlayDemoGunByCurrentPanel();
+                break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 清空打击特效按钮
+    /// </summary>
+    public void ClearHitEffectButton()
+    {
+        ButtonGroupManager.Instance.DestroyRadioGroup(HIT_BIND_GROUP);
+
+        foreach (var item in DicObjToHitData.Keys)
+        {
+            if (item != null)
+            {
+                if (_btnOriginalStateCache.TryGetValue(item, out ButtonOriginalState originalState))
+                {
+                    Transform showImageTrans = item.transform.Find("ShowImage");
+                    if (showImageTrans != null && showImageTrans.TryGetComponent(out Image showImage))
+                    {
+                        showImage.color = originalState.showImageColor;
+                        showImage.sprite = null;
+                    }
+                }
+                PoolManage.Instance.PushObj(skinChoosePrefabs, item);
+            }
+        }
+
+        DicObjToHitData.Clear();
+        _btnOriginalStateCache.Clear();
+        CurrentChooseGunHitData = null;
+    }
+    #endregion
+
+    #region 子弹配置按钮逻辑
     public void CreateGunTypeButton()
     {
-        // 先清空旧按钮，防止重复创建
         ClearButtonGroup();
 
-        // 根据枪械类型枚举创建按钮
         foreach (GunType gunType in System.Enum.GetValues(typeof(GunType)))
         {
             GameObject button = PoolManage.Instance.GetObj(GunTypeButton);
             button.transform.localScale = new Vector3(Math.Abs(button.transform.localScale.x), button.transform.localScale.y, button.transform.localScale.z);
             button.transform.SetParent(GunTypeButtonParent, false);
             button.name = gunType.ToString();
-            button.GetComponentInChildren<TextMeshProUGUI>().text = gunType.ToString();
+            button.GetComponentInChildren<TextMeshProUGUI>().text = MilitaryManager.Instance.GetChineseGunTypeName(gunType);
             GunTypeButtonList.Add(button);
 
-            //注册按钮组
             ButtonGroupManager.Instance.AddRadioButtonToGroup_Str("GunSkipPanelGunTypeButton", button.GetComponent<Button>(), OnGunTypeButtonClicked, CancelGunTypeButton);
         }
 
-        // 默认选中第一个按钮
         if (GunTypeButtonList.Count > 0)
         {
             ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup("GunSkipPanelGunTypeButton");
@@ -121,17 +356,16 @@ public class GunSkipPanel : BasePanel
 
     public void OnGunTypeButtonClicked(string gunTypeName)
     {
-        // 安全转换枚举
         if (Enum.TryParse<GunType>(gunTypeName, out GunType type))
         {
-            // 切换枪械类型时，先清空上一个枪械的子弹按钮
-            ClearBulletBindButton();
+            _currentGunType = type;
+            RefreshGunDisplay();
+            RefreshBulletSpriteWithFade();
 
-            // 对应逻辑
+            ClearBulletBindButton();
             switch (currentPanelType)
             {
                 case GunViewType.BulletConfig:
-                    // 双重保险：防止空值调用
                     if (GameSkinManager.Instance != null)
                     {
                         CreateBulletBind(type);
@@ -141,15 +375,13 @@ public class GunSkipPanel : BasePanel
         }
     }
 
-    //创建子弹捆绑包
     public void CreateBulletBind(GunType Type)
     {
-        // 先清空旧子弹按钮
         ClearBulletBindButton();
 
         if (GameSkinManager.Instance == null)
         {
-            Debug.LogError("GameSkinManager 单例未初始化！");
+            Debug.LogError("GameSkinManager 未初始化！");
             return;
         }
 
@@ -160,74 +392,171 @@ public class GunSkipPanel : BasePanel
             return;
         }
 
+        var (bulletSprite, caseSprite) = GetSpriteByGunType(Type);
+        bool isRifleSeries = Type == GunType.Rifle || Type == GunType.LightMachineGun;
+
         foreach (var InfoPack in bulletList)
         {
-            //创建按钮
             GameObject obj = PoolManage.Instance.GetObj(skinChoosePrefabs);
             obj.transform.SetParent(skinChooseParent, false);
             obj.name = InfoPack.name;
 
+            ButtonOriginalState originalState = new ButtonOriginalState();
+            Transform showImageTrans = obj.transform.Find("ShowImage");
+            Transform bulletTrans = obj.transform.Find("Bullet");
+            Transform headTrans = bulletTrans?.Find("Head");
             obj.GetComponentInChildren<TextMeshProUGUI>().text = InfoPack.name;
-
-            if (InfoPack.Sprite != null)
+            if (showImageTrans != null && showImageTrans.TryGetComponent(out Image showImage))
             {
-                Image iconImg = obj.transform.Find("ShowImage").GetComponent<Image>();
-                if (InfoPack.Sprite != null && iconImg != null)
+                originalState.showImageColor = showImage.color;
+                Color tempColor = showImage.color;
+                tempColor.a = 0;
+                showImage.color = tempColor;
+            }
+
+            CanvasGroup bulletCanvasGroup = null;
+            if (bulletTrans != null && bulletTrans.TryGetComponent(out bulletCanvasGroup))
+            {
+                originalState.bulletCanvasAlpha = bulletCanvasGroup.alpha;
+                bulletCanvasGroup.alpha = 1;
+                bulletCanvasGroup.blocksRaycasts = true;
+                bulletCanvasGroup.interactable = true;
+            }
+
+            if (headTrans != null)
+            {
+                originalState.headLocalScale = headTrans.localScale;
+                if (isRifleSeries)
                 {
-                    iconImg.sprite = InfoPack.Sprite;
+                    headTrans.localScale = new Vector3(0.8f, 1f, 1f);
+                }
+            }
+
+            _btnOriginalStateCache.Add(obj, originalState);
+
+            if (bulletTrans != null && InfoPack.bulletVisualConfig != null)
+            {
+                if (headTrans != null && headTrans.TryGetComponent(out Image headImg))
+                {
+                    headImg.sprite = bulletSprite;
+                    headImg.color = InfoPack.bulletVisualConfig.bulletColor;
+                    headImg.SetAllDirty();
+                }
+                Transform caseTrans = bulletTrans.Find("Case");
+                if (caseTrans != null && caseTrans.TryGetComponent(out Image caseImg))
+                {
+                    caseImg.sprite = caseSprite;
+                    caseImg.color = InfoPack.bulletVisualConfig.cartridgeCaseColor;
+                    caseImg.SetAllDirty();
                 }
             }
 
             DicObjToBulletBind.Add(obj, InfoPack);
-
-            //添加到按钮组
             ButtonGroupManager.Instance.AddRadioButtonToGroup_Str("BulletBind", obj.GetComponent<Button>(), UpdateBulletInfo);
         }
 
-        // 默认选中第一个子弹按钮
         if (DicObjToBulletBind.Count > 0)
         {
             ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup("BulletBind");
         }
+
+        StartCoroutine(RefreshContentHeightCoroutine());
     }
 
-    /// <summary>
-    ///遍历字典匹配名称，不直接用string查GameObject
-    /// </summary>
     public void UpdateBulletInfo(string ButtonName)
     {
         foreach (var item in DicObjToBulletBind)
         {
-            // 用GameObject的名称匹配传入的按钮名
             if (item.Key.name == ButtonName)
             {
                 CurrentChooseSpecialBulletBindPack = item.Value;
-                Debug.Log("选中子弹配置：" + CurrentChooseSpecialBulletBindPack.name);
+                ApplyBulletPackColorToUI();
+                PlayDemoGunByCurrentPanel();
                 break;
             }
         }
     }
 
-    /// <summary>
-    /// 清空子弹配置按钮
-    /// </summary>
+    private void ApplyBulletPackColorToUI()
+    {
+        if (CurrentChooseSpecialBulletBindPack == null) return;
+
+        var bulletConfig = CurrentChooseSpecialBulletBindPack.bulletVisualConfig;
+        var flashConfig = CurrentChooseSpecialBulletBindPack.muzzleFlashConfig;
+
+        if (Bullet != null && bulletConfig != null)
+        {
+            Bullet.color = bulletConfig.bulletColor;
+            Bullet.SetAllDirty();
+        }
+
+        if (CartridgeCaseImageList != null && bulletConfig != null)
+        {
+            foreach (var img in CartridgeCaseImageList)
+            {
+                if (img != null)
+                {
+                    img.color = bulletConfig.cartridgeCaseColor;
+                    img.SetAllDirty();
+                }
+            }
+        }
+
+        if (GunLightImage != null && flashConfig != null)
+        {
+            GunLightImage.color = flashConfig.lightStartColor;
+            GunLightImage.SetAllDirty();
+        }
+    }
+
     public void ClearBulletBindButton()
     {
-        // 销毁按钮组
         ButtonGroupManager.Instance.DestroyRadioGroup("BulletBind");
 
-        // 对象池回收按钮
         foreach (var item in DicObjToBulletBind.Keys)
         {
             if (item != null)
             {
+                if (_btnOriginalStateCache.TryGetValue(item, out ButtonOriginalState originalState))
+                {
+                    Transform showImageTrans = item.transform.Find("ShowImage");
+                    if (showImageTrans != null && showImageTrans.TryGetComponent(out Image showImage))
+                    {
+                        showImage.color = originalState.showImageColor;
+                    }
+
+                    Transform bulletTrans = item.transform.Find("Bullet");
+                    if (bulletTrans != null && bulletTrans.TryGetComponent(out CanvasGroup bulletCanvasGroup))
+                    {
+                        bulletCanvasGroup.alpha = originalState.bulletCanvasAlpha;
+                        bulletCanvasGroup.blocksRaycasts = originalState.bulletCanvasAlpha > 0.5f;
+                        bulletCanvasGroup.interactable = originalState.bulletCanvasAlpha > 0.5f;
+                    }
+
+                    Transform headTrans = bulletTrans?.Find("Head");
+                    if (headTrans != null)
+                    {
+                        headTrans.localScale = originalState.headLocalScale;
+                    }
+                }
+
                 PoolManage.Instance.PushObj(skinChoosePrefabs, item);
             }
         }
 
-        // 清空字典
         DicObjToBulletBind.Clear();
+        _btnOriginalStateCache.Clear();
+        CurrentChooseSpecialBulletBindPack = null;
     }
+    #endregion
+
+    // ===================== 已清空Content自适应代码 =====================
+    private IEnumerator RefreshContentHeightCoroutine()
+    {
+        yield return null;
+        // 无任何手动控制逻辑，由UI组件自动自适应
+    }
+    // =================================================================
 
     public void ClearButtonGroup()
     {
@@ -241,10 +570,8 @@ public class GunSkipPanel : BasePanel
 
     public void CancelGunTypeButton(string gunTypeName)
     {
-
     }
 
-    //是否激活旋转按钮组
     public void IsActiveButtonGroup(bool IsTrigger)
     {
         ChooseButtonCanvasGroup.blocksRaycasts = IsTrigger;
@@ -258,18 +585,30 @@ public class GunSkipPanel : BasePanel
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(EffectShowCanvasGroup, ref EffectShowCanvasGroupSequence, IsTrigger, () => { });
     }
 
-    #region 面板显隐以及特殊动画
-
+    #region 面板显隐
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
     {
         base.HideMe(callback, isNeedDefaultAnimator);
         ClearButtonGroup();
         ClearBulletBindButton();
+        ClearHitEffectButton();
     }
 
     public override void ShowMe(bool isNeedDefaultAnimator = true)
     {
         base.ShowMe(isNeedDefaultAnimator);
+
+        if (GunTypeButtonList.Count == 0)
+        {
+            CreateGunTypeButton();
+        }
+
+        if (_isFirstInit)
+        {
+            _isFirstInit = false;
+            RefreshGunDisplay();
+            SetBulletSpriteImmediately();
+        }
     }
 
     public override void SimpleHidePanel()
@@ -284,12 +623,179 @@ public class GunSkipPanel : BasePanel
 
     protected override void SpecialAnimator_Hide()
     {
-
     }
 
     protected override void SpecialAnimator_Show()
     {
+    }
+    #endregion
 
+    #region 枪械显示控制
+    private void RefreshGunDisplay()
+    {
+        foreach (GunType gunType in System.Enum.GetValues(typeof(GunType)))
+        {
+            CanvasGroup cg = GetGunCanvasGroupByType(gunType);
+            if (cg == null) continue;
+
+            if (gunType == _currentGunType)
+            {
+                ShowCanvasGroup(cg);
+            }
+            else
+            {
+                HideCanvasGroup(cg);
+            }
+        }
+    }
+
+    private void ShowCanvasGroup(CanvasGroup cg)
+    {
+        if (cg == null) return;
+
+        cg.blocksRaycasts = true;
+        cg.interactable = true;
+        cg.DOKill();
+        cg.DOFade(1, GUN_FADE_DURATION).SetEase(Ease.OutQuad);
+    }
+
+    private void HideCanvasGroup(CanvasGroup cg)
+    {
+        if (cg == null) return;
+
+        cg.blocksRaycasts = false;
+        cg.interactable = false;
+        cg.DOKill();
+        cg.DOFade(0, GUN_FADE_DURATION).SetEase(Ease.OutQuad);
+    }
+
+    private CanvasGroup GetGunCanvasGroupByType(GunType gunType)
+    {
+        return gunType switch
+        {
+            GunType.Rifle => RifleCanvasGroup,
+            GunType.Charge => ChargeCanvasGroup,
+            GunType.DMR => DMRCanvasGroup,
+            GunType.LightMachineGun => LightMachineCanvasGroup,
+            GunType.Snipe => SnipeCanvasGroup,
+            _ => null
+        };
+    }
+    #endregion
+
+    #region 子弹/弹壳图片替换逻辑
+    private (Sprite bulletSprite, Sprite caseSprite) GetSpriteByGunType(GunType gunType)
+    {
+        return gunType switch
+        {
+            GunType.Charge => (ChargeBullet, ChargeCartridgeCase),
+            GunType.Rifle or GunType.LightMachineGun => (RifleBullet, RifleCartridgeCase),
+            GunType.Snipe or GunType.DMR => (SnipeBullet, SnipeCartridgeCase),
+            _ => (RifleBullet, RifleCartridgeCase)
+        };
+    }
+
+    private void SetBulletSpriteImmediately()
+    {
+        var (bulletSprite, caseSprite) = GetSpriteByGunType(_currentGunType);
+
+        if (Bullet != null && bulletSprite != null)
+        {
+            Bullet.sprite = bulletSprite;
+            Bullet.SetAllDirty();
+        }
+
+        if (CartridgeCaseImageList != null && caseSprite != null)
+        {
+            foreach (var img in CartridgeCaseImageList)
+            {
+                if (img != null)
+                {
+                    img.sprite = caseSprite;
+                    img.SetAllDirty();
+                }
+            }
+        }
+    }
+
+    private void RefreshBulletSpriteWithFade()
+    {
+        var (targetBulletSprite, targetCaseSprite) = GetSpriteByGunType(_currentGunType);
+
+        KillAllSpriteTweens();
+
+        Sequence spriteSequence = DOTween.Sequence();
+
+        if (Bullet != null)
+        {
+            spriteSequence.Join(Bullet.DOFade(0, SPRITE_FADE_DURATION).SetEase(Ease.OutQuad));
+        }
+        if (CartridgeCaseImageList != null)
+        {
+            foreach (var img in CartridgeCaseImageList)
+            {
+                if (img != null)
+                {
+                    spriteSequence.Join(img.DOFade(0, SPRITE_FADE_DURATION).SetEase(Ease.OutQuad));
+                }
+            }
+        }
+
+        spriteSequence.AppendCallback(() =>
+        {
+            if (Bullet != null && targetBulletSprite != null)
+            {
+                Bullet.sprite = targetBulletSprite;
+                Bullet.SetAllDirty();
+            }
+
+            if (CartridgeCaseImageList != null && targetCaseSprite != null)
+            {
+                foreach (var img in CartridgeCaseImageList)
+                {
+                    if (img != null)
+                    {
+                        img.sprite = targetCaseSprite;
+                        img.SetAllDirty();
+                    }
+                }
+            }
+        });
+
+        if (Bullet != null)
+        {
+            spriteSequence.Append(Bullet.DOFade(1, SPRITE_FADE_DURATION).SetEase(Ease.InQuad));
+        }
+        if (CartridgeCaseImageList != null)
+        {
+            foreach (var img in CartridgeCaseImageList)
+            {
+                if (img != null)
+                {
+                    spriteSequence.Join(img.DOFade(1, SPRITE_FADE_DURATION).SetEase(Ease.InQuad));
+                }
+            }
+        }
+
+        spriteSequence.Play();
+    }
+
+    private void KillAllSpriteTweens()
+    {
+        if (Bullet != null)
+        {
+            Bullet.DOKill();
+        }
+        if (CartridgeCaseImageList != null)
+        {
+            foreach (var img in CartridgeCaseImageList)
+            {
+                if (img != null)
+                {
+                    img.DOKill();
+                }
+            }
+        }
     }
     #endregion
 }

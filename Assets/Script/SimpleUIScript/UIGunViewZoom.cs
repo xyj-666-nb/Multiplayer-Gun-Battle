@@ -32,7 +32,7 @@ public class ViewSettings
     public float duration = 0.3f;
 
     [Header("动画曲线 | OutQuad = 先快后慢")]
-    public Ease moveEase = Ease.OutQuad; 
+    public Ease moveEase = Ease.OutQuad;
 }
 
 public class UIGunViewZoom : MonoBehaviour

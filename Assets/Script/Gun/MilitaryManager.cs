@@ -12,6 +12,16 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//枪械管理
     private Dictionary<GunType, List<GunInfo>> _gunTypeDict; // 枪械类型→GunInfo列表
     #endregion
 
+    [Header("子弹图片配置（按枪械类型分组）")]
+    public Sprite ChargeBullet;
+    public Sprite ChargeCartridgeCase;
+    [Space(10)]
+    public Sprite RifleBullet;
+    public Sprite RifleCartridgeCase;
+    [Space(10)]
+    public Sprite SnipeBullet;
+    public Sprite SnipeCartridgeCase;
+
     #region 战术设备管理
     public List<TacticInfo> TacticPrefabsList = new List<TacticInfo>();//战术设备列表（注射器/投掷物）
 

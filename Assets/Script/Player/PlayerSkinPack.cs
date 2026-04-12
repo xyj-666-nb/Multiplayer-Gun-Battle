@@ -23,8 +23,4 @@ public class PlayerSkinPack : ScriptableObject
     public bool IsHaveAnima=false; // 是否拥有角色动画
     [Header("动画序列")]
     public Sprite[] AnimaSpriteList; // 角色动画序列
-    [Header("是否有附属动画")]
-    public bool IsHaveSubAnima = false; // 是否有附属动画
-    [Header("特殊外加动画序列")]
-    public Sprite[] SpecialAnimaSpriteList; // 角色特殊外加动画序列
 }

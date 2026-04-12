@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e6a33053f598ef408bb636a0534ad41, type: 3}
+  m_Name: XM50
+  m_EditorClassIdentifier: 
+  Name: XM50
+  type: 3
+  description: "\u56FD\u5BB6 / \u5E74\u4EE3\uFF1A\u7F8E\u56FD\uFF0C\u73B0\u4EE3 \u5E74\u4EE3\u5217\u88C5\uFF0C\u65B0\u4E16\u7EAA\u6301\u7EED\u8FED\u4EE3\u5347\u7EA7\n\u6B66\u5668\u7C7B\u578B\uFF1A\u73ED\u7EC4\u81EA\u52A8\u706B\u5668
+    / \u8F7B\u578B\u652F\u63F4\u67AA\u68B0\n\u8BBE\u8BA1\u76EE\u7684\uFF1A\u6253\u9020\u66F4\u8F7B\u4FBF\u3001\u706B\u529B\u66F4\u6301\u4E45\u7684\u73ED\u7EC4\u538B\u5236\u88C5\u5907\uFF0C\u9002\u914D\u73B0\u4EE3\u6218\u573A\u9632\u62A4\u5347\u7EA7\u540E\u7684\u4E2D\u8FDC\u8DDD\u79BB\u652F\u63F4\u9700\u6C42\n\u6280\u672F\u7279\u70B9\uFF1A\u65B0\u578B\u4E2D\u53E3\u5F84\u5F39\u836F\u3001\u8F7B\u91CF\u5316\u7ED3\u6784,\u540E\u5750\u63A7\u5236\u4F18\u5F02"
+  Bullet_capacity: 60
+  AllBulletAmount: 150
+  RateOfFires: 0
+  Accuracy: 40
+  Damage: 31
+  Range: 300
+  ReloadTime: 7
+  BulletSpeed: 0
+  Recoil: 1
+  Recoil_Enemy: 0.5
+  ControlPower: 63
+  MaxPower: 5
+  ViewRange: 0
+  GunBodySprite: {fileID: -1326839646, guid: 5235d3ccb5b536544a094529006e82c6, type: 3}
+  ShootAudio: {fileID: 8300000, guid: 7c82cefc4bccc82498bb8b3a88a21b82, type: 3}
+  BulletFill: {fileID: 8300000, guid: f4f7722094c4f054ebc1004771210a8b, type: 3}
+  GunSprite: {fileID: 21300000, guid: d597238b2ebc71a4a901182cc10ca13b, type: 3}
+  ShackStrength: 1.5
+  ShackTime: 0.3
+  ShackStrength_Enemy: 0.7
+  ShackTime_Enemy: 0.4
+  smokeColor: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
+  smokeSizeMin: 0.0009
+  smokeSizeMax: 0.007
+  smokeDuration: 0.03
+  smokeDecaySpeed: 200

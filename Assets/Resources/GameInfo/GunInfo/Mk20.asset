@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e6a33053f598ef408bb636a0534ad41, type: 3}
+  m_Name: Mk20
+  m_EditorClassIdentifier: 
+  Name: MK20
+  type: 4
+  description: "\u56FD\u5BB6 / \u5E74\u4EE3\uFF1A\u519B\u4E8B\u5F3A\u56FD\uFF0C21
+    \u4E16\u7EAA\u521D\u5B9A\u578B\u5217\u88C5\n\u6B66\u5668\u7C7B\u578B\uFF1A\u534A\u81EA\u52A8\u7CBE\u786E\u5C04\u624B\u6B65\u67AA
+    / \u73ED\u7EC4\u7CBE\u51C6\u652F\u63F4\u6B66\u5668\n\u8BBE\u8BA1\u76EE\u7684\uFF1A\u5728\u4FDD\u8BC1\u8FDC\u8DDD\u79BB\u7CBE\u5EA6\u7684\u524D\u63D0\u4E0B\uFF0C\u63D0\u4F9B\u6BD4\u6813\u52A8\u72D9\u51FB\u6B66\u5668\u66F4\u5FEB\u7684\u6301\u7EED\u5C04\u901F\uFF0C\u7528\u4E8E\u73ED\u7EC4\u4E2D\u8FDC\u8DDD\u79BB\u7CBE\u51C6\u652F\u63F4\u4E0E\u673A\u52A8\u72D9\u51FB\n\u6280\u672F\u7279\u70B9\uFF1A\u6A21\u5757\u5316\u534A\u81EA\u52A8\u7ED3\u6784\uFF0C\u7CBE\u5EA6\u4E0E\u5C04\u901F\u517C\u987E"
+  Bullet_capacity: 8
+  AllBulletAmount: 30
+  RateOfFires: 0
+  Accuracy: 100
+  Damage: 75
+  Range: 500
+  ReloadTime: 4
+  BulletSpeed: 0
+  Recoil: 1.6
+  Recoil_Enemy: 2
+  ControlPower: 95
+  MaxPower: 5
+  ViewRange: 0.14
+  GunBodySprite: {fileID: -1329745736, guid: 013660adc8f9c5546bd8aee11c6c9a3d, type: 3}
+  ShootAudio: {fileID: 8300000, guid: 13315056a7e45eb4b8830d630f06b051, type: 3}
+  BulletFill: {fileID: 8300000, guid: c01d8f74618ee6a4ba9caa742de8ed78, type: 3}
+  GunSprite: {fileID: 21300000, guid: e2549ab0c8010194c8eb2ca8bc31bbb7, type: 3}
+  ShackStrength: 0.9
+  ShackTime: 0.25
+  ShackStrength_Enemy: 2.3
+  ShackTime_Enemy: 0.4
+  smokeColor: {r: 1, g: 1, b: 1, a: 1}
+  smokeSizeMin: 0.001
+  smokeSizeMax: 0.001
+  smokeDuration: 0.03
+  smokeDecaySpeed: 200

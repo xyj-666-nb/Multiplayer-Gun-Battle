@@ -72,6 +72,16 @@ public class BaseGun : NetworkBehaviour
     [Header("枪口火控数据ID")]
     [SyncVar(hook = nameof(OnChangeMuzzleFlashConfigID))]
     public int muzzleFlashConfigID;
+
+    [Header("打击特效配置ID")]
+    [SyncVar(hook = nameof(OnChangeHitEffectConfigID))]
+    public int hitEffectConfigID=1;
+
+    private void OnChangeHitEffectConfigID(int OldValue, int newValue)
+    {
+        hitwalleffect = GameSkinManager.Instance.GetHitData(newValue)?.HitObj;
+    }
+
     private void  OnChangeMuzzleFlashConfigID(int OldValue,int newValue)
     {
         //查找数据并进行本地赋值
@@ -872,11 +882,12 @@ public class BaseGun : NetworkBehaviour
 
     //设置枪的数据
     [Command]//需要权限
-    public void SetGunConfig(int muzzleFlashConfigID,int bulletVisualConfigID)//在玩家获取枪械时候调用枪械的这个函数进行初始化
+    public void SetGunConfig(int muzzleFlashConfigID,int bulletVisualConfigID,int hitID)//在玩家获取枪械时候调用枪械的这个函数进行初始化
     {
         //服务器端设置数据ID，客户端通过SyncVar钩子自动应用配置
         this.muzzleFlashConfigID = muzzleFlashConfigID;
         this.bulletVisualConfigID = bulletVisualConfigID;
+        this.hitEffectConfigID = hitID;
     }
 
     #endregion

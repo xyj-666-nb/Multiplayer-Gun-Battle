@@ -30,7 +30,7 @@ public class PlayerPreparaPanel : BasePanel
     public CanvasGroup RoomInfoPanel;
     private Sequence RoomInfoPanelAnima;
     public TextMeshProUGUI RoomNumber;
-    public bool IsOpenPanel=true;
+    public bool IsOpenPanel = true;
 
     public void SetRoomInfoPanelActive(bool IsActive)
     {
@@ -42,21 +42,21 @@ public class PlayerPreparaPanel : BasePanel
     {
         Sprite TeamSprite;
 
-        if(teamEnum==Team.Red)
-            TeamSprite=PlayerAndGameInfoManger.Instance.RedTeamSprite;//红队队伍标识
+        if (teamEnum == Team.Red)
+            TeamSprite = PlayerAndGameInfoManger.Instance.RedTeamSprite;//红队队伍标识
         else
             TeamSprite = PlayerAndGameInfoManger.Instance.BlueTeamSprite;//蓝队队伍标识
 
         if (MyTeamImage.sprite == TeamSprite)
             return;//图片一样直接返回
 
-         //触发渐变函数
+        //触发渐变函数
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(MyTeamImageCanvas, ref MyTeamImageCanvasAnima, false, () =>
         {
             MyTeamImage.sprite = TeamSprite;
             SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(MyTeamImageCanvas, ref MyTeamImageCanvasAnima, true, () => { });
         });
-     
+
     }
 
     #region 生命周期
@@ -68,7 +68,7 @@ public class PlayerPreparaPanel : BasePanel
 
         GameStartCanvas.interactable = false;
         GameStartCanvas.alpha = 0;
-        if (!NetworkServer.active||Main.Instance.CurrentMode!=NetworkMode.Remote)//如果是房主就打开,如果不是远程联机模式就关闭
+        if (!NetworkServer.active || Main.Instance.CurrentMode != NetworkMode.Remote)//如果是房主就打开,如果不是远程联机模式就关闭
         {
             if (controlDic.ContainsKey("ShowRoomJoinInfoPanelButton"))
             {
@@ -88,15 +88,15 @@ public class PlayerPreparaPanel : BasePanel
             PlayerRespawnManager.Instance.SendGlobalMessage("对局开始条件不满足", 1);
         }
 
-        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(GameStartCanvas,ref GameStartCanvasAnima, IsActive, () => {
-            if(IsActive)
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(GameStartCanvas, ref GameStartCanvasAnima, IsActive, () => {
+            if (IsActive)
             {
                 GameStartCanvas.interactable = true;//允许交互
                 //全局播报允许游戏开始
                 CountDownManager.Instance.CreateTimer(false, 300, () => { PlayerRespawnManager.Instance.SendGlobalMessage("对局开始条件达成，等待房主开始游戏", 1); });
             }
-            });
-    }    
+        });
+    }
 
     public override void Start()
     {
@@ -115,7 +115,7 @@ public class PlayerPreparaPanel : BasePanel
     #region 核心逻辑
     public void ManualRefreshUI()
     {
-        if (PlayerRespawnManager.Instance == null) 
+        if (PlayerRespawnManager.Instance == null)
             return;
 
         UpdateRoomPlayerCount(PlayerRespawnManager.Instance.CurrentPlayerCount);
@@ -135,7 +135,7 @@ public class PlayerPreparaPanel : BasePanel
 
     public void playerPrepara(string text)
     {
-        if (IsPrepara) 
+        if (IsPrepara)
             return;
 
         IsPrepara = true;
@@ -177,21 +177,41 @@ public class PlayerPreparaPanel : BasePanel
             Player.LocalPlayer.RequestRefreshTeamUI();//更新UI
 
         }
-        else if(controlName == "GameStartButton")
+        else if (controlName == "GameStartButton")
         {
             //在这里触发游戏开始
             //给全局发消息
             Player.LocalPlayer.CmdRequestStartGame();
         }
-        else if(controlName == "ShowRoomJoinInfoPanelButton")
+        else if (controlName == "ShowRoomJoinInfoPanelButton")
         {
-            IsOpenPanel =!IsOpenPanel;
+            IsOpenPanel = !IsOpenPanel;
             SetRoomInfoPanelActive(IsOpenPanel);//触发一下
-            (controlDic["ShowRoomJoinInfoPanelButton"] as Button).GetComponentInChildren<TextMeshProUGUI>().text = IsOpenPanel? "<":">";
+            (controlDic["ShowRoomJoinInfoPanelButton"] as Button).GetComponentInChildren<TextMeshProUGUI>().text = IsOpenPanel ? "<" : ">";
+        }
+        else if (controlName == "CopyButton")
+        {
+            CopyRoomCodeToClipboard();
         }
     }
 
+    /// <summary>
+    ///复制房间邀请码到系统剪贴板
+    /// </summary>
+    private void CopyRoomCodeToClipboard()
+    {
+        // 空值校验：邀请码为空则复制失败
+        if (string.IsNullOrEmpty(RoomNumber.text))
+        {
+            WarnTriggerManager.Instance.TriggerNoInteractionWarn(1, "邀请码为空，复制失败！");
+            return;
+        }
 
+        GUIUtility.systemCopyBuffer = RoomNumber.text;
+
+        // 复制成功提示
+        WarnTriggerManager.Instance.TriggerNoInteractionWarn(1, "邀请码已复制到剪贴板");
+    }
     #endregion
 
     #region 面板的显隐以及特殊动画编写

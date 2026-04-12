@@ -11,7 +11,7 @@ public class Player : Base_Entity
 
     [Header("自己的身体")]
     public GameObject MyBody; // 只缩放这个物体
-
+    public SpriteRenderer MyBodySpriteRenderer;//身体的SpriteRenderer
     [Header("核心组件")]
     public playerStats myStats;
     public MyPlayerInput myInputSystem;
@@ -35,6 +35,36 @@ public class Player : Base_Entity
 
     [Header("表情控制系统")]
     public playerWorldExpressionSystem MyExpressionSystem;//玩家表情系统
+
+    [Header("当前使用的皮肤")]
+    [SyncVar(hook = nameof(OnPlayerSkipChange))]
+    public int CurrentSkinID = 4;//当前使用的皮肤ID
+
+    private  void OnPlayerSkipChange(int OldValue,int newValue )
+    {
+        //给玩家配置对应的角色数据
+        LoadingPlayerSkip(GameSkinManager.Instance.GetPlayerSkipPack(newValue)) ;
+    }
+    public void LoadingPlayerSkip(PlayerSkinPack InfoPack )
+    {
+        MyBodySpriteRenderer.sprite = InfoPack.IdleSprite;
+        if(InfoPack.IsHaveAnima)
+        {
+            SimpleSpritePlayer.PlayLoop(MyBodySpriteRenderer, InfoPack.AnimaSpriteList, 0.1f);//播放动画
+        }
+        else
+        {
+            //暂停这里的动画，避免切换皮肤时动画重置
+            SimpleSpritePlayer.Stop(MyBodySpriteRenderer);
+        }
+    }
+
+    [Command(requiresAuthority =false)]
+    public void CmdLoadingPlayerSkip(int PlayerSkipID)
+    {
+        CurrentSkinID = PlayerSkipID;
+        GameSkinManager.Instance.SetPlayerSkinPack(PlayerSkipID);
+    }
 
     public void TriggerExpression(int ExpressionID)
     {
@@ -591,7 +621,7 @@ public class Player : Base_Entity
         NetworkServer.Spawn(gunObj, connectionToClient);
 
         BaseGun gun = gunObj.GetComponent<BaseGun>();
-        gun.SetGunConfig(skinInfo.MuzzleFlashID, skinInfo.BulletID);
+        gun.SetGunConfig(skinInfo.MuzzleFlashID, skinInfo.BulletID,GameSkinManager.Instance.CurrentOwnerHitObj.HitID);//传入打击特效ID
 
         ServerHandlePickUpGun(gunObj);
     }

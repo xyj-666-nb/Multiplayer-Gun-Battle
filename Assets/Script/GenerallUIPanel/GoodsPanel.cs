@@ -55,6 +55,7 @@ public class GoodsPanel : BasePanel
             ScrollViewContent.anchorMax = new Vector2(0, 1);
             ScrollViewContent.pivot = new Vector2(0, 0.5f);
         }
+        CheckRefreshState();//检查一下状态
     }
     #endregion
 
@@ -78,6 +79,64 @@ public class GoodsPanel : BasePanel
             GoldIntroducePanel.blocksRaycasts = false;
             SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(GoldIntroducePanel, ref GoldIntroduceSequence, false, () => { });
         }
+        else if (controlName == "RefreshButton")
+        {
+            //如果已经达到上限就进行提示
+            if (GoodDataManager.Instance.IsReachUpperLimit())
+            {
+                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1, "今日已经达到上限！");
+            }
+            else
+            {
+                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1, "刷新成功！");
+                // 核心：执行商品刷新逻辑
+                RefreshGoods();
+            }
+        }
+    }
+
+    public void CheckRefreshState()
+    {
+        if (GoodDataManager.Instance.IsReachUpperLimit())
+        {
+            //设置按钮状态
+            SetRefreshState();
+        }
+    }
+
+    private bool IsEnterState = false;
+    public void SetRefreshState()
+    {
+        if (!IsEnterState)
+        {
+            IsEnterState = true;
+            controlDic["RefreshButton"].GetComponent<Image>().DOColor(ColorManager.BrickRed, 1f);//设置状态
+            controlDic["RefreshButton"].GetComponentInChildren<TextMeshProUGUI>().text = "已上限";
+        }
+    }
+
+    /// <summary>
+    /// 刷新商品：回收→重新加载→播放动画
+    /// </summary>
+    private void RefreshGoods()
+    {
+        //清空所有旧商品（回收到对象池）
+        ClearAllGoodsPage();
+
+        //刷新商品数据
+        GoodDataManager.Instance.RefRefreshToDay();
+
+        // 检查刷新上限状态
+        CheckRefreshState();
+
+        //重新创建商品
+        CreateGoodsPage();
+
+        //重新播放商品入场动画
+        TriggerGoodsEnterAnima();
+
+        //刷新金币显示
+        PlayGoldNumberAnimation();
     }
     #endregion
 
@@ -123,11 +182,11 @@ public class GoodsPanel : BasePanel
             ContentLayoutGroup.padding.left = Mathf.RoundToInt(AnimationStartLeft);
         }
 
-        float initWidth = GetStartAnimTotalWidth();
+        var goodsList = GoodDataManager.Instance.ToDayRefreshGoodsList;
+        // 修复1：用实际商品数量计算初始宽度
+        float initWidth = CalculateRealTotalWidth(AnimationStartSpacing, AnimationStartLeft);
         ScrollViewContent.sizeDelta = new Vector2(initWidth, 0);
 
-
-        var goodsList = GoodDataManager.Instance.ToDayRefreshGoodsList;
         for (int i = 0; i < goodsList.Count; i++)
         {
             if (GoodsPagePrefabs == null || GoodDataManager.Instance == null) return;
@@ -136,14 +195,19 @@ public class GoodsPanel : BasePanel
             GoodsData currentData = goodsList[i];
 
             GameObject goods = PoolManage.Instance.GetObj(GoodsPagePrefabs);
-            if (goods == null) continue;
+
+            if (goods == null)
+                continue;
 
             goods.transform.SetParent(ScrollViewContent, false);
 
             GoodsPage page = goods.GetComponent<GoodsPage>();
+
             if (page != null)
             {
+                page.InitBulletUI();
                 page.InitData(currentData);
+                page.SetDataInfo(); // 【补充】确保刷新时商品数据立即赋值
             }
 
             goodsPageDict.Add(goods, currentData);
@@ -168,63 +232,8 @@ public class GoodsPanel : BasePanel
     private void SetContentWidthSmartly()
     {
         if (ScrollViewContent == null) return;
-
-        bool isAnyExpanded = false;
-        float checkThreshold = 250;
-
-        foreach (GameObject item in goodsPageDict.Keys)
-        {
-            if (item == null) continue;
-            RectTransform rect = item.GetComponent<RectTransform>();
-            if (rect != null && rect.sizeDelta.x > checkThreshold)
-            {
-                isAnyExpanded = true;
-                break;
-            }
-        }
-
-        float targetWidth;
-        if (isAnyExpanded)
-        {
-            targetWidth = CalculateCurrentTotalWidth();
-        }
-        else
-        {
-            RectTransform parentRect = ScrollViewContent.parent as RectTransform;
-            if (parentRect != null)
-            {
-                targetWidth = parentRect.rect.width - LayoutGroupLeft - (ContentRightOffset * -1);
-            }
-            else
-            {
-                targetWidth = CalculateEstimatedIdleWidth();
-            }
-        }
-
-        ScrollViewContent.sizeDelta = new Vector2(targetWidth, ScrollViewContent.sizeDelta.y);
-    }
-
-    private float CalculateCurrentTotalWidth()
-    {
-        if (ContentLayoutGroup == null || ScrollViewContent == null || goodsPageDict == null)
-            return 0;
-
-        float totalWidth = 0;
-        foreach (GameObject item in goodsPageDict.Keys)
-        {
-            if (item == null) continue;
-            RectTransform rect = item.GetComponent<RectTransform>();
-            if (rect != null)
-            {
-                totalWidth += rect.sizeDelta.x;
-            }
-        }
-
-        totalWidth += ContentLayoutGroup.spacing * (goodsPageDict.Count - 1);
-        totalWidth += ContentLayoutGroup.padding.left;
-        totalWidth += ContentLayoutGroup.padding.right;
-
-        return totalWidth;
+        // 直接用精准计算，不搞复杂判断
+        ScrollViewContent.sizeDelta = new Vector2(CalculateRealTotalWidth(LayoutGroupSpacing, LayoutGroupLeft), ScrollViewContent.sizeDelta.y);
     }
 
     public void ClearAllGoodsPage()
@@ -245,13 +254,19 @@ public class GoodsPanel : BasePanel
     {
         if (ContentLayoutGroup == null || ScrollViewContent == null) return;
 
-        float startAnimWidth = GetStartAnimTotalWidth();
+        var goodsList = GoodDataManager.Instance.ToDayRefreshGoodsList;
+        float startAnimWidth = CalculateRealTotalWidth(AnimationStartSpacing, AnimationStartLeft);
         ScrollViewContent.sizeDelta = new Vector2(startAnimWidth, 0);
         ContentLayoutGroup.spacing = AnimationStartSpacing;
         ContentLayoutGroup.padding.left = Mathf.RoundToInt(AnimationStartLeft);
 
         RectTransform parentRect = ScrollViewContent.parent as RectTransform;
-        float endAnimWidth = parentRect.rect.width - LayoutGroupLeft - (ContentRightOffset * -1);
+        // 动画结束宽度
+        float endAnimWidth = CalculateRealTotalWidth(LayoutGroupSpacing, LayoutGroupLeft);
+
+        // 杀死旧动画，防止冲突
+        DOTween.Kill(ContentLayoutGroup);
+        DOTween.Kill(ScrollViewContent);
 
         Sequence masterSeq = DOTween.Sequence();
 
@@ -286,26 +301,24 @@ public class GoodsPanel : BasePanel
         masterSeq.Play();
     }
 
-    private float GetStartAnimTotalWidth()
-    {
-        RectTransform prefabRect = GoodsPagePrefabs.GetComponent<RectTransform>();
-        float singleItemWidth = prefabRect != null ? prefabRect.rect.width : 238;
-        float totalWidth = (singleItemWidth * MaxGoodsCount);
-        totalWidth += AnimationStartSpacing * (MaxGoodsCount - 1);
-        totalWidth += AnimationStartLeft + ContentLayoutGroup.padding.right;
-        return totalWidth;
-    }
-
-    private float CalculateEstimatedIdleWidth()
-    {
-        RectTransform prefabRect = GoodsPagePrefabs.GetComponent<RectTransform>();
-        float singleItemWidth = prefabRect != null ? prefabRect.rect.width : 238;
-        float totalWidth = (singleItemWidth * MaxGoodsCount);
-        totalWidth += LayoutGroupSpacing * (MaxGoodsCount - 1);
-        totalWidth += LayoutGroupLeft + ContentLayoutGroup.padding.right;
-        return totalWidth;
-    }
-
     protected override void SpecialAnimator_Show() { }
     protected override void SpecialAnimator_Hide() { }
+
+    private float CalculateRealTotalWidth(float spacing, float leftPadding)
+    {
+        int childCount = ScrollViewContent.childCount;
+        if (childCount == 0) return leftPadding + ContentLayoutGroup.padding.right;
+
+        float totalWidth = leftPadding;
+        totalWidth += ContentLayoutGroup.padding.right;
+        totalWidth += spacing * (childCount - 1);
+
+        // 累加所有商品真实宽度
+        for (int i = 0; i < childCount; i++)
+        {
+            RectTransform childRT = ScrollViewContent.GetChild(i).GetComponent<RectTransform>();
+            if (childRT != null) totalWidth += childRT.sizeDelta.x;
+        }
+        return totalWidth;
+    }
 }

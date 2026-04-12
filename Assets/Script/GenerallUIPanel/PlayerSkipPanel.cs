@@ -132,6 +132,7 @@ public class PlayerSkipPanel : BasePanel
         {
             Button btn = GetButtonFromDic(BTN_EQUIPMENT);
             ToggleFunctionButton(btn, IsShowEquipment);
+            
         }
         else if (controlName == BTN_GUN)
         {
@@ -154,8 +155,9 @@ public class PlayerSkipPanel : BasePanel
         else if(controlName == "EquipmentButton")
         {
             WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "装备成功！");
-            GameSkinManager.Instance.SetPlayerSkinPack(playerSkinPack);//设置当前玩家皮肤包数据
+            Player.LocalPlayer.CmdLoadingPlayerSkip(playerSkinPack.PlayerSkinID);
         }
+
     }
 
     // 选择上一个皮肤
@@ -380,7 +382,7 @@ public void ClearAllButton()
         PoolManage.Instance.PushObj(SkinButtonPrefab, child.gameObject);
     }
     SkinButtonToDataMap.Clear();
-    _skinButtonNames.Clear(); // 【新增】清空有序列表
+    _skinButtonNames.Clear(); 
     _currentSelectedIndex = 0;
 }
 

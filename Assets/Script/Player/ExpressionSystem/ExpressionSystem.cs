@@ -7,7 +7,8 @@ public class ExpressionSystem : SingleMonoAutoBehavior<ExpressionSystem>
     [Header("表情配置")]
     public List<ExpressionPack> ExpressionPackList; // 所有表情配置表
     public List<int> PlayerOwnExpressionIDList;     // 玩家拥有的表情ID
-
+    public List<int> EquipmentExpressionList;//玩家已经的表情装备列表
+    
     private string PlayerOwnExpressionIDDataFileName = "PlayerOwnExpressionIDData";
     private Dictionary<int, ExpressionPack> ExpressionIDToPackDictionary;
 

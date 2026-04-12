@@ -11,8 +11,7 @@ public class PlayerSkinPackEditor : Editor
     private SerializedProperty skinQuality;
     private SerializedProperty isHaveAnima;
     private SerializedProperty animaSpriteList;
-    private SerializedProperty isHaveSubAnima;
-    private SerializedProperty specialAnimaSpriteList;
+
 
     private void OnEnable()
     {
@@ -23,8 +22,6 @@ public class PlayerSkinPackEditor : Editor
         skinQuality = serializedObject.FindProperty("SkinQuality");
         isHaveAnima = serializedObject.FindProperty("IsHaveAnima");
         animaSpriteList = serializedObject.FindProperty("AnimaSpriteList");
-        isHaveSubAnima = serializedObject.FindProperty("IsHaveSubAnima");
-        specialAnimaSpriteList = serializedObject.FindProperty("SpecialAnimaSpriteList");
     }
 
     public override void OnInspectorGUI()
@@ -52,16 +49,6 @@ public class PlayerSkinPackEditor : Editor
 
             EditorGUILayout.Space();
 
-            // 附属动画
-            EditorGUILayout.LabelField("附属动画", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(isHaveSubAnima, new GUIContent("拥有附属动画"));
-
-            if (isHaveSubAnima.boolValue)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(specialAnimaSpriteList, new GUIContent("特殊外加动画序列"));
-                EditorGUI.indentLevel--;
-            }
             EditorGUI.indentLevel--;
         }
 

@@ -74,7 +74,6 @@ public class GoodDataManagerEditor : Editor
 
 public class GoodDataAssetProcessor : AssetPostprocessor
 {
-    // 当有资源被导入、删除、移动、重命名时调用
     private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
     {
         bool shouldRefresh = false;
@@ -82,7 +81,7 @@ public class GoodDataAssetProcessor : AssetPostprocessor
         // 检查是否有 GoodsData 相关的资源变动
         foreach (string path in importedAssets)
         {
-            if (Path.GetExtension(path) == ".asset") // 假设你的 GoodsData 是 .asset 文件
+            if (Path.GetExtension(path) == ".asset")
             {
                 // 尝试加载看看是不是 GoodsData 类型
                 GoodsData goods = AssetDatabase.LoadAssetAtPath<GoodsData>(path);

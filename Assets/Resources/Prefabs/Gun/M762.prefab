@@ -33,7 +33,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: -1.6, y: 1.6, z: 0}
+  m_LocalScale: {x: -1.6, y: 1.6650406, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4869061395047452117}
@@ -93,7 +93,7 @@ SpriteRenderer:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
-  m_DrawMode: 2
+  m_DrawMode: 0
   m_Size: {x: 1.28, y: 1.28}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
@@ -180,6 +180,7 @@ MonoBehaviour:
   muzzleFlash: {fileID: 8855628771198304738}
   bulletVisualConfig: {fileID: 0}
   muzzleFlashConfigID: 0
+  hitEffectConfigID: 1
   bulletVisualConfigID: 0
   firePoint: {fileID: 6640727321388171641}
   cartridgeCasePrefab: {fileID: 829796564893978883, guid: a0707b7f04f464a4a8047d829fcbead3, type: 3}
@@ -240,7 +241,7 @@ PolygonCollider2D:
     oldSize: {x: 1.28, y: 1.23}
     newSize: {x: 1.28, y: 1.28}
     adaptiveTilingThreshold: 0.5
-    drawMode: 2
+    drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
   m_Points:
