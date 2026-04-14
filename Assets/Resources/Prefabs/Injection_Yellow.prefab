@@ -1,17 +1,18 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!1 &645811841390144465
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5743805175063397713}
   - component: {fileID: 6154818732358804504}
   - component: {fileID: 8656253019697147098}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -50,6 +51,10 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_virtualGeometry: 0
+  m_virtualGeometryShadow: 0
+  m_ShadingRate: 0
+  m_ForceDisableGRD: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -74,7 +79,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 10
-  m_Sprite: {fileID: 1755790940, guid: a9591350e4da71b44bd18cc804f2b810, type: 3}
+  m_Sprite: {fileID: 4554006266578258159, guid: 921d56cfb812eca4ab5ff4f9dc504abf, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -87,7 +92,7 @@ SpriteRenderer:
   m_SpriteSortPoint: 0
 --- !u!95 &8656253019697147098
 Animator:
-  serializedVersion: 5
+  serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -98,6 +103,8 @@ Animator:
   m_Controller: {fileID: 9100000, guid: dc572e60a458cf84a85edbf9a5f50a3a, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
+  m_UpdateFrequencyMode: 0
+  m_UpdateFrequency: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
@@ -112,12 +119,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 192241691577454370}
   - component: {fileID: 697624540815007647}
   - component: {fileID: 1761967521988730178}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Timeline_Inject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -213,7 +221,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6176892917781824572}
   - component: {fileID: 3063645756210869973}
@@ -221,6 +229,7 @@ GameObject:
   - component: {fileID: 5924915694777095324}
   - component: {fileID: 1744961909299340748}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Injection_Yellow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -273,7 +282,7 @@ Rigidbody2D:
   m_Constraints: 0
 --- !u!95 &5253217060783776465
 Animator:
-  serializedVersion: 5
+  serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -284,6 +293,8 @@ Animator:
   m_Controller: {fileID: 0}
   m_CullingMode: 0
   m_UpdateMode: 0
+  m_UpdateFrequencyMode: 0
+  m_UpdateFrequency: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0

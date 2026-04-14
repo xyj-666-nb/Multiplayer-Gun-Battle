@@ -1,17 +1,18 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!1 &190631738716179783
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7992271186273446992}
   - component: {fileID: 2806514568717410893}
   - component: {fileID: 5262707446456408151}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: WllSprite_Introduce
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -84,12 +85,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4764543688391850012}
   - component: {fileID: 471735301100884518}
   - component: {fileID: 8105857796900741299}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -159,13 +161,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6244347291871667474}
   - component: {fileID: 8034811415645952901}
   - component: {fileID: 2301194550048459994}
   - component: {fileID: 2756973519289189169}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: helicopter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -279,12 +282,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6199281870752515447}
   - component: {fileID: 5604045644722523126}
   - component: {fileID: 1364174300526721243}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -354,12 +358,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1189245027196308239}
   - component: {fileID: 389497440203322426}
   - component: {fileID: 3190703391947417248}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -414,6 +419,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u6E38\u620F\u5730\u56FE2"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -488,12 +494,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8562518218954169507}
   - component: {fileID: 1027930642541279374}
   - component: {fileID: 8470500948154515053}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: CountDown
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -548,6 +555,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: 10.00
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -622,12 +630,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6341598459162946715}
   - component: {fileID: 4843403086964402895}
   - component: {fileID: 7011056061400684625}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -682,6 +691,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u6253\u7834\u4F1A\u91CA\u653E\u6C34\u82B1"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -756,12 +766,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7953838965388268281}
   - component: {fileID: 2035092305484687528}
   - component: {fileID: 160696247833839046}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -831,12 +842,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3521216373826404317}
   - component: {fileID: 731188122744343596}
   - component: {fileID: 2222433253643364244}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -907,13 +919,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8628870611129671368}
   - component: {fileID: 1424899426848139864}
   - component: {fileID: 4109318349654963698}
   - component: {fileID: 8492091935296421462}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: ChooseSign
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -996,12 +1009,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8999339772247938807}
   - component: {fileID: 212687999649000140}
   - component: {fileID: 520131475452136301}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: 'paper '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1071,12 +1085,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1654573698260116388}
   - component: {fileID: 1937227227528152525}
   - component: {fileID: 7856187244069659691}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: RedLine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1146,12 +1161,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6709736316301912541}
   - component: {fileID: 8257083785200251181}
   - component: {fileID: 6556187098967499693}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1221,12 +1237,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5827372069417873866}
   - component: {fileID: 6898190561448870603}
   - component: {fileID: 6882950594359999490}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1280,7 +1297,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -624436773, guid: 208d54308bb633647a8d60fb60d09a14, type: 3}
+  m_Sprite: {fileID: 5442606424355409708, guid: 5bd021da3e65e944099e381139ec43bc, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1296,13 +1313,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4259187778702955852}
   - component: {fileID: 4392095459233090372}
   - component: {fileID: 2713904217969550413}
   - component: {fileID: 4616167808431645828}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1408,12 +1426,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4706454075948511153}
   - component: {fileID: 3272583713389836449}
   - component: {fileID: 2465909462016552006}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: PromptImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1483,12 +1502,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7565682687006635828}
   - component: {fileID: 7530691552779641459}
   - component: {fileID: 8734254908128392533}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1558,12 +1578,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6263935080544150952}
   - component: {fileID: 2447342353213899972}
   - component: {fileID: 7962304997288410679}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1633,11 +1654,12 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7284899495317606246}
   - component: {fileID: 6207351458862534079}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Virtual Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1705,12 +1727,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8629548356731969001}
   - component: {fileID: 4808815026111935422}
   - component: {fileID: 6365102236061221876}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1780,12 +1803,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8830996235288463933}
   - component: {fileID: 4692756047202866969}
   - component: {fileID: 8183335716337340375}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1855,7 +1879,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6825566357960945524}
   - component: {fileID: 6656011784629513}
@@ -1863,6 +1887,7 @@ GameObject:
   - component: {fileID: 3826072259871699133}
   - component: {fileID: 5802034996249845662}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: ChooseMap1Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1989,12 +2014,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7431266394126103757}
   - component: {fileID: 8312287868570135877}
   - component: {fileID: 4786609318540127756}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2064,13 +2090,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3863238322969972914}
   - component: {fileID: 1711062819415535078}
   - component: {fileID: 4736880715827746796}
   - component: {fileID: 1928948385448773109}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: MapChooseWall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2110,6 +2137,10 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_virtualGeometry: 0
+  m_virtualGeometryShadow: 0
+  m_ShadingRate: 0
+  m_ForceDisableGRD: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2162,6 +2193,8 @@ MonoBehaviour:
   map1VC: {fileID: 7967311016790471881}
   map2VC: {fileID: 3630417665293273925}
   helicopterVC: {fileID: 4924458017393531304}
+  Map2SceneVC: {fileID: 0}
+  Scene2RealVac: {fileID: 0}
   MainPromptImage: {fileID: 2465909462016552006}
   MainViewReturnPromptText: {fileID: 5441996076070628540}
   MainViewChooseButton: {fileID: 5596851568693735675}
@@ -2183,7 +2216,7 @@ MonoBehaviour:
   CountDownText: {fileID: 8470500948154515053}
   CountDownCanvasGroup: {fileID: 4102578438664636900}
   Duration: 20
-  CurrentChooseMap: 1
+  MainCanvasGroup: {fileID: 0}
 --- !u!225 &1928948385448773109
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -2202,13 +2235,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2442861019564476209}
   - component: {fileID: 4432511367030303360}
   - component: {fileID: 72240668548385311}
   - component: {fileID: 9007321580455159435}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: ChooseSign
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2291,12 +2325,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8276314520106948161}
   - component: {fileID: 8309414223156823741}
   - component: {fileID: 6855677732382397672}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2367,13 +2402,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6127574550798205218}
   - component: {fileID: 1248725688471806792}
   - component: {fileID: 5940357318661074175}
   - component: {fileID: 4225405431525527013}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: helicopter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2489,12 +2525,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6070647299642752173}
   - component: {fileID: 3109942062207020750}
   - component: {fileID: 4564409533327904667}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2564,12 +2601,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3661193896805777621}
   - component: {fileID: 282076095291190186}
   - component: {fileID: 1770733804458965932}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2640,12 +2678,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 859738382262977793}
   - component: {fileID: 4495683835126493424}
   - component: {fileID: 541728219425268430}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2715,12 +2754,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1854424489630606268}
   - component: {fileID: 7408188901412427470}
   - component: {fileID: 4683815089228230878}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2790,12 +2830,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5857794009846770989}
   - component: {fileID: 8753999693521598335}
   - component: {fileID: 4142614693819461274}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2849,7 +2890,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 736023393, guid: f903074fba20ebf42af25fff2e61267e, type: 3}
+  m_Sprite: {fileID: 5998143985019767665, guid: 5bd021da3e65e944099e381139ec43bc, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2865,12 +2906,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4893948772053345671}
   - component: {fileID: 6123435762289141153}
   - component: {fileID: 9022519585372676414}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2940,12 +2982,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2115536758097440886}
   - component: {fileID: 1597578637167435592}
   - component: {fileID: 2570515523097998460}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3016,12 +3059,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7492835410923855246}
   - component: {fileID: 8696347933661150749}
   - component: {fileID: 7881529808414394453}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3091,12 +3135,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4370186372610979196}
   - component: {fileID: 1222833612114968748}
   - component: {fileID: 8179951529357610186}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3166,12 +3211,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3027951119987271138}
   - component: {fileID: 4751088305085771263}
   - component: {fileID: 2318950468448733624}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3241,12 +3287,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 170391405124141845}
   - component: {fileID: 6497505195119125092}
   - component: {fileID: 5850671385331371896}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: cm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3329,12 +3376,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1131869733732877612}
   - component: {fileID: 1359770458548023667}
   - component: {fileID: 3741417388535205758}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3404,12 +3452,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3350762798365589323}
   - component: {fileID: 5618595428181651185}
   - component: {fileID: 6134479434167760771}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: 'paper '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3479,12 +3528,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7910819253722887797}
   - component: {fileID: 2521538103596307963}
   - component: {fileID: 151989574266301726}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3555,12 +3605,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7640723854957659742}
   - component: {fileID: 4111164655364986792}
   - component: {fileID: 4678124926445789088}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: WllSprite_Introduce
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3633,12 +3684,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1035255532354608232}
   - component: {fileID: 2088476242589806089}
   - component: {fileID: 3526105066764522953}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3708,11 +3760,12 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3257381052682378949}
   - component: {fileID: 7967311016790471881}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Virtual Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3780,12 +3833,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8878662874473602928}
   - component: {fileID: 5100167964622513917}
   - component: {fileID: 3717415342802364819}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3855,12 +3909,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 9006662813300618555}
   - component: {fileID: 381918075581291484}
   - component: {fileID: 5791680306770616471}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3931,12 +3986,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5645945643215616252}
   - component: {fileID: 8057611550480681362}
   - component: {fileID: 132347003908450360}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: helicopterImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4010,12 +4066,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4716859773461726023}
   - component: {fileID: 3099804515159131806}
   - component: {fileID: 1952421416925315824}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: WllSprite_Introduce
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4088,12 +4145,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4856478628720607820}
   - component: {fileID: 4839302085713443262}
   - component: {fileID: 2100572257498952668}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: ChooseImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4163,12 +4221,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1364786192573427207}
   - component: {fileID: 3181199776757103390}
   - component: {fileID: 774935508353190580}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: RedLine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4238,12 +4297,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4816047902150420824}
   - component: {fileID: 1595190917564417901}
   - component: {fileID: 7219175372212807220}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4313,12 +4373,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4561154033897508049}
   - component: {fileID: 656379953664642590}
   - component: {fileID: 5441996076070628540}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: ReturnPrompt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4373,6 +4434,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u70B9\u51FB\u4E3B\u5730\u56FE\u8FD4\u56DE"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -4447,12 +4509,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6237088612147075274}
   - component: {fileID: 7419993013373883643}
   - component: {fileID: 1446521621931308736}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Map2ChoosePlayerCount
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4507,6 +4570,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u5F53\u524D\u9009\u62E9\u7684\u4EBA\u6570\uFF1A0"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -4581,12 +4645,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5183986378950287317}
   - component: {fileID: 8749276533242522550}
   - component: {fileID: 8352730565728714926}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4641,6 +4706,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u5B58\u5728\u4E0E\u573A\u666F\u5730\u4E0B\u5BA4"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -4715,12 +4781,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 798669705586584595}
   - component: {fileID: 5380922619022735406}
   - component: {fileID: 8506702372410290266}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: WllSprite_Introduce
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4793,12 +4860,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4007747064399565564}
   - component: {fileID: 119954231262552015}
   - component: {fileID: 2011630335065096146}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4868,12 +4936,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7649571508727112729}
   - component: {fileID: 5469184565153043374}
   - component: {fileID: 4584211281029154841}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: RedLine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4943,12 +5012,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3520233283738292251}
   - component: {fileID: 5103392947218977181}
   - component: {fileID: 6596956887569576116}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5018,12 +5088,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 742560975518505657}
   - component: {fileID: 6902876895185780392}
   - component: {fileID: 7719745801287092456}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: cm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5106,12 +5177,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 9023530730639034557}
   - component: {fileID: 7502862316202629432}
   - component: {fileID: 9137846542226260483}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5181,12 +5253,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6131310900461663664}
   - component: {fileID: 3872999314365478357}
   - component: {fileID: 6896770670122400977}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5256,12 +5329,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 54305601972240371}
   - component: {fileID: 4908259801303591471}
   - component: {fileID: 4987078434923833307}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5316,6 +5390,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: M249
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -5390,12 +5465,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7524617191870707022}
   - component: {fileID: 3714013862764964461}
   - component: {fileID: 4207053119508565186}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5450,6 +5526,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u957F\u65F6\u95F4\u6CA1\u8FD0\u4F5C\u7684\u5DE5\u5730\uFF0C\u4E0D\u77E5\u9053\u4E3A\u4EC0\u4E48\u6563\u843D\u7740\u519B\u4E8B\u8BBE\u5907"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -5524,12 +5601,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8982981140844269827}
   - component: {fileID: 8140435720886324308}
   - component: {fileID: 4026340025449883485}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5600,12 +5678,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3912710211484856356}
   - component: {fileID: 2724674026312030444}
   - component: {fileID: 1799585679908299407}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5675,12 +5754,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3327507950359958448}
   - component: {fileID: 2823463770614086030}
   - component: {fileID: 5240788386938240049}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5750,12 +5830,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1539007371813212912}
   - component: {fileID: 4307617423969621204}
   - component: {fileID: 2870409110544014904}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: RedLine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5825,11 +5906,12 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6133565638406423523}
   - component: {fileID: 4924458017393531304}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Virtual Camera (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5897,12 +5979,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5702027928782831203}
   - component: {fileID: 8552985121812919762}
   - component: {fileID: 5791166869535989787}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5957,6 +6040,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u6027\u80FD\u5341\u5206\u4F18\u8D8A\u7684\u7A81\u51FB\u6B65\u67AA"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -6031,13 +6115,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1291968877554093219}
   - component: {fileID: 9089168257075086520}
   - component: {fileID: 7805506721415069692}
   - component: {fileID: 1920855430302853759}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: ChooseButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6151,12 +6236,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7467388447550726523}
   - component: {fileID: 2730964578529266931}
   - component: {fileID: 8166611391315480738}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6226,12 +6312,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2871058518179996822}
   - component: {fileID: 6772857726932388246}
   - component: {fileID: 1714524601474068401}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: RedLine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6301,12 +6388,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6948225882353498551}
   - component: {fileID: 7418615556638517805}
   - component: {fileID: 1923106137197013879}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6376,12 +6464,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2622082916355409114}
   - component: {fileID: 752239011867442856}
   - component: {fileID: 7512964697027082896}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6451,12 +6540,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5586787925673411541}
   - component: {fileID: 7855355001669649122}
   - component: {fileID: 2633618314029660296}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Map1ChoosePlayerCount
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6511,6 +6601,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u5F53\u524D\u9009\u62E9\u7684\u4EBA\u6570\uFF1A0"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -6585,12 +6676,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8215302985163464569}
   - component: {fileID: 8353267870708190954}
   - component: {fileID: 1562450908492386569}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: promptSprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6660,12 +6752,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4615078146698081414}
   - component: {fileID: 3336703628679917054}
   - component: {fileID: 3205909357165396958}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: ChooseImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6735,12 +6828,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5148328166880468275}
   - component: {fileID: 2055770578779694732}
   - component: {fileID: 6644169883014000190}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6811,12 +6905,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5067986596242300123}
   - component: {fileID: 7767122514465661276}
   - component: {fileID: 1136628039377606729}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6886,12 +6981,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5902622585064403820}
   - component: {fileID: 1486007398642924110}
   - component: {fileID: 1927583951277595139}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: 'RedLine '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6961,12 +7057,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3731714120981585594}
   - component: {fileID: 7894954410236421182}
   - component: {fileID: 760462863151031380}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: MainMap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7043,12 +7140,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8726146625472750626}
   - component: {fileID: 662272557860419615}
   - component: {fileID: 6840409284297329675}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: WllSprite_Introduce
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7121,12 +7219,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4624294370872569979}
   - component: {fileID: 4059736482402886078}
   - component: {fileID: 7314417496351982166}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7181,6 +7280,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u6D88\u9632\u6813"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -7255,11 +7355,12 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1294570987659256197}
   - component: {fileID: 355284555068000206}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: RedSpline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7339,12 +7440,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6531811177217308380}
   - component: {fileID: 6524090285639987526}
   - component: {fileID: 93028363108779630}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7399,6 +7501,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u5E9F\u5F03\u65BD\u5DE5\u5730"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -7473,12 +7576,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5863447925287485686}
   - component: {fileID: 6153865505151121408}
   - component: {fileID: 3372694354088642106}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7533,6 +7637,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u5E74\u4EE3\u4E45\u8FDC\u7684\u623F\u5C4B\uFF0C\u5DF2\u7ECF\u957F\u65F6\u95F4\u65E0\u4EBA\u5C45\u4F4F"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -7607,12 +7712,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7070117449132036236}
   - component: {fileID: 4299461616258154355}
   - component: {fileID: 7539103405503623474}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7667,6 +7773,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: P90
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -7741,12 +7848,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6792380175060318471}
   - component: {fileID: 2733071565781203191}
   - component: {fileID: 1554742551806977449}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7817,13 +7925,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1749001598993036757}
   - component: {fileID: 8696332431578572194}
   - component: {fileID: 5593120264795044356}
   - component: {fileID: 5596851568693735675}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: ChooseButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7937,12 +8046,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7629043016423479057}
   - component: {fileID: 8741449393521669869}
   - component: {fileID: 6183537763008045921}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: RedLine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8012,12 +8122,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3660288148612454145}
   - component: {fileID: 1549612659380204318}
   - component: {fileID: 598377963452556673}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8072,6 +8183,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u5730\u4E0B\u6D88\u9632\u8BBE\u65BD"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -8146,12 +8258,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 124150556188722009}
   - component: {fileID: 6638991388011156512}
   - component: {fileID: 6677228521201141297}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8206,6 +8319,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u5E9F\u5F03\u623F\u5C4B"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -8280,11 +8394,12 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1975023347196938606}
   - component: {fileID: 3630417665293273925}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Virtual Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8352,7 +8467,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 85496750967984700}
   - component: {fileID: 6116911091665127503}
@@ -8360,6 +8475,7 @@ GameObject:
   - component: {fileID: 3607543185194692052}
   - component: {fileID: 6970578710315827978}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: ChooseMap2Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8486,12 +8602,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8046605825485328392}
   - component: {fileID: 1590243336106388371}
   - component: {fileID: 3916437390801816029}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8561,12 +8678,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3659784912152631336}
   - component: {fileID: 7697166466849942682}
   - component: {fileID: 3088874062330351539}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8636,12 +8754,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1178044940182321332}
   - component: {fileID: 8127008858470320388}
   - component: {fileID: 2674464307205214673}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: 'WllSprite_Introduce '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8715,10 +8834,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 627757494824756200}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Map2Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8755,12 +8875,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4469834660458899161}
   - component: {fileID: 3209237977776147981}
   - component: {fileID: 9199608704225555741}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8815,6 +8936,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u623F\u5C4B\u5185\u90E8"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -8889,12 +9011,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5371851400043600726}
   - component: {fileID: 6137429610740582342}
   - component: {fileID: 664301691213654660}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8965,12 +9088,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4705590864319942125}
   - component: {fileID: 9001614904958633038}
   - component: {fileID: 1433363300322136487}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9025,6 +9149,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u9009\u62E9"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -9099,12 +9224,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 9120009881484854855}
   - component: {fileID: 7174289320147852414}
   - component: {fileID: 6046034280924915488}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9174,12 +9300,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4775083492820462541}
   - component: {fileID: 9161946362252088726}
   - component: {fileID: 4835763785697097063}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: cm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9262,12 +9389,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5506574743057146662}
   - component: {fileID: 1477606524933609256}
   - component: {fileID: 5930836140153151351}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9338,12 +9466,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4542859276173216219}
   - component: {fileID: 4697398533439995322}
   - component: {fileID: 7934663584374550580}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9413,12 +9542,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8457040602162838717}
   - component: {fileID: 4925465835893908415}
   - component: {fileID: 4866183482136488320}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9489,12 +9619,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4630952111569172047}
   - component: {fileID: 6559041084091314313}
   - component: {fileID: 4557746576518584692}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9564,12 +9695,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8116382250566641325}
   - component: {fileID: 5254073637060639940}
   - component: {fileID: 5873163829148046833}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9639,12 +9771,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6459923147158958057}
   - component: {fileID: 3476730022586269097}
   - component: {fileID: 1437292655085452158}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9715,13 +9848,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3108840458318482760}
   - component: {fileID: 3279471334119529272}
   - component: {fileID: 2045570248315738180}
   - component: {fileID: 4102578438664636900}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: CountDownText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9777,6 +9911,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u884C\u52A8\u5012\u8BA1\u65F6:"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -9863,12 +9998,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2498637665816392750}
   - component: {fileID: 826686511652092386}
   - component: {fileID: 6828937424669858138}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9938,12 +10074,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7007499264695209125}
   - component: {fileID: 7115025674873582672}
   - component: {fileID: 7072794311884618033}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: 'WllSprite_Introduce '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10017,12 +10154,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2996562009130306919}
   - component: {fileID: 6951937833264152037}
   - component: {fileID: 6500889903994875256}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: helicopterImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10092,12 +10230,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 361599156909981397}
   - component: {fileID: 4606301392119240426}
   - component: {fileID: 6721412792385640889}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10167,12 +10306,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6355487154576471070}
   - component: {fileID: 187609779929024271}
   - component: {fileID: 1167268839820232847}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10227,6 +10367,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: AUG
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -10301,12 +10442,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5101582330995301198}
   - component: {fileID: 8552467632170936146}
   - component: {fileID: 417411891278082619}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10361,6 +10503,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u62E5\u6709\u5F3A\u5927\u706B\u529B\u7684\u8F7B\u673A\u67AA"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -10435,13 +10578,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7662950775300773405}
   - component: {fileID: 4924507311826149160}
   - component: {fileID: 4606937924176651260}
   - component: {fileID: 6201666199445054521}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: WllSprite_Map1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10530,13 +10674,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6469520781332774088}
   - component: {fileID: 6228149361977223987}
   - component: {fileID: 2575989003624961626}
   - component: {fileID: 7063916743202180699}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: WllSprite_Map2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10623,13 +10768,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4443365402210197573}
   - component: {fileID: 1327748805381191435}
   - component: {fileID: 1944456517124828724}
   - component: {fileID: 727531064161534530}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: helicopter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10743,12 +10889,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3749768544020099732}
   - component: {fileID: 725271794209994509}
   - component: {fileID: 5861678869067059634}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: RedLine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10818,12 +10965,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3018583739684518554}
   - component: {fileID: 8423685572244815795}
   - component: {fileID: 3575842775036997645}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10893,12 +11041,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 557185154110798836}
   - component: {fileID: 342927990285546166}
   - component: {fileID: 8054033450711515223}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: RedLine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10968,12 +11117,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5283481243689471728}
   - component: {fileID: 1405313294894126635}
   - component: {fileID: 2329390918856939782}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11043,10 +11193,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3675949785215668749}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Map1Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11085,12 +11236,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 9103904162548343749}
   - component: {fileID: 6742922314220658796}
   - component: {fileID: 4989138776275862241}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11161,12 +11313,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5836512328838372830}
   - component: {fileID: 4310407084240278668}
   - component: {fileID: 9116547938884954543}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: 'WllSprite_Introduce '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11240,13 +11393,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8178566160314515351}
   - component: {fileID: 5678931163101624085}
   - component: {fileID: 699357781094033300}
   - component: {fileID: 7174297482288616244}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: ChooseButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11360,12 +11514,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3223990935981970283}
   - component: {fileID: 3427985809830796028}
   - component: {fileID: 5269257313167308895}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11420,6 +11575,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u5EFA\u7B51\u5DE5\u5730"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -11494,12 +11650,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1529960947825069906}
   - component: {fileID: 4957498810151940735}
   - component: {fileID: 2949450576877086780}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Nail
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11569,12 +11726,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 212186673810291350}
   - component: {fileID: 6712928548214664857}
   - component: {fileID: 2495364785645687749}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11628,7 +11786,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 1119710342, guid: a867766272ff84f488521d6c5779e312, type: 3}
+  m_Sprite: {fileID: -131662539498117044, guid: 5bd021da3e65e944099e381139ec43bc, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -11644,12 +11802,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 9062584130093027273}
   - component: {fileID: 8059145005808450321}
   - component: {fileID: 6570287343716573932}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: cm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11732,12 +11891,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3493341579481197140}
   - component: {fileID: 8605005333922367006}
   - component: {fileID: 7811923979089368619}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: RedLine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11807,12 +11967,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7928727604878770087}
   - component: {fileID: 3616249801911133830}
   - component: {fileID: 5775034197285505637}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11867,6 +12028,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u9009\u62E9"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -11941,12 +12103,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8016675499873131475}
   - component: {fileID: 3335597703026025649}
   - component: {fileID: 4777947334654077712}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12017,12 +12180,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8228123187462122643}
   - component: {fileID: 5513427363533218667}
   - component: {fileID: 4161391967735953773}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12092,12 +12256,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5414062812612649748}
   - component: {fileID: 6565568297226743750}
   - component: {fileID: 5139417217896140295}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: RedLine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12167,12 +12332,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7787941415586949778}
   - component: {fileID: 2485834724000715749}
   - component: {fileID: 10615434198713410}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: PromptImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12242,12 +12408,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 882093975067230496}
   - component: {fileID: 4622053491722374712}
   - component: {fileID: 1744697520980231937}
   m_Layer: 0
+  m_HasEditorInfo: 1
   m_Name: paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}

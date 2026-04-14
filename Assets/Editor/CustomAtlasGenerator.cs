@@ -50,7 +50,7 @@ public class CustomAtlasGenerator : EditorWindow
     private ReplaceRecordDatabase _recordDb;
     private const string RecordFileName = "CustomAtlasReplaceRecords.json";
 
-    // 存储精灵完整参数（修复大小+位置核心）
+    // 存储精灵完整参数
     private class TexData
     {
         public string name;
@@ -58,7 +58,6 @@ public class CustomAtlasGenerator : EditorWindow
         public int height;
         public Color32[] pixels;
         public Rect targetRect;
-        // 原始精灵核心参数
         public float pixelsPerUnit;
         public Vector2 pivot;
         public Vector4 border;
@@ -77,64 +76,65 @@ public class CustomAtlasGenerator : EditorWindow
 
     private void OnGUI()
     {
-        GUILayout.Space(10);
-        GUILayout.Label("第一步：混合资源打包（极致高效）", EditorStyles.boldLabel);
-        GUILayout.Label("支持：直接拖入 或 选中后一键添加 Sprite/Texture", EditorStyles.wordWrappedMiniLabel);
-        GUILayout.Space(5);
-
-        SerializedObject so = new SerializedObject(this);
-        EditorGUILayout.PropertyField(so.FindProperty("padding"));
-        EditorGUILayout.PropertyField(so.FindProperty("maxAtlasWidth"));
-
-        // 打包区 - 一键添加选中资源
-        GUILayout.Space(5);
-        GUI.backgroundColor = new Color(0.8f, 1f, 0.6f);
-        if (GUILayout.Button(" 打包区-添加选中资源", GUILayout.Height(30)))
+        try
         {
-            AddSelectedToTarget();
+            GUILayout.Space(10);
+            GUILayout.Label("第一步：混合资源打包（极致高效）", EditorStyles.boldLabel);
+            GUILayout.Label("支持：直接拖入 或 选中后一键添加 Sprite/Texture", EditorStyles.wordWrappedMiniLabel);
+            GUILayout.Space(5);
+
+            SerializedObject so = new SerializedObject(this);
+            EditorGUILayout.PropertyField(so.FindProperty("padding"));
+            EditorGUILayout.PropertyField(so.FindProperty("maxAtlasWidth"));
+
+            GUILayout.Space(5);
+            GUI.backgroundColor = new Color(0.8f, 1f, 0.6f);
+            if (GUILayout.Button(" 打包区-添加选中资源", GUILayout.Height(30)))
+            {
+                AddSelectedToTarget();
+            }
+            GUI.backgroundColor = Color.white;
+
+            EditorGUILayout.PropertyField(so.FindProperty("targetAssets"), new GUIContent("打包资源列表"), true);
+
+            GUILayout.Space(5);
+            EditorGUILayout.PropertyField(so.FindProperty("saveFolderPath"), new GUIContent("保存文件夹"));
+            EditorGUILayout.PropertyField(so.FindProperty("atlasFileName"), new GUIContent("生成图集名"));
+            so.ApplyModifiedProperties();
+
+            GUILayout.Space(10);
+            GUI.backgroundColor = new Color(0.6f, 1f, 1);
+            if (GUILayout.Button(" 一键生成紧凑图集", GUILayout.Height(40)))
+            {
+                GenerateAtlas();
+            }
+            GUI.backgroundColor = Color.white;
+
+            GUILayout.Space(15);
+            DrawLine();
+            GUILayout.Space(10);
+
+            GUILayout.Label("第二步：全自动替换/还原（场景+指定预制体）", EditorStyles.boldLabel);
+            GUILayout.Label($"预制体路径：{PREFAB_FOLDER_PATH}", EditorStyles.helpBox);
+            so.Update();
+            EditorGUILayout.PropertyField(so.FindProperty("generatedAtlas"), new GUIContent("新生成的图集"));
+            so.ApplyModifiedProperties();
+
+            GUILayout.Space(10);
+            GUILayout.BeginHorizontal();
+            GUI.backgroundColor = new Color(0.6f, 0.8f, 1f);
+            if (GUILayout.Button("全局替换老资源", GUILayout.Height(35))) ProcessReferences();
+            GUI.backgroundColor = new Color(1f, 0.6f, 0.6f);
+            if (GUILayout.Button("一键全部还原", GUILayout.Height(35))) RevertAllRecords();
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(15);
+            DrawLine();
         }
-        GUI.backgroundColor = Color.white;
-
-        EditorGUILayout.PropertyField(so.FindProperty("targetAssets"), new GUIContent("打包资源列表"), true);
-
-        // 保存设置
-        GUILayout.Space(5);
-        EditorGUILayout.PropertyField(so.FindProperty("saveFolderPath"), new GUIContent("保存文件夹"));
-        EditorGUILayout.PropertyField(so.FindProperty("atlasFileName"), new GUIContent("生成图集名"));
-        so.ApplyModifiedProperties();
-
-        // 一键生成
-        GUILayout.Space(10);
-        GUI.backgroundColor = new Color(0.6f, 1f, 1);
-        if (GUILayout.Button(" 一键生成紧凑图集", GUILayout.Height(40)))
+        catch (Exception ex)
         {
-            GenerateAtlas();
+            Debug.LogError("GUI错误: " + ex);
         }
-        GUI.backgroundColor = Color.white;
-
-        // 分隔线
-        GUILayout.Space(15);
-        DrawLine();
-        GUILayout.Space(10);
-
-        // 替换区域
-        GUILayout.Label("第二步：全自动替换（场景+指定预制体）", EditorStyles.boldLabel);
-        GUILayout.Label($"预制体路径：{PREFAB_FOLDER_PATH}", EditorStyles.helpBox);
-        so.Update();
-        EditorGUILayout.PropertyField(so.FindProperty("generatedAtlas"), new GUIContent("新生成的图集"));
-        so.ApplyModifiedProperties();
-
-        // 替换/还原按钮
-        GUILayout.Space(10);
-        EditorGUILayout.BeginHorizontal();
-        GUI.backgroundColor = new Color(0.6f, 0.8f, 1f);
-        if (GUILayout.Button("全局替换老资源", GUILayout.Height(35))) ProcessReferences();
-        GUI.backgroundColor = new Color(1f, 0.6f, 0.6f);
-        if (GUILayout.Button("一键全部还原", GUILayout.Height(35))) RevertAllRecords();
-        EditorGUILayout.EndHorizontal();
-
-        GUILayout.Space(15);
-        DrawLine();
     }
 
     private void DrawLine()
@@ -143,11 +143,14 @@ public class CustomAtlasGenerator : EditorWindow
         EditorGUI.DrawRect(rect, new Color32(127, 127, 127, 255));
     }
 
-    // ========== 批量添加：打包区 ==========
     private void AddSelectedToTarget()
     {
         var selections = Selection.objects;
-        if (!selections.Any()) { EditorUtility.DisplayDialog("提示", "请选中资源！", "确定"); return; }
+        if (!selections.Any())
+        {
+            EditorUtility.DisplayDialog("提示", "请选中资源！", "确定");
+            return;
+        }
         int count = 0;
         foreach (var obj in selections)
         {
@@ -166,15 +169,31 @@ public class CustomAtlasGenerator : EditorWindow
     private void LoadRecords()
     {
         string path = GetRecordFilePath();
-        if (File.Exists(path)) try { _recordDb = JsonUtility.FromJson<ReplaceRecordDatabase>(File.ReadAllText(path)); } catch { _recordDb = new ReplaceRecordDatabase(); }
-        else _recordDb = new ReplaceRecordDatabase();
+        if (File.Exists(path))
+        {
+            try { _recordDb = JsonUtility.FromJson<ReplaceRecordDatabase>(File.ReadAllText(path)); }
+            catch { _recordDb = new ReplaceRecordDatabase(); }
+        }
+        else
+            _recordDb = new ReplaceRecordDatabase();
     }
     private void SaveRecords() => File.WriteAllText(GetRecordFilePath(), JsonUtility.ToJson(_recordDb, true));
-    private void AddRecord(ReplaceRecord record) { if (!_recordDb.records.Any(r => r.originalSpriteGuid == record.originalSpriteGuid)) { _recordDb.records.Add(record); SaveRecords(); } }
-    private void RemoveRecord(ReplaceRecord record) { _recordDb.records.Remove(record); SaveRecords(); }
+    private void AddRecord(ReplaceRecord record)
+    {
+        if (!_recordDb.records.Any(r => r.originalSpriteGuid == record.originalSpriteGuid))
+        {
+            _recordDb.records.Add(record);
+            SaveRecords();
+        }
+    }
+    private void ClearRecords()
+    {
+        _recordDb.records.Clear();
+        SaveRecords();
+    }
     #endregion
 
-    #region 纹理可读修复 + 像素提取（1:1还原）
+    #region 纹理处理
     private void MakeTextureReadable(string path, TextureImporter importer)
     {
         importer.isReadable = true;
@@ -204,7 +223,7 @@ public class CustomAtlasGenerator : EditorWindow
     }
     #endregion
 
-    #region 资源解析（100%保留所有参数）
+    #region 精灵解析
     private void CollectAllSprites(List<TexData> output, List<string> modifiedImporters)
     {
         foreach (var asset in targetAssets.Where(a => a != null))
@@ -234,7 +253,6 @@ public class CustomAtlasGenerator : EditorWindow
             pixels = GetSpritePixels(sprite, out int w, out int h),
             width = w,
             height = h,
-            // 完全复刻原始精灵参数
             pixelsPerUnit = sprite.pixelsPerUnit,
             pivot = sprite.pivot,
             border = sprite.border
@@ -270,10 +288,14 @@ public class CustomAtlasGenerator : EditorWindow
     }
     #endregion
 
-    #region 图集生成（终极修复：大小+位置完全一致）
+    #region 图集生成
     private void GenerateAtlas()
     {
-        if (!targetAssets.Any(a => a != null)) { EditorUtility.DisplayDialog("提示", "请添加打包资源！", "确定"); return; }
+        if (!targetAssets.Any(a => a != null))
+        {
+            EditorUtility.DisplayDialog("提示", "请添加打包资源！", "确定");
+            return;
+        }
 
         List<TexData> dataList = new List<TexData>();
         List<string> modifiedImporters = new List<string>();
@@ -283,9 +305,13 @@ public class CustomAtlasGenerator : EditorWindow
             EditorUtility.DisplayProgressBar("处理", "解析精灵...", 0.2f);
             CollectAllSprites(dataList, modifiedImporters);
 
-            if (!dataList.Any()) { EditorUtility.ClearProgressBar(); EditorUtility.DisplayDialog("错误", "未找到精灵！", "确定"); return; }
+            if (!dataList.Any())
+            {
+                EditorUtility.ClearProgressBar();
+                EditorUtility.DisplayDialog("错误", "未找到精灵！", "确定");
+                return;
+            }
 
-            // 排版（纯原始尺寸，无任何缩放）
             dataList.Sort((a, b) => b.height.CompareTo(a.height));
             int cx = padding, cy = padding, rowH = 0, maxW = padding;
             foreach (var d in dataList)
@@ -302,20 +328,17 @@ public class CustomAtlasGenerator : EditorWindow
                 rowH = Math.Max(rowH, d.height);
             }
 
-            // 创建图集纹理
             int fw = Mathf.NextPowerOfTwo(maxW);
             int fh = Mathf.NextPowerOfTwo(cy + rowH + padding);
             Texture2D atlas = new Texture2D(fw, fh, TextureFormat.RGBA32, false);
             atlas.SetPixels32(Enumerable.Repeat(new Color32(0, 0, 0, 0), fw * fh).ToArray());
 
-            // 1:1像素绘制
             foreach (var d in dataList)
             {
                 atlas.SetPixels32((int)d.targetRect.x, (int)d.targetRect.y, d.width, d.height, d.pixels);
             }
             atlas.Apply();
 
-            // 保存
             Directory.CreateDirectory(Path.GetFullPath(saveFolderPath));
             string name = atlasFileName.Trim().EndsWith(".png") ? atlasFileName.Trim() : $"{atlasFileName.Trim()}.png";
             string path = Path.Combine(saveFolderPath, name).Replace("\\", "/");
@@ -323,22 +346,23 @@ public class CustomAtlasGenerator : EditorWindow
             AssetDatabase.Refresh();
             DestroyImmediate(atlas);
 
-            // 核心：设置图集参数
             SetAtlasSettings(path, dataList);
             generatedAtlas = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 
             EditorUtility.ClearProgressBar();
-            EditorUtility.DisplayDialog("成功", $"生成完成！\n 大小1:1\n 位置无偏移\n 轴心完全一致", "确定");
+            EditorUtility.DisplayDialog("成功", "图集生成完成！\n大小/位置100%匹配原始资源", "确定");
         }
         finally
         {
             EditorUtility.ClearProgressBar();
-            // 还原纹理
-            foreach (var p in modifiedImporters) { var imp = AssetImporter.GetAtPath(p) as TextureImporter; if (imp) { imp.isReadable = false; AssetDatabase.ImportAsset(p); } }
+            foreach (var p in modifiedImporters)
+            {
+                var imp = AssetImporter.GetAtPath(p) as TextureImporter;
+                if (imp) { imp.isReadable = false; AssetDatabase.ImportAsset(p); }
+            }
         }
     }
 
-    // 修复：精灵切片参数100%复刻
     private void SetAtlasSettings(string path, List<TexData> dataList)
     {
         TextureImporter imp = AssetImporter.GetAtPath(path) as TextureImporter;
@@ -369,10 +393,10 @@ public class CustomAtlasGenerator : EditorWindow
         provider.SetSpriteRects(spriteRects);
         provider.Apply();
 #else
-        imp.spritesheet = dataList.Select(d => new SpriteMetaData 
-        { 
-            name = d.name, 
-            rect = d.targetRect, 
+        imp.spritesheet = dataList.Select(d => new SpriteMetaData
+        {
+            name = d.name,
+            rect = d.targetRect,
             pivot = d.pivot,
             border = d.border
         }).ToArray();
@@ -382,40 +406,63 @@ public class CustomAtlasGenerator : EditorWindow
     }
     #endregion
 
-    #region 批量替换（指定预制体路径）
+    #region 替换逻辑（带记录）
     private void ProcessReferences()
     {
-        if (!generatedAtlas) { EditorUtility.DisplayDialog("提示", "请先生成图集！", "确定"); return; }
+        if (!generatedAtlas)
+        {
+            EditorUtility.DisplayDialog("提示", "请先生成图集！", "确定");
+            return;
+        }
 
-        var newSprites = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(generatedAtlas)).OfType<Sprite>().ToDictionary(s => s.name);
+        var newSprites = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(generatedAtlas))
+            .OfType<Sprite>()
+            .GroupBy(s => s.name)
+            .ToDictionary(g => g.Key, g => g.First());
+
+        ClearRecords();
         int count = 0;
-
-        // 替换场景
         count += ReplaceScene(newSprites);
-        // 替换指定路径预制体
         count += ReplaceTargetFolderPrefabs(newSprites);
 
-        EditorUtility.DisplayDialog("完成", $"批量替换 {count} 处引用！\n 位置/大小完全一致", "确定");
+        EditorUtility.DisplayDialog("完成", $"成功替换 {count} 个精灵！\n可点击【一键全部还原】恢复原始资源", "确定");
     }
 
     private int ReplaceScene(Dictionary<string, Sprite> newSprites)
     {
         int c = 0;
-        // UI Image
         foreach (var img in FindObjectsOfType<Image>(true))
         {
             if (img.sprite && newSprites.TryGetValue(img.sprite.name, out var s))
             {
+                // 保存替换记录
+                AddRecord(new ReplaceRecord
+                {
+                    spriteName = img.sprite.name,
+                    originalSpritePath = AssetDatabase.GetAssetPath(img.sprite),
+                    originalSpriteGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(img.sprite)),
+                    atlasPath = AssetDatabase.GetAssetPath(s),
+                    atlasGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s))
+                });
+
                 Undo.RecordObject(img, "替换精灵");
                 img.sprite = s;
                 c++;
             }
         }
-        // 2D SpriteRenderer
         foreach (var sr in FindObjectsOfType<SpriteRenderer>(true))
         {
             if (sr.sprite && newSprites.TryGetValue(sr.sprite.name, out var s))
             {
+                AddRecord(new ReplaceRecord
+                {
+                    spriteName = sr.sprite.name,
+                    originalSpritePath = AssetDatabase.GetAssetPath(sr.sprite),
+                    originalSpriteGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sr.sprite)),
+                    atlasPath = AssetDatabase.GetAssetPath(s),
+                    atlasGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s))
+                });
+
                 Undo.RecordObject(sr, "替换精灵");
                 sr.sprite = s;
                 c++;
@@ -424,15 +471,10 @@ public class CustomAtlasGenerator : EditorWindow
         return c;
     }
 
-    // 仅替换 Assets/Resources/Prefabs
     private int ReplaceTargetFolderPrefabs(Dictionary<string, Sprite> newSprites)
     {
         int c = 0;
-        if (!AssetDatabase.IsValidFolder(PREFAB_FOLDER_PATH))
-        {
-            EditorUtility.DisplayDialog("警告", $"预制体文件夹不存在：{PREFAB_FOLDER_PATH}", "确定");
-            return 0;
-        }
+        if (!AssetDatabase.IsValidFolder(PREFAB_FOLDER_PATH)) return 0;
 
         var guids = AssetDatabase.FindAssets("t:Prefab", new[] { PREFAB_FOLDER_PATH });
         foreach (var guid in guids)
@@ -442,19 +484,33 @@ public class CustomAtlasGenerator : EditorWindow
             if (!prefab) continue;
             bool mod = false;
 
-            // UI
             foreach (var img in prefab.GetComponentsInChildren<Image>(true))
             {
                 if (img.sprite && newSprites.TryGetValue(img.sprite.name, out var s))
                 {
+                    AddRecord(new ReplaceRecord
+                    {
+                        spriteName = img.sprite.name,
+                        originalSpritePath = AssetDatabase.GetAssetPath(img.sprite),
+                        originalSpriteGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(img.sprite)),
+                        atlasPath = AssetDatabase.GetAssetPath(s),
+                        atlasGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s))
+                    });
                     img.sprite = s; c++; mod = true;
                 }
             }
-            // 2D
             foreach (var sr in prefab.GetComponentsInChildren<SpriteRenderer>(true))
             {
                 if (sr.sprite && newSprites.TryGetValue(sr.sprite.name, out var s))
                 {
+                    AddRecord(new ReplaceRecord
+                    {
+                        spriteName = sr.sprite.name,
+                        originalSpritePath = AssetDatabase.GetAssetPath(sr.sprite),
+                        originalSpriteGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sr.sprite)),
+                        atlasPath = AssetDatabase.GetAssetPath(s),
+                        atlasGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s))
+                    });
                     sr.sprite = s; c++; mod = true;
                 }
             }
@@ -464,10 +520,97 @@ public class CustomAtlasGenerator : EditorWindow
     }
     #endregion
 
-    #region 还原
+    #region 完美还原逻辑
     private void RevertAllRecords()
     {
-        EditorUtility.DisplayDialog("提示", "已适配新打包规则，还原功能正常！", "确定");
+        if (_recordDb.records.Count == 0)
+        {
+            EditorUtility.DisplayDialog("提示", "没有可还原的记录！", "确定");
+            return;
+        }
+
+        int count = 0;
+        // 还原场景对象
+        count += RevertSceneObjects();
+        // 还原预制体
+        count += RevertPrefabs();
+
+        ClearRecords();
+        EditorUtility.DisplayDialog("还原成功", $"已恢复 {count} 个原始精灵！", "确定");
+    }
+
+    // 还原场景中的Image和SpriteRenderer
+    private int RevertSceneObjects()
+    {
+        int c = 0;
+        foreach (var record in _recordDb.records)
+        {
+            Sprite originalSprite = AssetDatabase.LoadAssetAtPath<Sprite>(record.originalSpritePath);
+            if (originalSprite == null) continue;
+
+            // 还原UI
+            foreach (var img in FindObjectsOfType<Image>(true))
+            {
+                if (img.sprite != null && img.sprite.name == record.spriteName)
+                {
+                    Undo.RecordObject(img, "还原精灵");
+                    img.sprite = originalSprite;
+                    c++;
+                }
+            }
+            // 还原2D
+            foreach (var sr in FindObjectsOfType<SpriteRenderer>(true))
+            {
+                if (sr.sprite != null && sr.sprite.name == record.spriteName)
+                {
+                    Undo.RecordObject(sr, "还原精灵");
+                    sr.sprite = originalSprite;
+                    c++;
+                }
+            }
+        }
+        return c;
+    }
+
+    // 还原指定文件夹的预制体
+    private int RevertPrefabs()
+    {
+        int c = 0;
+        if (!AssetDatabase.IsValidFolder(PREFAB_FOLDER_PATH)) return 0;
+
+        var guids = AssetDatabase.FindAssets("t:Prefab", new[] { PREFAB_FOLDER_PATH });
+        foreach (var guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (!prefab) continue;
+            bool mod = false;
+
+            foreach (var record in _recordDb.records)
+            {
+                Sprite originalSprite = AssetDatabase.LoadAssetAtPath<Sprite>(record.originalSpritePath);
+                if (originalSprite == null) continue;
+
+                // 还原UI
+                foreach (var img in prefab.GetComponentsInChildren<Image>(true))
+                {
+                    if (img.sprite != null && img.sprite.name == record.spriteName)
+                    {
+                        img.sprite = originalSprite; c++; mod = true;
+                    }
+                }
+                // 还原2D
+                foreach (var sr in prefab.GetComponentsInChildren<SpriteRenderer>(true))
+                {
+                    if (sr.sprite != null && sr.sprite.name == record.spriteName)
+                    {
+                        sr.sprite = originalSprite; c++; mod = true;
+                    }
+                }
+            }
+            if (mod) PrefabUtility.SavePrefabAsset(prefab);
+        }
+        return c;
     }
     #endregion
 }
