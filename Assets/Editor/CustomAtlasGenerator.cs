@@ -18,15 +18,18 @@ public class CustomAtlasGenerator : EditorWindow
     [Tooltip("图集最大宽度")]
     public int maxAtlasWidth = 2048;
 
-    [Header("混合打包区  支持 Sprite / 带切片的 Texture")]
+    [Header("混合打包区  带切片的 Texture")]
     public List<UnityEngine.Object> targetAssets = new List<UnityEngine.Object>();
 
     [Header("保存设置")]
     public string saveFolderPath = "Assets/Resources/Sprite/CustomizeAtlas";
     public string atlasFileName = "CustomAtlas_Dense";
 
-    // 固定预制体路径
-    private const string PREFAB_FOLDER_PATH = "Assets/Resources/Prefabs";
+    // 仅修改这里：从单个路径 改为 两个路径（完全不改动其他代码）
+    private static readonly string[] FOLDER_PATHS = {
+        "Assets/Resources/Prefabs",
+        "Assets/Resources/UI"
+    };
 
     [Header("引用替换区")]
     public Texture2D generatedAtlas;
@@ -115,7 +118,7 @@ public class CustomAtlasGenerator : EditorWindow
             GUILayout.Space(10);
 
             GUILayout.Label("第二步：全自动替换/还原（场景+指定预制体）", EditorStyles.boldLabel);
-            GUILayout.Label($"预制体路径：{PREFAB_FOLDER_PATH}", EditorStyles.helpBox);
+            GUILayout.Label($"预制体路径：多文件夹扫描", EditorStyles.helpBox);
             so.Update();
             EditorGUILayout.PropertyField(so.FindProperty("generatedAtlas"), new GUIContent("新生成的图集"));
             so.ApplyModifiedProperties();
@@ -471,50 +474,53 @@ public class CustomAtlasGenerator : EditorWindow
         return c;
     }
 
+    //  仅修改这里：遍历所有路径，其他代码完全原样
     private int ReplaceTargetFolderPrefabs(Dictionary<string, Sprite> newSprites)
     {
         int c = 0;
-        if (!AssetDatabase.IsValidFolder(PREFAB_FOLDER_PATH)) return 0;
-
-        var guids = AssetDatabase.FindAssets("t:Prefab", new[] { PREFAB_FOLDER_PATH });
-        foreach (var guid in guids)
+        foreach (var path in FOLDER_PATHS)
         {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (!prefab) continue;
-            bool mod = false;
+            if (!AssetDatabase.IsValidFolder(path)) continue;
+            var guids = AssetDatabase.FindAssets("t:Prefab", new[] { path });
+            foreach (var guid in guids)
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+                if (!prefab) continue;
+                bool mod = false;
 
-            foreach (var img in prefab.GetComponentsInChildren<Image>(true))
-            {
-                if (img.sprite && newSprites.TryGetValue(img.sprite.name, out var s))
+                foreach (var img in prefab.GetComponentsInChildren<Image>(true))
                 {
-                    AddRecord(new ReplaceRecord
+                    if (img.sprite && newSprites.TryGetValue(img.sprite.name, out var s))
                     {
-                        spriteName = img.sprite.name,
-                        originalSpritePath = AssetDatabase.GetAssetPath(img.sprite),
-                        originalSpriteGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(img.sprite)),
-                        atlasPath = AssetDatabase.GetAssetPath(s),
-                        atlasGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s))
-                    });
-                    img.sprite = s; c++; mod = true;
+                        AddRecord(new ReplaceRecord
+                        {
+                            spriteName = img.sprite.name,
+                            originalSpritePath = AssetDatabase.GetAssetPath(img.sprite),
+                            originalSpriteGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(img.sprite)),
+                            atlasPath = AssetDatabase.GetAssetPath(s),
+                            atlasGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s))
+                        });
+                        img.sprite = s; c++; mod = true;
+                    }
                 }
-            }
-            foreach (var sr in prefab.GetComponentsInChildren<SpriteRenderer>(true))
-            {
-                if (sr.sprite && newSprites.TryGetValue(sr.sprite.name, out var s))
+                foreach (var sr in prefab.GetComponentsInChildren<SpriteRenderer>(true))
                 {
-                    AddRecord(new ReplaceRecord
+                    if (sr.sprite && newSprites.TryGetValue(sr.sprite.name, out var s))
                     {
-                        spriteName = sr.sprite.name,
-                        originalSpritePath = AssetDatabase.GetAssetPath(sr.sprite),
-                        originalSpriteGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sr.sprite)),
-                        atlasPath = AssetDatabase.GetAssetPath(s),
-                        atlasGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s))
-                    });
-                    sr.sprite = s; c++; mod = true;
+                        AddRecord(new ReplaceRecord
+                        {
+                            spriteName = sr.sprite.name,
+                            originalSpritePath = AssetDatabase.GetAssetPath(sr.sprite),
+                            originalSpriteGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sr.sprite)),
+                            atlasPath = AssetDatabase.GetAssetPath(s),
+                            atlasGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(s))
+                        });
+                        sr.sprite = s; c++; mod = true;
+                    }
                 }
+                if (mod) PrefabUtility.SavePrefabAsset(prefab);
             }
-            if (mod) PrefabUtility.SavePrefabAsset(prefab);
         }
         return c;
     }
@@ -572,43 +578,45 @@ public class CustomAtlasGenerator : EditorWindow
         return c;
     }
 
-    // 还原指定文件夹的预制体
+    // 仅修改这里：遍历所有路径，其他代码完全原样
     private int RevertPrefabs()
     {
         int c = 0;
-        if (!AssetDatabase.IsValidFolder(PREFAB_FOLDER_PATH)) return 0;
-
-        var guids = AssetDatabase.FindAssets("t:Prefab", new[] { PREFAB_FOLDER_PATH });
-        foreach (var guid in guids)
+        foreach (var path in FOLDER_PATHS)
         {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (!prefab) continue;
-            bool mod = false;
-
-            foreach (var record in _recordDb.records)
+            if (!AssetDatabase.IsValidFolder(path)) continue;
+            var guids = AssetDatabase.FindAssets("t:Prefab", new[] { path });
+            foreach (var guid in guids)
             {
-                Sprite originalSprite = AssetDatabase.LoadAssetAtPath<Sprite>(record.originalSpritePath);
-                if (originalSprite == null) continue;
+                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+                if (!prefab) continue;
+                bool mod = false;
 
-                // 还原UI
-                foreach (var img in prefab.GetComponentsInChildren<Image>(true))
+                foreach (var record in _recordDb.records)
                 {
-                    if (img.sprite != null && img.sprite.name == record.spriteName)
+                    Sprite originalSprite = AssetDatabase.LoadAssetAtPath<Sprite>(record.originalSpritePath);
+                    if (originalSprite == null) continue;
+
+                    // 还原UI
+                    foreach (var img in prefab.GetComponentsInChildren<Image>(true))
                     {
-                        img.sprite = originalSprite; c++; mod = true;
+                        if (img.sprite != null && img.sprite.name == record.spriteName)
+                        {
+                            img.sprite = originalSprite; c++; mod = true;
+                        }
+                    }
+                    // 还原2D
+                    foreach (var sr in prefab.GetComponentsInChildren<SpriteRenderer>(true))
+                    {
+                        if (sr.sprite != null && sr.sprite.name == record.spriteName)
+                        {
+                            sr.sprite = originalSprite; c++; mod = true;
+                        }
                     }
                 }
-                // 还原2D
-                foreach (var sr in prefab.GetComponentsInChildren<SpriteRenderer>(true))
-                {
-                    if (sr.sprite != null && sr.sprite.name == record.spriteName)
-                    {
-                        sr.sprite = originalSprite; c++; mod = true;
-                    }
-                }
+                if (mod) PrefabUtility.SavePrefabAsset(prefab);
             }
-            if (mod) PrefabUtility.SavePrefabAsset(prefab);
         }
         return c;
     }
