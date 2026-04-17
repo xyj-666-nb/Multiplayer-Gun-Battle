@@ -1,11 +1,9 @@
-using Mirror.Transports.Encryption;
-using UnityEngine;
-using UnityEngine.Events;
 using DG.Tweening;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using TMPro;
-using Unity.Sync.Relay.Transport.Mirror;
 
 public class RoomPanel : BasePanel
 {
@@ -18,7 +16,7 @@ public class RoomPanel : BasePanel
 
     public TextMeshProUGUI TopicText;
 
-    // 动画序列引用，复用自GameStartPanel
+    // 动画序列引用
     private Sequence LeftCanvasGroupAnima;
     private Sequence UpCanvasGroupAnima;
 
@@ -37,7 +35,15 @@ public class RoomPanel : BasePanel
     public string Prompt_Remote;
     [TextArea(3, 10)]
     public string Content_Remote;
+    [Header("介绍内容Match")] // 匹配模式文本
+    public string Prompt_Match;
+    [TextArea(3, 10)]
+    public string Content_Match;
 
+    /// <summary>
+    /// 公共房间固定码（匹配模式统一加入这个房间）
+    /// </summary>
+    private const string PUBLIC_ROOM_CODE = "PUBLIC_MATCH_ROOM";
 
     /// <summary>
     /// 只负责提示图片的显隐动画，不负责文本更新
@@ -48,9 +54,9 @@ public class RoomPanel : BasePanel
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(PromptImageCanvasGroup, ref PromptImageAnima, IsActive, () => { });
 
         //位移动画
-        float PosY = IsActive ? 0 : -200; // 三元运算符简化
+        float PosY = IsActive ? 0 : -200;
         PromptImage.DOKill();
-        PromptImage.DOAnchorPos3DY(PosY, 0.4f).SetEase(IsActive ? Ease.OutBack : Ease.InBack); // 入场和出场用不同缓动，更自然
+        PromptImage.DOAnchorPos3DY(PosY, 0.4f).SetEase(IsActive ? Ease.OutBack : Ease.InBack);
     }
 
     public override void Awake()
@@ -73,9 +79,7 @@ public class RoomPanel : BasePanel
             LeftCanvasGroup.blocksRaycasts = false;
         }
 
-        // 复用SimpleAnimatorTool的淡入淡出
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(LeftCanvasGroup, ref LeftCanvasGroupAnima, IsActive, () => { }, 0.2f);
-        // 复用DOTween的位移动画
         LefRect.DOAnchorPosX(XPos, 0.3f).SetEase(Ease.OutBack).OnComplete(() => { CallBack?.Invoke(); });
     }
 
@@ -83,20 +87,27 @@ public class RoomPanel : BasePanel
     private TypingWritingTask TextTypingTask2;
 
     /// <summary>
-    /// 独立的文本更新方法
+    /// 独立的文本更新方法（扩展支持匹配模式）
     /// </summary>
-    public void TriggerTextAnima(NetworkMode Mode)
+    public void TriggerTextAnima(NetworkMode Mode, bool isMatchMode = false)
     {
-        if (TextTypingTask1 != null && TextTypingTask2 != null)
+        // 停止旧的打字动画
+        if (TextTypingTask1 != null) TextTypingTask1.StopTyping();
+        if (TextTypingTask2 != null) TextTypingTask2.StopTyping();
+
+        // 匹配模式（基于Remote服务）
+        if (isMatchMode)
         {
-            TextTypingTask1.StopTyping();
-            TextTypingTask2.StopTyping();
+            TextTypingTask1 = SimpleAnimatorTool.Instance.AddTypingTask(Prompt_Match, Topic);
+            TextTypingTask2 = SimpleAnimatorTool.Instance.AddTypingTask(Content_Match, Content, 0.04f);
+            return;
         }
 
+        // 原有模式
         if (Mode == NetworkMode.LAN)
         {
             TextTypingTask1 = SimpleAnimatorTool.Instance.AddTypingTask(Prompt_LAN, Topic);
-            TextTypingTask2 = SimpleAnimatorTool.Instance.AddTypingTask(Content_LAN, Content,0.04f);
+            TextTypingTask2 = SimpleAnimatorTool.Instance.AddTypingTask(Content_LAN, Content, 0.04f);
         }
         else
         {
@@ -115,9 +126,7 @@ public class RoomPanel : BasePanel
             PosY = 400;
             UpCanvasGroup.blocksRaycasts = false;
         }
-        // 复用SimpleAnimatorTool的淡入淡出
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(UpCanvasGroup, ref UpCanvasGroupAnima, IsActive, () => { }, 0.25f);
-        // 复用DOTween的位移动画
         UpRect.DOAnchorPosY(PosY, 0.4f).SetEase(Ease.OutBack).OnComplete(() => { CallBack?.Invoke(); });
     }
 
@@ -132,11 +141,12 @@ public class RoomPanel : BasePanel
                 break;
 
             case "Button_EnterRoom":
-                //根据模式不同选用不同的面板
                 if (Main.Instance.CurrentMode == NetworkMode.LAN)
-                    UImanager.Instance.ShowPanel<EnterRoomPanel>();//打开局域网加入面板
+                    UImanager.Instance.ShowPanel<EnterRoomPanel>();
+                else if(Main.Instance.CurrentMode == NetworkMode.Match)
+                    UImanager.Instance.ShowPanel<Match_EnterRoomPanel>();
                 else
-                    UImanager.Instance.ShowPanel<Remote_EnterRoomPanel>();//打开远程加入面板
+                    UImanager.Instance.ShowPanel<Remote_EnterRoomPanel>();
                 UImanager.Instance.HidePanel<RoomPanel>();
                 break;
 
@@ -144,7 +154,7 @@ public class RoomPanel : BasePanel
                 IsActiveUpRect(false, () => {
                     IsActiveLefRect(true, null);
                 });
-                TriggerPromptImageAnima(false); // 明确关闭提示
+                TriggerPromptImageAnima(false);
                 break;
 
             case "LANModeChoose":
@@ -152,20 +162,19 @@ public class RoomPanel : BasePanel
                 TopicText.text = "局域网模式";
 
                 TriggerTextAnima(NetworkMode.LAN);
-                TriggerPromptImageAnima(true); 
+                TriggerPromptImageAnima(true);
 
                 if (CustomNetworkManager.Instance != null)
                 {
                     CustomNetworkManager.Instance.SwitchToLanMode();
                 }
 
-                // 关闭左面板，打开上面板
                 IsActiveLefRect(false, () => { IsActiveUpRect(true, null); });
                 break;
 
             case "RemoteModeChoose":
                 Main.Instance.CurrentMode = NetworkMode.Remote;
-                TopicText.text = "远程模式";
+                TopicText.text = "远程联机模式";
 
                 TriggerTextAnima(NetworkMode.Remote);
                 TriggerPromptImageAnima(true);
@@ -180,33 +189,58 @@ public class RoomPanel : BasePanel
 
             case "ModeChooseExitButton":
                 UImanager.Instance.HidePanel<RoomPanel>();
-                UImanager.Instance.ShowPanel<GameStartPanel>();//游戏开始面板
+                UImanager.Instance.ShowPanel<GameStartPanel>();
                 ModeChooseSystem.instance.EnterSystem();
                 break;
+
+            #region 匹配模式完善
+            case "MatchModeChoose":
+                // 匹配模式使用Remote(Unity Relay)服务
+                Main.Instance.CurrentMode = NetworkMode.Match;
+                TopicText.text = "自动匹配模式";
+
+                // 加载匹配模式专属文本
+                TriggerTextAnima(NetworkMode.Remote, true);
+                TriggerPromptImageAnima(true);
+
+                // 切换为Relay远程服务
+                if (CustomNetworkManager.Instance != null)
+                {
+                    CustomNetworkManager.Instance.SwitchToRelayMode();
+                }
+
+                // 统一面板动画
+                IsActiveLefRect(false, () => {
+                    IsActiveUpRect(true, null);
+                });
+                break;
+                #endregion
         }
     }
+
 
     #region 生命周期
     public override void Start()
     {
         base.Start();
-        //注册一下按钮组
+        //注册按钮组
         List<Button> ButtonGroup = new List<Button>();
-        // 根据你ClickButton里的按钮名，自动添加到组里
         ButtonGroup.Add(controlDic["Button_CreateRoom"] as Button);
         ButtonGroup.Add(controlDic["Button_EnterRoom"] as Button);
         ButtonGroup.Add(controlDic["ExitButton"] as Button);
         ButtonGroup.Add(controlDic["LANModeChoose"] as Button);
         ButtonGroup.Add(controlDic["RemoteModeChoose"] as Button);
         ButtonGroup.Add(controlDic["ModeChooseExitButton"] as Button);
+        // 添加匹配模式按钮到组
+        ButtonGroup.Add(controlDic["MatchModeChoose"] as Button);
 
-        SimpleEffectButtonGroup.Instance.RegisterGroup("RoomPanelGroup", ButtonGroup);//注册组
+        SimpleEffectButtonGroup.Instance.RegisterGroup("RoomPanelGroup", ButtonGroup);
     }
 
     protected override void OnDestroy()
     {
         base.OnDestroy();
-        SimpleEffectButtonGroup.Instance.UnRegisterGroup("RoomPanelGroup");//销毁组
+        SimpleEffectButtonGroup.Instance.UnRegisterGroup("RoomPanelGroup");
     }
     #endregion
 
@@ -238,8 +272,10 @@ public class RoomPanel : BasePanel
     }
 }
 
+// 网络模式枚举（无修改，保持兼容）
 public enum NetworkMode
 {
-    LAN,//局域网
-    Remote,//远程服务
+    LAN,    // 局域网
+    Remote, // 远程服务(Unity Relay)
+    Match   // 自动匹配（基于远程服务）
 }

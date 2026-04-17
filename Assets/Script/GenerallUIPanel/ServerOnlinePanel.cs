@@ -40,6 +40,12 @@ public class ServerOnlinePanel : BasePanel
     public override void Awake()
     {
         base.Awake();
+        // 初始化空列表，防止空引用
+        _connectingTextList = new List<string>();
+    }
+
+    public void TriggerRemoteCheck()
+    {
         // 初始化文本列表
         _connectingTextList = new List<string>
         {
@@ -47,16 +53,34 @@ public class ServerOnlinePanel : BasePanel
             "正在连接服务器.",
             "正在连接服务器..",
             "正在连接服务器..."
+        };
+    }
 
+    //触发匹配检查
+    public void TriggerMatchCheck()
+    {
+        // 初始化文本列表
+        _connectingTextList = new List<string>
+        {
+            "正在寻找公共房间",
+            "正在寻找公共房间.",
+            "正在寻找公共房间..",
+            "正在寻找公共房间..."
         };
     }
 
 
-    // 启动文本循环
+    // 启动文本循环（安全版：只有列表有值才启动）
     private void StartTextLoop()
     {
-        // 先停止之前的循环，避免重复启动
+        // 先停止之前的循环
         StopTextLoop();
+
+        if (_connectingTextList == null || _connectingTextList.Count == 0 || PromptText == null)
+        {
+            Debug.LogWarning("文本列表未赋值或PromptText为空，无法开启动画");
+            return;
+        }
 
         // 重置索引
         _currentTextIndex = 0;
@@ -83,16 +107,15 @@ public class ServerOnlinePanel : BasePanel
     {
         while (true)
         {
-            // 更新文本
-            if (PromptText != null)
+            // 双重保险：防止越界+空对象
+            if (PromptText != null && _currentTextIndex < _connectingTextList.Count)
             {
                 PromptText.text = _connectingTextList[_currentTextIndex];
             }
 
-            // 索引+1，取模实现循环
+            // 索引+1
             _currentTextIndex = (_currentTextIndex + 1) % _connectingTextList.Count;
 
-            // 等待指定时间
             yield return new WaitForSeconds(textInterval);
         }
     }
@@ -103,7 +126,7 @@ public class ServerOnlinePanel : BasePanel
         base.OnDestroy();
         OnCancelAction = null;
         OnSuccessAction = null;
-        StopTextLoop(); // 确保销毁时停止协程
+        StopTextLoop();
     }
 
     protected override void Update()
@@ -120,7 +143,6 @@ public class ServerOnlinePanel : BasePanel
     {
 
     }
-
 
     public override void ShowMe(bool isNeedDefaultAnimator = true)
     {

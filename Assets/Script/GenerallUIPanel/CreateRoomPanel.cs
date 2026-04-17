@@ -26,6 +26,9 @@ public class CreateRoomPanel : BasePanel
     private string ScoreChooseName = "CreateButton";
     private string TimeChooseName = "ExitButton";
 
+    // 匹配房间默认索引（0-999）
+    private const int DEFAULT_MATCH_INDEX = 0;
+
     public override void Awake()
     {
         base.Awake();
@@ -123,16 +126,13 @@ public class CreateRoomPanel : BasePanel
             case "CreateButton":
                 if (Main.Instance.CurrentMode == NetworkMode.LAN)
                 {
-
                     if (CustomNetworkManager.Instance != null)
                     {
                         CustomNetworkManager.Instance.SwitchToLanMode();
                     }
-
-
                     StartCoroutine(CreateLanRoomAfterFrame());
                 }
-                else
+                else if (Main.Instance.CurrentMode == NetworkMode.Match)
                 {
 
                     if (CustomNetworkManager.Instance != null)
@@ -142,7 +142,7 @@ public class CreateRoomPanel : BasePanel
 
                     UImanager.Instance.HidePanel<CreateRoomPanel>();
 
-                    // 安全初始化游戏数据
+                    // 初始化游戏数据
                     void SafeInitGameData()
                     {
                         try
@@ -154,11 +154,12 @@ public class CreateRoomPanel : BasePanel
                         }
                         catch { }
                     }
-
                     SafeInitGameData();
 
-                    // 关联事件（和你原来的逻辑完全兼容）
+                    // 展示等待面板
                     ServerOnlinePanel onlinePanel = UImanager.Instance?.ShowPanel<ServerOnlinePanel>();
+                    onlinePanel.TriggerRemoteCheck();
+                    onlinePanel.TriggerRemoteCheck();//触发远程检测动画
 
                     if (onlinePanel != null)
                     {
@@ -170,7 +171,7 @@ public class CreateRoomPanel : BasePanel
 
                         void HandleSuccess(string code)
                         {
-                            Debug.Log($"连接成功！Code: {code}");
+                            Debug.Log($"[匹配模式] 创建房间成功！Code: {code}");
                             UnsubscribeAll();
                             onlinePanel.HidePanel();
                             SafeInitGameData();
@@ -181,14 +182,80 @@ public class CreateRoomPanel : BasePanel
 
                         void HandleFailed(string error)
                         {
-                            Debug.LogError($"连接失败: {error}");
+                            Debug.LogError($"[匹配模式] 创建房间失败: {error}");
                             UnsubscribeAll();
                             onlinePanel.HidePanel();
                         }
 
                         void HandleCancel()
                         {
-                            Debug.Log("用户点击了取消");
+                            Debug.Log("[匹配模式] 用户点击了取消");
+                            UOSRelaySimple.Instance.StopRelay();
+                            UnsubscribeAll();
+                        }
+
+                        UOSRelaySimple.OnRelaySuccess += HandleSuccess;
+                        UOSRelaySimple.OnRelayFailed += HandleFailed;
+                        onlinePanel.OnCancelAction += HandleCancel;
+                    }
+
+                    UOSRelaySimple.Instance.StartMatchHost(DEFAULT_MATCH_INDEX);
+                }
+                else
+                {
+                    // 远程手动模式：独立创建公开房间
+                    if (CustomNetworkManager.Instance != null)
+                    {
+                        CustomNetworkManager.Instance.SwitchToRelayMode();
+                    }
+
+                    UImanager.Instance.HidePanel<CreateRoomPanel>();
+
+                    void SafeInitGameData()
+                    {
+                        try
+                        {
+                            if (PlayerRespawnManager.Instance != null)
+                            {
+                                PlayerRespawnManager.Instance.InitGoalScoreCount(GameGoalScore, GameTime);
+                            }
+                        }
+                        catch { }
+                    }
+                    SafeInitGameData();
+
+                    ServerOnlinePanel onlinePanel = UImanager.Instance?.ShowPanel<ServerOnlinePanel>();
+
+                    if (onlinePanel != null)
+                    {
+                        void UnsubscribeAll()
+                        {
+                            UOSRelaySimple.OnRelaySuccess -= HandleSuccess;
+                            UOSRelaySimple.OnRelayFailed -= HandleFailed;
+                        }
+                        onlinePanel.TriggerRemoteCheck();//触发远程检测动画
+
+                        void HandleSuccess(string code)
+                        {
+                            Debug.Log($"[远程模式] 创建房间成功！Code: {code}");
+                            UnsubscribeAll();
+                            onlinePanel.HidePanel();
+                            SafeInitGameData();
+
+                            if (ModeChooseSystem.instance != null)
+                                ModeChooseSystem.instance.ExitSystem();
+                        }
+
+                        void HandleFailed(string error)
+                        {
+                            Debug.LogError($"[远程模式] 创建房间失败: {error}");
+                            UnsubscribeAll();
+                            onlinePanel.HidePanel();
+                        }
+
+                        void HandleCancel()
+                        {
+                            Debug.Log("[远程模式] 用户点击了取消");
                             UOSRelaySimple.Instance.StopRelay();
                             UnsubscribeAll();
                         }
@@ -210,7 +277,6 @@ public class CreateRoomPanel : BasePanel
                 break;
         }
     }
-
 
     private IEnumerator CreateLanRoomAfterFrame()
     {
