@@ -64,9 +64,13 @@ public class GoodsPage : MonoBehaviour
     public Image playerImage;//玩家形象图
 
     public Button PlayerButton;//播放按钮
+    [Header("枪械皮肤专用")]
+    public Image GunSkinImage;//枪械皮肤专用图
+    public TextMeshProUGUI GunSkinName;//枪械皮肤专用名字
 
     void Start()
     {
+        OriginalGoldBgColor = GoldBackGround.color;
         MyRect = GetComponent<RectTransform>();
         OriginalPos = DiscountRect.anchoredPosition;
         if (MyButton != null)
@@ -103,21 +107,25 @@ public class GoodsPage : MonoBehaviour
             _bulletImage.transform.localScale = Vector3.one;
         }
 
+        // ========== 枪械皮肤：默认隐藏物体 ==========
+        if (GunSkinImage != null) GunSkinImage.gameObject.SetActive(false);
+        if (GunSkinName != null) GunSkinName.gameObject.SetActive(false);
+
         if (IntroduceRawImage != null)
         {
-            IntroduceRawImage.texture = null; // 清空渲染纹理
-            IntroduceRawImage.color = Color.white; // 重置颜色
+            IntroduceRawImage.texture = null;
+            IntroduceRawImage.color = Color.white;
         }
         if (playerImage != null)
         {
-            playerImage.color = ColorManager.SetColorAlpha(playerImage.color, 0); // 隐藏角色图
-            playerImage.sprite = null; // 清空精灵
+            playerImage.color = ColorManager.SetColorAlpha(playerImage.color, 0);
+            playerImage.sprite = null;
         }
         if (PlayerButton != null)
         {
-            PlayerButton.onClick.RemoveAllListeners(); // 清空监听
-            PlayerButton.interactable = false; // 默认禁用
-            PlayerButton.gameObject.SetActive(false); // 默认隐藏
+            PlayerButton.onClick.RemoveAllListeners();
+            PlayerButton.interactable = false;
+            PlayerButton.gameObject.SetActive(false);
         }
     }
 
@@ -128,6 +136,28 @@ public class GoodsPage : MonoBehaviour
     {
         if (goodsData == null || IntroduceRawImage == null) return;
 
+        // ========== 枪械皮肤显示逻辑 ==========
+        if (goodsData.skinType == SkinType.GunAppearance && goodsData.gunSkinPack != null)
+        {
+            // 关闭所有其他显示
+            IntroduceRawImage.gameObject.SetActive(false);
+            playerImage.gameObject.SetActive(false);
+            PlayerButton.gameObject.SetActive(false);
+            // 开启枪械皮肤物体
+            if (GunSkinImage != null) GunSkinImage.gameObject.SetActive(true);
+            if (GunSkinName != null) GunSkinName.gameObject.SetActive(true);
+            // 隐藏原有商品名称
+            if (GoodsName != null) GoodsName.gameObject.SetActive(false);
+            return;
+        }
+        else
+        {
+            // 非枪械皮肤：关闭枪械皮肤物体，恢复商品名称
+            if (GunSkinImage != null) GunSkinImage.gameObject.SetActive(false);
+            if (GunSkinName != null) GunSkinName.gameObject.SetActive(false);
+            if (GoodsName != null) GoodsName.gameObject.SetActive(true);
+        }
+
         //判断是否为 子弹皮肤 / 打击特效皮肤
         bool isBulletGoods = goodsData.skinType == SkinType.SpecialBullet && goodsData.bulletPack != null;
         bool isHitEffectGoods = goodsData.skinType == SkinType.GunHitEffect && goodsData.gunHitData != null;
@@ -136,11 +166,9 @@ public class GoodsPage : MonoBehaviour
         {
             IntroduceRawImage.gameObject.SetActive(true);
             playerImage.gameObject.SetActive(false);
-            // 赋值实时渲染图
             if (EffectTexture != null)
                 IntroduceRawImage.texture = EffectTexture;
 
-            // 播放按钮：启用+显示
             if (PlayerButton != null)
             {
                 PlayerButton.gameObject.SetActive(true);
@@ -152,18 +180,17 @@ public class GoodsPage : MonoBehaviour
         {
             IntroduceRawImage.gameObject.SetActive(true);
             if (DefaultSprite != null)
-                IntroduceRawImage.texture = DefaultSprite.texture; // RawImage用纹理
+                IntroduceRawImage.texture = DefaultSprite.texture;
 
             playerImage.gameObject.SetActive(true);
             playerImage.DOKill();
-            SimpleSpritePlayer.Stop(playerImage); // 先停止旧动画
+            SimpleSpritePlayer.Stop(playerImage);
 
             if (goodsData.playerSkinPack != null)
             {
                 playerImage.sprite = goodsData.playerSkinPack.IdleSprite;
                 playerImage.color = Color.white;
 
-                // 有动画就播放动画
                 if (goodsData.playerSkinPack.IsHaveAnima && goodsData.playerSkinPack.AnimaSpriteList != null)
                 {
                     SimpleSpritePlayer.PlayLoop(playerImage, goodsData.playerSkinPack.AnimaSpriteList, 0.1f);
@@ -187,12 +214,10 @@ public class GoodsPage : MonoBehaviour
         if (DemoGun.Instance == null)
             return;
 
-        // 播放子弹演示
         if (goodsData.skinType == SkinType.SpecialBullet && goodsData.bulletPack != null)
         {
             DemoGun.Instance.TestShoot(goodsData.bulletPack);
         }
-        // 播放打击特效演示
         else if (goodsData.skinType == SkinType.GunHitEffect && goodsData.gunHitData != null)
         {
             DemoGun.Instance.TestHitEffect(goodsData.gunHitData);
@@ -202,7 +227,6 @@ public class GoodsPage : MonoBehaviour
     //判断购买状态
     public void JudgePurchaseState()
     {
-        // 获取折后价
         int finalPrice = GoodDataManager.Instance.GetGoodsDiscountedPrice(goodsData);
 
         if (GoldSystem.Instance.GetGold() >= finalPrice)
@@ -247,7 +271,6 @@ public class GoodsPage : MonoBehaviour
         {
             TriggerIntroduceText();
             IntroduceCanvasGroup.blocksRaycasts = true;
-
             SetupPreviewDisplay();
         }));
 
@@ -274,7 +297,6 @@ public class GoodsPage : MonoBehaviour
 
         currentExpandSeq.AppendCallback(() => {
             IntroduceText.text = "";
-            // 收起时清空渲染纹理（可选，性能优化）
             if (IntroduceRawImage != null) IntroduceRawImage.texture = null;
         });
 
@@ -325,33 +347,21 @@ public class GoodsPage : MonoBehaviour
     // 核心逻辑：先渲染通用UI，再分状态处理
     public void SetDataInfo()
     {
-        // ========== 所有商品通用的基础UI渲染（无论是否购买都执行） ==========
-        // 设置品质背景色
         SetGoodsColor(goodsData.quality);
-        // 设置商品名称
         GoodsName.text = goodsData.goodsName;
-        // 重置图标透明度
         GoodsImage.color = ColorManager.SetColorAlpha(GoodsImage.color, 0);
-        // 设置商品图标
         GoodsImage.sprite = goodsData.goodsIcon;
-        // 刷新子弹/打击特效模型显示
-        RefreshBulletDisplay();
-        // 非特效类商品，显示图标
-        if (goodsData.skinType != SkinType.SpecialBullet && goodsData.skinType != SkinType.GunHitEffect)
-        {
-            GoodsImage.DOFade(1, 0.5f);
-        }
 
-        // ========== 分状态处理：已购买 / 未购买 ==========
+        // ==========刷新所有显示==========
+        RefreshAllDisplay();
+
         bool isPurchased = GoodDataManager.Instance.JudgeUserHasGood(goodsData);
         if (isPurchased)
         {
-            // 已购买：直接设置已购买状态，不处理折扣和价格动画
             SetAlreadyPurchase();
         }
         else
         {
-            // 未购买：处理折扣显示 + 价格动画
             RefreshDiscountUI();
             PlayGoldNumberAnimation();
         }
@@ -362,62 +372,80 @@ public class GoodsPage : MonoBehaviour
     {
         float discount = GoodDataManager.Instance.GetGoodsDiscount(goodsData.goodsGuid);
 
-        // 确保折扣文本显示
         if (DiscountText != null)
         {
             DiscountText.gameObject.SetActive(true);
 
             if (discount < 1.0f)
             {
-                // 有折扣：显示 "X折"
                 int discountInt = Mathf.RoundToInt(discount * 10);
                 DiscountText.text = $"{discountInt}折";
                 DiscountText.fontSize = 63;
             }
             else
             {
-                // 无折扣：显示 "无打折"
                 DiscountText.text = "无打折";
                 DiscountText.fontSize = 45;
             }
         }
     }
 
+    public Color OriginalGoldBgColor;
+
     /// <summary>
-    /// 子弹/打击特效显示逻辑
+    /// 统一刷新：枪械皮肤→子弹→默认图标
     /// </summary>
-    private void RefreshBulletDisplay()
+    private void RefreshAllDisplay()
     {
-        // 组件缺失直接返回
-        if (BulletShowCanvas == null || _bulletImage == null || _cartridgeCaseImage == null)
+        BulletShowCanvas.alpha = 0;
+        GoodsImage.color = ColorManager.SetColorAlpha(GoodsImage.color, 1);
+        // 隐藏枪械皮肤物体
+        if (GunSkinImage != null) GunSkinImage.gameObject.SetActive(false);
+        if (GunSkinName != null) GunSkinName.gameObject.SetActive(false);
+        // 默认显示商品名称
+        if (GoodsName != null) GoodsName.gameObject.SetActive(true);
+
+        if (goodsData == null) return;
+
+        if (goodsData.skinType == SkinType.GunAppearance && goodsData.gunSkinPack != null)
         {
-            Debug.LogWarning("子弹显示组件未绑定！");
+            if (GunSkinImage != null)
+            {
+                GunSkinImage.sprite = goodsData.gunSkinPack.skinIcon;
+                GunSkinImage.gameObject.SetActive(true);
+
+                string gunRealName = goodsData.gunSkinPack.GunRealName;
+                if (gunRealName == "M762" || gunRealName == "AWP")
+                {
+                    GunSkinImage.transform.localScale = new Vector3(0.8f, 0.8f, 1f);
+                }
+                else
+                {
+                    GunSkinImage.transform.localScale = Vector3.one;
+                }
+            }
+            if (GunSkinName != null)
+            {
+                GunSkinName.text = goodsData.gunSkinPack.skinName;
+                GunSkinName.gameObject.SetActive(true);
+            }
+            // 隐藏主商品图标 + 原有商品名称
+            GoodsImage.color = ColorManager.SetColorAlpha(GoodsImage.color, 0);
+            if (GoodsName != null) GoodsName.gameObject.SetActive(false);
             return;
         }
 
-        // 判断是否为特效类商品（子弹/打击特效）
         bool isEffectGoods = (goodsData.skinType == SkinType.SpecialBullet && goodsData.bulletPack != null)
                           || (goodsData.skinType == SkinType.GunHitEffect && goodsData.gunHitData != null);
 
-        // 非特效商品：恢复默认显示
-        if (!isEffectGoods)
-        {
-            BulletShowCanvas.alpha = 0;
-            BulletShowCanvas.blocksRaycasts = false;
-            GoodsImage.color = ColorManager.SetColorAlpha(GoodsImage.color, 1);
-            _bulletImage.transform.localScale = Vector3.one;
-            return;
-        }
+        if (!isEffectGoods) return;
 
-        // 打击特效商品：仅隐藏图标，不显示子弹模型
         if (goodsData.skinType == SkinType.GunHitEffect)
         {
-            BulletShowCanvas.alpha = 0;
             GoodsImage.color = ColorManager.SetColorAlpha(GoodsImage.color, 0);
             return;
         }
 
-        // 仅子弹商品：显示子弹模型
         BulletShowCanvas.alpha = 1;
         GoodsImage.color = ColorManager.SetColorAlpha(GoodsImage.color, 0);
 
@@ -425,16 +453,9 @@ public class GoodsPage : MonoBehaviour
         MilitaryManager military = MilitaryManager.Instance;
         GunType gunType = bulletPack.gunType;
 
-        if (gunType == GunType.Rifle || gunType == GunType.LightMachineGun)
-        {
-            _bulletImage.transform.localScale = new Vector3(0.7f, 1f, 1f);
-        }
-        else
-        {
-            _bulletImage.transform.localScale = Vector3.one;
-        }
+        _bulletImage.transform.localScale = (gunType == GunType.Rifle || gunType == GunType.LightMachineGun)
+            ? new Vector3(0.7f, 1f, 1f) : Vector3.one;
 
-        // 赋值子弹/弹壳图片
         Sprite bulletSprite = null;
         Sprite caseSprite = null;
         switch (gunType)
@@ -455,18 +476,13 @@ public class GoodsPage : MonoBehaviour
                 break;
         }
 
-        // 赋值图片+颜色
-        if (bulletSprite != null)
-            _bulletImage.sprite = bulletSprite;
-        if (caseSprite != null)
-            _cartridgeCaseImage.sprite = caseSprite;
+        if (bulletSprite != null) _bulletImage.sprite = bulletSprite;
+        if (caseSprite != null) _cartridgeCaseImage.sprite = caseSprite;
 
         if (bulletPack.bulletVisualConfig != null)
         {
             _bulletImage.color = bulletPack.bulletVisualConfig.bulletColor;
             _cartridgeCaseImage.color = bulletPack.bulletVisualConfig.cartridgeCaseColor;
-            _bulletImage.SetAllDirty();
-            _cartridgeCaseImage.SetAllDirty();
         }
     }
 
@@ -486,14 +502,15 @@ public class GoodsPage : MonoBehaviour
             IntroduceCanvasGroup.blocksRaycasts = false;
         }
 
-        InitBulletUI(); // 调用统一初始化，重置所有UI
+        InitBulletUI();
 
         GoodsImage.color = ColorManager.SetColorAlpha(GoodsImage.color, 0);
         GoldNumber.text = "0";
-        GoldNumber.fontSize = 63; // 重置字体大小，防止被"已购买"改了不还原
+        GoldNumber.fontSize = 63;
         DiscountRect.anchoredPosition = OriginalPos;
+        // 重置商品名称显示
+        if (GoodsName != null) GoodsName.gameObject.SetActive(true);
 
-        // 停止并重置折扣动画
         if (DiscountSequence != null && DiscountSequence.IsActive())
         {
             DiscountSequence.Kill();
@@ -507,6 +524,25 @@ public class GoodsPage : MonoBehaviour
 
         if (IntroduceRawImage != null)
             IntroduceRawImage.texture = null;
+
+        if (GunSkinImage != null)
+        {
+            GunSkinImage.transform.localScale = Vector3.one;
+        }
+
+        if (GoldBackGround != null)
+        {
+            GoldBackGround.DOKill(); // 停止颜色动画
+            GoldBackGround.color = OriginalGoldBgColor;
+        }
+
+        // ======================重置购买按钮状态 ======================
+        if (PurchaseButton != null)
+        {
+            PurchaseButton.onClick.RemoveAllListeners(); // 清空监听
+            PurchaseButton.onClick.AddListener(JudgePurchaseState); // 重新绑定购买逻辑
+            PurchaseButton.GetComponentInChildren<TextMeshProUGUI>().text = "购买";
+        }
     }
 
     public void SetGoodsColor(GoodsQuality Quality)
@@ -525,7 +561,7 @@ public class GoodsPage : MonoBehaviour
         }
     }
 
-    // 动画入口：已购买的不播放折扣动画
+    // 动画入口
     public void ShowAnima()
     {
         bool isPurchased = GoodDataManager.Instance.JudgeUserHasGood(goodsData);
@@ -543,7 +579,6 @@ public class GoodsPage : MonoBehaviour
 
     public void DiscountAnima()
     {
-        // 确保位置重置
         DiscountRect.anchoredPosition = OriginalPos;
         DiscountCanvasGroup.alpha = 0;
 
@@ -556,7 +591,6 @@ public class GoodsPage : MonoBehaviour
         if (goodsData == null)
             return;
 
-        // 获取折后价作为目标
         int targetPrice = GoodDataManager.Instance.GetGoodsDiscountedPrice(goodsData);
 
         GoldNumber.text = "0";
@@ -566,21 +600,17 @@ public class GoodsPage : MonoBehaviour
     // 设置已购买状态
     public void SetAlreadyPurchase()
     {
-        // 价格区域设置
         GoldBackGround.DOColor(ColorManager.EmeraldGreen, 1);
         GoldNumber.text = "已购买";
         GoldNumber.fontSize = 40;
 
-        // 完全隐藏折扣相关
         if (DiscountText != null) DiscountText.gameObject.SetActive(false);
         if (DiscountCanvasGroup != null) DiscountCanvasGroup.alpha = 0;
-        // 停止可能正在播放的折扣动画
         if (DiscountSequence != null && DiscountSequence.IsActive())
         {
             DiscountSequence.Kill();
         }
 
-        // 购买按钮设置
         PurchaseButton.GetComponentInChildren<TextMeshProUGUI>().text = "已购买";
         PurchaseButton.onClick.RemoveAllListeners();
     }

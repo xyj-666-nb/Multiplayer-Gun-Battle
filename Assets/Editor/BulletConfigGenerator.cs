@@ -327,9 +327,6 @@ public class BulletGeneratorWithFix : EditorWindow
         // 修正默认参数
         if (config.flashDuration <= 0) { config.flashDuration = 0.15f; isChanged = true; }
         if (config.lightMaxIntensity <= 0) { config.lightMaxIntensity = 12.92f; isChanged = true; }
-        if (config.lightRadius <= 0) { config.lightRadius = 1.5f; isChanged = true; }
-        if (!config.lock2DZAxis) { config.lock2DZAxis = true; isChanged = true; }
-
         if (isChanged) EditorUtility.SetDirty(config);
         return isChanged;
     }
@@ -488,8 +485,6 @@ public class BulletGeneratorWithFix : EditorWindow
         config.lightEndColor = color.LightEnd;
         config.flashDuration = 0.15f;
         config.lightMaxIntensity = 12.92f;
-        config.lightRadius = 1.5f;
-        config.lock2DZAxis = true;
 
         AssetDatabase.CreateAsset(config, path);
         AssetDatabase.SaveAssets();

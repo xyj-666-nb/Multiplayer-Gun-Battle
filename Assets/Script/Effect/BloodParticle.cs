@@ -14,10 +14,22 @@ public class BloodParticle : MonoBehaviour
     SpriteRenderer renderer;
     float t = 0;
 
+    private readonly Vector2 GRAVITY = new Vector2(0, 5f);
+    private readonly float RAY_MULTIPLIER = 1.5f;
+    private readonly float RAD_TO_DEG = 180f / Mathf.PI;
+
+    private LayerMask collisionLayerMask;
+
+    private const string LAYER_BACKGROUND = "BackGround";
+    private const string LAYER_WALL = "Wall";
+    private const string LAYER_GROUND = "Ground";
+
     void Start()
     {
         renderer = GetComponent<SpriteRenderer>();
+        collisionLayerMask = LayerMask.GetMask(LAYER_BACKGROUND, LAYER_WALL, LAYER_GROUND);
     }
+
     // Update is called once per frame
     void Update()
     {
@@ -31,14 +43,17 @@ public class BloodParticle : MonoBehaviour
         renderer.color = color;
 
         //模拟重力，保持粒子始终朝向运动方向
-        velocity -= new Vector2(0, 5 * Time.deltaTime);
+        velocity -= GRAVITY * Time.deltaTime;
         float angle = Mathf.Atan2(velocity.y, velocity.x);
         transform.position += (Vector3)velocity * Time.deltaTime;
-        transform.rotation = Quaternion.Euler(0, 0, angle * 180 / Mathf.PI);
+        // 使用缓存的角度转换常量，无重复计算
+        transform.rotation = Quaternion.Euler(0, 0, angle * RAD_TO_DEG);
 
         //用射线检测是否碰撞到地形
-        RaycastHit2D raycastHit = Physics2D.Raycast(transform.position, velocity.normalized, velocity.magnitude * (1.5f * Time.deltaTime),
-            LayerMask.GetMask("BackGround", "Wall", "Ground"));
+        // 使用缓存的层掩码+常量，零GC开销
+        RaycastHit2D raycastHit = Physics2D.Raycast(transform.position, velocity.normalized,
+            velocity.magnitude * RAY_MULTIPLIER * Time.deltaTime, collisionLayerMask);
+
         if (raycastHit)
         {
             BloodParticleGenerator.Instance.GenerateBloodOnWall(raycastHit.point, raycastHit.normal);
@@ -51,5 +66,4 @@ public class BloodParticle : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
 }

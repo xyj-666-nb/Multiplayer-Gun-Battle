@@ -18,29 +18,34 @@ public class BloodParticleGenerator : Singleton<BloodParticleGenerator>
     private const float FADE_DELAY = 3f;
     private const float FADE_DURATION = 1f;
 
+    private readonly Vector3 BLOOD_Z_OFFSET = new Vector3(0, 0, -0.6f);
+    private readonly float BACKGROUND_OFFSET_SCALE = 2.5f;
+
+    private const float RAD_TO_DEG = 180f / Mathf.PI;
+
+    private WaitForSeconds _fadeDelayWait;
+
     protected override void Awake()
     {
         base.Awake();
         transform.parent = null;
+        _fadeDelayWait = new WaitForSeconds(FADE_DELAY);
     }
 
     public void GenerateBloodOnBackground(Vector3 position)
     {
         if (bloodOnBackground == null) return;
 
-        // 随机参数
-        position += new Vector3(Random.Range(-0.2f, 0.2f), Random.Range(-0.5f, 0.5f), 0) * 2.5f;
+        position += new Vector3(Random.Range(-0.2f, 0.2f), Random.Range(-0.5f, 0.5f), 0) * BACKGROUND_OFFSET_SCALE;
         float angle = Random.Range(-20f, 20f);
         Vector2 size = new Vector2(Random.Range(0.8f, 1.2f), Random.Range(0.8f, 1.2f));
 
-        // 从对象池获取
         GameObject blood = PoolManage.Instance.GetObj(bloodOnBackground);
-        blood.transform.position = position + new Vector3(0, 0, -0.6f);
+        blood.transform.position = position + BLOOD_Z_OFFSET;
         blood.transform.rotation = Quaternion.Euler(0, 0, angle);
         blood.transform.localScale = size;
         blood.transform.SetParent(transform);
 
-        // 设置精灵并重置透明度
         SpriteRenderer sr = blood.GetComponent<SpriteRenderer>();
         if (sr != null)
         {
@@ -49,7 +54,6 @@ public class BloodParticleGenerator : Singleton<BloodParticleGenerator>
             ResetAlpha(sr);
         }
 
-        // 启动带淡出的自动回收
         StartCoroutine(RecycleWithFade(blood, bloodOnBackground, sr));
     }
 
@@ -57,16 +61,13 @@ public class BloodParticleGenerator : Singleton<BloodParticleGenerator>
     {
         if (bloodOnWall == null) return;
 
-        // 计算角度
-        float angle = Mathf.Atan2(normal.y, normal.x) * 180 / Mathf.PI - 90;
+        float angle = Mathf.Atan2(normal.y, normal.x) * RAD_TO_DEG - 90;
 
-        // 从对象池获取
         GameObject blood = PoolManage.Instance.GetObj(bloodOnWall);
-        blood.transform.position = position + new Vector3(0, 0, -0.6f);
+        blood.transform.position = position + BLOOD_Z_OFFSET;
         blood.transform.rotation = Quaternion.Euler(0, 0, angle);
         blood.transform.SetParent(transform);
 
-        // 设置精灵并重置透明度
         SpriteRenderer sr = blood.GetComponent<SpriteRenderer>();
         if (sr != null)
         {
@@ -75,7 +76,6 @@ public class BloodParticleGenerator : Singleton<BloodParticleGenerator>
             ResetAlpha(sr);
         }
 
-        // 启动带淡出的自动回收
         StartCoroutine(RecycleWithFade(blood, bloodOnWall, sr));
     }
 
@@ -83,15 +83,13 @@ public class BloodParticleGenerator : Singleton<BloodParticleGenerator>
     {
         if (bloodParticle == null) return;
 
-        float angle = Mathf.Atan2(velocity.y, velocity.x) * 180 / Mathf.PI;
+        float angle = Mathf.Atan2(velocity.y, velocity.x) * RAD_TO_DEG;
 
-        // 从对象池获取
         GameObject blood = PoolManage.Instance.GetObj(bloodParticle);
         blood.transform.position = position;
         blood.transform.rotation = Quaternion.Euler(0, 0, angle);
         blood.transform.SetParent(transform);
 
-        // 初始化粒子逻辑并重置透明度
         SpriteRenderer sr = blood.GetComponent<SpriteRenderer>();
         BloodParticle particle = blood.GetComponent<BloodParticle>();
         if (particle != null)
@@ -103,7 +101,6 @@ public class BloodParticleGenerator : Singleton<BloodParticleGenerator>
             ResetAlpha(sr);
         }
 
-        // 启动带淡出的自动回收
         StartCoroutine(RecycleWithFade(blood, bloodParticle, sr));
     }
 
@@ -118,22 +115,17 @@ public class BloodParticleGenerator : Singleton<BloodParticleGenerator>
         }
     }
 
-    // 协程：等待3秒 → 1秒淡出 → 回收
+    // 协程回收
     private IEnumerator RecycleWithFade(GameObject obj, GameObject prefab, SpriteRenderer sr)
     {
-        // 前3秒保持不动
-        yield return new WaitForSeconds(FADE_DELAY);
+        yield return _fadeDelayWait;
 
-        if (obj == null || sr == null) 
+        if (obj == null || sr == null)
             yield break;
 
-        // 启动1秒透明度渐变动画
         Tween fadeTween = sr.DOFade(0f, FADE_DURATION).SetEase(Ease.Linear);
-
-        // 等待动画完成
         yield return fadeTween.WaitForCompletion();
 
-        // 回收对象
         if (obj != null && prefab != null)
         {
             PoolManage.Instance.PushObj(prefab, obj);

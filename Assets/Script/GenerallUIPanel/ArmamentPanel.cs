@@ -548,7 +548,7 @@ public class ArmamentPanel : BasePanel
         }
         CreatedArmamentButtons.Clear();
 
-        // 额外清理父对象下的残留（防止对象池异常导致的残留）
+        // 额外清理父对象下的残留
         if (TypeButtonParent != null)
         {
             foreach (Transform child in TypeButtonParent)

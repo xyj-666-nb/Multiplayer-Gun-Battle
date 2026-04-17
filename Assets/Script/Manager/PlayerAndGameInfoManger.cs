@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -131,6 +132,8 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
                 Player.LocalPlayer.SpawnAndPickGun(cachedGunName);
             }
         });
+        //获取装备的时候回收一下
+        GC.Collect(0, GCCollectionMode.Forced, false);//触发小回收，回收一下之前的弹壳对象，减少内存占用
     }
 
     //3帧冷却协程

@@ -462,6 +462,7 @@ public class MyPlayerInput : NetworkBehaviour
             Myplayer.currentGun.TriggerReload();//调用换弹
             //通知UI开始显示
             UImanager.Instance.GetPanel<PlayerPanel>()?.EnterReloadPrompt(Myplayer.currentGun.gunInfo.ReloadTime);//传入换弹时间
+
         }
     }
     #endregion

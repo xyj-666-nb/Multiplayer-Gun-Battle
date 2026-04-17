@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -112,6 +113,7 @@ public class AmmunitionBox : BaseSceneInteract
         //调用弹药补充
         Player.LocalPlayer.CmdBulletSupplement();//补充弹药
         MusicManager.Instance.PlayEffect("Music/正式/交互/补充子弹",1f);
+        GC.Collect(0, GCCollectionMode.Forced, false);//触发小回收，回收一下之前的弹壳对象，减少内存占用
     }
 
     public override void Update()

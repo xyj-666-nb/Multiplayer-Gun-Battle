@@ -22,14 +22,15 @@ public class Base_Entity : NetworkBehaviour
     #region 缓存变量
     private RaycastHit2D[] _wallHitCache;
     private ContactFilter2D _wallContactFilter;
-
+    private readonly Vector2 _downDir = Vector2.down;
+    private readonly Vector2 _rightDir = Vector2.right;
     private bool _lastGroundedState;
-    public event Action<bool> OnGroundStateChanged; // true=刚落地，false=刚离地
+    public event Action<bool> OnGroundStateChanged;
     #endregion
 
     #region 墙壁以及地面检测
     // 2D地面检测
-    public virtual bool IsGroundDetected() => Physics2D.Raycast(GroundCheck.position, Vector2.down,
+    public virtual bool IsGroundDetected() => Physics2D.Raycast(GroundCheck.position, _downDir,
         GroundCheckDistance, Layer_Ground);
 
     // 2D墙壁检测
@@ -38,19 +39,20 @@ public class Base_Entity : NetworkBehaviour
         if (WallCheck == null)
             return false;
 
-        // 初始化缓存（仅1次）
-        if (_wallHitCache == null) _wallHitCache = new RaycastHit2D[1];
-        if (_wallContactFilter.layerMask != Layer_Wall)
+        if (_wallHitCache == null)
+            _wallHitCache = new RaycastHit2D[1];
+
+        // 保守优化：仅初始化一次过滤器，杜绝重复分配
+        if (_wallContactFilter.layerMask == 0)
         {
             _wallContactFilter = new ContactFilter2D();
             _wallContactFilter.SetLayerMask(Layer_Wall);
             _wallContactFilter.useTriggers = false;
         }
 
-        // 复用数组，避免GC
         int hitCount = Physics2D.Raycast(
             WallCheck.position,
-            Vector2.right * FacingDir,
+            _rightDir * FacingDir,
             _wallContactFilter,
             _wallHitCache,
             WallCheckDistance
@@ -64,7 +66,7 @@ public class Base_Entity : NetworkBehaviour
     }
     #endregion
 
-    #region 生物翻转（保留原逻辑）
+    #region 生物翻转
     [Header("角色朝向")]
     [SyncVar(hook = nameof(OnFacingDirChanged))]
     public int FacingDir = 1;
@@ -91,7 +93,7 @@ public class Base_Entity : NetworkBehaviour
     }
     #endregion
 
-    #region 生物初始化 + 性能优化核心
+    #region 生物初始化
     public virtual void Awake()
     {
         if (MyRigdboby == null)
@@ -101,7 +103,8 @@ public class Base_Entity : NetworkBehaviour
                 MyRigdboby = GetComponentInChildren<Rigidbody2D>();
         }
 
-        if (_wallHitCache == null) _wallHitCache = new RaycastHit2D[1];
+        if (_wallHitCache == null)
+            _wallHitCache = new RaycastHit2D[1];
 
         if (GroundCheck != null)
         {
@@ -115,7 +118,6 @@ public class Base_Entity : NetworkBehaviour
 
         bool currentGrounded = IsGroundDetected();
 
-        // 仅当状态变化时触发事件，其余时间0开销
         if (currentGrounded != _lastGroundedState)
         {
             OnGroundStateChanged?.Invoke(currentGrounded);
@@ -124,7 +126,7 @@ public class Base_Entity : NetworkBehaviour
     }
     #endregion
 
-    #region Gizmos绘制（保留原逻辑）
+    #region Gizmos绘制
     public virtual void OnDrawGizmos()
     {
         if (GroundCheck != null)
@@ -160,6 +162,6 @@ public class Base_Entity : NetworkBehaviour
     {
         _wallHitCache = null;
         MyRigdboby = null;
-        OnGroundStateChanged = null; // 清理事件，防止内存泄漏
+        OnGroundStateChanged = null;
     }
 }

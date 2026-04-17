@@ -5,9 +5,25 @@ using System.Linq;
 
 public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
 {
-    private string DataLocalString = "GameGoldAmount";
-    private string GoldCheckSumKey = "GameGoldCheckSum"; 
-    private string GoldLogSaveFileName = "GameGoldLogHistory";
+    #region 常量缓存
+    // 本地存储键常量
+    private const string DATA_LOCAL_STRING = "GameGoldAmount";
+    private const string GOLD_CHECK_SUM_KEY = "GameGoldCheckSum";
+    private const string GOLD_LOG_SAVE_FILE_NAME = "GameGoldLogHistory";
+
+    // 日志前缀/提示常量
+    private const string LOG_PREFIX = "[金币系统]";
+    private const string DEFAULT_OPERATE_REASON = "未知操作";
+    private const string DEFAULT_ADD_REASON = "未知来源";
+    private const string DEFAULT_COST_REASON = "未知消耗";
+    private const string OPERATE_TYPE_INCOME = "收入";
+    private const string OPERATE_TYPE_PAY = "支出";
+    private const string GM_RESET_REASON = "GM强制重置金币";
+    private const string SYSTEM_FIX_REASON = "系统检测到数据篡改，已自动修复";
+
+    // 日期格式化常量
+    private const string DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    #endregion
 
     [Header("玩家用户默认金币")]
     public int defaultGoldAmount = 100;
@@ -23,23 +39,30 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
     private int MyGoldDataEncryptionPackID;
     public List<GoldLog> _currentSessionLogList;
 
+    #region 避免高频调用.Instance产生GC
+    private DataEncryptionManger _dataEncryptionManager;
+    #endregion
+
     protected override void Awake()
     {
         base.Awake();
+        // 一次性缓存加密管理器单例，全局复用
+        _dataEncryptionManager = DataEncryptionManger.Instance;
+
         _currentSessionLogList = new List<GoldLog>();
 
         // 加载加密的本地金币
-        int loadedGold = DataEncryptionManger.Instance.LoadEncryptedPlayerPrefs<int>(DataLocalString, defaultGoldAmount);
+        int loadedGold = _dataEncryptionManager.LoadEncryptedPlayerPrefs<int>(DATA_LOCAL_STRING, defaultGoldAmount);
 
         // 金币数据完整性校准
         int finalValidGold = VerifyAndFixGoldData(loadedGold);
 
         // 校验通过后，再写入内存加密
-        MyGoldDataEncryptionPackID = DataEncryptionManger.Instance.EncryptData<int>(finalValidGold);
+        MyGoldDataEncryptionPackID = _dataEncryptionManager.EncryptData<int>(finalValidGold);
 
         VerifyAndCleanLocalLogs();
 
-        Debug.Log($"[金币系统] 初始化完成，最终合法金币：{finalValidGold}，本次会话日志已就绪");
+        Debug.Log($"{LOG_PREFIX} 初始化完成，最终合法金币：{finalValidGold}，本次会话日志已就绪");
     }
 
     #region 金币防篡改校准逻辑
@@ -61,7 +84,7 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
         }
 
         // 读取本地存储的校验码
-        string localCheckSum = PlayerPrefs.GetString(GoldCheckSumKey, string.Empty);
+        string localCheckSum = PlayerPrefs.GetString(GOLD_CHECK_SUM_KEY, string.Empty);
         // 用当前加载的金币重新计算校验码
         string calculatedCheckSum = GenerateGoldCheckSum(finalGold);
 
@@ -73,7 +96,7 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
         }
 
         // 读取本地历史日志，做交叉验证
-        List<GoldLog> localHistoryLogs = DataEncryptionManger.Instance.LoadEncryptedComplexData<List<GoldLog>>(GoldLogSaveFileName);
+        List<GoldLog> localHistoryLogs = _dataEncryptionManager.LoadEncryptedComplexData<List<GoldLog>>(GOLD_LOG_SAVE_FILE_NAME);
         if (localHistoryLogs != null && localHistoryLogs.Count > 0)
         {
             GoldLog lastLog = localHistoryLogs.First(); // 最新的一条日志在最前面
@@ -86,27 +109,27 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
 
         if (!isDataValid)
         {
-            Debug.LogError($"[金币系统] 数据校验失败！{errorMsg}");
+            Debug.LogError($"{LOG_PREFIX} 数据校验失败！{errorMsg}");
 
             // 兜底方案1：优先用日志里的最后一个合法值
             if (localHistoryLogs != null && localHistoryLogs.Count > 0)
             {
                 finalGold = Mathf.Clamp(localHistoryLogs.First().afterGold, 0, maxGoldLimit);
-                Debug.LogWarning($"[金币系统] 已回滚到日志最后记录的合法值：{finalGold}");
+                Debug.LogWarning($"{LOG_PREFIX} 已回滚到日志最后记录的合法值：{finalGold}");
             }
             else
             {
                 finalGold = defaultGoldAmount;
-                Debug.LogWarning($"[金币系统] 无有效日志，已重置为默认金币：{defaultGoldAmount}");
+                Debug.LogWarning($"{LOG_PREFIX} 无有效日志，已重置为默认金币：{defaultGoldAmount}");
             }
 
             // 重置后，重新生成合法的校验码并保存
             RefreshGoldCheckSum(finalGold);
             // 重新保存合法的金币数据
-            DataEncryptionManger.Instance.SaveEncryptedPlayerPrefs<int>(DataLocalString, finalGold);
+            _dataEncryptionManager.SaveEncryptedPlayerPrefs<int>(DATA_LOCAL_STRING, finalGold);
 
             // 新增一条篡改记录日志
-            AddGoldLog(0, "系统检测到数据篡改，已自动修复", finalGold);
+            AddGoldLog(0, SYSTEM_FIX_REASON, finalGold);
         }
         // 校验通过：首次启动自动生成校验码
         else
@@ -114,7 +137,7 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
             if (string.IsNullOrEmpty(localCheckSum))
             {
                 RefreshGoldCheckSum(finalGold);
-                Debug.Log("[金币系统] 首次启动，已生成金币校验码");
+                Debug.Log($"{LOG_PREFIX} 首次启动，已生成金币校验码");
             }
         }
 
@@ -130,7 +153,7 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
         int mixedValue = goldValue ^ GOLD_VERIFY_MAGIC;
         string rawSignData = $"{mixedValue}_{goldValue}_{GOLD_VERIFY_MAGIC}";
         // 复用你现有的加密工具生成MD5签名
-        return DataEncryptionManger.EditorEncryptionTools.CalculateMD5Hash(rawSignData, DataEncryptionManger.Instance.saveSecretKey);
+        return DataEncryptionManger.EditorEncryptionTools.CalculateMD5Hash(rawSignData, _dataEncryptionManager.saveSecretKey);
     }
 
     /// <summary>
@@ -139,7 +162,7 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
     private void RefreshGoldCheckSum(int currentGold)
     {
         string newCheckSum = GenerateGoldCheckSum(currentGold);
-        PlayerPrefs.SetString(GoldCheckSumKey, newCheckSum);
+        PlayerPrefs.SetString(GOLD_CHECK_SUM_KEY, newCheckSum);
         PlayerPrefs.Save();
     }
     #endregion
@@ -163,15 +186,15 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
     // 获取当前金币
     public int GetGold()
     {
-        return DataEncryptionManger.Instance.GetDecryptedData<int>(MyGoldDataEncryptionPackID);
+        return _dataEncryptionManager.GetDecryptedData<int>(MyGoldDataEncryptionPackID);
     }
 
     // 金币变动
-    public void ChangeGold(int Value, string operateReason = "未知操作")
+    public void ChangeGold(int Value, string operateReason = DEFAULT_OPERATE_REASON)
     {
         if (Mathf.Abs(Value) > singleOperateLimit)
         {
-            Debug.LogError($"[金币系统] 单次操作超过上限！变动值：{Value}，原因：{operateReason}");
+            Debug.LogError($"{LOG_PREFIX} 单次操作超过上限！变动值：{Value}，原因：{operateReason}");
             return;
         }
 
@@ -183,7 +206,7 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
         {
             if (targetGold < 0)
             {
-                Debug.LogWarning($"[金币系统] 余额不足！当前：{currentGold}，需扣：{Mathf.Abs(Value)}，原因：{operateReason}");
+                Debug.LogWarning($"{LOG_PREFIX} 余额不足！当前：{currentGold}，需扣：{Mathf.Abs(Value)}，原因：{operateReason}");
                 return;
             }
         }
@@ -194,21 +217,21 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
         }
 
         // 更新内存加密数据
-        DataEncryptionManger.Instance.UpdateEncryptedData<int>(MyGoldDataEncryptionPackID, targetGold);
+        _dataEncryptionManager.UpdateEncryptedData<int>(MyGoldDataEncryptionPackID, targetGold);
         // 添加本次日志
         AddGoldLog(Value, operateReason, targetGold);
 
-        Debug.Log($"[金币系统] 变动成功！±{Value}，剩余：{targetGold}，原因：{operateReason}");
+        Debug.Log($"{LOG_PREFIX} 变动成功！±{Value}，剩余：{targetGold}，原因：{operateReason}");
     }
 
     #region 提供给外部的数据变动方法
-    public void AddGold(int addAmount, string reason = "未知来源")
+    public void AddGold(int addAmount, string reason = DEFAULT_ADD_REASON)
     {
         if (addAmount <= 0) return;
         ChangeGold(addAmount, reason);
     }
 
-    public bool CostGold(int costAmount, string reason = "未知消耗")
+    public bool CostGold(int costAmount, string reason = DEFAULT_COST_REASON)
     {
         if (costAmount <= 0) return false;
         int currentGold = GetGold();
@@ -223,7 +246,7 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
     {
         int currentGold = GetGold();
         // 保存加密金币数据
-        DataEncryptionManger.Instance.SaveEncryptedPlayerPrefs<int>(DataLocalString, currentGold);
+        _dataEncryptionManager.SaveEncryptedPlayerPrefs<int>(DATA_LOCAL_STRING, currentGold);
         // 同步刷新校验码
         RefreshGoldCheckSum(currentGold);
     }
@@ -231,14 +254,14 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
     #region 优化后的日志核心逻辑
     private void VerifyAndCleanLocalLogs()
     {
-        var tempCheckList = DataEncryptionManger.Instance.LoadEncryptedComplexData<List<GoldLog>>(GoldLogSaveFileName);
+        var tempCheckList = _dataEncryptionManager.LoadEncryptedComplexData<List<GoldLog>>(GOLD_LOG_SAVE_FILE_NAME);
         if (tempCheckList == null)
         {
-            Debug.Log("[金币系统] 本地日志文件不存在或已损坏，将创建新档案");
+            Debug.Log($"{LOG_PREFIX} 本地日志文件不存在或已损坏，将创建新档案");
         }
         else
         {
-            Debug.Log($"[金币系统] 本地日志校验通过，共 {tempCheckList.Count} 条历史记录");
+            Debug.Log($"{LOG_PREFIX} 本地日志校验通过，共 {tempCheckList.Count} 条历史记录");
         }
     }
 
@@ -246,11 +269,11 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
     {
         if (_currentSessionLogList == null || _currentSessionLogList.Count == 0)
         {
-            Debug.Log("[金币系统] 本次无新日志，无需合并");
+            Debug.Log($"{LOG_PREFIX} 本次无新日志，无需合并");
             return;
         }
 
-        List<GoldLog> allHistoryLogs = DataEncryptionManger.Instance.LoadEncryptedComplexData<List<GoldLog>>(GoldLogSaveFileName);
+        List<GoldLog> allHistoryLogs = _dataEncryptionManager.LoadEncryptedComplexData<List<GoldLog>>(GOLD_LOG_SAVE_FILE_NAME);
         allHistoryLogs ??= new List<GoldLog>();
 
         allHistoryLogs.InsertRange(0, _currentSessionLogList);
@@ -260,16 +283,16 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
             allHistoryLogs.RemoveRange(maxLocalLogCount, allHistoryLogs.Count - maxLocalLogCount);
         }
 
-        DataEncryptionManger.Instance.SaveEncryptedComplexData<List<GoldLog>>(GoldLogSaveFileName, allHistoryLogs);
-        Debug.Log($"[金币系统] 日志合并成功！本次新增 {_currentSessionLogList.Count} 条，本地总计 {allHistoryLogs.Count} 条");
+        _dataEncryptionManager.SaveEncryptedComplexData<List<GoldLog>>(GOLD_LOG_SAVE_FILE_NAME, allHistoryLogs);
+        Debug.Log($"{LOG_PREFIX} 日志合并成功！本次新增 {_currentSessionLogList.Count} 条，本地总计 {allHistoryLogs.Count} 条");
     }
 
     private void AddGoldLog(int changeValue, string reason, int afterGold)
     {
         GoldLog log = new GoldLog
         {
-            operateTime = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-            operateType = changeValue > 0 ? "收入" : "支出",
+            operateTime = System.DateTime.Now.ToString(DATE_FORMAT),
+            operateType = changeValue > 0 ? OPERATE_TYPE_INCOME : OPERATE_TYPE_PAY,
             changeAmount = changeValue,
             reason = reason,
             afterGold = afterGold
@@ -279,7 +302,7 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
 
     public List<GoldLog> GetAllLogsForUI()
     {
-        List<GoldLog> historyLogs = DataEncryptionManger.Instance.LoadEncryptedComplexData<List<GoldLog>>(GoldLogSaveFileName);
+        List<GoldLog> historyLogs = _dataEncryptionManager.LoadEncryptedComplexData<List<GoldLog>>(GOLD_LOG_SAVE_FILE_NAME);
         historyLogs ??= new List<GoldLog>();
 
         List<GoldLog> uiLogs = new List<GoldLog>(_currentSessionLogList);
@@ -305,8 +328,8 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
     private void GM_ClearAllLogs()
     {
         _currentSessionLogList.Clear();
-        DataEncryptionManger.Instance.DeleteEncryptedComplexData(GoldLogSaveFileName);
-        Debug.Log("[金币系统] GM已清空所有日志");
+        _dataEncryptionManager.DeleteEncryptedComplexData(GOLD_LOG_SAVE_FILE_NAME);
+        Debug.Log($"{LOG_PREFIX} GM已清空所有日志");
     }
 
     [ContextMenu("GM_消耗500金币")]
@@ -315,10 +338,10 @@ public class GoldSystem : SingleMonoAutoBehavior<GoldSystem>
     public void ForceResetGold(int targetGold)
     {
         targetGold = Mathf.Clamp(targetGold, 0, maxGoldLimit);
-        MyGoldDataEncryptionPackID = DataEncryptionManger.Instance.EncryptData<int>(targetGold);
+        MyGoldDataEncryptionPackID = _dataEncryptionManager.EncryptData<int>(targetGold);
         SaveCurrentGoldToFile();
-        AddGoldLog(-GetGold(), "GM强制重置金币", targetGold);
-        Debug.Log($"[金币系统] 强制重置成功：{targetGold}");
+        AddGoldLog(-GetGold(), GM_RESET_REASON, targetGold);
+        Debug.Log($"{LOG_PREFIX} 强制重置成功：{targetGold}");
     }
     #endregion
 

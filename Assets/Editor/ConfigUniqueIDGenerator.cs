@@ -13,7 +13,8 @@ public class ConfigUniqueIDGenerator : EditorWindow
     private int _currentHitID = 1;
     private int _currentSkinID = 1;
     private int _currentExpressionID = 1;
-    private int _currentBulletBindID = 1; // 【新增】子弹捆绑包ID计数器
+    private int _currentBulletBindID = 1;
+    private int _currentGunSkinID = 1; // 【新增】枪械皮肤ID计数器
 
     [MenuItem("Tools/配置工具/分配唯一ID(全配置)", false, 110)]
     public static void ShowIDWindow()
@@ -38,8 +39,8 @@ public class ConfigUniqueIDGenerator : EditorWindow
         }
 
         GUILayout.Space(20);
-        // 【更新】提示文案
-        EditorGUILayout.HelpBox("分配规则：\n1. 子弹配置 = BulletID 全局自增\n2. 火光配置 = MuzzleFlashID 全局自增\n3. 命中特效 = HitID 全局自增\n4. 角色皮肤 = PlayerSkinID 全局自增\n5. 表情配置 = ExpressionID 全局自增\n6. 子弹捆绑包 = BulletBindID 全局自增\n7. 各类型ID互不干扰，全局唯一", MessageType.Info);
+
+        EditorGUILayout.HelpBox("分配规则：\n1. 子弹配置 = BulletID 全局自增\n2. 火光配置 = MuzzleFlashID 全局自增\n3. 命中特效 = HitID 全局自增\n4. 角色皮肤 = PlayerSkinID 全局自增\n5. 表情配置 = ExpressionID 全局自增\n6. 子弹捆绑包 = BulletBindID 全局自增\n7. 枪械皮肤包 = GunSkinID 全局自增\n8. 各类型ID互不干扰，全局唯一", MessageType.Info);
     }
 
     #region 核心分配逻辑
@@ -51,7 +52,8 @@ public class ConfigUniqueIDGenerator : EditorWindow
         _currentHitID = 1;
         _currentSkinID = 1;
         _currentExpressionID = 1;
-        _currentBulletBindID = 1; // 【新增】重置子弹捆绑包ID
+        _currentBulletBindID = 1;
+        _currentGunSkinID = 1; // 【新增】重置枪械皮肤ID
 
         var selection = Selection.objects;
         foreach (var obj in selection)
@@ -71,7 +73,8 @@ public class ConfigUniqueIDGenerator : EditorWindow
         _currentHitID = 1;
         _currentSkinID = 1;
         _currentExpressionID = 1;
-        _currentBulletBindID = 1; // 【新增】重置子弹捆绑包ID
+        _currentBulletBindID = 1;
+        _currentGunSkinID = 1; 
 
         // 全类型扫描分配
         AssignAllByType<BulletVisualConfig>();
@@ -79,7 +82,8 @@ public class ConfigUniqueIDGenerator : EditorWindow
         AssignAllByType<GunHitData>();
         AssignAllByType<PlayerSkinPack>();
         AssignAllByType<ExpressionPack>();
-        AssignAllByType<SpecialBulletBindPack>(); // 【新增】子弹捆绑包
+        AssignAllByType<SpecialBulletBindPack>();
+        AssignAllByType<GunSkinPack>(); 
 
         SaveAndRefresh();
         EditorUtility.DisplayDialog("完成", "全项目所有配置ID分配完毕！", "确定");
@@ -143,12 +147,21 @@ public class ConfigUniqueIDGenerator : EditorWindow
             Debug.Log($" 分配表情ID: {expressionPack.name} = {expressionPack.ExpressionID}", expressionPack);
         }
 
+        // 子弹捆绑包配置ID分配
         if (obj is SpecialBulletBindPack bulletBindPack)
         {
             Undo.RecordObject(bulletBindPack, "分配BulletBindID");
             bulletBindPack.BulletBindID = _currentBulletBindID++;
             EditorUtility.SetDirty(bulletBindPack);
             Debug.Log($" 分配子弹捆绑包ID: {bulletBindPack.name} = {bulletBindPack.BulletBindID}", bulletBindPack);
+        }
+
+        if (obj is GunSkinPack gunSkinPack)
+        {
+            Undo.RecordObject(gunSkinPack, "分配GunSkinID");
+            gunSkinPack.skinGuid = _currentGunSkinID++;
+            EditorUtility.SetDirty(gunSkinPack);
+            Debug.Log($" 分配枪械皮肤ID: {gunSkinPack.name} = {gunSkinPack.skinGuid}", gunSkinPack);
         }
     }
     #endregion

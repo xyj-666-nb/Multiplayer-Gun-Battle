@@ -1,5 +1,7 @@
 using Mirror;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
@@ -70,6 +72,9 @@ public class GamePausePanel : BasePanel
                     {
                         UImanager.Instance.ShowPanel<GameStartPanel>();
                         Main.Instance.IsInSingleMode = false;
+                        //¥•∑¢GCªÿ ’
+                        GC.Collect();
+                        Resources.UnloadUnusedAssets();
                     }
                     else
                         UImanager.Instance.ShowPanel<RoomPanel>();

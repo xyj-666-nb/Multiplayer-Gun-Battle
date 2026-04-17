@@ -33,7 +33,7 @@ public abstract class CharacterStats : NetworkBehaviour
     public float EnterBreatheHealTime = 5;//进入呼吸回血的时间限制
     public float HealSpeed = 40;//回血的速度/每秒
     [SyncVar]//全局同步
-   [SerializeField] private float CurrentRemainTime=5;//当前剩余时间
+    [SerializeField] private float CurrentRemainTime = 5;//当前剩余时间
     private int BreatheHealTaskId;//呼吸回血的任务Id
     private bool IsEnterBreather = false;
 
@@ -42,59 +42,26 @@ public abstract class CharacterStats : NetworkBehaviour
     [Header("血量显示")]
     public PlayerWordUI MyWorldUI;
 
-    [Server]
-    public void HandleBreatheHealTime()
-    {
-        if (CurrentHealth >= maxHealth)
-        {
-            if (Mathf.Abs(CurrentRemainTime - EnterBreatheHealTime) > 0.01f)
-                CurrentRemainTime = EnterBreatheHealTime;
+    #region 缓存常量
+    private const string STR_UNKNOWN = "未知";
+    private const string STR_UNKNOWN_GUN = "未知枪械";
+    private const string STR_BARE_HAND = "徒手";
+    private const string STR_GRENADE = "手雷";
+    private const string LOG_RB_NULL = "[{0}] CharacterStats 缺少 Rigidbody2D 组件！";
+    private const string LOG_MANAGER_NULL = "[CharacterStats] PlayerRespawnManager未初始化！";
 
-            if (IsEnterBreather)
-            {
-                IsEnterBreather = false;
-                // 确保停止旧的任务
-                SimpleAnimatorTool.Instance?.StopFloatLerpById(BreatheHealTaskId);
-            }
-            return;
-        }
+    // 缓存固定向量，避免高频new Vector2分配内存
+    private readonly Vector2 ZERO_VECTOR = Vector2.zero;
+    private readonly Vector2 BLOOD_RANDOM_OFFSET_MIN = new Vector2(-0.5f, 0.2f);
+    private readonly Vector2 BLOOD_RANDOM_OFFSET_MAX = new Vector2(0.5f, 0.8f);
+    private readonly Vector2 GRENADE_BLOOD_OFFSET = new Vector2(-0.4f, 0.4f);
 
-        if (IsEnterBreather)
-        {
-            return;
-        }
-
-        CurrentRemainTime -= Time.deltaTime;
-
-        if (CurrentRemainTime <= 0)
-        {
-            IsEnterBreather = true;
-
-            // 开始回血
-            float duration = (maxHealth - CurrentHealth) / HealSpeed;
-            //触发一次回血的特效
-            ScreenPulseController.Instance.Trigger_Heal();
-            BreatheHealTaskId = SimpleAnimatorTool.Instance.StartFloatLerp(
-                CurrentHealth,
-                maxHealth,
-                duration,
-                (Value) => {
-                    CurrentHealth = Value;
-                },
-                () => {
-                    ResetCoolTime();
-                }
-            );
-        }
-    }
-
-    public void ResetCoolTime()
-    {
-        CurrentRemainTime = EnterBreatheHealTime;//重置时间
-        IsEnterBreather = false;
-        //重置状态
-        SimpleAnimatorTool.Instance.StopFloatLerpById(BreatheHealTaskId);//先暂停任务
-    }
+    // 缓存单例引用，避免频繁调用.Instance产生GC
+    private BloodParticleGenerator _bloodGenerator;
+    private SimpleAnimatorTool _animatorTool;
+    private ScreenPulseController _screenPulse;
+    private PlayerRespawnManager _respawnManager;
+    #endregion
 
     #region 组件与配置
     private Rigidbody2D _rb2D;
@@ -103,7 +70,6 @@ public abstract class CharacterStats : NetworkBehaviour
 
     private string _killerName; // 击杀者名字
     private string _killerGunName; // 击杀者使用的枪械名
-
     #endregion
 
     #region 生命周期
@@ -111,7 +77,10 @@ public abstract class CharacterStats : NetworkBehaviour
     {
         _rb2D = GetComponent<Rigidbody2D>();
         if (_rb2D == null)
-            Debug.LogError($"[{gameObject.name}] CharacterStats 缺少 Rigidbody2D 组件！", this);
+            Debug.LogError(string.Format(LOG_RB_NULL, gameObject.name), this);
+
+        // 一次性缓存所有单例
+        CacheSingletonInstances();
 
         // 订阅死亡事件
         EntityDeathEvent += OnEntityDeath;
@@ -129,9 +98,20 @@ public abstract class CharacterStats : NetworkBehaviour
         // 初始化击杀者信息
         if (isServer)
         {
-            _killerName = "未知";
-            _killerGunName = "未知";
+            _killerName = STR_UNKNOWN;
+            _killerGunName = STR_UNKNOWN;
         }
+    }
+
+    /// <summary>
+    /// 缓存全局单例，避免重复查找
+    /// </summary>
+    private void CacheSingletonInstances()
+    {
+        _bloodGenerator = BloodParticleGenerator.Instance;
+        _animatorTool = SimpleAnimatorTool.Instance;
+        _screenPulse = ScreenPulseController.Instance;
+        _respawnManager = PlayerRespawnManager.Instance;
     }
 
     private void OnDestroy()
@@ -151,7 +131,7 @@ public abstract class CharacterStats : NetworkBehaviour
             HealthUI.Instance?.SetValue(newValue / Mathf.Max(maxHealth, 1f));
             //调用受攻特效
             if (oldValue >= newValue)
-                ScreenPulseController.Instance.Trigger_Wound();//触发受伤特效  
+                _screenPulse?.Trigger_Wound();//触发受伤特效  
         }
 
         if (oldValue >= newValue)
@@ -179,7 +159,7 @@ public abstract class CharacterStats : NetworkBehaviour
         if (IsDead)
             return;
 
-        if (value < 0 || !PlayerRespawnManager.Instance.IsGameRealStart)//游戏未真正开始就无法扣血
+        if (value < 0 || !_respawnManager.IsGameRealStart)//游戏未真正开始就无法扣血
             return;
 
         float newHealth = CurrentHealth + value;
@@ -198,7 +178,7 @@ public abstract class CharacterStats : NetworkBehaviour
     [Server]
     public virtual void ServerApplyDamage(float damage, Vector2 hitPoint, Vector2 hitNormal, CharacterStats attacker)
     {
-        if (IsDead || !PlayerRespawnManager.Instance.IsGameRealStart)
+        if (IsDead || !_respawnManager.IsGameRealStart)
             return;
 
         float healthBefore = CurrentHealth;
@@ -210,7 +190,7 @@ public abstract class CharacterStats : NetworkBehaviour
 
     private void Update()
     {
-        if (isServer && PlayerRespawnManager.Instance != null && PlayerRespawnManager.Instance.IsGameRealStart)
+        if (isServer && _respawnManager != null && _respawnManager.IsGameRealStart)
         {
             HandleBreatheHealTime();
         }
@@ -219,7 +199,7 @@ public abstract class CharacterStats : NetworkBehaviour
     [Server]
     public virtual void Wound(float finalDamage, Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
     {
-        if (IsDead) 
+        if (IsDead)
             return;
 
         float healthBefore = CurrentHealth;
@@ -231,22 +211,22 @@ public abstract class CharacterStats : NetworkBehaviour
             if (attacker is playerStats attackerStats)
             {
                 // 优先取攻击者的Main.PlayerName，无则取物体名
-                _killerName =UOSRelaySimple.Instance.playerName ?? attacker.gameObject.name;
+                _killerName = UOSRelaySimple.Instance.playerName ?? attacker.gameObject.name;
 
                 // 获取击杀者当前使用的枪械名
                 if (attackerStats.MyMonster != null && attackerStats.MyMonster.currentGun != null)
                 {
-                    _killerGunName = attackerStats.MyMonster.currentGun.gunInfo.name ?? "未知枪械";
+                    _killerGunName = attackerStats.MyMonster.currentGun.gunInfo.name ?? STR_UNKNOWN_GUN;
                 }
                 else
                 {
-                    _killerGunName = "徒手";
+                    _killerGunName = STR_BARE_HAND;
                 }
             }
             else
             {
-                _killerName = attacker?.gameObject.name ?? "未知";
-                _killerGunName = "未知";
+                _killerName = attacker?.gameObject.name ?? STR_UNKNOWN;
+                _killerGunName = STR_UNKNOWN;
             }
         }
 
@@ -261,7 +241,7 @@ public abstract class CharacterStats : NetworkBehaviour
     [Server]
     public virtual void Death(CharacterStats killer)
     {
-        if (IsDead || _hasTriggeredDeath) 
+        if (IsDead || _hasTriggeredDeath)
             return;
 
         IsDead = true;
@@ -269,17 +249,17 @@ public abstract class CharacterStats : NetworkBehaviour
 
         if (_rb2D != null)
         {
-            _rb2D.velocity = Vector2.zero;
+            _rb2D.velocity = ZERO_VECTOR;
             _rb2D.isKinematic = true;
         }
 
-        Player Deather= gameObject.GetComponent<Player>();//获取当前玩家身上的Player脚本
+        Player Deather = gameObject.GetComponent<Player>();//获取当前玩家身上的Player脚本
         //记录死亡数，给对方增加击杀数
-        PlayerRespawnManager.Instance.AddPlayerDeath(Deather.connectionToClient);
+        _respawnManager.AddPlayerDeath(Deather.connectionToClient);
         //给击杀者增加击杀数
-        PlayerRespawnManager.Instance.AddPlayerKill(killer.gameObject.GetComponent<Player>().connectionToClient);
+        _respawnManager.AddPlayerKill(killer.gameObject.GetComponent<Player>().connectionToClient);
         //增加击杀者的队伍比分
-        PlayerRespawnManager.Instance.AddScore(killer.gameObject.GetComponent<Player>().CurrentTeam);//增加比分
+        _respawnManager.AddScore(killer.gameObject.GetComponent<Player>().CurrentTeam);//增加比分
     }
     #endregion
 
@@ -288,14 +268,14 @@ public abstract class CharacterStats : NetworkBehaviour
     public virtual void RpcPlayWoundEffect(Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
     {
         // 喷血特效逻辑
-        if (BloodParticleGenerator.Instance != null)
+        if (_bloodGenerator != null)
         {
-            BloodParticleGenerator.Instance.GenerateBloodOnBackground(ColliderPoint);
+            _bloodGenerator.GenerateBloodOnBackground(ColliderPoint);
             for (int i = 0; i < BllomAmount; i++)
             {
-                Vector2 bloodDir = (hitNormal + new Vector2(Random.Range(-0.5f, 0.5f), Random.Range(0.2f, 0.8f))).normalized;
+                Vector2 bloodDir = (hitNormal + new Vector2(Random.Range(BLOOD_RANDOM_OFFSET_MIN.x, BLOOD_RANDOM_OFFSET_MAX.x), Random.Range(BLOOD_RANDOM_OFFSET_MIN.y, BLOOD_RANDOM_OFFSET_MAX.y))).normalized;
                 float bloodSpeed = Random.Range(MaxBllomSpeed, MinBllomSpeed);
-                BloodParticleGenerator.Instance.GenerateBloodParticle(ColliderPoint, bloodDir * bloodSpeed);
+                _bloodGenerator.GenerateBloodParticle(ColliderPoint, bloodDir * bloodSpeed);
             }
         }
 
@@ -335,17 +315,17 @@ public abstract class CharacterStats : NetworkBehaviour
     [Command]
     private void CmdRequestRespawn()
     {
-        if (PlayerRespawnManager.Instance != null)
+        if (_respawnManager != null)
         {
-            string finalKillerName = string.IsNullOrEmpty(_killerName) ? "未知" : _killerName;
-            string finalKillerGunName = string.IsNullOrEmpty(_killerGunName) ? "未知" : _killerGunName;
+            string finalKillerName = string.IsNullOrEmpty(_killerName) ? STR_UNKNOWN : _killerName;
+            string finalKillerGunName = string.IsNullOrEmpty(_killerGunName) ? STR_UNKNOWN : _killerGunName;
 
-            PlayerRespawnManager.Instance.TargetShowDeathPanel(_playerConn, PlayerRespawnManager.Instance.respawnDelay, finalKillerName, finalKillerGunName);
-            PlayerRespawnManager.Instance.RespawnPlayer(_playerConn);
+            _respawnManager.TargetShowDeathPanel(_playerConn, _respawnManager.respawnDelay, finalKillerName, finalKillerGunName);
+            _respawnManager.RespawnPlayer(_playerConn);
         }
         else
         {
-            Debug.LogError("[CharacterStats] PlayerRespawnManager未初始化！");
+            Debug.LogError(LOG_MANAGER_NULL);
         }
     }
 
@@ -372,33 +352,19 @@ public abstract class CharacterStats : NetworkBehaviour
         {
             gameObject.GetComponentInChildren<SpriteRenderer>().DOFade(0, 0.2f)
                 .OnComplete(() => { gameObject.SetActive(false); });
-
-            //这里还没写强制丢枪的逻辑，后续可以在这里添加
-            //// 强制丢枪（示例）
-            //if (this is playerStats playerStats && playerStats.CurrentGun != null)
-            //{
-            //    playerStats.DropCurrentGun();
-            //}
         }
     }
     #endregion
 
     #region 手雷专属受伤逻辑
-    /// <summary>
-    /// 【服务器端】被手雷炸伤时调用
-    /// </summary>
-    /// <param name="damage">最终伤害值</param>
-    /// <param name="explosionCenter">爆炸中心点坐标</param>
-    /// <param name="knockbackForce">计算好的击退力矢量</param>
-    /// <param name="attacker">投掷手雷的攻击者</param>
     [Server]
     public void ServerApplyGrenadeDamage(float damage, Vector2 explosionCenter, Vector2 knockbackForce, CharacterStats attacker)
     {
         if (IsDead)
             return;
-        
+
         float healthBefore = CurrentHealth;
-        if (PlayerRespawnManager.Instance.IsGameRealStart)
+        if (_respawnManager.IsGameRealStart)
         {
             CurrentHealth = Mathf.Max(CurrentHealth - damage, 0);
             Debug.Log($"[ServerApplyGrenadeDamage] {gameObject.name} 被手雷炸中！血量: {healthBefore} -> {CurrentHealth}, 伤害: {damage}");
@@ -413,12 +379,12 @@ public abstract class CharacterStats : NetworkBehaviour
             if (attacker is playerStats attackerStats)
             {
                 _killerName = UOSRelaySimple.Instance.playerName ?? attacker.gameObject.name;
-                _killerGunName = "手雷";
+                _killerGunName = STR_GRENADE;
             }
             else
             {
-                _killerName = attacker?.gameObject.name ?? "未知";
-                _killerGunName = "手雷";
+                _killerName = attacker?.gameObject.name ?? STR_UNKNOWN;
+                _killerGunName = STR_GRENADE;
             }
         }
 
@@ -430,26 +396,23 @@ public abstract class CharacterStats : NetworkBehaviour
         }
     }
 
-    /// <summary>
-    /// 播放手雷爆炸的视觉/物理反馈
-    /// </summary>
     [ClientRpc]
     private void RpcPlayGrenadeEffect(Vector2 hitPoint, Vector2 hitDir, Vector2 explosionCenter, Vector2 knockbackForce, CharacterStats attacker)
     {
-        if (BloodParticleGenerator.Instance != null)
+        if (_bloodGenerator != null)
         {
-            BloodParticleGenerator.Instance.GenerateBloodOnBackground(hitPoint);
+            _bloodGenerator.GenerateBloodOnBackground(hitPoint);
             for (int i = 0; i < BllomAmount; i++)
             {
-                Vector2 bloodDir = (hitDir + new Vector2(Random.Range(-0.4f, 0.4f), Random.Range(-0.4f, 0.4f))).normalized;
+                Vector2 bloodDir = (hitDir + new Vector2(Random.Range(GRENADE_BLOOD_OFFSET.x, GRENADE_BLOOD_OFFSET.y), Random.Range(GRENADE_BLOOD_OFFSET.x, GRENADE_BLOOD_OFFSET.y))).normalized;
                 float bloodSpeed = Random.Range(MinBllomSpeed, MaxBllomSpeed);
-                BloodParticleGenerator.Instance.GenerateBloodParticle(hitPoint, bloodDir * bloodSpeed);
+                _bloodGenerator.GenerateBloodParticle(hitPoint, bloodDir * bloodSpeed);
             }
         }
 
         if (isLocalPlayer && _rb2D != null)
         {
-            _rb2D.velocity = Vector2.zero; // 先清零，防止叠加
+            _rb2D.velocity = ZERO_VECTOR; // 先清零，防止叠加
             _rb2D.AddForce(knockbackForce, ForceMode2D.Impulse);
 
             // 屏幕震动依然保留在这里，因为这是客户端表现
@@ -461,4 +424,58 @@ public abstract class CharacterStats : NetworkBehaviour
         }
     }
     #endregion
+
+    [Server]
+    public void HandleBreatheHealTime()
+    {
+        if (CurrentHealth >= maxHealth)
+        {
+            if (Mathf.Abs(CurrentRemainTime - EnterBreatheHealTime) > 0.01f)
+                CurrentRemainTime = EnterBreatheHealTime;
+
+            if (IsEnterBreather)
+            {
+                IsEnterBreather = false;
+                // 确保停止旧的任务
+                _animatorTool?.StopFloatLerpById(BreatheHealTaskId);
+            }
+            return;
+        }
+
+        if (IsEnterBreather)
+        {
+            return;
+        }
+
+        CurrentRemainTime -= Time.deltaTime;
+
+        if (CurrentRemainTime <= 0)
+        {
+            IsEnterBreather = true;
+
+            // 开始回血
+            float duration = (maxHealth - CurrentHealth) / HealSpeed;
+            //触发一次回血的特效
+            _screenPulse?.Trigger_Heal();
+            BreatheHealTaskId = _animatorTool.StartFloatLerp(
+                CurrentHealth,
+                maxHealth,
+                duration,
+                (Value) => {
+                    CurrentHealth = Value;
+                },
+                () => {
+                    ResetCoolTime();
+                }
+            );
+        }
+    }
+
+    public void ResetCoolTime()
+    {
+        CurrentRemainTime = EnterBreatheHealTime;//重置时间
+        IsEnterBreather = false;
+        //重置状态
+        _animatorTool?.StopFloatLerpById(BreatheHealTaskId);//先暂停任务
+    }
 }

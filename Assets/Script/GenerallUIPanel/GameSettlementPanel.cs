@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -95,6 +96,9 @@ public class GameSettlementPanel : BasePanel
             if (PlayerRespawnManager.Instance != null)
             {
                 PlayerRespawnManager.Instance.CleanupAndExitGame();
+                //´¥·¢GC
+                GC.Collect();
+                Resources.UnloadUnusedAssets();
             }
             else
             {

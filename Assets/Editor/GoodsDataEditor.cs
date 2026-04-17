@@ -20,6 +20,8 @@ public class GoodsDataEditor : Editor
     private SerializedProperty expressionPacks;
     private SerializedProperty playerSkinPack;
     private SerializedProperty gunHitData;
+    // 【新增】声明枪械皮肤包的属性
+    private SerializedProperty gunSkinPack;
 
     private void OnEnable()
     {
@@ -37,13 +39,15 @@ public class GoodsDataEditor : Editor
         expressionPacks = serializedObject.FindProperty("expressionPacks");
         playerSkinPack = serializedObject.FindProperty("playerSkinPack");
         gunHitData = serializedObject.FindProperty("gunHitData");
+        // 【新增】绑定枪械皮肤包
+        gunSkinPack = serializedObject.FindProperty("gunSkinPack");
     }
 
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
 
-        // ====================== 1. 商品唯一标识（只读） ======================
+        // ======================  商品唯一标识（只读） ======================
         EditorGUILayout.Space(5);
         EditorGUILayout.LabelField("【商品唯一标识】", EditorStyles.boldLabel);
         GUI.enabled = false;
@@ -51,13 +55,13 @@ public class GoodsDataEditor : Editor
         GUI.enabled = true;
         EditorGUILayout.Space(10);
 
-        // ====================== 2. 基础配置（始终显示） ======================
+        // ======================  基础配置（始终显示） ======================
         EditorGUILayout.LabelField("【基础配置】", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(goodsPrice);
         EditorGUILayout.PropertyField(skinType);
         EditorGUILayout.Space(10);
 
-        // ====================== 3. UI展示（始终显示） ======================
+        // ======================  UI展示（始终显示） ======================
         EditorGUILayout.LabelField("【UI展示】", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(goodsIcon);
         EditorGUILayout.PropertyField(goodsName);
@@ -65,7 +69,7 @@ public class GoodsDataEditor : Editor
         EditorGUILayout.PropertyField(quality);
         EditorGUILayout.Space(15);
 
-        // ====================== 4. 关联数据（仅对应类型显示） ======================
+        // ======================  关联数据（仅对应类型显示） ======================
         EditorGUILayout.LabelField("【关联数据配置】", EditorStyles.boldLabel);
         EditorGUILayout.Space(5);
 
@@ -88,8 +92,12 @@ public class GoodsDataEditor : Editor
                 break;
 
             case SkinType.Expression:
-                // 仅显示表情列表，支持展开、添加/删除元素
                 EditorGUILayout.PropertyField(expressionPacks, new GUIContent("表情捆绑包列表"), true);
+                break;
+
+            // 【新增】枪械皮肤类型的处理分支
+            case SkinType.GunAppearance:
+                EditorGUILayout.PropertyField(gunSkinPack, new GUIContent("枪械皮肤数据包"));
                 break;
 
             default:

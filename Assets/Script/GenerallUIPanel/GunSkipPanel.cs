@@ -54,6 +54,7 @@ public class GunSkipPanel : BasePanel
     private float DefaultTop = 300;
     public float DefaultLeft = 800;
 
+
     #region 控制变量
     private GunType _currentGunType = GunType.Rifle;
     private const float GUN_FADE_DURATION = 0.15f;
@@ -67,6 +68,8 @@ public class GunSkipPanel : BasePanel
         public Color showImageColor;
         public float bulletCanvasAlpha;
         public Vector3 headLocalScale;
+        // 新增：缓存皮肤按钮图片原始缩放(1,1,1)
+        public Vector3 showImageLocalScale;
     }
     private Dictionary<GameObject, ButtonOriginalState> _btnOriginalStateCache = new Dictionary<GameObject, ButtonOriginalState>();
 
@@ -75,9 +78,15 @@ public class GunSkipPanel : BasePanel
     private Dictionary<GameObject, SpecialBulletBindPack> DicObjToBulletBind;
     public SpecialBulletBindPack CurrentChooseSpecialBulletBindPack;
 
+    // 打击特效相关
     private Dictionary<GameObject, GunHitData> DicObjToHitData;
     public GunHitData CurrentChooseGunHitData;
     private const string HIT_BIND_GROUP = "HitBind";
+
+    // 枪械皮肤相关
+    private Dictionary<GameObject, GunSkinPack> DicObjToGunSkinPack;
+    public GunSkinPack CurrentChooseGunSkinPack;
+    private const string GUN_SKIN_BIND_GROUP = "GunSkinBind";
     #endregion
 
     #region 生命周期    
@@ -86,8 +95,8 @@ public class GunSkipPanel : BasePanel
         base.Awake();
         GunTypeButtonList = new List<GameObject>();
         DicObjToBulletBind = new Dictionary<GameObject, SpecialBulletBindPack>();
-        // 初始化打击特效字典
         DicObjToHitData = new Dictionary<GameObject, GunHitData>();
+        DicObjToGunSkinPack = new Dictionary<GameObject, GunSkinPack>();
     }
 
     public override void Start()
@@ -106,6 +115,8 @@ public class GunSkipPanel : BasePanel
         KillAllSpriteTweens();
         _btnOriginalStateCache.Clear();
         DicObjToHitData.Clear();
+        DicObjToBulletBind.Clear();
+        DicObjToGunSkinPack.Clear();
     }
     #endregion
 
@@ -121,6 +132,7 @@ public class GunSkipPanel : BasePanel
             currentPanelType = GunViewType.Normal;
             ClearBulletBindButton();
             ClearHitEffectButton();
+            ClearGunSkinButton();
         }
         else if (controlName == "BulletButton")
         {
@@ -129,6 +141,7 @@ public class GunSkipPanel : BasePanel
             VCTopic.text = "子弹配置";
             currentPanelType = GunViewType.BulletConfig;
             ClearHitEffectButton();
+            ClearGunSkinButton();
             CreateBulletBind(_currentGunType);
             PlayDemoGunByCurrentPanel();
         }
@@ -140,6 +153,7 @@ public class GunSkipPanel : BasePanel
             currentPanelType = GunViewType.GunSkin;
             ClearBulletBindButton();
             ClearHitEffectButton();
+            CreateGunSkinButton(_currentGunType);
             PlayDemoGunByCurrentPanel();
         }
         else if (controlName == "HitObjtButton")
@@ -149,6 +163,7 @@ public class GunSkipPanel : BasePanel
             VCTopic.text = "打击粒子";
             currentPanelType = GunViewType.HitParticle;
             ClearBulletBindButton();
+            ClearGunSkinButton();
             CreateHitEffectBind();
             PlayDemoGunByCurrentPanel();
         }
@@ -167,26 +182,34 @@ public class GunSkipPanel : BasePanel
         }
         else if (controlName == "TestButton")
         {
-            if (currentPanelType == GunViewType.BulletConfig || currentPanelType == GunViewType.HitParticle)
+            if (currentPanelType == GunViewType.BulletConfig || currentPanelType == GunViewType.HitParticle || currentPanelType == GunViewType.GunSkin)
             {
                 PlayDemoGunByCurrentPanel();
             }
         }
-        else if(controlName == "EquipButton")
+        else if (controlName == "EquipButton")
         {
-            if(currentPanelType == GunViewType.BulletConfig)
+            if (currentPanelType == GunViewType.BulletConfig)
             {
                 if (CurrentChooseSpecialBulletBindPack != null)
                 {
-                    GameSkinManager.Instance.SetPlayerSkinPack(CurrentChooseSpecialBulletBindPack.BulletBindID);//传入子弹配置ID
-                    // 这里可以添加一些反馈，比如提示已装备，或者直接关闭面板等
-                    WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f,"已装备子弹配置");
+                    GameSkinManager.Instance.SetPlayerSkinPack(CurrentChooseSpecialBulletBindPack.BulletBindID);
+                    WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "已装备子弹配置");
                 }
             }
-            else if(currentPanelType == GunViewType.HitParticle)
+            else if (currentPanelType == GunViewType.HitParticle)
             {
                 WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "已装备打击粒子");
-                GameSkinManager.Instance.CurrentOwnerHitObj = CurrentChooseGunHitData;//设置当前打击特效数据
+                GameSkinManager.Instance.CurrentOwnerHitObj = CurrentChooseGunHitData;
+            }
+            else if (currentPanelType == GunViewType.GunSkin)
+            {
+                if (CurrentChooseGunSkinPack != null)
+                {
+                    WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "已装备枪械皮肤");
+                    // 皮肤装备逻辑 自行补充
+                    // GameSkinManager.Instance.SetPlayerGunSkin(CurrentChooseGunSkinPack);
+                }
             }
         }
     }
@@ -363,12 +386,21 @@ public class GunSkipPanel : BasePanel
             RefreshBulletSpriteWithFade();
 
             ClearBulletBindButton();
+            ClearHitEffectButton();
+            ClearGunSkinButton();
+
             switch (currentPanelType)
             {
                 case GunViewType.BulletConfig:
                     if (GameSkinManager.Instance != null)
                     {
                         CreateBulletBind(type);
+                    }
+                    break;
+                case GunViewType.GunSkin:
+                    if (GameSkinManager.Instance != null)
+                    {
+                        CreateGunSkinButton(type);
                     }
                     break;
             }
@@ -550,6 +582,144 @@ public class GunSkipPanel : BasePanel
     }
     #endregion
 
+    #region 枪械皮肤按钮逻辑（含特殊缩放+重置）
+    /// <summary>
+    /// 生成枪械皮肤交互按钮（特殊缩放规则）
+    /// </summary>
+    public void CreateGunSkinButton(GunType Type)
+    {
+        ClearGunSkinButton();
+
+        if (GameSkinManager.Instance == null)
+        {
+            Debug.LogError("GameSkinManager 未初始化！");
+            return;
+        }
+
+        var skinList = GameSkinManager.Instance.CurrentGunSkinPackList;
+        if (skinList == null || skinList.Count == 0)
+        {
+            Debug.LogWarning("当前无枪械皮肤数据！");
+            return;
+        }
+
+        foreach (var skinPack in skinList)
+        {
+            if (MilitaryManager.Instance.GetGunType(skinPack.GunRealName) == Type)
+            {
+                GameObject obj = PoolManage.Instance.GetObj(skinChoosePrefabs);
+                obj.transform.SetParent(skinChooseParent, false);
+                obj.name = skinPack.skinName;
+
+                ButtonOriginalState originalState = new ButtonOriginalState();
+                // 缓存原始缩放为1,1,1
+                originalState.showImageLocalScale = Vector3.one;
+                Transform showImageTrans = obj.transform.Find("ShowImage");
+                TextMeshProUGUI btnText = obj.GetComponentInChildren<TextMeshProUGUI>();
+
+                btnText.text = skinPack.skinName;
+                if (showImageTrans != null && showImageTrans.TryGetComponent(out Image showImage))
+                {
+                    originalState.showImageColor = showImage.color;
+                    showImage.sprite = skinPack.skinIcon;
+                    showImage.color = Color.white;
+                    showImage.SetAllDirty();
+
+                    // ===================== 特殊缩放规则 =====================
+                    Vector3 targetScale = Vector3.one;
+                    switch (Type)
+                    {
+                        // 步枪：3,4
+                        case GunType.Rifle:
+                            targetScale = new Vector3(2.5f, 3.5f, 1);
+                            break;
+                        // 冲锋枪：P90=2,2 | UZI=1.5,1.5
+                        case GunType.Charge:
+                            if (skinPack.GunRealName.Equals("P90", StringComparison.OrdinalIgnoreCase))
+                                targetScale = new Vector3(3, 4, 1);
+                            else if (skinPack.GunRealName.Equals("UZI", StringComparison.OrdinalIgnoreCase))
+                                targetScale = new Vector3(1.5f, 1.5f, 1);
+                            else if (skinPack.GunRealName.Equals("Vector-45", StringComparison.OrdinalIgnoreCase))
+                                targetScale = new Vector3(2, 3, 1);
+                            break;
+                        // 机枪/栓动步枪/DMR：2,3
+                        case GunType.LightMachineGun:
+                        case GunType.Snipe:
+                        case GunType.DMR:
+                            targetScale = new Vector3(2, 3, 1);
+                            break;
+                        default:
+                            targetScale = Vector3.one;
+                            break;
+                    }
+                    // 应用缩放
+                    showImage.transform.localScale = targetScale;
+                }
+
+                _btnOriginalStateCache.Add(obj, originalState);
+                DicObjToGunSkinPack.Add(obj, skinPack);
+
+                ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(GUN_SKIN_BIND_GROUP, obj.GetComponent<Button>(), UpdateGunSkinInfo);
+            }
+        }
+
+        if (DicObjToGunSkinPack.Count > 0)
+        {
+            ButtonGroupManager.Instance.SelectFirstRadioButtonInGroup(GUN_SKIN_BIND_GROUP);
+        }
+
+        StartCoroutine(RefreshContentHeightCoroutine());
+    }
+
+    /// <summary>
+    /// 选中枪械皮肤按钮
+    /// </summary>
+    public void UpdateGunSkinInfo(string buttonName)
+    {
+        foreach (var item in DicObjToGunSkinPack)
+        {
+            if (item.Key.name == buttonName)
+            {
+                CurrentChooseGunSkinPack = item.Value;
+                // 皮肤点击逻辑 自行补充
+                // PlayDemoGunByCurrentPanel();
+                break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 清空枪械皮肤按钮（重置缩放为1,1,1）
+    /// </summary>
+    public void ClearGunSkinButton()
+    {
+        ButtonGroupManager.Instance.DestroyRadioGroup(GUN_SKIN_BIND_GROUP);
+
+        foreach (var item in DicObjToGunSkinPack.Keys)
+        {
+            if (item != null)
+            {
+                if (_btnOriginalStateCache.TryGetValue(item, out ButtonOriginalState originalState))
+                {
+                    Transform showImageTrans = item.transform.Find("ShowImage");
+                    if (showImageTrans != null && showImageTrans.TryGetComponent(out Image showImage))
+                    {
+                        showImage.color = originalState.showImageColor;
+                        showImage.sprite = null;
+                        // 重置图片缩放为原始1,1,1
+                        showImage.transform.localScale = originalState.showImageLocalScale;
+                    }
+                }
+                PoolManage.Instance.PushObj(skinChoosePrefabs, item);
+            }
+        }
+
+        DicObjToGunSkinPack.Clear();
+        _btnOriginalStateCache.Clear();
+        CurrentChooseGunSkinPack = null;
+    }
+    #endregion
+
     // ===================== 已清空Content自适应代码 =====================
     private IEnumerator RefreshContentHeightCoroutine()
     {
@@ -592,6 +762,7 @@ public class GunSkipPanel : BasePanel
         ClearButtonGroup();
         ClearBulletBindButton();
         ClearHitEffectButton();
+        ClearGunSkinButton();
     }
 
     public override void ShowMe(bool isNeedDefaultAnimator = true)

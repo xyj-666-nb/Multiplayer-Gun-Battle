@@ -4,16 +4,24 @@ using UnityEngine;
 
 public class BloodExample : MonoBehaviour
 {
-    int tick = 0;                  // 计时器变量，用于固定时间间隔触发血粒子
+    int tick = 0;
     bool start = false;
     Rigidbody2D rigidbody;
 
-    Vector3 ChestPosition => transform.position + new Vector3(0, 0.3f, 0);
+  
+    private readonly Vector3 CHEST_OFFSET = new Vector3(0, 0.3f, 0);
+    private readonly Vector3 BLOOD_BACKGROUND_OFFSET = new Vector3(0, 0, 1);
+    private readonly Vector3 BLOOD_PARTICLE_OFFSET = new Vector3(0, 0, -1);
 
-    // Start is called before the first frame update
+    private Camera mainCamera;
+
+    Vector3 ChestPosition => transform.position + CHEST_OFFSET;
+
     void Start()
     {
         rigidbody = GetComponent<Rigidbody2D>();
+        // 初始化缓存主相机
+        mainCamera = Camera.main;
     }
 
     // Update is called once per frame
@@ -22,10 +30,12 @@ public class BloodExample : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Mouse0) && !start)
         {
             start = true;
-            Vector2 velocity = ((Vector2)(Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.position)).normalized * 5;
+            // 使用缓存的相机，无GC开销
+            Vector2 velocity = ((Vector2)(mainCamera.ScreenToWorldPoint(Input.mousePosition) - transform.position)).normalized * 5;
             rigidbody.velocity = velocity;
             for (int i = 0; i < 3; i++)
-                BloodParticleGenerator.Instance.GenerateBloodOnBackground(ChestPosition + new Vector3(0, 0, 1));
+                // 使用缓存的偏移量
+                BloodParticleGenerator.Instance.GenerateBloodOnBackground(ChestPosition + BLOOD_BACKGROUND_OFFSET);
         }
 
     }
@@ -37,9 +47,9 @@ public class BloodExample : MonoBehaviour
             tick++;
 
             if (tick % 3 == 0 && tick < 50)
-            // 每3个固定步（约0.06s）触发一次，且tick<50（限制触发次数）
             {
-                BloodParticleGenerator.Instance.GenerateBloodParticle(ChestPosition + new Vector3(0, 0, -1),
+                // 使用缓存的偏移量
+                BloodParticleGenerator.Instance.GenerateBloodParticle(ChestPosition + BLOOD_PARTICLE_OFFSET,
                      new Vector2(Random.Range(-2f, 2f), Random.Range(1f, 3f)));
             }
 

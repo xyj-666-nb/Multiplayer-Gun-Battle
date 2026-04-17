@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Playables;
 using System.Text;
 using static Player;
+using System;
 
 public class Player : Base_Entity
 {
@@ -245,7 +246,7 @@ public class Player : Base_Entity
         if (string.IsNullOrEmpty(localName))
         {
             _sb.Clear();
-            _sb.Append("玩家").Append(Random.Range(1000, 9999));
+            _sb.Append("玩家").Append(UnityEngine.Random.Range(1000, 9999));
             localName = _sb.ToString();
         }
         CmdSyncPlayerName(localName);
@@ -282,6 +283,11 @@ public class Player : Base_Entity
 
         if (_gameScorePanel != null)
             _gameScorePanel.ChangeTeamSprite(CurrentTeam);
+
+
+        //玩家生成触发本地GC
+        GC.Collect();
+        Resources.UnloadUnusedAssets();
     }
 
     public override void OnStopLocalPlayer()
@@ -615,16 +621,20 @@ public class Player : Base_Entity
             return;
 
         GameObject gunPrefab = _militaryManager.GetGun(gunName);
-        if (gunPrefab == null) return;
+        if (gunPrefab == null)
+            return;
 
         GameObject gunObj = Instantiate(gunPrefab);
         NetworkServer.Spawn(gunObj, connectionToClient);
 
         BaseGun gun = gunObj.GetComponent<BaseGun>();
-        gun.SetGunConfig(skinInfo.MuzzleFlashID, skinInfo.BulletID,GameSkinManager.Instance.CurrentOwnerHitObj.HitID);//传入打击特效ID
+        GunSkipID = GameSkinManager.Instance.GetCurrentGunEquipmentSkinPack(gunName).skinGuid;//赋值当前装备皮肤的ID
+        gun.SetGunConfig(skinInfo.MuzzleFlashID, skinInfo.BulletID,GameSkinManager.Instance.CurrentOwnerHitObj.HitID, GunSkipID);//传入打击特效ID
 
         ServerHandlePickUpGun(gunObj);
     }
+    private int GunSkipID;
+
 
     private void ServerHandlePickUpGun(GameObject gunObj)
     {
@@ -745,7 +755,7 @@ public class Player : Base_Entity
             if (string.IsNullOrEmpty(localName))
             {
                 _sb.Clear();
-                _sb.Append("玩家").Append(Random.Range(1000, 9999));
+                _sb.Append("玩家").Append(UnityEngine.Random.Range(1000, 9999));
                 localName = _sb.ToString();
             }
             return localName;

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 保持子物体世界缩放的【大小】固定，缩放的【正负方向】跟随父对象
+/// 保持子物体世界缩放的【大小】固定，缩放的跟随父对象
 /// </summary>
 [DisallowMultipleComponent]
 public class KeepWorldScale : MonoBehaviour

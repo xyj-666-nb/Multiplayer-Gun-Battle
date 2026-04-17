@@ -103,12 +103,12 @@ public class MuzzleSmokeController : MonoBehaviour
             decaySpeed = gunInfo.smokeDecaySpeed
         };
 
-        // 添加到实例列表（Update中自动处理，不受外部干扰）
+        // 添加到实例列表
         smokeInstances.Add(newSmoke);
     }
 
     /// <summary>
-    /// 可选：更新玩家朝向（供外部调用，比如BaseGun同步朝向）
+    ///更新玩家朝向
     /// </summary>
     /// <param name="newFacingDir">1=右，-1=左</param>
     public void UpdateFacingDir(float newFacingDir)

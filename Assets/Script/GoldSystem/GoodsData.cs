@@ -28,6 +28,7 @@ public class GoodsData : ScriptableObject
     public List<ExpressionPack> expressionPacks; // 表情列表（你要的List）
     public PlayerSkinPack playerSkinPack;
     public GunHitData gunHitData;
+    public GunSkinPack gunSkinPack;
     #endregion
 }
 
@@ -50,4 +51,3 @@ public enum GoodsQuality
     Rare,
     Epic
 }
-

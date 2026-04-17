@@ -13,28 +13,36 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
     public bool IsDeveloperMode = false;
 
     [Header("玩家数据")]
-    [Header("玩家枪械配置")]
+    [Header("玩家枪械基础配置")]
     public List<GunSkinConfig> GunSkinConfigList;
-    [Header("玩家皮肤数据")]
+    [Header("玩家角色皮肤数据")]
     public List<PlayerSkinPack> PlayerOwnerSkinPackList;
     public PlayerSkinPack CurrentPlayerSkinPack;
-    [Header("玩家打击特效相关")]
-    public GunHitData CurrentOwnerHitObj;//玩家当前装备的打击特效
-    public List<GunHitData> CurrentGunHitDataList;//玩家拥有的打击特效
-    [Header("玩家拥有的数据")]
-    public List<int> CurrentBulletBundleList;//玩家拥有的子弹捆绑包 (存ID)
+    [Header("玩家打击特效数据")]
+    public GunHitData CurrentOwnerHitObj;
+    public List<GunHitData> CurrentGunHitDataList;
+    [Header("玩家子弹包数据")]
+    public List<int> CurrentBulletBundleList;
 
-    [Header("角色皮肤数据配置预载管理")]
+    [Header("全局预载 - 角色皮肤")]
     public List<PlayerSkinPack> AllPlayerSkinPackList;
-    [Header("打击粒子特效数据预载管理")]
+    [Header("全局预载 - 打击特效")]
     public List<GunHitData> AllGunHitDataList;
-    [Header("子弹捆绑包数据预载管理")]
+    [Header("全局预载 - 子弹包")]
     public List<SpecialBulletBindPack> AllBulletBundleList = new List<SpecialBulletBindPack>();
+
+    [Header("全局预载 - 枪械皮肤总池")]
+    public List<GunSkinPack> AllGunSkinPackList;
+    [Header("玩家已拥有 - 枪械皮肤（默认基础皮肤）")]
+    public List<GunSkinPack> CurrentGunSkinPackList;
+    [Header("枪械装备配置 - 每把枪的已装备皮肤")]
+    public List<GunEquipmentConfig> GunEquipmentConfigList;
 
     // 运行时字典
     private Dictionary<int, SpecialBulletBindPack> _bulletBundleDict;
     private Dictionary<int, PlayerSkinPack> _playerSkinDict;
     private Dictionary<int, GunHitData> _gunHitDict;
+    private Dictionary<int, GunSkinPack> _gunSkinDict;
 
     // 单独记录当前装备的子弹包ID
     private int _currentEquippedBulletBundleID = -1;
@@ -43,54 +51,169 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
     {
         base.Awake();
         InitRuntimeDictionaries();
-        // 启动时加载数据
+        InitDefaultGunEquipmentData();
         LoadSkinData();
     }
 
-    #region 初始化与字典
-    // 初始化运行时字典
-    private void InitRuntimeDictionaries()
+    /// <summary>
+    /// 初始化枪械配置（保留面板默认配置，不覆盖）
+    /// </summary>
+    private void InitDefaultGunEquipmentData()
     {
-        // 初始化子弹捆绑包字典
-        _bulletBundleDict = new Dictionary<int, SpecialBulletBindPack>();
-        foreach (var pack in AllBulletBundleList)
+        if (GunEquipmentConfigList != null && GunEquipmentConfigList.Count > 0)
+            return;
+
+        GunEquipmentConfigList = new List<GunEquipmentConfig>();
+        var gunNames = AllGunSkinPackList.Select(x => x.GunRealName).Distinct().ToList();
+
+        foreach (var gunName in gunNames)
         {
-            if (pack == null) continue;
-            if (!_bulletBundleDict.ContainsKey(pack.BulletBindID))
+            GunEquipmentConfig config = new GunEquipmentConfig
             {
-                _bulletBundleDict.Add(pack.BulletBindID, pack);
+                GunName = gunName,
+                EquippedSkin = null
+            };
+            GunEquipmentConfigList.Add(config);
+        }
+    }
+
+    /// <summary>
+    /// 自动为所有枪械挂载默认基础皮肤
+    /// </summary>
+    private void AutoSetDefaultGunSkin()
+    {
+        foreach (var gunConfig in GunEquipmentConfigList)
+        {
+            if (gunConfig.EquippedSkin != null) continue;
+
+            // 从玩家默认拥有的皮肤中匹配对应枪械
+            var defaultSkin = CurrentGunSkinPackList.FirstOrDefault(skin => skin.GunRealName == gunConfig.GunName);
+            if (defaultSkin != null)
+            {
+                gunConfig.EquippedSkin = defaultSkin;
             }
         }
+    }
 
-        // 初始化玩家皮肤字典
-        _playerSkinDict = new Dictionary<int, PlayerSkinPack>();
-        foreach (var pack in AllPlayerSkinPackList)
-        {
-            if (pack == null) continue;
-            if (!_playerSkinDict.ContainsKey(pack.PlayerSkinID))
-            {
-                _playerSkinDict.Add(pack.PlayerSkinID, pack);
-            }
-        }
+    #region 枪械皮肤 - 装备
+    public void EquipmentGunSkin(int skinID)
+    {
+        if (!_gunSkinDict.ContainsKey(skinID)) return;
+        EquipmentGunSkin(_gunSkinDict[skinID]);
+    }
 
-        // 初始化打击特效字典
-        _gunHitDict = new Dictionary<int, GunHitData>();
-        foreach (var data in AllGunHitDataList)
+    public void EquipmentGunSkin(GunSkinPack skinPack)
+    {
+        if (skinPack == null || !CurrentGunSkinPackList.Contains(skinPack)) return;
+
+        foreach (var config in GunEquipmentConfigList)
         {
-            if (data == null) continue;
-            if (!_gunHitDict.ContainsKey(data.HitID))
+            if (config.GunName == skinPack.GunRealName)
             {
-                _gunHitDict.Add(data.HitID, data);
+                config.EquippedSkin = skinPack;
+                SaveSkinData();
+                Debug.Log($"装备枪械皮肤成功：{skinPack.name}");
+                return;
             }
         }
     }
     #endregion
 
-    #region 数据持久化 
+    #region 枪械皮肤 - 查询
+    public GunSkinPack GetCurrentGunEquipmentSkinPack(string gunName)
+    {
+        if (string.IsNullOrEmpty(gunName)) return null;
+        foreach (var config in GunEquipmentConfigList)
+        {
+            if (config.GunName == gunName) return config.EquippedSkin;
+        }
+        return null;
+    }
 
-    /// <summary>
-    /// 用于加密存储的皮肤数据类
-    /// </summary>
+    public bool HasGunSkin(GunSkinPack skinPack)
+    {
+        return skinPack != null && CurrentGunSkinPackList.Contains(skinPack);
+    }
+
+    public GunSkinPack GetGunSkinPack(int ID)
+    {
+        foreach (var skin in AllGunSkinPackList)
+        {
+            if (skin.skinGuid == ID)
+            {
+                return skin;
+            }
+        }
+
+        return null;
+    }
+    #endregion
+
+    #region 枪械皮肤 - 解锁
+    public void AddGunSkinPack(GunSkinPack skinPack)
+    {
+        if (skinPack == null) return;
+        if (!AllGunSkinPackList.Contains(skinPack)) return;
+        if (CurrentGunSkinPackList.Contains(skinPack)) return;
+
+        CurrentGunSkinPackList.Add(skinPack);
+        SaveSkinData();
+    }
+
+    public void UnlockAllGunSkins()
+    {
+        foreach (var skin in AllGunSkinPackList)
+        {
+            if (!CurrentGunSkinPackList.Contains(skin))
+                CurrentGunSkinPackList.Add(skin);
+        }
+        SaveSkinData();
+    }
+    #endregion
+
+    #region 字典初始化
+    private void InitRuntimeDictionaries()
+    {
+        // 子弹包
+        _bulletBundleDict = new Dictionary<int, SpecialBulletBindPack>();
+        foreach (var pack in AllBulletBundleList)
+        {
+            if (pack == null) continue;
+            if (!_bulletBundleDict.ContainsKey(pack.BulletBindID))
+                _bulletBundleDict.Add(pack.BulletBindID, pack);
+        }
+
+        // 角色皮肤
+        _playerSkinDict = new Dictionary<int, PlayerSkinPack>();
+        foreach (var pack in AllPlayerSkinPackList)
+        {
+            if (pack == null) continue;
+            if (!_playerSkinDict.ContainsKey(pack.PlayerSkinID))
+                _playerSkinDict.Add(pack.PlayerSkinID, pack);
+        }
+
+        // 打击特效
+        _gunHitDict = new Dictionary<int, GunHitData>();
+        foreach (var data in AllGunHitDataList)
+        {
+            if (data == null) continue;
+            if (!_gunHitDict.ContainsKey(data.HitID))
+                _gunHitDict.Add(data.HitID, data);
+        }
+
+        // 枪械皮肤
+        _gunSkinDict = new Dictionary<int, GunSkinPack>();
+        foreach (var skin in AllGunSkinPackList)
+        {
+            if (skin == null) continue;
+            int id = skin.skinGuid;
+            if (!_gunSkinDict.ContainsKey(id))
+                _gunSkinDict.Add(id, skin);
+        }
+    }
+    #endregion
+
+    #region 数据存储结构
     [Serializable]
     private class SkinSaveData
     {
@@ -100,277 +223,221 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
         public int equippedSkinID = -1;
         public int equippedHitEffectID = -1;
         public int equippedBulletBundleID = -1;
+
+        public List<int> ownedGunSkinIDs = new List<int>();
+        public List<GunEquipmentSaveData> gunEquipmentSaveDatas = new List<GunEquipmentSaveData>();
     }
 
-    /// <summary>
-    /// 保存玩家皮肤数据到本地 (加密)
-    /// </summary>
+    [Serializable]
+    private class GunEquipmentSaveData
+    {
+        public string gunName;
+        public int? equippedSkinID;
+    }
+    #endregion
+
+    #region 保存数据
     public void SaveSkinData()
     {
         if (!Application.isPlaying) return;
-
-        if (IsDeveloperMode)
-        {
-            Debug.LogWarning("[开发者模式] 已拦截保存操作，不会修改本地存档");
-            return;
-        }
+        if (IsDeveloperMode) return;
 
         SkinSaveData saveData = new SkinSaveData();
 
-        // 保存拥有的皮肤ID
+        // 角色皮肤
         foreach (var skin in PlayerOwnerSkinPackList)
-        {
             if (skin != null) saveData.ownedSkinIDs.Add(skin.PlayerSkinID);
-        }
-
-        // 保存拥有的打击特效ID
+        // 打击特效
         foreach (var hit in CurrentGunHitDataList)
-        {
             if (hit != null) saveData.ownedHitEffectIDs.Add(hit.HitID);
-        }
-
-        // 保存拥有的子弹包ID
+        // 子弹包
         saveData.ownedBulletBundleIDs = new List<int>(CurrentBulletBundleList);
-
-        // 保存当前装备的ID
+        // 当前装备
         saveData.equippedSkinID = CurrentPlayerSkinPack != null ? CurrentPlayerSkinPack.PlayerSkinID : -1;
         saveData.equippedHitEffectID = CurrentOwnerHitObj != null ? CurrentOwnerHitObj.HitID : -1;
         saveData.equippedBulletBundleID = _currentEquippedBulletBundleID;
 
-        // 加密保存
+        // 枪械皮肤
+        foreach (var skin in CurrentGunSkinPackList)
+            if (skin != null) saveData.ownedGunSkinIDs.Add(skin.skinGuid);
+        // 枪械装备配置
+        foreach (var config in GunEquipmentConfigList)
+        {
+            if (config == null) continue;
+            saveData.gunEquipmentSaveDatas.Add(new GunEquipmentSaveData
+            {
+                gunName = config.GunName,
+                equippedSkinID = config.EquippedSkin?.skinGuid
+            });
+        }
+
         DataEncryptionManger.Instance.SaveEncryptedComplexData(SkinSaveFileName, saveData);
     }
+    #endregion
 
-    /// <summary>
-    /// 加载玩家皮肤数据
-    /// 【开发者模式】直接解锁所有物品，跳过存档
-    /// </summary>
+    #region 加载数据
     public void LoadSkinData()
     {
         if (!Application.isPlaying) return;
 
-        // 重置状态
-        PlayerOwnerSkinPackList.Clear();
-        CurrentGunHitDataList.Clear();
-        CurrentBulletBundleList.Clear();
-        CurrentPlayerSkinPack = null;
-        CurrentOwnerHitObj = null;
-        _currentEquippedBulletBundleID = -1;
-
+        // 开发者模式
         if (IsDeveloperMode)
         {
-            Debug.LogWarning("========================================");
-            Debug.LogWarning("[开发者模式] 已激活！正在解锁所有物品...");
-
-            // 解锁所有皮肤
-            foreach (var skin in AllPlayerSkinPackList)
-            {
-                if (skin != null && !PlayerOwnerSkinPackList.Contains(skin))
-                {
-                    PlayerOwnerSkinPackList.Add(skin);
-                }
-            }
-            // 解锁所有打击特效
-            foreach (var hit in AllGunHitDataList)
-            {
-                if (hit != null && !CurrentGunHitDataList.Contains(hit))
-                {
-                    CurrentGunHitDataList.Add(hit);
-                }
-            }
-            // 解锁所有子弹包
-            foreach (var pack in AllBulletBundleList)
-            {
-                if (pack != null && !CurrentBulletBundleList.Contains(pack.BulletBindID))
-                {
-                    CurrentBulletBundleList.Add(pack.BulletBindID);
-                }
-            }
-
-            // 自动装备第一个物品（可选，方便测试）
-            if (PlayerOwnerSkinPackList.Count > 0) CurrentPlayerSkinPack = PlayerOwnerSkinPackList[0];
-            if (CurrentGunHitDataList.Count > 0) CurrentOwnerHitObj = CurrentGunHitDataList[0];
-            if (CurrentBulletBundleList.Count > 0)
-            {
-                _currentEquippedBulletBundleID = CurrentBulletBundleList[0];
-                var firstPack = FindBulletBindPack(_currentEquippedBulletBundleID);
-                if (firstPack != null) ApplyBulletBundleConfig(firstPack);
-            }
-
-            Debug.LogWarning($"[开发者模式] 解锁完成！皮肤:{PlayerOwnerSkinPackList.Count} 特效:{CurrentGunHitDataList.Count} 子弹包:{CurrentBulletBundleList.Count}");
-            Debug.LogWarning("========================================");
+            UnlockAllDefaultData();
+            AutoSetDefaultGunSkin();
             return;
         }
 
-        // 【正常模式】尝试加载存档
+        // 读取存档
         var saveData = DataEncryptionManger.Instance.LoadEncryptedComplexData<SkinSaveData>(SkinSaveFileName);
-
-        if (saveData != null)
+        if (saveData == null)
         {
-            // 从存档恢复基础数据
-            foreach (var id in saveData.ownedSkinIDs)
+            AutoSetDefaultGunSkin();
+            Debug.Log("首次启动，应用默认皮肤配置");
+            return;
+        }
+
+        // 加载角色皮肤
+        foreach (var id in saveData.ownedSkinIDs)
+            if (_playerSkinDict.TryGetValue(id, out var skin) && !PlayerOwnerSkinPackList.Contains(skin))
+                PlayerOwnerSkinPackList.Add(skin);
+        // 加载打击特效
+        foreach (var id in saveData.ownedHitEffectIDs)
+            if (_gunHitDict.TryGetValue(id, out var hit) && !CurrentGunHitDataList.Contains(hit))
+                CurrentGunHitDataList.Add(hit);
+        // 加载子弹包
+        foreach (var id in saveData.ownedBulletBundleIDs)
+            if (_bulletBundleDict.ContainsKey(id) && !CurrentBulletBundleList.Contains(id))
+                CurrentBulletBundleList.Add(id);
+        // 加载枪械皮肤
+        foreach (var id in saveData.ownedGunSkinIDs)
+            if (_gunSkinDict.TryGetValue(id, out var skin) && !CurrentGunSkinPackList.Contains(skin))
+                CurrentGunSkinPackList.Add(skin);
+
+        // 加载枪械装备
+        foreach (var saveItem in saveData.gunEquipmentSaveDatas)
+        {
+            foreach (var config in GunEquipmentConfigList)
             {
-                if (_playerSkinDict.TryGetValue(id, out var skin) && !PlayerOwnerSkinPackList.Contains(skin))
+                if (config.GunName == saveItem.gunName)
                 {
-                    PlayerOwnerSkinPackList.Add(skin);
-                }
-            }
-            foreach (var id in saveData.ownedHitEffectIDs)
-            {
-                if (_gunHitDict.TryGetValue(id, out var hit) && !CurrentGunHitDataList.Contains(hit))
-                {
-                    CurrentGunHitDataList.Add(hit);
-                }
-            }
-            foreach (var id in saveData.ownedBulletBundleIDs)
-            {
-                if (_bulletBundleDict.ContainsKey(id) && !CurrentBulletBundleList.Contains(id))
-                {
-                    CurrentBulletBundleList.Add(id);
+                    if (saveItem.equippedSkinID.HasValue && _gunSkinDict.TryGetValue(saveItem.equippedSkinID.Value, out var skin))
+                        config.EquippedSkin = skin;
+                    break;
                 }
             }
         }
 
-        // 以GoodDataManager为唯一权威进行数据校准
-        CalibrateDataWithGoodsManager();
-
-        // 独立恢复各自的装备状态
+        // 自动补全默认皮肤
+        AutoSetDefaultGunSkin();
         RestoreEquippedItems(saveData);
-
-        // 保存校准后的数据
-        SaveSkinData();
-
-        Debug.Log("[GameSkinManager] 玩家皮肤数据加载完成 (正常模式)");
     }
 
+    private void UnlockAllDefaultData()
+    {
+        // 解锁所有默认资源
+        foreach (var skin in AllPlayerSkinPackList)
+            if (!PlayerOwnerSkinPackList.Contains(skin)) PlayerOwnerSkinPackList.Add(skin);
+        foreach (var hit in AllGunHitDataList)
+            if (!CurrentGunHitDataList.Contains(hit)) CurrentGunHitDataList.Add(hit);
+        foreach (var pack in AllBulletBundleList)
+            if (!CurrentBulletBundleList.Contains(pack.BulletBindID)) CurrentBulletBundleList.Add(pack.BulletBindID);
+
+        UnlockAllGunSkins();
+        AutoEquipFirstItem();
+    }
     #endregion
 
-    #region 数据校准
-    /// <summary>
-    /// 以GoodDataManager的已购买列表为唯一权威，补全合法数据
-    /// </summary>
+    #region 通用功能
     private void CalibrateDataWithGoodsManager()
     {
-        // 开发者模式跳过校准
-        if (IsDeveloperMode) return;
+        if (IsDeveloperMode || GoodDataManager.Instance == null) return;
+        var list = GoodDataManager.Instance.UserObtainGoodsList ?? new List<GoodsData>();
 
-        if (GoodDataManager.Instance == null)
+        foreach (var goods in list)
         {
-            return;
-        }
-
-        var authorityPurchasedList = GoodDataManager.Instance.UserObtainGoodsList;
-        authorityPurchasedList ??= new List<GoodsData>();
-
-        foreach (var goods in authorityPurchasedList)
-        {
-            if (goods == null || string.IsNullOrEmpty(goods.goodsGuid)) continue;
-
+            if (goods == null) continue;
             switch (goods.skinType)
             {
                 case SkinType.PlayerCharacter:
-                    if (goods.playerSkinPack != null && !PlayerOwnerSkinPackList.Contains(goods.playerSkinPack))
-                    {
+                    if (goods.playerSkinPack && !PlayerOwnerSkinPackList.Contains(goods.playerSkinPack))
                         PlayerOwnerSkinPackList.Add(goods.playerSkinPack);
-                    }
                     break;
-
                 case SkinType.GunHitEffect:
-                    if (goods.gunHitData != null && !CurrentGunHitDataList.Contains(goods.gunHitData))
-                    {
+                    if (goods.gunHitData && !CurrentGunHitDataList.Contains(goods.gunHitData))
                         CurrentGunHitDataList.Add(goods.gunHitData);
-                    }
                     break;
-
                 case SkinType.SpecialBullet:
-                    if (goods.bulletPack != null && !CurrentBulletBundleList.Contains(goods.bulletPack.BulletBindID))
-                    {
+                    if (goods.bulletPack && !CurrentBulletBundleList.Contains(goods.bulletPack.BulletBindID))
                         CurrentBulletBundleList.Add(goods.bulletPack.BulletBindID);
-                    }
                     break;
             }
         }
     }
 
-    #endregion
-
-    #region 装备恢复
-    /// <summary>
-    /// 独立恢复各自的装备状态，互不干扰
-    /// </summary>
     private void RestoreEquippedItems(SkinSaveData saveData)
     {
-        CurrentPlayerSkinPack = null;
-        CurrentOwnerHitObj = null;
-        _currentEquippedBulletBundleID = -1;
-
         if (saveData == null) return;
 
-        // 独立恢复装备皮肤
-        if (saveData.equippedSkinID >= 0
-            && _playerSkinDict.TryGetValue(saveData.equippedSkinID, out var skinPack)
-            && PlayerOwnerSkinPackList.Contains(skinPack))
-        {
-            CurrentPlayerSkinPack = skinPack;
-        }
-
-        // 独立恢复装备打击特效
-        if (saveData.equippedHitEffectID >= 0
-            && _gunHitDict.TryGetValue(saveData.equippedHitEffectID, out var hitData)
-            && CurrentGunHitDataList.Contains(hitData))
-        {
-            CurrentOwnerHitObj = hitData;
-        }
-
-        // 独立恢复装备子弹包 (并重新应用配置)
-        if (saveData.equippedBulletBundleID >= 0
-            && _bulletBundleDict.TryGetValue(saveData.equippedBulletBundleID, out var bulletPack)
-            && CurrentBulletBundleList.Contains(saveData.equippedBulletBundleID))
+        if (saveData.equippedSkinID >= 0 && _playerSkinDict.TryGetValue(saveData.equippedSkinID, out var skin) && PlayerOwnerSkinPackList.Contains(skin))
+            CurrentPlayerSkinPack = skin;
+        if (saveData.equippedHitEffectID >= 0 && _gunHitDict.TryGetValue(saveData.equippedHitEffectID, out var hit) && CurrentGunHitDataList.Contains(hit))
+            CurrentOwnerHitObj = hit;
+        if (saveData.equippedBulletBundleID >= 0 && _bulletBundleDict.TryGetValue(saveData.equippedBulletBundleID, out var bullet) && CurrentBulletBundleList.Contains(saveData.equippedBulletBundleID))
         {
             _currentEquippedBulletBundleID = saveData.equippedBulletBundleID;
-            ApplyBulletBundleConfig(bulletPack);
+            ApplyBulletBundleConfig(bullet);
         }
     }
-    #endregion
 
-    #region 公共功能
+    private void AutoEquipFirstItem()
+    {
+        if (PlayerOwnerSkinPackList.Count > 0) CurrentPlayerSkinPack = PlayerOwnerSkinPackList[0];
+        if (CurrentGunHitDataList.Count > 0) CurrentOwnerHitObj = CurrentGunHitDataList[0];
+        if (CurrentBulletBundleList.Count > 0)
+        {
+            _currentEquippedBulletBundleID = CurrentBulletBundleList[0];
+            var pack = FindBulletBindPack(_currentEquippedBulletBundleID);
+            if (pack != null) ApplyBulletBundleConfig(pack);
+        }
+    }
 
-    // ====================== 玩家皮肤相关 ======================
+    private void ApplyBulletBundleConfig(SpecialBulletBindPack bundlePack)
+    {
+        if (bundlePack == null) return;
+        foreach (var config in GunSkinConfigList)
+        {
+            if (bundlePack.bulletVisualConfig != null && config.CurrentType == bundlePack.bulletVisualConfig.gunType)
+            {
+                config.bulletConfig = bundlePack.bulletVisualConfig;
+                config.muzzleFlashConfig = bundlePack.muzzleFlashConfig;
+            }
+        }
+    }
+
     public void SetPlayerSkinPack(PlayerSkinPack SkinPack)
     {
-        CurrentPlayerSkinPack = SkinPack;
-        SaveSkinData();
+        CurrentPlayerSkinPack = SkinPack; SaveSkinData();
     }
 
     public void SetPlayerSkinPack(int PackID)
     {
-        if (_playerSkinDict.TryGetValue(PackID, out var pack))
-        {
-            SetPlayerSkinPack(pack);
-        }
+        if (_playerSkinDict.TryGetValue(PackID, out var pack)) SetPlayerSkinPack(pack);
     }
 
-    // ====================== 打击特效相关 ======================
     public void SetCurrentHitEffect(GunHitData hitData)
     {
-        CurrentOwnerHitObj = hitData;
-        SaveSkinData();
+        CurrentOwnerHitObj = hitData; SaveSkinData();
     }
 
     public void SetCurrentHitEffect(int hitID)
     {
-        if (_gunHitDict.TryGetValue(hitID, out var hitData))
-        {
-            SetCurrentHitEffect(hitData);
-        }
+        if (_gunHitDict.TryGetValue(hitID, out var data)) SetCurrentHitEffect(data);
     }
 
-    // ====================== 子弹捆绑包相关 ======================
     public void EquipBulletBindPack(int bundleID)
     {
-        if (bundleID < 0) return;
-        if (!CurrentBulletBundleList.Contains(bundleID)) return;
-
+        if (bundleID < 0 || !CurrentBulletBundleList.Contains(bundleID)) return;
         var pack = FindBulletBindPack(bundleID);
         if (pack != null)
         {
@@ -382,61 +449,34 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
 
     public void EquipBulletBindPack(SpecialBulletBindPack bundlePack)
     {
-        if (bundlePack == null) return;
-        if (!CurrentBulletBundleList.Contains(bundlePack.BulletBindID)) return;
-
+        if (bundlePack == null || !CurrentBulletBundleList.Contains(bundlePack.BulletBindID)) return;
         _currentEquippedBulletBundleID = bundlePack.BulletBindID;
         ApplyBulletBundleConfig(bundlePack);
         SaveSkinData();
     }
 
-    /// <summary>
-    /// 【内部】仅应用子弹包配置到枪械
-    /// </summary>
-    private void ApplyBulletBundleConfig(SpecialBulletBindPack bundlePack)
-    {
-        if (bundlePack == null) return;
-
-        foreach (var config in GunSkinConfigList)
-        {
-            if (bundlePack.bulletVisualConfig != null &&
-                config.CurrentType == bundlePack.bulletVisualConfig.gunType)
-            {
-                config.bulletConfig = bundlePack.bulletVisualConfig;
-                config.muzzleFlashConfig = bundlePack.muzzleFlashConfig;
-            }
-        }
-    }
-
-    // ====================== 查询相关 ======================
     public List<SpecialBulletBindPack> GetSpecialBulletBindPackList(GunType Type)
     {
-        List<SpecialBulletBindPack> resultList = new List<SpecialBulletBindPack>();
-        foreach (var ownedID in CurrentBulletBundleList)
-        {
-            if (_bulletBundleDict.TryGetValue(ownedID, out var pack) && pack.gunType == Type)
-            {
-                resultList.Add(pack);
-            }
-        }
-        return resultList;
+        List<SpecialBulletBindPack> list = new List<SpecialBulletBindPack>();
+        foreach (var id in CurrentBulletBundleList)
+            if (_bulletBundleDict.TryGetValue(id, out var pack) && pack.gunType == Type)
+                list.Add(pack);
+        return list;
     }
 
     public GunHitData GetHitData(int ID)
     {
-        _gunHitDict.TryGetValue(ID, out var data);
-        return data;
+        _gunHitDict.TryGetValue(ID, out var data); return data;
     }
 
     public PlayerSkinPack GetPlayerSkipPack(int PackID)
     {
-        _playerSkinDict.TryGetValue(PackID, out var pack);
-        return pack;
+        _playerSkinDict.TryGetValue(PackID, out var pack); return pack;
     }
 
     public GunSkinConfig ReturnGunSkinConfig(GunType Type)
     {
-        return GunSkinConfigList.FirstOrDefault(config => config.CurrentType == Type);
+        return GunSkinConfigList.FirstOrDefault(c => c.CurrentType == Type);
     }
 
     public BulletVisualConfig ReturnBulletVisualConfig(GunType Type)
@@ -447,45 +487,36 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
 
     public SpecialBulletBindPack FindBulletBindPack(int bundleID)
     {
-        _bulletBundleDict.TryGetValue(bundleID, out var pack);
-        return pack;
+        _bulletBundleDict.TryGetValue(bundleID, out var pack); return pack;
     }
-
     #endregion
 
-    #region GM调试方法
+    #region GM工具
     [ContextMenu("GM_清空所有皮肤数据")]
     private void GM_ClearAllSkinData()
     {
-        if (!Application.isPlaying)
-        {
-            Debug.LogWarning("请在Play模式下执行此操作");
-            return;
-        }
+        if (!Application.isPlaying) { Debug.LogWarning("请在运行时使用"); return; }
 
-        // 开发者模式下也允许清空（仅清空内存）
         PlayerOwnerSkinPackList.Clear();
         CurrentGunHitDataList.Clear();
         CurrentBulletBundleList.Clear();
+        CurrentGunSkinPackList.Clear();
         CurrentPlayerSkinPack = null;
         CurrentOwnerHitObj = null;
         _currentEquippedBulletBundleID = -1;
 
-        // 清空枪械配置
-        foreach (var config in GunSkinConfigList)
-        {
-            config.bulletConfig = null;
-            config.muzzleFlashConfig = null;
-        }
+        foreach (var c in GunEquipmentConfigList) c.EquippedSkin = null;
 
-        // 非开发者模式才删除文件
-        if (!IsDeveloperMode)
-        {
-            DataEncryptionManger.Instance.DeleteEncryptedComplexData(SkinSaveFileName);
-            SaveSkinData();
-        }
+        if (!IsDeveloperMode) DataEncryptionManger.Instance.DeleteEncryptedComplexData(SkinSaveFileName);
+        Debug.Log("已清空皮肤数据");
+    }
 
-        Debug.Log("[GM] 已清空皮肤数据 (内存)");
+    [ContextMenu("GM_解锁所有枪械皮肤")]
+    private void GM_UnlockAllGunSkins()
+    {
+        if (!Application.isPlaying) return;
+        UnlockAllGunSkins();
+        AutoSetDefaultGunSkin();
     }
     #endregion
 }
@@ -496,4 +527,11 @@ public class GunSkinConfig
     public GunType CurrentType;
     public BulletVisualConfig bulletConfig;
     public MuzzleFlashConfig muzzleFlashConfig;
+}
+
+[System.Serializable]
+public class GunEquipmentConfig
+{
+    public string GunName;
+    public GunSkinPack EquippedSkin;
 }
