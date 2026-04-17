@@ -98,7 +98,8 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
     #region Ç¹ÐµÆ¤·ô - ×°±¸
     public void EquipmentGunSkin(int skinID)
     {
-        if (!_gunSkinDict.ContainsKey(skinID)) return;
+        if (!_gunSkinDict.ContainsKey(skinID))
+            return;
         EquipmentGunSkin(_gunSkinDict[skinID]);
     }
 

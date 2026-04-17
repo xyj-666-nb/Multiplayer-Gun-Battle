@@ -1,10 +1,10 @@
 using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.Playables;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.Events;
 
 public class GameStartPanel : BasePanel
 {
@@ -31,8 +31,13 @@ public class GameStartPanel : BasePanel
     bool IsStartPanel = false;
     bool isStartOperatePanel = false;
 
+    // 复制的QQ号常量
+    private const string QQ_NUMBER_Q = "1097021982";
+    private const string QQ_NUMBER_D = "37464200393";
+
     public void IsActiveIntroducePanel(bool IsActive)
     {
+        IntroducePanel.interactable = IsActive;
         IsStartPanel = IsActive;
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(IntroducePanel, ref IntroducePanelAnima, IsActive, () => { });
         IntroducePanel.interactable = IsActive;
@@ -78,7 +83,7 @@ public class GameStartPanel : BasePanel
         }
 
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(LeftRectCanvasGroup, ref LeftRectCanvasGroupAnima, IsActive, () => { }, 0.2f);
-        LeftRect.DOAnchorPosX(XPos, 0.4f).SetEase(Ease.OutBack).OnComplete(() => { Callback?.Invoke(); }); ;
+        LeftRect.DOAnchorPosX(XPos, 0.4f).SetEase(Ease.OutBack).OnComplete(() => { Callback?.Invoke(); });
     }
 
     #region  生命周期
@@ -100,11 +105,10 @@ public class GameStartPanel : BasePanel
         ButtonGroup1.Add(controlDic["ReturnButton"] as Button);
         ButtonGroup1.Add(controlDic["OperateButton"] as Button);
         ButtonGroup1.Add(controlDic["GameSettingButton"] as Button);
-        ButtonGroup.Add(controlDic["OptionButton "] as Button);
+        ButtonGroup.Add(controlDic["OptionButton "] as Button); // 还原末尾空格
         SimpleEffectButtonGroup.Instance.RegisterGroup("GameStartGroup", ButtonGroup, false);//注册组
         SimpleEffectButtonGroup.Instance.RegisterGroup("GameStartGroup1", ButtonGroup1, false, 1.4f, 1.35f, 1.45f);//注册组
 
-        // ================== 绑定按下旋转轮盘的逻辑 ==================
         BindWheelRotateEvent(controlDic["ReturnButton"] as Button, Angle_Down);      // Return → 下 (-45)
         BindWheelRotateEvent(controlDic["OperateButton"] as Button, 0f);             // Operate → 中 (0)
         BindWheelRotateEvent(controlDic["GameSettingButton"] as Button, Angle_Up);    // Setting → 上 (41)
@@ -145,7 +149,7 @@ public class GameStartPanel : BasePanel
             case "PanelExitButton":
                 IsActiveIntroducePanel(false);
                 break;
-            case "OptionButton ":
+            case "OptionButton ": // 保持末尾空格
                 IsActiveLeftRect(false, () => { IsActiveOperate(true); });
                 break;
             case "GameSettingButton":
@@ -157,7 +161,28 @@ public class GameStartPanel : BasePanel
             case "ReturnButton":
                 IsActiveOperate(false, () => { IsActiveLeftRect(true); });
                 break;
+            case "QButton":
+                // 复制Q按钮对应的QQ号
+                CopyToClipboard(QQ_NUMBER_Q);
+                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, $"已复制QQ号：{QQ_NUMBER_Q}");
+                break;
+            case "DButton":
+                // 复制D按钮对应的QQ号
+                CopyToClipboard(QQ_NUMBER_D);
+                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, $"已复制QQ号：{QQ_NUMBER_D}");
+                break;
         }
+    }
+    #endregion
+
+    #region 复制文本到剪贴板（安卓/PC全适配）
+    /// <summary>
+    /// 通用复制方法，兼容安卓平台
+    /// </summary>
+    private void CopyToClipboard(string text)
+    {
+        // Unity官方API，全平台支持复制文本
+        GUIUtility.systemCopyBuffer = text;
     }
     #endregion
 

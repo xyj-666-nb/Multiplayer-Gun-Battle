@@ -14,6 +14,7 @@ public class GoodsPage : MonoBehaviour
     private Vector3 OriginalPos;
     public RectTransform GoldRect;
     public Image GoldBackGround;
+    public Color OriginalGoldBgColor; // 金币背景原始颜色
 
     [Header("商品信息")]
     public Image GoodsImage;
@@ -67,12 +68,18 @@ public class GoodsPage : MonoBehaviour
     [Header("枪械皮肤专用")]
     public Image GunSkinImage;//枪械皮肤专用图
     public TextMeshProUGUI GunSkinName;//枪械皮肤专用名字
+    public Image GunShowImage;//枪械展示大图（新增）
 
     void Start()
     {
-        OriginalGoldBgColor = GoldBackGround.color;
+        if (GoldBackGround != null)
+        {
+            OriginalGoldBgColor = GoldBackGround.color;
+        }
+
         MyRect = GetComponent<RectTransform>();
         OriginalPos = DiscountRect.anchoredPosition;
+
         if (MyButton != null)
         {
             MyButton.onClick.AddListener(ToggleExpand);
@@ -86,13 +93,12 @@ public class GoodsPage : MonoBehaviour
             IntroduceCanvasGroup.blocksRaycasts = false;
         }
 
-        // 调用统一初始化函数
+        // 统一初始化
         InitBulletUI();
     }
 
     public void InitBulletUI()
     {
-        // 原有代码不动
         if (BulletShowCanvas != null)
         {
             BulletShowCanvas.alpha = 0;
@@ -107,9 +113,16 @@ public class GoodsPage : MonoBehaviour
             _bulletImage.transform.localScale = Vector3.one;
         }
 
-        // ========== 枪械皮肤：默认隐藏物体 ==========
+        // 枪械皮肤：默认隐藏
         if (GunSkinImage != null) GunSkinImage.gameObject.SetActive(false);
         if (GunSkinName != null) GunSkinName.gameObject.SetActive(false);
+        // 枪械展示大图：默认隐藏
+        if (GunShowImage != null)
+        {
+            GunShowImage.gameObject.SetActive(false);
+            GunShowImage.sprite = null;
+            GunShowImage.color = ColorManager.SetColorAlpha(GunShowImage.color, 0);
+        }
 
         if (IntroduceRawImage != null)
         {
@@ -136,26 +149,44 @@ public class GoodsPage : MonoBehaviour
     {
         if (goodsData == null || IntroduceRawImage == null) return;
 
-        // ========== 枪械皮肤显示逻辑 ==========
+        // ========== 枪械皮肤：显示大图 + 渐显动画 ==========
         if (goodsData.skinType == SkinType.GunAppearance && goodsData.gunSkinPack != null)
         {
-            // 关闭所有其他显示
+            // 关闭其他预览
             IntroduceRawImage.gameObject.SetActive(false);
             playerImage.gameObject.SetActive(false);
             PlayerButton.gameObject.SetActive(false);
-            // 开启枪械皮肤物体
+
+            // 开启小图标和名称
             if (GunSkinImage != null) GunSkinImage.gameObject.SetActive(true);
             if (GunSkinName != null) GunSkinName.gameObject.SetActive(true);
-            // 隐藏原有商品名称
             if (GoodsName != null) GoodsName.gameObject.SetActive(false);
+
+            // 枪械展示大图 DOTween渐显
+            if (GunShowImage != null)
+            {
+                GunShowImage.DOKill();
+                GunShowImage.gameObject.SetActive(true);
+                GunShowImage.color = ColorManager.SetColorAlpha(GunShowImage.color, 0);
+                GunShowImage.sprite = goodsData.gunSkinPack.skinIcon;
+                GunShowImage.DOFade(1, 0.3f); // 0.3秒渐显
+            }
             return;
         }
         else
         {
-            // 非枪械皮肤：关闭枪械皮肤物体，恢复商品名称
+            // 非枪械皮肤：关闭所有枪械UI
             if (GunSkinImage != null) GunSkinImage.gameObject.SetActive(false);
             if (GunSkinName != null) GunSkinName.gameObject.SetActive(false);
             if (GoodsName != null) GoodsName.gameObject.SetActive(true);
+
+            // 关闭枪械展示大图
+            if (GunShowImage != null)
+            {
+                GunShowImage.DOKill();
+                GunShowImage.gameObject.SetActive(false);
+                GunShowImage.sprite = null;
+            }
         }
 
         //判断是否为 子弹皮肤 / 打击特效皮肤
@@ -390,8 +421,6 @@ public class GoodsPage : MonoBehaviour
         }
     }
 
-    public Color OriginalGoldBgColor;
-
     /// <summary>
     /// 统一刷新：枪械皮肤→子弹→默认图标
     /// </summary>
@@ -508,7 +537,6 @@ public class GoodsPage : MonoBehaviour
         GoldNumber.text = "0";
         GoldNumber.fontSize = 63;
         DiscountRect.anchoredPosition = OriginalPos;
-        // 重置商品名称显示
         if (GoodsName != null) GoodsName.gameObject.SetActive(true);
 
         if (DiscountSequence != null && DiscountSequence.IsActive())
@@ -530,17 +558,27 @@ public class GoodsPage : MonoBehaviour
             GunSkinImage.transform.localScale = Vector3.one;
         }
 
+        // 重置枪械展示大图
+        if (GunShowImage != null)
+        {
+            GunShowImage.DOKill();
+            GunShowImage.gameObject.SetActive(false);
+            GunShowImage.sprite = null;
+            GunShowImage.color = ColorManager.SetColorAlpha(GunShowImage.color, 0);
+        }
+
+        // 重置金币背景
         if (GoldBackGround != null)
         {
-            GoldBackGround.DOKill(); // 停止颜色动画
+            GoldBackGround.DOKill();
             GoldBackGround.color = OriginalGoldBgColor;
         }
 
-        // ======================重置购买按钮状态 ======================
+        // 重置购买按钮
         if (PurchaseButton != null)
         {
-            PurchaseButton.onClick.RemoveAllListeners(); // 清空监听
-            PurchaseButton.onClick.AddListener(JudgePurchaseState); // 重新绑定购买逻辑
+            PurchaseButton.onClick.RemoveAllListeners();
+            PurchaseButton.onClick.AddListener(JudgePurchaseState);
             PurchaseButton.GetComponentInChildren<TextMeshProUGUI>().text = "购买";
         }
     }

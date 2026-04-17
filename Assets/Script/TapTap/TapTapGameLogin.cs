@@ -126,7 +126,6 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
                     CountDownManager.Instance.CreateTimer(false, 1000, () =>
                     {
                         UImanager.Instance.HidePanel<TapTapLoginPanel>();
-                        Main.Instance.StartCG();
                     });
                     break;
 

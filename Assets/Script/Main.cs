@@ -63,6 +63,7 @@ public class Main : SingleMonoAutoBehavior<Main>
             return;
         }
 
+        UImanager.Instance.ShowPanel<StartPanel>();//打开开始界面
         CustomNetworkManager.OnServerStartedEvent += OnServerStarted;
         CustomNetworkManager.OnServerStoppedEvent += OnServerStopped;
 
@@ -72,8 +73,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         AllMapManager.Instance.TriggerMap(MapType.StartCG, true);
         if(IsUseTapTapServer)
             UImanager.Instance.ShowPanel<TapTapLoginPanel>();
-        else
-            Main.Instance.StartCG();//开始游戏CG
+    
 
 #if UNITY_ANDROID && !UNITY_EDITOR
         try

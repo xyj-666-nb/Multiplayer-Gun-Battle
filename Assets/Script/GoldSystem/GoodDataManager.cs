@@ -452,6 +452,11 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
                     Debug.Log($"[购买成功] 已加载子弹捆绑包ID到背包: {Data.bulletPack.BulletBindName} (ID:{Data.bulletPack.BulletBindID})");
                 }
                 break;
+            case SkinType.GunAppearance:
+                //加载枪械外观
+               GameSkinManager.Instance.AddGunSkinPack(Data.gunSkinPack);
+                break;
+  
         }
 
         // 数据发生变化，立即保存 GameSkinManager

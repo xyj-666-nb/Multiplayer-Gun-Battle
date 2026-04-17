@@ -68,7 +68,6 @@ public class GunSkipPanel : BasePanel
         public Color showImageColor;
         public float bulletCanvasAlpha;
         public Vector3 headLocalScale;
-        // 新增：缓存皮肤按钮图片原始缩放(1,1,1)
         public Vector3 showImageLocalScale;
     }
     private Dictionary<GameObject, ButtonOriginalState> _btnOriginalStateCache = new Dictionary<GameObject, ButtonOriginalState>();
@@ -102,6 +101,8 @@ public class GunSkipPanel : BasePanel
     public override void Start()
     {
         base.Start();
+        // 初始化默认隐藏枪械皮肤装备按钮
+        SetGunSkinEquipButtonActive(false);
     }
 
     protected override void Update()
@@ -120,6 +121,24 @@ public class GunSkipPanel : BasePanel
     }
     #endregion
 
+    #region 核心：枪械皮肤装备按钮 + 演示面板 显隐控制
+    /// <summary>
+    /// 统一控制：演示面板 + 枪械皮肤专属装备按钮
+    /// </summary>
+    /// <param name="isGunSkinPanel">是否是枪械皮肤面板</param>
+    private void SetGunSkinEquipButtonActive(bool isGunSkinPanel)
+    {
+        IsActiveEffectShowCanvasGroup(!isGunSkinPanel);
+
+        if (controlDic != null && controlDic.ContainsKey("GunSkipButton"))
+        {
+            GameObject btnObj = controlDic["GunSkipButton"].gameObject;
+            btnObj.SetActive(isGunSkinPanel);
+           
+        }
+    }
+    #endregion
+
     #region UI控件
     public override void ClickButton(string controlName)
     {
@@ -133,6 +152,9 @@ public class GunSkipPanel : BasePanel
             ClearBulletBindButton();
             ClearHitEffectButton();
             ClearGunSkinButton();
+
+            // ========== 返回默认：关闭皮肤按钮，打开演示面板 ==========
+            SetGunSkinEquipButtonActive(false);
         }
         else if (controlName == "BulletButton")
         {
@@ -144,6 +166,9 @@ public class GunSkipPanel : BasePanel
             ClearGunSkinButton();
             CreateBulletBind(_currentGunType);
             PlayDemoGunByCurrentPanel();
+
+            // ========== 子弹配置：关闭皮肤按钮，打开演示面板 ==========
+            SetGunSkinEquipButtonActive(false);
         }
         else if (controlName == "GunSkipButton_Test")
         {
@@ -155,6 +180,9 @@ public class GunSkipPanel : BasePanel
             ClearHitEffectButton();
             CreateGunSkinButton(_currentGunType);
             PlayDemoGunByCurrentPanel();
+
+            // ========== 枪械皮肤：激活皮肤按钮，关闭演示面板 ==========
+            SetGunSkinEquipButtonActive(true);
         }
         else if (controlName == "HitObjtButton")
         {
@@ -166,6 +194,9 @@ public class GunSkipPanel : BasePanel
             ClearGunSkinButton();
             CreateHitEffectBind();
             PlayDemoGunByCurrentPanel();
+
+            // ========== 打击粒子：关闭皮肤按钮，打开演示面板 ==========
+            SetGunSkinEquipButtonActive(false);
         }
         else if (controlName == "EffectScreen")
         {
@@ -202,15 +233,12 @@ public class GunSkipPanel : BasePanel
                 WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "已装备打击粒子");
                 GameSkinManager.Instance.CurrentOwnerHitObj = CurrentChooseGunHitData;
             }
-            else if (currentPanelType == GunViewType.GunSkin)
-            {
-                if (CurrentChooseGunSkinPack != null)
-                {
-                    WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "已装备枪械皮肤");
-                    // 皮肤装备逻辑 自行补充
-                    // GameSkinManager.Instance.SetPlayerGunSkin(CurrentChooseGunSkinPack);
-                }
-            }
+        }
+        else if (controlName == "GunSkipButton")
+        {
+            //枪械皮肤专属安装按钮
+            WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "已装备枪械皮肤");
+            GameSkinManager.Instance.EquipmentGunSkin(CurrentChooseGunSkinPack.skinGuid);//传入ID自动装备
         }
     }
     #endregion
@@ -612,7 +640,6 @@ public class GunSkipPanel : BasePanel
                 obj.name = skinPack.skinName;
 
                 ButtonOriginalState originalState = new ButtonOriginalState();
-                // 缓存原始缩放为1,1,1
                 originalState.showImageLocalScale = Vector3.one;
                 Transform showImageTrans = obj.transform.Find("ShowImage");
                 TextMeshProUGUI btnText = obj.GetComponentInChildren<TextMeshProUGUI>();
@@ -625,15 +652,12 @@ public class GunSkipPanel : BasePanel
                     showImage.color = Color.white;
                     showImage.SetAllDirty();
 
-                    // ===================== 特殊缩放规则 =====================
                     Vector3 targetScale = Vector3.one;
                     switch (Type)
                     {
-                        // 步枪：3,4
                         case GunType.Rifle:
                             targetScale = new Vector3(2.5f, 3.5f, 1);
                             break;
-                        // 冲锋枪：P90=2,2 | UZI=1.5,1.5
                         case GunType.Charge:
                             if (skinPack.GunRealName.Equals("P90", StringComparison.OrdinalIgnoreCase))
                                 targetScale = new Vector3(3, 4, 1);
@@ -642,7 +666,6 @@ public class GunSkipPanel : BasePanel
                             else if (skinPack.GunRealName.Equals("Vector-45", StringComparison.OrdinalIgnoreCase))
                                 targetScale = new Vector3(2, 3, 1);
                             break;
-                        // 机枪/栓动步枪/DMR：2,3
                         case GunType.LightMachineGun:
                         case GunType.Snipe:
                         case GunType.DMR:
@@ -652,7 +675,6 @@ public class GunSkipPanel : BasePanel
                             targetScale = Vector3.one;
                             break;
                     }
-                    // 应用缩放
                     showImage.transform.localScale = targetScale;
                 }
 
@@ -681,8 +703,6 @@ public class GunSkipPanel : BasePanel
             if (item.Key.name == buttonName)
             {
                 CurrentChooseGunSkinPack = item.Value;
-                // 皮肤点击逻辑 自行补充
-                // PlayDemoGunByCurrentPanel();
                 break;
             }
         }
@@ -706,7 +726,6 @@ public class GunSkipPanel : BasePanel
                     {
                         showImage.color = originalState.showImageColor;
                         showImage.sprite = null;
-                        // 重置图片缩放为原始1,1,1
                         showImage.transform.localScale = originalState.showImageLocalScale;
                     }
                 }
@@ -720,13 +739,10 @@ public class GunSkipPanel : BasePanel
     }
     #endregion
 
-    // ===================== 已清空Content自适应代码 =====================
     private IEnumerator RefreshContentHeightCoroutine()
     {
         yield return null;
-        // 无任何手动控制逻辑，由UI组件自动自适应
     }
-    // =================================================================
 
     public void ClearButtonGroup()
     {
@@ -763,6 +779,8 @@ public class GunSkipPanel : BasePanel
         ClearBulletBindButton();
         ClearHitEffectButton();
         ClearGunSkinButton();
+        // 隐藏面板时重置皮肤按钮
+        SetGunSkinEquipButtonActive(false);
     }
 
     public override void ShowMe(bool isNeedDefaultAnimator = true)
