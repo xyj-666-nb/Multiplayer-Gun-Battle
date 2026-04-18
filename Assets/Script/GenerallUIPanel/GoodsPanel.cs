@@ -56,6 +56,7 @@ public class GoodsPanel : BasePanel
             ScrollViewContent.pivot = new Vector2(0, 0.5f);
         }
         CheckRefreshState();//¼ì²éÒ»ÏÂ×´Ì¬
+
     }
     #endregion
 

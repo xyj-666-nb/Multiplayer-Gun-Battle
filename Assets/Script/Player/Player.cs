@@ -288,6 +288,15 @@ public class Player : Base_Entity
         //玩家生成触发本地GC
         GC.Collect();
         Resources.UnloadUnusedAssets();
+        CountDownManager.Instance.CreateTimer(false, 1000, () =>
+        {
+            //触发每日奖励
+            if(!GoodDataManager.Instance.hasGivenDailyReward)
+            {
+                //如果没有领取过每日奖励，就触发它
+                UImanager.Instance.ShowPanel<EverDayMotivatePanel>();
+            }
+        });
     }
 
     public override void OnStopLocalPlayer()

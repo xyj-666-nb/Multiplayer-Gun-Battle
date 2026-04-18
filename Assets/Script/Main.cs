@@ -30,6 +30,7 @@ public class Main : SingleMonoAutoBehavior<Main>
 
     public SpecialBulletBindPack test;
 
+
     public void StartCG()
     {
         StartTimeLine.Play();
@@ -186,7 +187,7 @@ public class Main : SingleMonoAutoBehavior<Main>
          Developer_GUITestManger.Instance.RegisterGuiButton("打开商店页面", () => { UImanager.Instance.ShowPanel<GoodsPanel>(); }, "面板测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("打开服装页面", () => { UImanager.Instance.ShowPanel<CostumePanel>(); }, "面板测试");
         Developer_GUITestManger.Instance.RegisterGuiButton("关闭商店页面", () => { UImanager.Instance.ShowPanel<CostumePanel>(); }, "面板测试");
-      //  Developer_GUITestManger.Instance.RegisterGuiButton("打开玩家皮肤面板", () => { UImanager.Instance.ShowPanel<PlayerSkipPanel>(); }, "面板测试");
+        Developer_GUITestManger.Instance.RegisterGuiButton("打开每日奖励面板面板", () => { UImanager.Instance.ShowPanel<EverDayMotivatePanel>(); }, "面板测试");
 
         // Developer_GUITestManger.Instance.RegisterGuiButton("使用绿针", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Green_injection); }, "战术设备测试");
         // Developer_GUITestManger.Instance.RegisterGuiButton("使用黄色针剂", () => { Player.LocalPlayer.MyHandControl.TriggerInjection(TacticType.Yellow_injection); }, "战术设备测试");

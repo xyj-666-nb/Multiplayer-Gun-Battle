@@ -52,6 +52,9 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     [Tooltip("用户默认拥有的商品，每次启动游戏都会验证并补全，防止被误删")]
     public List<GoodsData> DefaultInitGoodsData = new List<GoodsData>();
 
+    [Header("今日是否给与过每日奖励")]
+    public bool hasGivenDailyReward = false;
+
     [Serializable]
     private class DailyShopSaveData
     {
@@ -60,6 +63,8 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         public int dailyRefreshCount;
         // 存储折扣数据
         public List<DiscountData> discounts = new List<DiscountData>();
+        // 存储今日是否已领取每日奖励
+        public bool hasGivenDailyReward;
     }
 
     [Serializable]
@@ -124,6 +129,49 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     }
     #endregion
 
+    #region 每日奖励公共方法
+    /// <summary>
+    /// 检查今日是否可以领取每日奖励
+    /// </summary>
+    public bool CanReceiveDailyReward()
+    {
+        return !hasGivenDailyReward;
+    }
+
+    /// <summary>
+    /// 标记今日已领取每日奖励
+    /// </summary>
+    public void MarkDailyRewardGiven()
+    {
+        if (hasGivenDailyReward)
+        {
+            Debug.LogWarning("[每日奖励] 今日已领取过奖励，请勿重复领取！");
+            return;
+        }
+
+        hasGivenDailyReward = true;
+        SaveDailyShopData(); // 立即保存到本地
+        Debug.Log("[每日奖励] 今日奖励已领取，状态已保存");
+    }
+
+    /// <summary>
+    /// GM功能：重置今日每日奖励状态（用于测试）
+    /// </summary>
+    [ContextMenu("GM_重置每日奖励状态")]
+    private void GM_ResetDailyReward()
+    {
+        if (!Application.isPlaying)
+        {
+            Debug.LogWarning("请在游戏运行（Play Mode）下使用此功能！");
+            return;
+        }
+
+        hasGivenDailyReward = false;
+        SaveDailyShopData();
+        Debug.Log("[GM] 每日奖励状态已重置为可领取");
+    }
+    #endregion
+
     protected override void Awake()
     {
         base.Awake();
@@ -158,7 +206,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
                 SaveDailyShopData(); // 补全后立即保存
             }
 
-            Debug.Log($"[商店] 今日商品已加载，数量：{ToDayRefreshGoodsList.Count}，剩余刷新次数：{maxDailyRefreshCount - todayUsedRefreshCount}");
+            Debug.Log($"[商店] 今日商品已加载，数量：{ToDayRefreshGoodsList.Count}，剩余刷新次数：{maxDailyRefreshCount - todayUsedRefreshCount}，今日奖励状态：{(hasGivenDailyReward ? "已领取" : "未领取")}");
             return;
         }
 
@@ -184,6 +232,8 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         // 恢复数据
         lastRefreshDate = saveData.date;
         todayUsedRefreshCount = saveData.dailyRefreshCount;
+        // 【新增】恢复每日奖励标记
+        hasGivenDailyReward = saveData.hasGivenDailyReward;
 
         // 恢复商品列表
         ToDayRefreshGoodsList.Clear();
@@ -240,6 +290,9 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         if (isNewDay)
         {
             todayUsedRefreshCount = 0;
+            // 【新增】新的一天，重置每日奖励标记为未领取
+            hasGivenDailyReward = false;
+            Debug.Log($"[每日奖励] 新的一天到来，每日奖励已重置为可领取状态");
         }
 
         // 筛选玩家未拥有的商品
@@ -352,6 +405,8 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         saveData.date = lastRefreshDate;
         saveData.goodsGuids = ToDayRefreshGoodsList.Select(g => g.goodsGuid).ToList();
         saveData.dailyRefreshCount = todayUsedRefreshCount;
+        // 【新增】保存每日奖励标记
+        saveData.hasGivenDailyReward = hasGivenDailyReward;
 
         // 保存折扣数据
         saveData.discounts = new List<DiscountData>();
@@ -446,9 +501,9 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
                 break;
             case SkinType.GunAppearance:
                 //加载枪械外观
-               GameSkinManager.Instance.AddGunSkinPack(Data.gunSkinPack);
+                GameSkinManager.Instance.AddGunSkinPack(Data.gunSkinPack);
                 break;
-  
+
         }
     }
 
@@ -537,7 +592,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     /// </summary>
     private void SyncAllOwnedGoodsToSkinManager()
     {
-        if (GameSkinManager.Instance == null) 
+        if (GameSkinManager.Instance == null)
             return;
 
         foreach (var goods in UserObtainGoodsList)
@@ -547,7 +602,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
             LoadGoodsData(goods);
         }
         //触发本地已经保存的数据加载
-       GameSkinManager.Instance.ReturnLastGameEquipment();
+        GameSkinManager.Instance.ReturnLastGameEquipment();
     }
 
     public void ClearLocalData()

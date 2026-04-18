@@ -19,6 +19,7 @@ public class GameSettlementPanel : BasePanel
     [Header("金币显示")]
     public TextMeshProUGUI GoldNumber;//基础金币数量文本
     private int _currentBaseGold = 0;//缓存本局基础金币
+    private bool _hasGivenReward = false; // 防止重复发放奖励的标记
 
     [Header("激励广告面板")]
     public CanvasGroup MotivatePanelCanvasGroup;//广告激励面板
@@ -37,6 +38,7 @@ public class GameSettlementPanel : BasePanel
     public void SetGoldData(int baseGold)
     {
         _currentBaseGold = baseGold;
+        _hasGivenReward = false; // 重置奖励发放标记
         GoldNumber.text = baseGold.ToString();
         goldMultiText.text = (baseGold * GoldMulti).ToString();
     }
@@ -134,24 +136,95 @@ public class GameSettlementPanel : BasePanel
         switch (controlName)
         {
             case "ExitButton":
-                ExitGameSettlement();
+                // 直接退出：给基础金币
+                TryGiveBaseGoldAndExit();
                 break;
             case "ConfirmButton":
-                // TODO: 这里接入你的激励广告SDK
-                Debug.Log($"请求观看激励广告，观看成功后获得{_currentBaseGold * GoldMulti}金币");
-                // 广告观看成功后执行：
-                // 1. 给玩家添加金币
-                // 2. SetMotivatePanelActive(false);
-                // 3. ExitGameSettlement();
+                Debug.Log($"[广告] 请求观看激励广告，预期奖励: {_currentBaseGold * GoldMulti}");
+
+                TapAdManager.Instance.ShowRewardAd(
+                    onRewarded: OnAdRewarded,
+                    onFailed: OnAdFailed
+                );
+
                 break;
             case "CancelButton":
-                // 取消广告，给基础金币
-                Debug.Log($"取消激励广告，获得基础金币{_currentBaseGold}");
-                // TODO: 给玩家添加基础金币
-                SetMotivatePanelActive(false);
+                // 取消广告：给基础金币并退出
+                Debug.Log($"[广告] 取消观看激励广告，获得基础金币: {_currentBaseGold}");
+                TryGiveBaseGoldAndExit();
                 break;
         }
     }
+
+    #region 奖励发放核心逻辑
+    /// <summary>
+    /// 尝试发放基础金币并退出（防止重复发放）
+    /// </summary>
+    private void TryGiveBaseGoldAndExit()
+    {
+        if (_hasGivenReward)
+        {
+            Debug.LogWarning("[奖励] 奖励已发放过，跳过重复操作");
+            ExitGameSettlement();
+            return;
+        }
+
+        // 发放基础金币
+        if (GoldSystem.Instance != null)
+        {
+            GoldSystem.Instance.AddGold(_currentBaseGold);
+            Debug.Log($"[奖励] 发放基础金币成功: {_currentBaseGold}");
+        }
+        else
+        {
+            Debug.LogError("[奖励] GoldSystem 不存在，无法发放金币！");
+        }
+
+        _hasGivenReward = true;
+        SetMotivatePanelActive(false); // 确保关闭广告面板
+        ExitGameSettlement();
+    }
+
+    /// <summary>
+    /// 广告观看成功回调：发放3倍金币并退出
+    /// </summary>
+    public void OnAdRewarded()
+    {
+        if (_hasGivenReward)
+        {
+            Debug.LogWarning("[奖励] 奖励已发放过，跳过重复操作");
+            ExitGameSettlement();
+            return;
+        }
+
+        int multiGold = _currentBaseGold * GoldMulti;
+
+        // 发放3倍金币
+        if (GoldSystem.Instance != null)
+        {
+            GoldSystem.Instance.AddGold(multiGold);
+            Debug.Log($"[奖励] 激励广告观看成功，发放3倍金币: {multiGold}");
+        }
+        else
+        {
+            Debug.LogError("[奖励] GoldSystem 不存在，无法发放金币！");
+        }
+
+        _hasGivenReward = true;
+        SetMotivatePanelActive(false);
+        ExitGameSettlement();
+    }
+
+    /// <summary>
+    /// 广告观看失败回调：给基础金币或提示
+    /// </summary>
+    public void OnAdFailed()
+    {
+        Debug.LogWarning("[广告] 激励广告加载/观看失败，发放基础金币");
+        // 广告失败也给基础金币，保证玩家体验
+        TryGiveBaseGoldAndExit();
+    }
+    #endregion
 
     /// <summary>
     /// 结算退出逻辑
@@ -175,7 +248,7 @@ public class GameSettlementPanel : BasePanel
     }
     #endregion
 
-    #region 面板显隐（保留基类逻辑）
+    #region 面板显隐
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
     {
         base.HideMe(callback, isNeedDefaultAnimator);
