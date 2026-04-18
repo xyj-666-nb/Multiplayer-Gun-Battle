@@ -88,11 +88,15 @@ public class EnterRoomPanel : BasePanel
         switch (controlName)
         {
             case "RefreshButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 ClearList();
                 lanRoomClientBrowser?.StartScan();   // 重新广播一次
                 break;
 
             case "ExitButton":
+                // UI返回音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui返回");
                 UImanager.Instance.ShowPanel<RoomPanel>();
                 UImanager.Instance.HidePanel<EnterRoomPanel>();
                 lanRoomClientBrowser?.StopScan();//停止广播，避免在切换面板后还继续接收服务器广播信息
@@ -132,6 +136,8 @@ public class EnterRoomPanel : BasePanel
             GameScore: info.GoldScore,
             uri: info.uri,
             onJoin: (uri) => {
+                // 加入房间音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 Debug.Log($"[EnterRoomPanel] 点击加入房间：serverId={info.serverId}, uri={uri}");
                 lanRoomClientBrowser.JoinByUri(uri);
             }

@@ -40,6 +40,8 @@ public class ScreenSettingPanel : BasePanel
     public override void ClickButton(string controlName)
     {
         base.ClickButton(controlName);
+        // UI选择音效
+        MusicManager.Instance.PlayEffect("Music/update415/ui选择");
         WarnTriggerManager.Instance.TriggerNoInteractionWarn(1, "设置成功");
         switch (controlName)
         {

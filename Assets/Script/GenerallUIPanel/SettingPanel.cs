@@ -36,7 +36,7 @@ public class SettingPanel : BasePanel
         AddButtonToGroup(_totalGroupName, "Button_ChangeKey", ChooseButton_ChangeKey, CancelButton_ChangeKey);
         AddButtonToGroup(_totalGroupName, "Button_MusicSetting", ChooseButton_MusicSetting, CancelButton_MusicSetting);
         AddButtonToGroup(_totalGroupName, "Button_PictureSetting", ChooseButton_PictureSetting, CancelButton_PictureSetting);
-         AddButtonToGroup(_totalGroupName, "Button_Language", ChooseButton_Language, CancelButton_Language);
+        AddButtonToGroup(_totalGroupName, "Button_Language", ChooseButton_Language, CancelButton_Language);
 
     }
 
@@ -66,10 +66,10 @@ public class SettingPanel : BasePanel
     #region 按钮选中/取消事件
     public void ChooseButton_ChangeKey()
     {
-        if (PanelParentObj != null )
+        if (PanelParentObj != null)
         {
             var changeKeyPanel = UImanager.Instance.ShowPanel<MoveSettingPanel>();
-            if (changeKeyPanel != null )
+            if (changeKeyPanel != null)
             {
                 changeKeyPanel.transform.SetParent(PanelParentObj);
                 // 重置面板的 Left 和 Top 偏移
@@ -102,10 +102,10 @@ public class SettingPanel : BasePanel
 
     public void ChooseButton_MusicSetting()
     {
-        if (PanelParentObj != null )
+        if (PanelParentObj != null)
         {
             var musicPanel = UImanager.Instance.ShowPanel<MusicPanel>();
-            if (musicPanel != null )
+            if (musicPanel != null)
             {
                 musicPanel.transform.SetParent(PanelParentObj);
                 // 重置面板的 Left 和 Top 偏移
@@ -261,9 +261,15 @@ public class SettingPanel : BasePanel
     {
         base.ClickButton(controlName);
         if (controlName == "Button_ReturnGame")
+        {
+            // UI返回音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui返回");
             UImanager.Instance.HidePanel<SettingPanel>();
+        }
         if (controlName == "Button_ExitGame")
         {
+            // UI返回音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui返回");
             UImanager.Instance.HidePanel<SettingPanel>();
         }
     }

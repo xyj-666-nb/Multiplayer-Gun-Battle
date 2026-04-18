@@ -16,6 +16,8 @@ public class AllMapManager : SingleMonoAutoBehavior<AllMapManager>
                 {
                     if(pack.ScreenObj==null)
                       pack.ScreenObj= GameObject.Instantiate(pack.Screen, pack.Obj.transform);
+                    if(type== MapType.StartCG)
+                        MusicManager.Instance.PlayBgm("Music/局内BGM/demo2");//播放局内BGM,返回了就播放BGM
                 }
                 else
                 {

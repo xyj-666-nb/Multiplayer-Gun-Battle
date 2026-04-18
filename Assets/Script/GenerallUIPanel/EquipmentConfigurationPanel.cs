@@ -53,7 +53,7 @@ public class EquipmentConfigurationPanel : BasePanel
     public TextMeshProUGUI SlotIndexText;
 
     private SlotInfoPack _currentSlotInfoPack;
-    private bool _isFirstTimeInit = true; // 【新增】标记是否为第一次初始化数据
+    private bool _isFirstTimeInit = true; 
     #endregion
 
     #region 核心属性
@@ -154,7 +154,7 @@ public class EquipmentConfigurationPanel : BasePanel
         }
 
         // 注册装备按钮（使用兼容的带参方法）
-        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, gunBtn, ArmamentButtonTriggerEvent,chooseColor:ColorManager.LightGreen);
+        ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, gunBtn, ArmamentButtonTriggerEvent, chooseColor: ColorManager.LightGreen);
         ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, tac1Btn, ArmamentButtonTriggerEvent, chooseColor: ColorManager.LightGreen);
         ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, tac2Btn, ArmamentButtonTriggerEvent, chooseColor: ColorManager.LightGreen);
         ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ArmamentButtonGroupName, armorBtn, ArmamentButtonTriggerEvent, chooseColor: ColorManager.LightGreen);
@@ -177,6 +177,9 @@ public class EquipmentConfigurationPanel : BasePanel
     //槽位按钮点击事件
     public void SlotButtonTriggerEvent(string ButtonName)
     {
+        // UI选择音效
+        MusicManager.Instance.PlayEffect("Music/update415/ui选择");
+
         int slotNum = -1;
         string numStr = ButtonName.Replace("Slot", "").Trim(); // Trim去除可能的空格
         if (int.TryParse(numStr, out slotNum))
@@ -239,6 +242,9 @@ public class EquipmentConfigurationPanel : BasePanel
     //装备按钮点击事件
     public void ArmamentButtonTriggerEvent(string ButtonName)
     {
+        // UI选择音效
+        MusicManager.Instance.PlayEffect("Music/update415/ui选择");
+
         // 【修复】核心保护：如果文本组件或当前槽位为空，直接返回
         if (EquipmentDescriptionText == null) return;
         if (_currentSlotInfoPack == null)
@@ -394,10 +400,14 @@ public class EquipmentConfigurationPanel : BasePanel
         base.ClickButton(controlName);
         if (controlName == "ExitButton")
         {
+            // UI返回音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui返回");
             UImanager.Instance.HidePanel<EquipmentConfigurationPanel>();
         }
         else if (controlName == "Button_SetCurrentSkot")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             //玩家点击设置当前槽位
             PlayerAndGameInfoManger.Instance.SetSlotInfoPack(SlotButtonIndex);
             UpdateSlotIndexText();//更新一下

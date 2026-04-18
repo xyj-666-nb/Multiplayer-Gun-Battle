@@ -134,7 +134,7 @@ public class GunSkipPanel : BasePanel
         {
             GameObject btnObj = controlDic["GunSkipButton"].gameObject;
             btnObj.SetActive(isGunSkinPanel);
-           
+
         }
     }
     #endregion
@@ -145,6 +145,8 @@ public class GunSkipPanel : BasePanel
         base.ClickButton(controlName);
         if (controlName == "ReturnButton_Test")
         {
+            // UI返回音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui返回");
             gunViewZoom.ChangeView(GunViewType.Normal);
             IsActiveButtonGroup(true);
             VCTopic.text = "默认";
@@ -158,6 +160,8 @@ public class GunSkipPanel : BasePanel
         }
         else if (controlName == "BulletButton")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             gunViewZoom.ChangeView(GunViewType.BulletConfig);
             IsActiveButtonGroup(false);
             VCTopic.text = "子弹配置";
@@ -172,6 +176,8 @@ public class GunSkipPanel : BasePanel
         }
         else if (controlName == "GunSkipButton_Test")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             gunViewZoom.ChangeView(GunViewType.GunSkin);
             IsActiveButtonGroup(false);
             VCTopic.text = "枪械皮肤";
@@ -186,6 +192,8 @@ public class GunSkipPanel : BasePanel
         }
         else if (controlName == "HitObjtButton")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             gunViewZoom.ChangeView(GunViewType.HitParticle);
             IsActiveButtonGroup(false);
             VCTopic.text = "打击粒子";
@@ -200,6 +208,8 @@ public class GunSkipPanel : BasePanel
         }
         else if (controlName == "EffectScreen")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             EffectShowCanvasGroup.DOKill();
             if (IsScale)
             {
@@ -213,6 +223,8 @@ public class GunSkipPanel : BasePanel
         }
         else if (controlName == "TestButton")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             if (currentPanelType == GunViewType.BulletConfig || currentPanelType == GunViewType.HitParticle || currentPanelType == GunViewType.GunSkin)
             {
                 PlayDemoGunByCurrentPanel();
@@ -220,6 +232,8 @@ public class GunSkipPanel : BasePanel
         }
         else if (controlName == "EquipButton")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             if (currentPanelType == GunViewType.BulletConfig)
             {
                 if (CurrentChooseSpecialBulletBindPack != null)
@@ -236,6 +250,8 @@ public class GunSkipPanel : BasePanel
         }
         else if (controlName == "GunSkipButton")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             //枪械皮肤专属安装按钮
             WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "已装备枪械皮肤");
             GameSkinManager.Instance.EquipmentGunSkin(CurrentChooseGunSkinPack.skinGuid);//传入ID自动装备

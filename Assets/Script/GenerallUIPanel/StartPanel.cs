@@ -13,6 +13,7 @@ public class StartPanel : BasePanel
         base.ClickButton(controlName);
         if(controlName== "StartButton")
         {
+           MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             //进入游戏
             UImanager.Instance.HidePanel<StartPanel>();
             Main.Instance.StartCG();

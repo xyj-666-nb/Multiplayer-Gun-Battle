@@ -422,16 +422,12 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
             return;
         }
 
-        bool dataChanged = false;
-
         switch (Data.skinType)
         {
             case SkinType.PlayerCharacter:
                 if (Data.playerSkinPack != null && !GameSkinManager.Instance.PlayerOwnerSkinPackList.Contains(Data.playerSkinPack))
                 {
                     GameSkinManager.Instance.PlayerOwnerSkinPackList.Add(Data.playerSkinPack);
-                    dataChanged = true;
-                    Debug.Log($"[购买成功] 已加载玩家皮肤到背包: {Data.playerSkinPack.PlayerSkinName}");
                 }
                 break;
 
@@ -439,8 +435,6 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
                 if (Data.gunHitData != null && !GameSkinManager.Instance.CurrentGunHitDataList.Contains(Data.gunHitData))
                 {
                     GameSkinManager.Instance.CurrentGunHitDataList.Add(Data.gunHitData);
-                    dataChanged = true;
-                    Debug.Log($"[购买成功] 已加载打击特效到背包: {Data.gunHitData.HitName}");
                 }
                 break;
 
@@ -448,8 +442,6 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
                 if (Data.bulletPack != null && !GameSkinManager.Instance.CurrentBulletBundleList.Contains(Data.bulletPack.BulletBindID))
                 {
                     GameSkinManager.Instance.CurrentBulletBundleList.Add(Data.bulletPack.BulletBindID);
-                    dataChanged = true;
-                    Debug.Log($"[购买成功] 已加载子弹捆绑包ID到背包: {Data.bulletPack.BulletBindName} (ID:{Data.bulletPack.BulletBindID})");
                 }
                 break;
             case SkinType.GunAppearance:
@@ -457,12 +449,6 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
                GameSkinManager.Instance.AddGunSkinPack(Data.gunSkinPack);
                 break;
   
-        }
-
-        // 数据发生变化，立即保存 GameSkinManager
-        if (dataChanged)
-        {
-            GameSkinManager.Instance.SaveSkinData();
         }
     }
 
@@ -484,7 +470,8 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     public void LoadPlayerGood()
     {
         // 只有在播放模式下才执行加载
-        if (!Application.isPlaying) return;
+        if (!Application.isPlaying)
+            return;
 
         // 从存档加载已购买的商品
         UserObtainGoodIDsList = DataEncryptionManger.Instance.LoadEncryptedComplexData<List<string>>(PlayerGoodsDataFileName);
@@ -550,13 +537,17 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     /// </summary>
     private void SyncAllOwnedGoodsToSkinManager()
     {
-        if (GameSkinManager.Instance == null) return;
+        if (GameSkinManager.Instance == null) 
+            return;
 
         foreach (var goods in UserObtainGoodsList)
         {
-            if (goods == null) continue;
+            if (goods == null)
+                continue;
             LoadGoodsData(goods);
         }
+        //触发本地已经保存的数据加载
+       GameSkinManager.Instance.ReturnLastGameEquipment();
     }
 
     public void ClearLocalData()

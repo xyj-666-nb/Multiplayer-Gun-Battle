@@ -134,6 +134,8 @@ public class ArmamentPanel : BasePanel
             {
                 CurrentChooseSlotIndex = ExtractNumberWithRegex(str);
                 Debug.Log($"选中枪械槽位：{CurrentChooseSlotIndex}");
+                // UI槽位选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             });
         }
     }
@@ -168,6 +170,8 @@ public class ArmamentPanel : BasePanel
             {
                 CurrentChooseTacticSlotIndex = ExtractNumberWithRegex(str);
                 Debug.Log($"选中战术槽位：{CurrentChooseTacticSlotIndex}");
+                // UI槽位选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             });
         }
 
@@ -232,13 +236,16 @@ public class ArmamentPanel : BasePanel
     /// </summary>
     private void OnArmorButtonClick()
     {
+        // UI选择音效
+        MusicManager.Instance.PlayEffect("Music/update415/ui选择");
+
         ControlDirectGetGunButton(false);
         //取消直接按钮的获取
         ControlDirectGetGunButton(true, (Btn) => {
             Btn.onClick.AddListener(() => {
                 Player.LocalPlayer.CmdGetArmor(CurrentChooseArmorInfoPack.armorType);
                 //进行提示
-                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f,"获取成功");
+                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "获取成功");
             });
 
         });//打开获取按钮
@@ -276,6 +283,8 @@ public class ArmamentPanel : BasePanel
         // 添加点击监听：切换特殊装备列表
         button.onClick.AddListener(() =>
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             CreateCreateAndRegisterSpecialArmorButton();//生成对应的护甲按钮
         });
 
@@ -299,7 +308,7 @@ public class ArmamentPanel : BasePanel
         ArmorType[] allArmorTypes = (ArmorType[])Enum.GetValues(typeof(ArmorType));
         foreach (var Type in allArmorTypes)
         {
-            if(Type== ArmorType.Empty_handed)
+            if (Type == ArmorType.Empty_handed)
                 continue;//不创建空手按钮
 
             // 开始创建对应的具体按钮
@@ -321,7 +330,7 @@ public class ArmamentPanel : BasePanel
             Button button = buttonObj.GetComponent<Button>();
             TextMeshProUGUI buttonText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
 
-            if (buttonText != null) 
+            if (buttonText != null)
                 buttonText.text = InfoPack.armorName;
             if (button == null)
             {
@@ -338,7 +347,7 @@ public class ArmamentPanel : BasePanel
                 {
                     img.sprite = InfoPack.HelmetSprite;
                     //设置图片的缩放大小适配各类型图片
-                    img.GetComponent<RectTransform>().localScale= new Vector3(0.5f, 0.5f, 1);
+                    img.GetComponent<RectTransform>().localScale = new Vector3(0.5f, 0.5f, 1);
                 }
                 else if (img != null)
                 {
@@ -355,6 +364,8 @@ public class ArmamentPanel : BasePanel
             // 添加点击监听：更新界面信息
             button.onClick.AddListener(() =>
             {
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 UpdateInfoArmor(currentInfo);
                 //设置当前选择的护甲信息
                 CurrentChooseArmorInfoPack = currentInfo;
@@ -364,7 +375,7 @@ public class ArmamentPanel : BasePanel
             });
         }
 
-        // 选中第一个护甲具体按钮（分组名匹配）
+        // 选中第一个护甲具体按钮
         ButtonGroupManager.Instance?.SelectFirstRadioButtonInGroup(ButtonGroupRegisterName_SpecialArmament, true);
     }
 
@@ -373,6 +384,9 @@ public class ArmamentPanel : BasePanel
     /// </summary>
     public void CreateAndRegisterArmamentButton()
     {
+        // UI选择音效
+        MusicManager.Instance.PlayEffect("Music/update415/ui选择");
+
         // 先清理旧按钮
         ClearCreatedArmamentButtons();
         // 清理具体装备按钮和数值滑块
@@ -408,6 +422,8 @@ public class ArmamentPanel : BasePanel
             // 添加点击监听：切换特殊装备列表
             button.onClick.AddListener(() =>
             {
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 Debug.Log("Selected Gun Type: " + currentGunType);
                 CreateAndRegisterSpecialArmamentButton(currentGunType);
             });
@@ -419,7 +435,7 @@ public class ArmamentPanel : BasePanel
         ControlDirectGetGunButton(true, (Btn) => {
             Btn.onClick.AddListener(() => {
                 //点击后直接获取对应的枪械
-                if (Player.LocalPlayer.currentGun!=null)
+                if (Player.LocalPlayer.currentGun != null)
                 {
                     //直接丢弃枪械
                     Player.LocalPlayer.DropCurrentGun();//丢弃枪械
@@ -430,12 +446,12 @@ public class ArmamentPanel : BasePanel
         }); //打开获取按钮
     }
 
-    public void ControlDirectGetGunButton(bool IsShow,UnityAction<Button> CallBack=null)
+    public void ControlDirectGetGunButton(bool IsShow, UnityAction<Button> CallBack = null)
     {
         var btn = controlDic["DirectgetGunButton"] as Button;
         btn.gameObject.SetActive(IsShow);
         CallBack?.Invoke(btn);
-        if(!IsShow)
+        if (!IsShow)
         {
             //清理所有的监听事件
             btn.onClick.RemoveAllListeners();
@@ -447,6 +463,9 @@ public class ArmamentPanel : BasePanel
     /// </summary>
     public void CreateAndRegisterTacticButton()
     {
+        // UI选择音效
+        MusicManager.Instance.PlayEffect("Music/update415/ui选择");
+
         //取消直接按钮的获取
         ControlDirectGetGunButton(false);
         ClearCreatedArmamentButtons();
@@ -483,6 +502,8 @@ public class ArmamentPanel : BasePanel
             // 添加点击监听：切换特殊装备列表
             button.onClick.AddListener(() =>
             {
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 CreateCreateAndRegisterSpecialTacticButton(currentTacticBig);
             });
         }
@@ -612,9 +633,9 @@ public class ArmamentPanel : BasePanel
         }
         else
         {
-            // 备用方案：对象池为空时直接实例化
+            //对象池为空时直接实例化
             buttonObj = Instantiate(SpecialArmamentButtonPrefab);
-            buttonObj.GetComponent<Image>().sprite=SpecialArmamentSpriteList[UnityEngine.Random.Range(0, SpecialArmamentSpriteList.Count)];
+            buttonObj.GetComponent<Image>().sprite = SpecialArmamentSpriteList[UnityEngine.Random.Range(0, SpecialArmamentSpriteList.Count)];
             Debug.LogWarning("PoolManage.Instance 为空，直接实例化特殊装备按钮预制体！");
         }
 
@@ -731,6 +752,8 @@ public class ArmamentPanel : BasePanel
             // 添加点击监听：更新界面信息
             button.onClick.AddListener(() =>
             {
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 UpdateCurrentInfo(currentGunInfo);
                 //设置当前选择的枪械信息
                 CurrentChooseGunInfo = currentGunInfo;
@@ -771,7 +794,7 @@ public class ArmamentPanel : BasePanel
             if (buttonText != null)
                 buttonText.text = MilitaryManager.Instance.GetChineseTacticTypeName(tacticType);
 
-            // 赋值图标（增加空值检查）
+            // 赋值图标
             Transform imgTrans = buttonObj.transform.GetChild(1);
             if (imgTrans != null)
             {
@@ -802,6 +825,8 @@ public class ArmamentPanel : BasePanel
             // 添加点击监听：更新界面信息
             button.onClick.AddListener(() =>
             {
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 UpdateCurrentTacticInfo(currentTacticType);
                 //设置当前选择的战术道具信息
                 CurrentChooseTacticInfo = MilitaryManager.Instance.GetTacticInfo(currentTacticType);
@@ -1028,10 +1053,14 @@ public class ArmamentPanel : BasePanel
         base.ClickButton(controlName);
         if (controlName == "ExitButton")
         {
+            // UI返回音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui返回");
             UImanager.Instance?.HidePanel<ArmamentPanel>();
         }
         else if (controlName == "EquipButton")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             //根据当前的选择对数据进行更新
             if (CurrentChooseGunInfo != null && PlayerAndGameInfoManger.Instance != null)
             {
@@ -1058,7 +1087,7 @@ public class ArmamentPanel : BasePanel
                     Debug.LogWarning($"枪械槽位索引 {CurrentChooseSlotIndex} 超出范围！");
                 }
             }
-            else  if(CurrentChooseArmorInfoPack!=null && PlayerAndGameInfoManger.Instance != null)
+            else if (CurrentChooseArmorInfoPack != null && PlayerAndGameInfoManger.Instance != null)
             {
                 if (CurrentChooseSlotIndex - 1 >= 0 && CurrentChooseSlotIndex - 1 < MilitaryManager.Instance.ArmorInfoPackList.Count)
                 {
@@ -1076,7 +1105,7 @@ public class ArmamentPanel : BasePanel
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
     {
         base.HideMe(callback, isNeedDefaultAnimator);
-        if(IsPlayerPanelHide)
+        if (IsPlayerPanelHide)
         {
             UImanager.Instance.GetPanel<PlayerPanel>().SimpleShowPanel();
             IsPlayerPanelHide = false;
@@ -1086,7 +1115,7 @@ public class ArmamentPanel : BasePanel
     public override void ShowMe(bool isNeedDefaultAnimator = true)
     {
         base.ShowMe(isNeedDefaultAnimator);
-        if(UImanager.Instance.GetPanel<PlayerPanel>()!=null)
+        if (UImanager.Instance.GetPanel<PlayerPanel>() != null)
         {
             UImanager.Instance.GetPanel<PlayerPanel>().SimpleHidePanel();
             IsPlayerPanelHide = true;
@@ -1097,4 +1126,3 @@ public class ArmamentPanel : BasePanel
     protected override void SpecialAnimator_Show() { }
     #endregion
 }
-

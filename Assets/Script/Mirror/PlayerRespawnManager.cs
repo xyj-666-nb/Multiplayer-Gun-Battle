@@ -1,4 +1,3 @@
-using DG.Tweening;
 using Mirror;
 using System.Collections;
 using System.Collections.Generic;
@@ -47,16 +46,60 @@ public class PlayerRespawnManager : NetworkBehaviour
     private Dictionary<int, int> _playerChooseMapDict = new Dictionary<int, int>();
     #endregion
 
+    #region 对局档位配置（可直接在Inspector调试）
+    [Header("=== 对局档位金币系数配置（可调试）===")]
+    [Tooltip("对局时长档位系数：索引0=5分钟，1=10分钟，2=15分钟")]
+    public List<float> TimeLevelCoefficient = new List<float> { 1f, 1.6f, 2.3f };
+    [Tooltip("比分上限档位系数：索引0=10分，1=15分，2=30分")]
+    public List<float> ScoreLimitLevelCoefficient = new List<float> { 1f, 1.4f, 2f };
+
+    [Header("当前选择的对局档位（同步）")]
+    [SyncVar]
+    public int CurrentTimeLevel = 0; // 0=5分钟，1=10分钟，2=15分钟
+    [SyncVar]
+    public int CurrentScoreLimitLevel = 0; // 0=10分，1=15分，2=30分
+
+    /// <summary>
+    /// 房主调用：设置对局时长档位
+    /// </summary>
+    /// <param name="level">0=5分钟，1=10分钟，2=15分钟</param>
+    [Command(requiresAuthority = false)]
+    public void CmdSetTimeLevel(int level, NetworkConnectionToClient sender = null)
+    {
+        // 仅房主可修改
+        if (sender != null  ) 
+            return;
+        // 限制合法范围
+        level = Mathf.Clamp(level, 0, TimeLevelCoefficient.Count - 1);
+        CurrentTimeLevel = level;
+        Debug.Log($"[档位设置] 房主已设置对局时长档位：{level}，系数：{TimeLevelCoefficient[level]}");
+    }
+
+    /// <summary>
+    /// 房主调用：设置比分上限档位
+    /// </summary>
+    /// <param name="level">0=10分，1=15分，2=30分</param>
+    [Command(requiresAuthority = false)]
+    public void CmdSetScoreLimitLevel(int level, NetworkConnectionToClient sender = null)
+    {
+        // 仅房主可修改
+        if (sender != null
+            ) return;
+        // 限制合法范围
+        level = Mathf.Clamp(level, 0, ScoreLimitLevelCoefficient.Count - 1);
+        CurrentScoreLimitLevel = level;
+        Debug.Log($"[档位设置] 房主已设置比分上限档位：{level}，系数：{ScoreLimitLevelCoefficient[level]}");
+    }
+    #endregion
+
     #region 玩家数据管理
     // 维护所有玩家的详细数据列表
-
     private List<PlayerInfo> _playerInfoList = new List<PlayerInfo>();
 
     /// <summary>
     /// 游戏正式开始时调用，记录队伍、重置击杀/死亡数、重置比分
     /// </summary>
     [Server]
-
     public void InitGameData()
     {
         Debug.Log("[数据管理] 开始初始化游戏数据...");
@@ -172,7 +215,9 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         if (winningTeam.HasValue)
         {
-            RpcGameSettlement(winningTeam.Value);
+            // 计算适配档位的全局金币
+            int goldReward = CalculateGameGold();
+            RpcGameSettlement(winningTeam.Value, goldReward);
         }
     }
     #endregion
@@ -216,7 +261,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     [Server]
     public void AddPlayerKill(NetworkConnectionToClient killerConn)
     {
-        if (!IsGameStart) 
+        if (!IsGameStart)
             return; // 游戏开始标识没打开就不处理逻辑
 
         PlayerInfo info = GetOrCreatePlayerInfo(killerConn);
@@ -505,12 +550,12 @@ public class PlayerRespawnManager : NetworkBehaviour
 
     public bool _isGameEnded = false;
 
-    [SyncVar(hook =nameof(OnChangeScoreValue))]
+    [SyncVar(hook = nameof(OnChangeScoreValue))]
     public int RedTeamScoreCount = 0;
 
     [SyncVar(hook = nameof(OnChangeScoreValue))]
     public int BlueTeamScoreCount = 0;
-    private void OnChangeScoreValue(int OldValue,int NewValue)//通过本地的钩子进行回调更新
+    private void OnChangeScoreValue(int OldValue, int NewValue)//通过本地的钩子进行回调更新
     {
         if (UImanager.Instance != null)
         {
@@ -523,7 +568,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     }
 
     [SyncVar]
-    public int GoalScoreCount = 3;//3分胜利
+    public int GoalScoreCount = 3;//胜利目标分
     [SyncVar]
     public int GameTime;
     [SyncVar(hook = nameof(OnRemainGameTimeUpdated))]
@@ -543,6 +588,73 @@ public class PlayerRespawnManager : NetworkBehaviour
                 panel.UpdateTime(newTime);
             }
         }
+    }
+
+    [Header("=== 金币基础配置（可调试）===")]
+    private int BaseGold = 50;          // 全局保底基础金币
+    private int PerKillGold = 3;        // 全局总击杀，每击杀额外加的金币
+    private float RoundScaleFactor = 10f; // 对局规模系数
+    private float TightnessFactor = 25f;  // 对局胶着度系数
+    private int WinCompleteBonus = 20;  // 达成胜利目标的全局额外奖励
+    public int MinGoldReward = 30;     // 最低保底金币
+    private int MaxGoldReward = 500;    // 最高封顶金币
+
+    /// <summary>
+    /// 适配档位+比分上限的全局金币计算
+    /// </summary>
+    [Server]
+    private int CalculateGameGold()
+    {
+        // 基础参数校验与获取
+        int redScore = RedTeamScoreCount;
+        int blueScore = BlueTeamScoreCount;
+        int goalScore = Mathf.Max(1, GoalScoreCount); // 避免除0错误
+        int maxScore = Mathf.Max(redScore, blueScore);
+        int minScore = Mathf.Min(redScore, blueScore);
+        int totalRounds = redScore + blueScore; // 总对局回合数
+
+        // 获取当前档位系数
+        float timeCoeff = TimeLevelCoefficient[Mathf.Clamp(CurrentTimeLevel, 0, TimeLevelCoefficient.Count - 1)];
+        float scoreLimitCoeff = ScoreLimitLevelCoefficient[Mathf.Clamp(CurrentScoreLimitLevel, 0, ScoreLimitLevelCoefficient.Count - 1)];
+        float totalLevelCoeff = timeCoeff * scoreLimitCoeff; // 总档位倍率
+
+        // 基础保底金币
+        float finalGold = BaseGold;
+
+        // 对局规模奖励（适配任意目标分，回合越多奖励越高）
+        float roundScale = totalRounds / (float)goalScore;
+        float roundBonus = roundScale * RoundScaleFactor;
+        finalGold += roundBonus;
+
+        // 对局胶着度奖励（比分越接近，奖励越高，0-1比例适配所有分制）
+        float tightness = maxScore > 0 ? (minScore / (float)maxScore) : 0f;
+        float tightnessBonus = tightness * TightnessFactor;
+        finalGold += tightnessBonus;
+
+        // 总击杀活跃度奖励（体现对局激烈程度）
+        int totalKills = 0;
+        foreach (var info in _playerInfoList)
+        {
+            if (info != null) totalKills += info.KillCount;
+        }
+        float killBonus = totalKills * PerKillGold;
+        finalGold += killBonus;
+
+        // 胜利达成额外奖励（只有达到目标分才给）
+        if (maxScore >= goalScore)
+        {
+            finalGold += WinCompleteBonus;
+        }
+
+        //  应用档位总倍率
+        finalGold *= totalLevelCoeff;
+
+        // 保底&封顶限制，避免数值异常
+        int finalGoldInt = Mathf.RoundToInt(finalGold);
+        finalGoldInt = Mathf.Clamp(finalGoldInt, MinGoldReward, MaxGoldReward);
+
+        Debug.Log($"[金币计算] 时长档位:{CurrentTimeLevel} 比分档位:{CurrentScoreLimitLevel} 总倍率:{totalLevelCoeff:F2} 最终比分:{redScore}:{blueScore} 胶着度:{tightness:F2} 最终金币:{finalGoldInt}");
+        return finalGoldInt;
     }
 
     [Server]
@@ -565,7 +677,6 @@ public class PlayerRespawnManager : NetworkBehaviour
         CheckGameWin();
     }
 
-
     public void CheckGameWin()
     {
         if (_isGameEnded)
@@ -585,25 +696,27 @@ public class PlayerRespawnManager : NetworkBehaviour
         if (winningTeam.HasValue)
         {
             _isGameEnded = true;
-            IsGameStart = false; // 也把开始标记关了
-            IsGameStart=false;
+            IsGameStart = false;
+
+            // 计算适配档位的全局金币
+            int goldReward = CalculateGameGold();
+
             if (CurrentMapIndex >= 0)
             {
                 ServerResetMapInteractObjects(CurrentMapIndex + 1);
                 Debug.Log($"[交互物体] 比分达标，重置地图 {CurrentMapIndex + 1} 的物体");
             }
 
-            Debug.Log($"[游戏结束] {winningTeam.Value} 获胜！");
-
-            RpcGameSettlement(winningTeam.Value);
+            Debug.Log($"[游戏结束] {winningTeam.Value} 获胜！全局金币奖励: {goldReward}");
+            RpcGameSettlement(winningTeam.Value, goldReward);
         }
     }
 
     /// <summary>
-    /// RPC 增加参数，直接告诉客户端谁赢了
+    /// RPC 结算，同步胜负和全局金币
     /// </summary>
     [ClientRpc]
-    public void RpcGameSettlement(Team winTeam)
+    public void RpcGameSettlement(Team winTeam, int goldReward)
     {
         if (UImanager.Instance != null)
         {
@@ -611,11 +724,12 @@ public class PlayerRespawnManager : NetworkBehaviour
             UImanager.Instance.HidePanel<GameScorePanel>();
             UImanager.Instance.HidePanel<PlayerPanel>();
 
-            // 打开结算面板
+            // 打开结算面板并传入数据
             var settlementPanel = UImanager.Instance.ShowPanel<GameSettlementPanel>();
             if (settlementPanel != null)
             {
                 settlementPanel.WinTeam = winTeam;
+                settlementPanel.SetGoldData(goldReward);
             }
         }
     }
@@ -678,7 +792,7 @@ public class PlayerRespawnManager : NetworkBehaviour
             PlayerAndGameInfoManger.Instance.AllMapInfoList.Count < 2)
         {
             Debug.LogError("[地图判定] PlayerAndGameInfoManger 或地图列表未准备好！");
-            return ;
+            return;
         }
 
         int finalMapIndex = 0;
@@ -1033,7 +1147,7 @@ public class PlayerRespawnManager : NetworkBehaviour
             IsGameStart = false;
 
             // 调用通用的结算 RPC
-            RpcGameSettlement(winningTeam.Value);
+            RpcGameSettlement(winningTeam.Value, CalculateGameGold());
         }
     }
 
@@ -1259,25 +1373,12 @@ public class PlayerRespawnManager : NetworkBehaviour
         }
     }
 
-
     public static NetworkPlayerInfo[] GetCachedData()
     {
         return _cachedClientData;
     }
 
     #region 客户端退出+UI操作
-    /// <summary>
-    /// 全局清理方法（对外暴露）
-    /// </summary>
-    // 找到PlayerRespawnManager中的CleanupAndExitGame方法，修改为：
-    /// <summary>
-    /// 全局清理方法（对外暴露）
-    /// </summary>
-    #region 客户端退出+UI操作
-    /// <summary>
-    /// 全局清理方法（对外暴露）
-    /// </summary>
-    // PlayerRespawnManager.cs
 
     public void CleanupAndExitGame()
     {
@@ -1328,7 +1429,6 @@ public class PlayerRespawnManager : NetworkBehaviour
         }
     }
 
-
     private IEnumerator DelayedDestroySelf()
     {
         yield return null; // 等一帧
@@ -1357,15 +1457,13 @@ public class PlayerRespawnManager : NetworkBehaviour
 
     #endregion
 
-    #endregion
-
     #region 管理可交互的全局物体
     public List<InteractObj> AllBaseBulletInteract_NetWorks = new List<InteractObj>();
 
     // 注册交互物体
     public void InitInteractObj(NetworkIdentity identity, int mapIndex)
     {
-        if (!isServer) 
+        if (!isServer)
             return; // 仅限服务器注册
 
         var script = identity.GetComponent<BaseBulletInteract_NetWork>();
@@ -1387,7 +1485,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// 【服务器专属】初始化地图交互物体（血量、状态数据）
+    /// 【服务器专属】初始化地图交互物体
     /// </summary>
     [Server]
     public void ServerInitMapInteractObjects(int mapIndex)
@@ -1479,5 +1577,4 @@ public class InteractObj
     public int MapIndex;
     public NetworkIdentity Identity;
     public BaseBulletInteract_NetWork Script;
-
 }

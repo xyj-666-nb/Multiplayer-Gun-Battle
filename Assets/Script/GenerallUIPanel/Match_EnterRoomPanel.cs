@@ -62,6 +62,8 @@ public class Match_EnterRoomPanel : BasePanel
         switch (controlName)
         {
             case "CheckButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 if (!_isQuerying)
                 {
                     _currentQueryIndex = 0;
@@ -69,6 +71,8 @@ public class Match_EnterRoomPanel : BasePanel
                 }
                 break;
             case "JoinButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 if (!_isQuerying)
                 {
                     _currentQueryIndex = 0;
@@ -76,6 +80,8 @@ public class Match_EnterRoomPanel : BasePanel
                 }
                 break;
             case "ExitButton":
+                // UI返回音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui返回");
                 UImanager.Instance.ShowPanel<RoomPanel>();
                 UImanager.Instance.HidePanel<Match_EnterRoomPanel>();
                 break;

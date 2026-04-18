@@ -15,6 +15,8 @@ public class CostumePanel : BasePanel
 
         if (controlName == "PlayerSkipButton")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             HideAllPanel();
 
             // 显示玩家面板并填充
@@ -24,6 +26,8 @@ public class CostumePanel : BasePanel
         }
         else if (controlName == "GunSkipButton")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             HideAllPanel();
 
             // 显示枪械面板并填充
@@ -33,7 +37,8 @@ public class CostumePanel : BasePanel
         }
         else if (controlName == "ExpressionButton")
         {
-
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             //打开表情面板
             HideAllPanel();
             UImanager.Instance.ShowPanel<ExpressionPanel>();
@@ -42,6 +47,8 @@ public class CostumePanel : BasePanel
         }
         else if (controlName == "ReturnButton")
         {
+            // UI返回音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui返回");
             UImanager.Instance.HidePanel<CostumePanel>();//关闭面板
         }
     }
@@ -77,7 +84,7 @@ public class CostumePanel : BasePanel
         targetRect.anchoredPosition = Vector2.zero;
         targetRect.localScale = Vector3.one;
     }
-   
+
     #region 生命周期
     public override void Awake()
     {

@@ -94,15 +94,21 @@ public class PlayerCustomPanel : BasePanel
         base.ClickButton(controlName);
         if (controlName == "ExitButton")
         {
+            // UI返回音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui返回");
             UImanager.Instance.HidePanel<PlayerCustomPanel>();//直接关闭面板
         }
         else if (controlName == "SaveButton")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             //保存数据
             SaveAllDate();
         }
         else if (controlName == "DefaultButton")//恢复默认设置
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             WarnTriggerManager.Instance.TriggerDoubleInteraction2Warn("是否恢复默认", () => { }, () => {
                 //触发逻辑：调用恢复默认UI的方法
                 RestoreDefaultUI();
@@ -112,7 +118,7 @@ public class PlayerCustomPanel : BasePanel
 
     public void SaveAllDate()
     {
-        foreach(var UI in AllCustomUIList)
+        foreach (var UI in AllCustomUIList)
         {
             UI.UpdateInfo();//更新信息
         }
@@ -124,7 +130,7 @@ public class PlayerCustomPanel : BasePanel
         base.SliderValueChange(sliderName, value);
 
 
-        if (CustomUI.currentSelectedUI == null) 
+        if (CustomUI.currentSelectedUI == null)
             return;
 
         if (sliderName == "Slider_ButtonScale")
@@ -140,7 +146,7 @@ public class PlayerCustomPanel : BasePanel
             // 修改物体透明度
             CustomUI.currentSelectedUI.CanvasGroup.alpha = value;
             // 修改数据
-            if (CurrentInfo != null) 
+            if (CurrentInfo != null)
                 CurrentInfo.Alpha = value;
         }
     }
@@ -187,7 +193,7 @@ public class PlayerCustomPanel : BasePanel
             case NeedCustomUIType.JumpButton: return "跳跃按钮";
             case NeedCustomUIType.ReloadButton: return "换弹按钮";
             case NeedCustomUIType.SettingButton: return "设置按钮";
-            case NeedCustomUIType.HealthAndGunButton:return "玩家信息UI";
+            case NeedCustomUIType.HealthAndGunButton: return "玩家信息UI";
             case NeedCustomUIType.ThrowObjButton: return "战术控制UI";
             case NeedCustomUIType.ScreenFlipButton: return "视角翻转按钮";
             case NeedCustomUIType.TouchHandleArea: return "瞄准控制区域";

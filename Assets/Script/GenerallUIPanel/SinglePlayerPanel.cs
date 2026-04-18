@@ -39,7 +39,7 @@ public class SinglePlayerPanel : BasePanel
     [Header("文本组件")]
     public TextMeshProUGUI TopicText;
     public TextMeshProUGUI DescribeText;
-    [TextArea(2,3)]
+    [TextArea(2, 3)]
     public string DescribeTraintext;
     [TextArea(2, 3)]
     public string DescribeSinglePlayerText;
@@ -98,7 +98,7 @@ public class SinglePlayerPanel : BasePanel
 
     private void TryAddRadio(string controlName, UnityAction call)
     {
-        if (controlDic == null || !controlDic.ContainsKey(controlName)) 
+        if (controlDic == null || !controlDic.ContainsKey(controlName))
             return;
 
         Button btn = controlDic[controlName] as Button;
@@ -151,11 +151,11 @@ public class SinglePlayerPanel : BasePanel
         ButtomRectSequence.Append(ButtomRect.DOAnchorPosY(buttomHideY, buttomHideDuration).SetEase(Ease.InQuad)).OnComplete(() => {
 
             //播放文字解说动画
-            if(typingWritingTask!=null)
-               SimpleAnimatorTool.Instance.RemoveTypingTask(typingWritingTask);
+            if (typingWritingTask != null)
+                SimpleAnimatorTool.Instance.RemoveTypingTask(typingWritingTask);
 
             //开启打字任务
-           typingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask(IsSelectTrain? DescribeTraintext: DescribeSinglePlayerText, DescribeText);
+            typingWritingTask = SimpleAnimatorTool.Instance.AddTypingTask(IsSelectTrain ? DescribeTraintext : DescribeSinglePlayerText, DescribeText);
         });
         ButtomRectSequence.Join(CanvasGroupButtomRect.DOFade(0, buttomHideDuration));
 
@@ -245,8 +245,9 @@ public class SinglePlayerPanel : BasePanel
         {
             ButtonGroupManager.Instance.DestroyRadioGroup(SinglePlayerPanelToggleButtonGroup);
         }
-        catch {
-        
+        catch
+        {
+
         }
     }
     #endregion
@@ -257,6 +258,8 @@ public class SinglePlayerPanel : BasePanel
         base.ClickButton(controlName);
         if (controlName == "ReturnButton")
         {
+            // UI返回音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui返回");
             UImanager.Instance.HidePanel<SinglePlayerPanel>();
             ModeChooseSystem.instance.SwitchToMainCamera();
             // 延迟1秒后显示开始面板
@@ -267,25 +270,35 @@ public class SinglePlayerPanel : BasePanel
             });
 
         }
-        else if(controlName == "TrainButton")
-            IsSelectTrain=true;
-        else if (controlName == "SingleButton")
-            IsSelectTrain = false;
-        else if(controlName == "EnterButton")
+        else if (controlName == "TrainButton")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
+            IsSelectTrain = true;
+        }
+        else if (controlName == "SingleButton")
+        {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
+            IsSelectTrain = false;
+        }
+        else if (controlName == "EnterButton")
+        {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             //进入
-            if(IsSelectTrain)
+            if (IsSelectTrain)
             {
                 //开启单人服务进入训练场
                 NetworkManager.singleton.StartHost();
-                Main.Instance.IsInSingleMode=true;
+                Main.Instance.IsInSingleMode = true;
                 UImanager.Instance.HidePanel<SinglePlayerPanel>();
                 CountDownManager.Instance.CreateTimer(false, 100, () => {
                     UImanager.Instance.HidePanel<PlayerPreparaPanel>();
                 });
-            }   
+            }
             else
-                WarnTriggerManager.Instance.TriggerSingleInteractionWarn("当前模式未开放","很抱歉影响你的体验，我们正在赶工制作，敬请期待！");
+                WarnTriggerManager.Instance.TriggerSingleInteractionWarn("当前模式未开放", "很抱歉影响你的体验，我们正在赶工制作，敬请期待！");
         }
     }
     #endregion

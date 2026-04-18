@@ -15,12 +15,15 @@ public class MuzzleFlash : MonoBehaviour
     private FlashState _currentState = FlashState.Idle;
     private float _flashTimer;
 
+
     void Awake()
     {
+        
         // 自动获取配置
         if (config == null)
         {
-            GameSkinManager.Instance.ReturnMuzzleFlashConfig(GetComponentInParent<BaseGun>().gunInfo.type);
+            
+             GameSkinManager.Instance.ReturnMuzzleFlashConfig(GetComponentInParent<BaseGun>().gunInfo.type); 
         }
 
         // 自动初始化图片

@@ -122,8 +122,6 @@ public class BaseGun : NetworkBehaviour
         hitwalleffect = _gameSkinManager.GetHitData(newValue)?.HitObj;
     }
 
-
-
     private void OnChangeMuzzleFlashConfigID(int OldValue, int newValue)
     {
         if (newValue > 0)
@@ -866,7 +864,7 @@ public class BaseGun : NetworkBehaviour
     #endregion
 
     #region 初始化与生命周期
-    private void Awake()
+    public virtual  void  Awake()
     {
         MySprite = GetComponent<SpriteRenderer>();
         _netIdentity = GetComponent<NetworkIdentity>() ?? gameObject.AddComponent<NetworkIdentity>();
@@ -875,7 +873,6 @@ public class BaseGun : NetworkBehaviour
         GunInfoManager = _gunWorldInfoShow;
         InitBulletSegmentTemplate();
 
-        // 【GC优化】一次性缓存所有全局单例
         CacheSingletonInstances();
     }
 

@@ -62,7 +62,7 @@ public class Main : SingleMonoAutoBehavior<Main>
             Debug.LogError("[Main] 场景中未找到CustomNetworkManager组件！请将原生NetworkManager替换为CustomNetworkManager");
             return;
         }
-
+        MusicManager.Instance.PlayBgm("Music/局内BGM/demo2");//播放局内BGM
         UImanager.Instance.ShowPanel<StartPanel>();//打开开始界面
         CustomNetworkManager.OnServerStartedEvent += OnServerStarted;
         CustomNetworkManager.OnServerStoppedEvent += OnServerStopped;

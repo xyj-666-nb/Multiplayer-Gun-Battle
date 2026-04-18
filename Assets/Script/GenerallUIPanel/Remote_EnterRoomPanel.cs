@@ -35,9 +35,9 @@ public class Remote_EnterRoomPanel : BasePanel
                 if (statusText != null) statusText.text = "";
             });
         }
-        PlayerNameInputField.onValueChanged.AddListener((str) =>{
-        UOSRelaySimple.Instance.GetPlayerName(str);//注册玩家姓名
-        
+        PlayerNameInputField.onValueChanged.AddListener((str) => {
+            UOSRelaySimple.Instance.GetPlayerName(str);//注册玩家姓名
+
         });
     }
 
@@ -59,11 +59,15 @@ public class Remote_EnterRoomPanel : BasePanel
         switch (controlName)
         {
             case "JoinButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 statusText.color = Color.white;
-                TryQueryRoomFirst(); 
+                TryQueryRoomFirst();
                 break;
 
             case "ExitButton":
+                // UI返回音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui返回");
                 UImanager.Instance.ShowPanel<RoomPanel>();
                 UImanager.Instance.HidePanel<Remote_EnterRoomPanel>();
                 break;
@@ -117,7 +121,7 @@ public class Remote_EnterRoomPanel : BasePanel
         {
             UnsubscribeQuery();
             Debug.Log($"【面板】查询成功，开始连接，房间码：{code}");
-            StartConnectRelay(code); 
+            StartConnectRelay(code);
 
         }
 

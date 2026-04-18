@@ -26,6 +26,10 @@ public class CountDownPanel : BasePanel
         _isCounting = true;
 
         SetupColorTween(Duration);
+        if(Duration==5f)
+        {
+            MusicManager.Instance.PlayEffect("Music/update415/µ¹¼ÆÊ±");
+        }
     }
 
     private void SetupColorTween(float totalDuration)

@@ -1,9 +1,9 @@
-using DG.Tweening;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class RoomPanel : BasePanel
 {
@@ -136,14 +136,18 @@ public class RoomPanel : BasePanel
         switch (controlName)
         {
             case "Button_CreateRoom":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 UImanager.Instance.ShowPanel<CreateRoomPanel>();
                 UImanager.Instance.HidePanel<RoomPanel>();
                 break;
 
             case "Button_EnterRoom":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 if (Main.Instance.CurrentMode == NetworkMode.LAN)
                     UImanager.Instance.ShowPanel<EnterRoomPanel>();
-                else if(Main.Instance.CurrentMode == NetworkMode.Match)
+                else if (Main.Instance.CurrentMode == NetworkMode.Match)
                     UImanager.Instance.ShowPanel<Match_EnterRoomPanel>();
                 else
                     UImanager.Instance.ShowPanel<Remote_EnterRoomPanel>();
@@ -151,6 +155,8 @@ public class RoomPanel : BasePanel
                 break;
 
             case "ExitButton":
+                // UI返回音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui返回");
                 IsActiveUpRect(false, () => {
                     IsActiveLefRect(true, null);
                 });
@@ -158,6 +164,8 @@ public class RoomPanel : BasePanel
                 break;
 
             case "LANModeChoose":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 Main.Instance.CurrentMode = NetworkMode.LAN;
                 TopicText.text = "局域网模式";
 
@@ -173,6 +181,8 @@ public class RoomPanel : BasePanel
                 break;
 
             case "RemoteModeChoose":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 Main.Instance.CurrentMode = NetworkMode.Remote;
                 TopicText.text = "远程联机模式";
 
@@ -188,6 +198,8 @@ public class RoomPanel : BasePanel
                 break;
 
             case "ModeChooseExitButton":
+                // UI返回音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui返回");
                 UImanager.Instance.HidePanel<RoomPanel>();
                 UImanager.Instance.ShowPanel<GameStartPanel>();
                 ModeChooseSystem.instance.EnterSystem();
@@ -195,6 +207,8 @@ public class RoomPanel : BasePanel
 
             #region 匹配模式完善
             case "MatchModeChoose":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 // 匹配模式使用Remote(Unity Relay)服务
                 Main.Instance.CurrentMode = NetworkMode.Match;
                 TopicText.text = "自动匹配模式";

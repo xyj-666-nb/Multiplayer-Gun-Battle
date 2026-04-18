@@ -134,39 +134,59 @@ public class GameStartPanel : BasePanel
         switch (controlName)
         {
             case "GameStartButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 //进入游戏逻辑
                 UImanager.Instance.HidePanel<GameStartPanel>();
                 ModeChooseSystem.instance.EnterSystem();
                 UImanager.Instance.ShowPanel<ModeChoosePanel>();
                 break;
             case "GameExitButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 //弹出警告
                 WarnTriggerManager.Instance.TriggerDoubleInteraction2Warn("是否确认退出游戏？", null, () => { Application.Quit(); PlayerAndGameInfoManger.Instance.SavePlayerData(); });
                 break;
             case "DevelopmentTeamButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 IsActiveIntroducePanel(!IsStartPanel);
                 break;
             case "PanelExitButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 IsActiveIntroducePanel(false);
                 break;
             case "OptionButton ": // 保持末尾空格
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 IsActiveLeftRect(false, () => { IsActiveOperate(true); });
                 break;
             case "GameSettingButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 UImanager.Instance.ShowPanel<SettingPanel>();//打开设置面板
                 break;
             case "OperateButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 UImanager.Instance.ShowPanel<PlayerCustomPanel>();
                 break;
             case "ReturnButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 IsActiveOperate(false, () => { IsActiveLeftRect(true); });
                 break;
             case "QButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 // 复制Q按钮对应的QQ号
                 CopyToClipboard(QQ_NUMBER_Q);
                 WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, $"已复制QQ号：{QQ_NUMBER_Q}");
                 break;
             case "DButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 // 复制D按钮对应的QQ号
                 CopyToClipboard(QQ_NUMBER_D);
                 WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, $"已复制QQ号：{QQ_NUMBER_D}");

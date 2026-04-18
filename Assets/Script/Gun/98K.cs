@@ -5,8 +5,9 @@ public class Gun_98K: BaseGun
     private float EndAnimationTime = 3.6833f; //换弹结束动画时间
     private int ReloadCount = 0;//当前换弹次数
 
-    public  void Awake()
+    public override void Awake()
     {
+        base.Awake();
         ReloadSuccessAction += getReloadCount;//获取当前需要的换弹次数
     }
 
@@ -31,4 +32,8 @@ public class Gun_98K: BaseGun
 
     }
 
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+    }
 }

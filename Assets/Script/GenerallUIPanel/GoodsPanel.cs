@@ -65,22 +65,30 @@ public class GoodsPanel : BasePanel
         base.ClickButton(controlName);
         if (controlName == "ExitButton")
         {
+            // UI返回音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui返回");
             ClearAllGoodsPage();
             UImanager.Instance.HidePanel<GoodsPanel>();
             ShopInteract.Instance.ExitShopSystem();
         }
         else if (controlName == "GoldPromptButton")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             GoldIntroducePanel.blocksRaycasts = true;
             SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(GoldIntroducePanel, ref GoldIntroduceSequence, true, () => { });
         }
         else if (controlName == "ConfirmButton")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             GoldIntroducePanel.blocksRaycasts = false;
             SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(GoldIntroducePanel, ref GoldIntroduceSequence, false, () => { });
         }
         else if (controlName == "RefreshButton")
         {
+            // UI选择音效
+            MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             //如果已经达到上限就进行提示
             if (GoodDataManager.Instance.IsReachUpperLimit())
             {
@@ -207,7 +215,7 @@ public class GoodsPanel : BasePanel
             {
                 page.InitBulletUI();
                 page.InitData(currentData);
-                page.SetDataInfo(); // 【补充】确保刷新时商品数据立即赋值
+                page.SetDataInfo(); 
             }
 
             goodsPageDict.Add(goods, currentData);

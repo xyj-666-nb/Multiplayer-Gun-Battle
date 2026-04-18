@@ -19,7 +19,7 @@ public class GamePausePanel : BasePanel
         SimpleEffectButtonGroupList.Add(controlDic["ExitCurrentRoom"] as Button);
         SimpleEffectButtonGroupList.Add(controlDic["OperationSettingButton"] as Button);
         SimpleEffectButtonGroupList.Add(controlDic["SaveButton"] as Button);
-        SimpleEffectButtonGroup.Instance.RegisterGroup("GamePausePanel", SimpleEffectButtonGroupList,false,1,0.9f);
+        SimpleEffectButtonGroup.Instance.RegisterGroup("GamePausePanel", SimpleEffectButtonGroupList, false, 1, 0.9f);
     }
     public override void Start()
     {
@@ -45,23 +45,33 @@ public class GamePausePanel : BasePanel
         switch (controlName)
         {
             case "ReturnGameButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 UImanager.Instance.HidePanel<GamePausePanel>();
                 break;
             case "SaveButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 PlayerAndGameInfoManger.Instance.SavePlayerData();//保存一下玩家数据
-                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f,"保存成功");
+                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "保存成功");
                 break;
             case "SettingButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 UImanager.Instance.ShowPanel<SettingPanel>();//打开设置面板
                 break;
             case "EnterEquipPanelButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 UImanager.Instance.ShowPanel<EquipmentConfigurationPanel>();//打开战备选择
                 break;
             case "ExitCurrentRoom":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 //先弹出提示
                 string warnTopic = NetworkManager.singleton.mode == NetworkManagerMode.Host ? "是否关闭房间" : "是否退出房间";
                 string warnText = NetworkManager.singleton.mode == NetworkManagerMode.Host ? "退出后会踢出所有玩家" : "退出后将返回大厅";
-                WarnTriggerManager.Instance.TriggerDoubleInteractionWarn(warnTopic, warnText,()=> { }, () =>
+                WarnTriggerManager.Instance.TriggerDoubleInteractionWarn(warnTopic, warnText, () => { }, () =>
                 {
                     //在这里退出链接
                     //打开场景
@@ -84,6 +94,8 @@ public class GamePausePanel : BasePanel
                 });
                 break;
             case "OperationSettingButton":
+                // UI选择音效
+                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 //打开自定义UI面板
                 UImanager.Instance.ShowPanel<PlayerCustomPanel>();
                 break;
