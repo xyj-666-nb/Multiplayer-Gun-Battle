@@ -135,12 +135,23 @@ public class PlayerPanelExpressionButton : MonoBehaviour
         // 先清空旧的列表
         _allExpressionOptionList.Clear();
 
-        var playerExpressions = ExpressionSystem.Instance.GetAllPlayerExpression();
-        foreach (var pack in playerExpressions)
+        if (ExpressionSystem.Instance == null || ExpressionSystem.Instance.EquipmentExpressionList == null)
+        {
+            _createCoroutine = null;
+            yield break;
+        }
+
+        foreach (var expressionId in ExpressionSystem.Instance.EquipmentExpressionList)
         {
             // 如果中途停止显示，立即退出协程
-            if (!_isShowing) 
+            if (!_isShowing)
                 yield break;
+
+            var pack = ExpressionSystem.Instance.GetExpressionPack(expressionId);
+            if (pack == null)
+            {
+                continue;
+            }
 
             // 从对象池获取按钮
             GameObject expressionBtn = PoolManage.Instance.GetObj(ExpressionPrefabs);

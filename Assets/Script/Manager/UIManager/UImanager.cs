@@ -103,7 +103,10 @@ public class UImanager : SingleBehavior<UImanager>
 
         if (validPanels.Count == 0) return;
 
-        var sortedPanels = validPanels.OrderByDescending(panel => panel.PriorityIndex).ToList();
+        var sortedPanels = validPanels
+            .OrderBy(panel => panel.PriorityIndex)
+            .ThenBy(panel => panel.transform.GetSiblingIndex())
+            .ToList();
 
         for (int i = 0; i < sortedPanels.Count; i++)
         {

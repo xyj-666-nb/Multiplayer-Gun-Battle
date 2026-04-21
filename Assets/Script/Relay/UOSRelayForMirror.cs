@@ -22,13 +22,12 @@ public class UOSRelaySimple : MonoBehaviour
     public int maxPlayers = 4;
     public string currentRoomCode;
 
-    // 匹配房间固定配置
     private const string MATCH_ROOM_NAME_PREFIX = "PUBLIC_MATCH_";
+    private const float MATCH_QUERY_TIMEOUT = 3f;
 
     private string playerUuid;
     public string playerName;
 
-    // 事件
     public static event Action OnRelayConnecting;
     public static event Action<string> OnRelaySuccess;
     public static event Action<string> OnRelayFailed;
@@ -83,9 +82,6 @@ public class UOSRelaySimple : MonoBehaviour
         playerName = PlayerName;
     }
 
-    // ==============================================
-    // 【1】手动创建房间（远程面板用）
-    // ==============================================
     public void StartRelayHost()
     {
         if (CheckPrerequisite(out string error))
@@ -107,10 +103,7 @@ public class UOSRelaySimple : MonoBehaviour
         }, OnCreateRoomComplete));
     }
 
-    // ==============================================
-    // 【2】匹配模式 —— 创建房间（规律房间名）
-    // ==============================================
-    public void StartMatchHost(int matchIndex)
+    public void StartMatchHost()
     {
         if (CheckPrerequisite(out string error))
         {
@@ -118,7 +111,7 @@ public class UOSRelaySimple : MonoBehaviour
             return;
         }
 
-        string roomName = $"{MATCH_ROOM_NAME_PREFIX}{matchIndex:000}";
+        string roomName = GenerateMatchRoomName();
 
         customManager.transport = relayTransport;
         Transport.active = relayTransport;
@@ -133,18 +126,30 @@ public class UOSRelaySimple : MonoBehaviour
         }, OnCreateRoomComplete));
     }
 
-    // ==============================================
-    // 【3】匹配模式 —— 查询房间（通过列表+本地过滤）
-    // ==============================================
-    public void QueryMatchRoom(int matchIndex, Action<bool, LobbyRoom> callback)
+    public void StartMatchHost(int matchIndex)
     {
-        string targetName = $"{MATCH_ROOM_NAME_PREFIX}{matchIndex:000}";
-        StartCoroutine(FindRoomByRoomName(targetName, callback));
+        StartMatchHost();
     }
 
-    // ==============================================
-    // 【4】匹配模式 —— 加入房间（通过 LobbyRoom）
-    // ==============================================
+    public void QueryBestMatchRoom(Action<bool, LobbyRoom, string> callback)
+    {
+        if (CheckPrerequisite(out string error))
+        {
+            callback?.Invoke(false, null, error);
+            return;
+        }
+
+        StartCoroutine(QueryBestMatchRoomCoroutine(callback));
+    }
+
+    public void QueryMatchRoom(int matchIndex, Action<bool, LobbyRoom> callback)
+    {
+        QueryBestMatchRoom((success, room, message) =>
+        {
+            callback?.Invoke(success, room);
+        });
+    }
+
     public void JoinMatchRoom(LobbyRoom room)
     {
         if (room == null || string.IsNullOrEmpty(room.RoomUuid))
@@ -155,28 +160,23 @@ public class UOSRelaySimple : MonoBehaviour
         QueryRoomAndConnect(room.RoomUuid);
     }
 
-    // ==============================================
-    // 内部：通过房间名查找（列表+过滤）
-    // ==============================================
-    private IEnumerator FindRoomByRoomName(string targetName, Action<bool, LobbyRoom> callback)
+    private IEnumerator QueryBestMatchRoomCoroutine(Action<bool, LobbyRoom, string> callback)
     {
         bool finished = false;
-        bool found = false;
-        LobbyRoom targetRoom = null;
+        string failureMessage = null;
+        List<LobbyRoom> listedRooms = null;
 
         void OnListed(List<LobbyRoom> rooms)
         {
             Unsubscribe();
-            targetRoom = rooms.FirstOrDefault(r =>
-                r.Name == targetName &&
-                (r.Status == LobbyRoomStatus.Ready || r.Status == LobbyRoomStatus.Running));
-            found = targetRoom != null;
+            listedRooms = rooms;
             finished = true;
         }
 
         void OnFailed(string msg)
         {
             Unsubscribe();
+            failureMessage = msg;
             finished = true;
         }
 
@@ -190,13 +190,88 @@ public class UOSRelaySimple : MonoBehaviour
         OnRelayFailed += OnFailed;
 
         ListRelayRooms();
-        yield return new WaitForSeconds(1.5f);
-        callback?.Invoke(found, targetRoom);
+
+        float timer = 0f;
+        while (!finished && timer < MATCH_QUERY_TIMEOUT)
+        {
+            timer += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        Unsubscribe();
+
+        if (!finished)
+        {
+            callback?.Invoke(false, null, "匹配请求超时");
+            yield break;
+        }
+
+        if (!string.IsNullOrEmpty(failureMessage))
+        {
+            callback?.Invoke(false, null, failureMessage);
+            yield break;
+        }
+
+        LobbyRoom bestRoom = SelectBestMatchRoom(listedRooms);
+        if (bestRoom != null)
+        {
+            callback?.Invoke(true, bestRoom, null);
+        }
+        else
+        {
+            callback?.Invoke(false, null, "未找到可加入的公共房间");
+        }
     }
 
-    // ==============================================
-    // 房间创建完成回调
-    // ==============================================
+    private LobbyRoom SelectBestMatchRoom(List<LobbyRoom> rooms)
+    {
+        if (rooms == null || rooms.Count == 0)
+        {
+            return null;
+        }
+
+        return rooms
+            .Where(IsAvailableMatchRoom)
+            .OrderByDescending(room => room.PlayerCount)
+            .ThenBy(room => room.MaxPlayers)
+            .FirstOrDefault();
+    }
+
+    private bool IsAvailableMatchRoom(LobbyRoom room)
+    {
+        if (room == null)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(room.RoomUuid) || string.IsNullOrEmpty(room.Name))
+        {
+            return false;
+        }
+
+        if (!room.Name.StartsWith(MATCH_ROOM_NAME_PREFIX, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (room.Status != LobbyRoomStatus.Ready)
+        {
+            return false;
+        }
+
+        if (room.MaxPlayers > 0 && room.PlayerCount >= room.MaxPlayers)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private string GenerateMatchRoomName()
+    {
+        return MATCH_ROOM_NAME_PREFIX + Guid.NewGuid().ToString("N").Substring(0, 8).ToUpperInvariant();
+    }
+
     private void OnCreateRoomComplete(CreateRoomResponse resp)
     {
         if (resp.Code == (uint)RelayCode.OK && resp.Status == LobbyRoomStatus.ServerAllocated)
@@ -214,9 +289,6 @@ public class UOSRelaySimple : MonoBehaviour
         }
     }
 
-    // ==============================================
-    // 获取房间列表
-    // ==============================================
     public void ListRelayRooms()
     {
         if (CheckPrerequisite(out string error))
@@ -242,9 +314,6 @@ public class UOSRelaySimple : MonoBehaviour
         }));
     }
 
-    // ==============================================
-    // 通过 UUID 查询并连接（安全、无报错）
-    // ==============================================
     private void QueryRoomAndConnect(string roomUuid)
     {
         StartCoroutine(LobbyService.AsyncQueryRoom(roomUuid, resp =>
@@ -268,9 +337,6 @@ public class UOSRelaySimple : MonoBehaviour
         }));
     }
 
-    // ==============================================
-    // 手动输入房间码加入（保留原有功能）
-    // ==============================================
     public void StartRelayClient(string roomCode)
     {
         if (string.IsNullOrEmpty(roomCode))
@@ -298,9 +364,6 @@ public class UOSRelaySimple : MonoBehaviour
         }));
     }
 
-    // ==============================================
-    // 仅查询房间（保留）
-    // ==============================================
     public void QueryRoomOnly(string roomCode)
     {
         if (string.IsNullOrEmpty(roomCode))
@@ -318,9 +381,6 @@ public class UOSRelaySimple : MonoBehaviour
         }));
     }
 
-    // ==============================================
-    // 工具函数
-    // ==============================================
     private bool CheckPrerequisite(out string error)
     {
         error = default;

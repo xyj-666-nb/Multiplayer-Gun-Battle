@@ -5,6 +5,14 @@ using UnityEngine;
 
 public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoManger>
 {
+    [System.Serializable]
+    public class SlotInfoPackSaveData
+    {
+        public string GunName;
+        public TacticType Tactic1Type;
+        public TacticType Tactic2Type;
+        public ArmorType ArmorType;
+    }
     [Header("玩家战备数据")]
     public int MaxSlotCount = 4;
     public List<SlotInfoPack> PlayerSlotInfoPacksList = new List<SlotInfoPack>();
@@ -192,7 +200,7 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
     private void BackupDefaultData()
     {
-        _defaultSlotInfoBackup = new List<SlotInfoPack>(PlayerSlotInfoPacksList);
+        _defaultSlotInfoBackup = CloneSlotInfoPacks(PlayerSlotInfoPacksList);
         Debug.Log($"[PlayerAndGameInfoManger] 已备份默认配置，共 {_defaultSlotInfoBackup.Count} 个槽位");
     }
 
@@ -207,7 +215,7 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
     {
         PlayerGameSaveData saveData = new PlayerGameSaveData
         {
-            PlayerSlotInfoPacksList = this.PlayerSlotInfoPacksList,
+            PlayerSlotInfoPacksList = BuildSlotSaveList(this.PlayerSlotInfoPacksList),
             CurrentSlotIndex = this.SlotCount,
             playerCustomUIInfoList = this.playerCustomUIInfoList,
             CurrentFPS = (int)this.CurrentFPS,
@@ -233,16 +241,17 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
             return;
         }
 
-        bool hasValidSlotData = loadData.PlayerSlotInfoPacksList != null && loadData.PlayerSlotInfoPacksList.Count > 0;
+        var restoredSlotInfoPacks = RestoreSlotInfoPacks(loadData.PlayerSlotInfoPacksList);
+        bool hasValidSlotData = restoredSlotInfoPacks != null && restoredSlotInfoPacks.Count > 0;
 
         if (hasValidSlotData)
         {
-            hasValidSlotData = CheckAllSlotDataIntegrity(loadData.PlayerSlotInfoPacksList);
+            hasValidSlotData = CheckAllSlotDataIntegrity(restoredSlotInfoPacks);
         }
 
         if (hasValidSlotData)
         {
-            this.PlayerSlotInfoPacksList = loadData.PlayerSlotInfoPacksList;
+            this.PlayerSlotInfoPacksList = restoredSlotInfoPacks;
             Debug.Log("[PlayerAndGameInfoManger] 已加载存档槽位数据 (数据完整性校验通过)");
         }
         else
@@ -336,7 +345,7 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         // 从备份里复制回来
         if (_defaultSlotInfoBackup != null)
         {
-            PlayerSlotInfoPacksList.AddRange(_defaultSlotInfoBackup);
+            PlayerSlotInfoPacksList.AddRange(CloneSlotInfoPacks(_defaultSlotInfoBackup));
             Debug.Log($"[PlayerAndGameInfoManger] 已从备份恢复 {_defaultSlotInfoBackup.Count} 个槽位");
         }
         else
@@ -407,12 +416,106 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         Debug.LogWarning($"未找到匹配的画质名称 '{targetName}'，使用当前级别");
         return QualitySettings.GetQualityLevel();
     }
+
+    private List<SlotInfoPackSaveData> BuildSlotSaveList(List<SlotInfoPack> sourceList)
+    {
+        List<SlotInfoPackSaveData> saveList = new List<SlotInfoPackSaveData>();
+        if (sourceList == null)
+        {
+            return saveList;
+        }
+
+        foreach (var slot in sourceList)
+        {
+            if (slot == null)
+            {
+                continue;
+            }
+
+            saveList.Add(new SlotInfoPackSaveData
+            {
+                GunName = slot.CurrentGunInfo != null ? slot.CurrentGunInfo.Name : string.Empty,
+                Tactic1Type = slot.CurrentTactic_1Info != null ? slot.CurrentTactic_1Info.tacticType : default,
+                Tactic2Type = slot.CurrentTactic_2Info != null ? slot.CurrentTactic_2Info.tacticType : default,
+                ArmorType = slot.CurrentArmorType
+            });
+        }
+
+        return saveList;
+    }
+
+    private List<SlotInfoPack> RestoreSlotInfoPacks(List<SlotInfoPackSaveData> savedList)
+    {
+        List<SlotInfoPack> restoredList = new List<SlotInfoPack>();
+        if (savedList == null || savedList.Count == 0)
+        {
+            return restoredList;
+        }
+
+        var militaryManager = MilitaryManager.Instance;
+        if (militaryManager == null)
+        {
+            Debug.LogWarning("[PlayerAndGameInfoManger] MilitaryManager 不存在，无法还原槽位数据");
+            return restoredList;
+        }
+
+        foreach (var savedSlot in savedList)
+        {
+            if (savedSlot == null)
+            {
+                continue;
+            }
+
+            restoredList.Add(new SlotInfoPack
+            {
+                CurrentGunInfo = string.IsNullOrEmpty(savedSlot.GunName) ? null : militaryManager.GetInfo(savedSlot.GunName),
+                CurrentTactic_1Info = militaryManager.GetTacticInfo(savedSlot.Tactic1Type),
+                CurrentTactic_2Info = militaryManager.GetTacticInfo(savedSlot.Tactic2Type),
+                CurrentArmorType = savedSlot.ArmorType
+            });
+        }
+
+        return restoredList;
+    }
+
+    private List<SlotInfoPack> CloneSlotInfoPacks(List<SlotInfoPack> sourceList)
+    {
+        List<SlotInfoPack> clonedList = new List<SlotInfoPack>();
+        if (sourceList == null)
+        {
+            return clonedList;
+        }
+
+        foreach (var slot in sourceList)
+        {
+            clonedList.Add(CloneSlotInfoPack(slot));
+        }
+
+        return clonedList;
+    }
+
+    private SlotInfoPack CloneSlotInfoPack(SlotInfoPack source)
+    {
+        if (source == null)
+        {
+            return null;
+        }
+
+        return new SlotInfoPack
+        {
+            CurrentGunInfo = source.CurrentGunInfo,
+            CurrentTactic_1Info = source.CurrentTactic_1Info,
+            CurrentTactic_2Info = source.CurrentTactic_2Info,
+            CurrentArmorType = source.CurrentArmorType
+        };
+    }
 }
 
 // ================= 存档数据类 =================
+[System.Serializable]
 public class PlayerGameSaveData
 {
-    public List<SlotInfoPack> PlayerSlotInfoPacksList = new List<SlotInfoPack>();
+    public List<PlayerAndGameInfoManger.SlotInfoPackSaveData> PlayerSlotInfoPacksList = new List<PlayerAndGameInfoManger.SlotInfoPackSaveData>();
     public int CurrentSlotIndex = 1;
     public List<PlayerCustomUIInfo> playerCustomUIInfoList = new List<PlayerCustomUIInfo>();
     public int CurrentFPS;

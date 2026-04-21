@@ -783,7 +783,7 @@ MonoBehaviour:
   IsCanDestroy: 1
   IsUseRealTime: 0
   IsUseSpecialCanvas: 0
-  PriorityIndex: 0
+  PriorityIndex: 10
   _canvasPixelPerfect: 0
   _canvasSortingOrder: 10
   _canvasSortingLayer: UI
@@ -2755,7 +2755,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.000036905534}
+  m_AnchoredPosition: {x: 0, y: 0.0031262855}
   m_SizeDelta: {x: 0, y: 802.89}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &5540709866504189378
@@ -3265,7 +3265,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 4691726419438845927}
   m_Direction: 2
   m_Value: 0
-  m_Size: 1
+  m_Size: 0.999995
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

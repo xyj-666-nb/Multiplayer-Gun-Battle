@@ -234,6 +234,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         //Developer_GUITestManger.Instance.RegisterGuiButton("置换枪口火光(紫色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.MuzzleFlash, 5); });
         //Developer_GUITestManger.Instance.RegisterGuiButton("置换枪口火光(默认黄色)", () => { GameSkinManager.Instance.EquipGunSki(GunSkinConfigType.MuzzleFlash, 4); });
         Developer_GUITestManger.Instance.RegisterGuiButton("获取所有表情资源", () => { ExpressionSystem.Instance.obtainAllExpression(); });
+        Developer_GUITestManger.Instance.RegisterGuiButton("测试未成年人2小时提示", () => { TapTapGameLogin.Instance.DebugSetUnderageState(7200, 8); }, "TapTap测试");
 
     }
 

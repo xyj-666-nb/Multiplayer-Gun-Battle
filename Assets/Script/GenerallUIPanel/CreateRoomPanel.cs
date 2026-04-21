@@ -26,8 +26,6 @@ public class CreateRoomPanel : BasePanel
     private string ScoreChooseName = "CreateButton";
     private string TimeChooseName = "ExitButton";
 
-    // 匹配房间默认索引（0-999）
-    private const int DEFAULT_MATCH_INDEX = 0;
 
     public override void Awake()
     {
@@ -254,7 +252,7 @@ public class CreateRoomPanel : BasePanel
                         onlinePanel.OnCancelAction += HandleCancel;
                     }
 
-                    UOSRelaySimple.Instance.StartMatchHost(DEFAULT_MATCH_INDEX);
+                    UOSRelaySimple.Instance.StartMatchHost();
                 }
                 else
                 {

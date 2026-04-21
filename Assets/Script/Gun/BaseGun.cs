@@ -217,6 +217,8 @@ public class BaseGun : NetworkBehaviour
     [HideInInspector]
     public Vector3 originalWorldScale;
     private GunWorldInfoShow _gunWorldInfoShow;
+    private float _pendingLocalShotSpreadAngle;
+    private float _serverShotSpreadAngle;
     #endregion
 
     #region �¼������������
@@ -401,7 +403,7 @@ public class BaseGun : NetworkBehaviour
         IsEnterAimState = IsEnter;
     }
     [Command(requiresAuthority = true)]
-    public void CmdStartShoot()
+    public void CmdStartShoot(float shotSpreadAngle)
     {
         if (!isServer)
         {
@@ -413,6 +415,7 @@ public class BaseGun : NetworkBehaviour
             return;
 
         IsInShoot = true;
+        _serverShotSpreadAngle = shotSpreadAngle;
 
         RpcPlayShootAnimation();
     }
@@ -433,20 +436,19 @@ public class BaseGun : NetworkBehaviour
         {
             Vector2 firePointRightDir = firePoint.transform.right;
             Vector2 baseDir = -firePointRightDir * ownerPlayer.FacingDir;
-            Vector2 shootDir = CalculateBulletScattering(baseDir);
+            Vector2 shootDir = ApplySpreadAngle(baseDir, _serverShotSpreadAngle);
 
-            RaycastHit2D hit = Physics2D.Raycast(
+            RaycastHit2D hit = FindFirstBlockingHit(
                 firePoint.position,
                 shootDir,
-                gunInfo.Range,
-                shootRaycastLayers
+                gunInfo.Range
             );
             if (hit.collider != null)
             {
-                if (hit.collider.CompareTag("Player"))
+                CharacterStats hitTarget = GetCharacterStatsFromCollider(hit.collider);
+                if (hitTarget != null)
                 {
-                    CharacterStats hitTarget = hit.collider.GetComponent<playerStats>();
-                    if (hitTarget != null && !hitTarget.IsDead)
+                    if (!hitTarget.IsDead && !IsFriendlyTarget(hitTarget))
                     {
                         CharacterStats attackerStats = ownerPlayer.myStats;
                         if (attackerStats == null)
@@ -458,19 +460,12 @@ public class BaseGun : NetworkBehaviour
                         hitTarget.ServerApplyDamage(gunInfo.Damage, hit.point, hit.normal, attackerStats);
                     }
                 }
-                else if (hit.collider.CompareTag("BulletInteractObj"))
+                else if (TryGetBulletInteract(hit.collider, out BaseBulletInteract_NetWork interactObj))
                 {
-                    BaseBulletInteract_NetWork interactObj = hit.collider.GetComponent<BaseBulletInteract_NetWork>();
-
-                    if (interactObj == null)
-                    {
-                        Debug.LogError(LOG_INTERACT_SCRIPT_NULL, hit.collider);
-                        return;
-                    }
-
                     interactObj.TakeDamage(gunInfo.Damage);
+                    RpcSpawnHitEffect(hit.point, hit.normal);
                 }
-                else if (hit.collider.CompareTag("Ground"))
+                else
                 {
                     RpcSpawnHitEffect(hit.point, hit.normal);
                 }
@@ -662,25 +657,21 @@ public class BaseGun : NetworkBehaviour
         {
             Vector2 firePointRightDir = firePoint.transform.right;
             Vector2 baseDir = -firePointRightDir * ownerPlayer.FacingDir;
-            Vector2 shootDir = CalculateLocalBulletScattering(baseDir);
+            Vector2 shootDir = ApplySpreadAngle(baseDir, _pendingLocalShotSpreadAngle);
 
-            RaycastHit2D localHit = Physics2D.Raycast(
+            RaycastHit2D localHit = FindFirstBlockingHit(
                 firePoint.position,
                 shootDir,
-                gunInfo.Range,
-                shootRaycastLayers
+                gunInfo.Range
             );
 
-            if (localHit.collider != null && localHit.collider.CompareTag("Bullseye"))
+            Bullseye localBullseye = localHit.collider != null ? localHit.collider.GetComponentInParent<Bullseye>() : null;
+            if (localBullseye != null)
             {
-                Bullseye localBullseye = localHit.collider.GetComponent<Bullseye>();
-                if (localBullseye != null)
-                {
-                    localBullseye.Wound(gunInfo.Damage);
-                }
+                localBullseye.Wound(gunInfo.Damage);
 
                 Vector2 playerPos = ownerPlayer.transform.position;
-                Vector2 targetPos = localHit.collider.transform.position;
+                Vector2 targetPos = localHit.point;
                 float distance = Vector2.Distance(playerPos, targetPos);
 
                 float minDelay = 50f;
@@ -798,17 +789,72 @@ public class BaseGun : NetworkBehaviour
     {
         if (gunInfo == null)
         { Debug.LogError(LOG_GUNINFO_NULL); return centerDir; }
-        if (_localAccuracy < 100)
+        return ApplySpreadAngle(centerDir, CalculateShotSpreadAngle());
+    }
+
+    private float CalculateShotSpreadAngle()
+    {
+        if (gunInfo == null)
+            return 0;
+
+        if (_localAccuracy >= 100)
+            return 0;
+
+        int baseAngle = 20;
+        float maxAngle = baseAngle * (1 - _localAccuracy / 100f);
+        return Random.Range(-maxAngle, maxAngle);
+    }
+
+    private Vector2 ApplySpreadAngle(Vector2 centerDir, float spreadAngle)
+    {
+        return Quaternion.Euler(0, 0, spreadAngle) * centerDir;
+    }
+
+    private RaycastHit2D FindFirstBlockingHit(Vector2 origin, Vector2 direction, float range)
+    {
+        RaycastHit2D[] hits = Physics2D.RaycastAll(origin, direction, range, shootRaycastLayers);
+        for (int i = 0; i < hits.Length; i++)
         {
-            int baseAngle = 20;
-            float maxAngle = baseAngle * (1 - _localAccuracy / 100f);
-            float randomAngle = Random.Range(-maxAngle, maxAngle);
-            return Quaternion.Euler(0, 0, randomAngle) * centerDir;
+            if (hits[i].collider == null)
+                continue;
+
+            if (ownerPlayer != null && hits[i].collider.transform.IsChildOf(ownerPlayer.transform))
+                continue;
+
+            return hits[i];
         }
-        else
-        {
-            return centerDir;
-        }
+
+        return default;
+    }
+
+    private CharacterStats GetCharacterStatsFromCollider(Collider2D collider)
+    {
+        if (collider == null)
+            return null;
+
+        return collider.GetComponent<CharacterStats>() ?? collider.GetComponentInParent<CharacterStats>();
+    }
+
+    private bool TryGetBulletInteract(Collider2D collider, out BaseBulletInteract_NetWork interactObj)
+    {
+        interactObj = null;
+        if (collider == null)
+            return false;
+
+        interactObj = collider.GetComponent<BaseBulletInteract_NetWork>() ?? collider.GetComponentInParent<BaseBulletInteract_NetWork>();
+        return interactObj != null;
+    }
+
+    private bool IsFriendlyTarget(CharacterStats targetStats)
+    {
+        if (ownerPlayer == null || targetStats == null)
+            return false;
+
+        Player targetPlayer = targetStats.GetComponent<Player>() ?? targetStats.GetComponentInParent<Player>();
+        if (targetPlayer == null)
+            return false;
+
+        return targetPlayer.CurrentTeam == ownerPlayer.CurrentTeam;
     }
 
     [Server]
@@ -841,8 +887,9 @@ public class BaseGun : NetworkBehaviour
     {
         if (!IsCanShoot())
             return;
+        _pendingLocalShotSpreadAngle = CalculateShotSpreadAngle();
         timelineDirector_Shoot.Play();
-        CmdStartShoot();
+        CmdStartShoot(_pendingLocalShotSpreadAngle);
     }
 
     public void TriggerReload()

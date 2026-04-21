@@ -55,6 +55,8 @@ public class GoodsPage : MonoBehaviour
     private Sequence currentExpandSeq;
 
     private Coroutine typingCoroutine;
+    [Header("打击特效图标")]
+    public Image HitImage;
 
     [Header("子弹/打击特效 显示 —— 适配你的数据结构")]
     public CanvasGroup BulletShowCanvas;
@@ -137,6 +139,11 @@ public class GoodsPage : MonoBehaviour
             ExpressionCanvasGroup.blocksRaycasts = false;
         }
         ClearExpressionImages();
+        if (HitImage != null)
+        {
+            HitImage.gameObject.SetActive(true);
+            HitImage.color = ColorManager.SetColorAlpha(HitImage.color, 0);
+        }
 
         if (IntroduceRawImage != null)
         {
@@ -250,6 +257,11 @@ public class GoodsPage : MonoBehaviour
         //判断是否为 子弹皮肤 / 打击特效皮肤
         bool isBulletGoods = goodsData.skinType == SkinType.SpecialBullet && goodsData.bulletPack != null;
         bool isHitEffectGoods = goodsData.skinType == SkinType.GunHitEffect && goodsData.gunHitData != null;
+        if (HitImage != null)
+        {
+            HitImage.gameObject.SetActive(true);
+            HitImage.color = ColorManager.SetColorAlpha(HitImage.color, isHitEffectGoods ? 1 : 0);
+        }
 
         if (isBulletGoods || isHitEffectGoods)
         {
@@ -499,6 +511,11 @@ public class GoodsPage : MonoBehaviour
             ExpressionCanvasGroup.blocksRaycasts = false;
         }
         ClearExpressionImages();
+        if (HitImage != null)
+        {
+            HitImage.gameObject.SetActive(true);
+            HitImage.color = ColorManager.SetColorAlpha(HitImage.color, 0);
+        }
         // 默认显示商品名称
         if (GoodsName != null) GoodsName.gameObject.SetActive(true);
 
@@ -572,6 +589,11 @@ public class GoodsPage : MonoBehaviour
         if (goodsData.skinType == SkinType.GunHitEffect)
         {
             GoodsImage.color = ColorManager.SetColorAlpha(GoodsImage.color, 0);
+            if (HitImage != null)
+            {
+                HitImage.gameObject.SetActive(true);
+                HitImage.color = ColorManager.SetColorAlpha(HitImage.color, 1);
+            }
             return;
         }
 
@@ -712,6 +734,11 @@ public class GoodsPage : MonoBehaviour
             ExpressionCanvasGroup.blocksRaycasts = false;
         }
         ClearExpressionImages();
+        if (HitImage != null)
+        {
+            HitImage.gameObject.SetActive(true);
+            HitImage.color = ColorManager.SetColorAlpha(HitImage.color, 0);
+        }
 
         // 重置金币背景
         if (GoldBackGround != null)

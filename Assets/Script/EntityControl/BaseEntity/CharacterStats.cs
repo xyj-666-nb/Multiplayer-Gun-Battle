@@ -47,6 +47,9 @@ public abstract class CharacterStats : NetworkBehaviour
     private const string STR_UNKNOWN_GUN = "¦Ä??§Ö";
     private const string STR_BARE_HAND = "???";
     private const string STR_GRENADE = "????";
+    private const string SOUND_PLAYER_HIT = "Music/\u6B63\u5F0F/\u4EA4\u4E92/\u51FB\u4E2D\u9776\u5B501";
+    private const string SOUND_PLAYER_WOUND = "Music/\u6B63\u5F0F/\u4EA4\u4E92/\u53D7\u51FB";
+    private const string SOUND_PLAYER_KILL = "Music/\u6B63\u5F0F/\u4EA4\u4E92/\u51FB\u6740";
     private const string LOG_RB_NULL = "[{0}] CharacterStats ??? Rigidbody2D ?????";
     private const string LOG_MANAGER_NULL = "[CharacterStats] PlayerRespawnManager¦Ä???????";
 
@@ -254,13 +257,24 @@ public abstract class CharacterStats : NetworkBehaviour
         }
 
         Player Deather = gameObject.GetComponent<Player>();//??????????????Player???
-        //????????????????????????
-        _respawnManager.AddPlayerDeath(Deather.connectionToClient);
-        //???????????????
-        _respawnManager.AddPlayerKill(killer.gameObject.GetComponent<Player>().connectionToClient);
-        //??????????????
-        _respawnManager.AddScore(killer.gameObject.GetComponent<Player>().CurrentTeam);//??????
+        Player killerPlayer = killer != null ? killer.gameObject.GetComponent<Player>() : null;
+
+        if (_respawnManager != null && Deather != null && Deather.connectionToClient != null)
+        {
+            _respawnManager.AddPlayerDeath(Deather.connectionToClient);
+            TargetPlayDeathFeedback(Deather.connectionToClient);
+        }
+
+        if (_respawnManager != null && killerPlayer != null && killerPlayer.connectionToClient != null)
+        {
+            _respawnManager.AddPlayerKill(killerPlayer.connectionToClient);
+            _respawnManager.AddScore(killerPlayer.CurrentTeam);//??????
+            TargetPlayKillFeedback(killerPlayer.connectionToClient);
+        }
     }
+    #endregion
+
+    #region ??????§¹????
     #endregion
 
     #region ??????§¹????
@@ -280,8 +294,14 @@ public abstract class CharacterStats : NetworkBehaviour
         }
 
         // ??????????+?????
+
+        if (attacker != null && attacker.isLocalPlayer)
+        {
+            MusicManager.Instance?.PlayEffect(SOUND_PLAYER_HIT, 0.9f);
+        }
         if (isLocalPlayer && attacker != null && _rb2D != null)
         {
+            MusicManager.Instance?.PlayEffect(SOUND_PLAYER_WOUND, 1f);
             var Attacker = attacker as playerStats;
             float knockbackDir = Mathf.Sign(ColliderPoint.x - attacker.transform.position.x);
             _rb2D.AddForce(new Vector2(knockbackDir * Attacker.MyMonster.currentGun.gunInfo.Recoil_Enemy, 0), ForceMode2D.Impulse);
@@ -290,6 +310,18 @@ public abstract class CharacterStats : NetworkBehaviour
         }
     }
     #endregion
+
+    [TargetRpc]
+    private void TargetPlayDeathFeedback(NetworkConnectionToClient target)
+    {
+        MusicManager.Instance?.PlayEffect(SOUND_PLAYER_WOUND, 1f);
+    }
+
+    [TargetRpc]
+    private void TargetPlayKillFeedback(NetworkConnectionToClient target)
+    {
+        MusicManager.Instance?.PlayEffect(SOUND_PLAYER_KILL, 1f);
+    }
 
     #region ????????????
     protected virtual void ClientHandleDeathVisual()
@@ -410,8 +442,14 @@ public abstract class CharacterStats : NetworkBehaviour
             }
         }
 
+
+        if (attacker != null && attacker.isLocalPlayer)
+        {
+            MusicManager.Instance?.PlayEffect(SOUND_PLAYER_HIT, 0.9f);
+        }
         if (isLocalPlayer && _rb2D != null)
         {
+            MusicManager.Instance?.PlayEffect(SOUND_PLAYER_WOUND, 1f);
             _rb2D.velocity = ZERO_VECTOR; // ?????????????
             _rb2D.AddForce(knockbackForce, ForceMode2D.Impulse);
 

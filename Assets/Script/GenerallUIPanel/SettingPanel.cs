@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class SettingPanel : BasePanel
 {
+    private const string UiSelectSound = "Music/update415/ui选择";
+    private const string UiBackSound = "Music/update415/ui返回";
     #region 面板控件字段
     public RectTransform PanelParentObj;
 
@@ -260,16 +262,23 @@ public class SettingPanel : BasePanel
     public override void ClickButton(string controlName)
     {
         base.ClickButton(controlName);
+
+        if (controlName == "Button_ChangeKey"
+            || controlName == "Button_MusicSetting"
+            || controlName == "Button_PictureSetting"
+            || controlName == "Button_Language")
+        {
+            MusicManager.Instance?.PlayEffect(UiSelectSound);
+        }
+
         if (controlName == "Button_ReturnGame")
         {
-            // UI返回音效
-            MusicManager.Instance.PlayEffect("Music/update415/ui返回");
+            MusicManager.Instance?.PlayEffect(UiBackSound);
             UImanager.Instance.HidePanel<SettingPanel>();
         }
         if (controlName == "Button_ExitGame")
         {
-            // UI返回音效
-            MusicManager.Instance.PlayEffect("Music/update415/ui返回");
+            MusicManager.Instance?.PlayEffect(UiBackSound);
             UImanager.Instance.HidePanel<SettingPanel>();
         }
     }

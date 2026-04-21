@@ -15,6 +15,9 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
     // 实例成员
     private bool isSdkInited = false;
     public bool hasCheckedCompliance { get; private set; } = false;
+    public int CurrentAgeRange { get; private set; } = -1;
+    public int CurrentRemainingTimeSeconds { get; private set; } = -1;
+    private string _currentComplianceUserId;
 
     // 仅声明委托，不初始化
     private Action<int, string> ComplianceCallback;
@@ -63,9 +66,13 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
     {
         try
         {
+            TapTapCompliance.Exit();
             TapTapLogin.Instance.Logout();
             hasCheckedCompliance = false;
             isSdkInited = false;
+            CurrentAgeRange = -1;
+            CurrentRemainingTimeSeconds = -1;
+            _currentComplianceUserId = null;
             Debug.Log("===== TapTap登出成功 =====");
         }
         catch (Exception e)
@@ -75,7 +82,7 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
     }
     #endregion
 
-    #region SDK初始化（修复核心：在这里初始化委托）
+    #region SDK初始化
     private bool InitSDK()
     {
         if (isSdkInited) return true;
@@ -87,13 +94,19 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
                 clientId = TAP_CLIENT_ID,
                 clientToken = TAP_CLIENT_TOKEN,
                 region = TapTapRegionType.CN,
-                screenOrientation = 1, // 横屏
+                screenOrientation = 1,
                 enableLog = false
             };
-            TapTapSDK.Init(coreOptions);
+
+            TapTapComplianceOption complianceOption = new TapTapComplianceOption
+            {
+                useAgeRange = true,
+                showSwitchAccount = false
+            };
+
+            TapTapSDK.Init(coreOptions, new TapTapSdkBaseOptions[] { complianceOption });
 
             InitComplianceCallback();
-
             TapTapCompliance.RegisterComplianceCallback(ComplianceCallback);
 
             isSdkInited = true;
@@ -108,20 +121,16 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
         }
     }
 
-    /// <summary>
-    /// 延迟初始化合规回调
-    /// </summary>
     private void InitComplianceCallback()
     {
         ComplianceCallback = (code, errorMsg) =>
         {
             switch (code)
             {
-                // 500：实名通过，正常进入游戏
                 case 500:
                     hasCheckedCompliance = true;
                     Debug.Log("===== 实名认证通过 =====");
-                    // 保留你的业务逻辑
+                    RefreshCompliancePlayerState();
                     WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "登录成功！祝您游戏愉快!");
                     CountDownManager.Instance.CreateTimer(false, 1000, () =>
                     {
@@ -129,17 +138,25 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
                     });
                     break;
 
-                // 1000/1001/9002：实名失败/关闭窗口，强制登出
                 case 1000:
                 case 1001:
                 case 9002:
                     Debug.Log($"合规失败({code})：{errorMsg}");
-                    TapTapLogin.Instance.Logout();
-                    hasCheckedCompliance = false;
-                    WarnTriggerManager.Instance.TriggerNoInteractionWarn(2f, "请重新登录并完成实名认证！");
+                    ForceComplianceLogout("请重新登录并完成实名认证！");
                     break;
 
-                // 1100：年龄限制
+                case 1030:
+                    Debug.Log($"未成年人时段限制：{errorMsg}");
+                    RefreshCompliancePlayerState();
+                    ForceComplianceLogout("当前时段无法进入游戏，请稍后再试。");
+                    break;
+
+                case 1050:
+                    Debug.Log($"未成年人时长限制：{errorMsg}");
+                    RefreshCompliancePlayerState();
+                    ForceComplianceLogout("今日游戏时长已用尽，请明天再来。");
+                    break;
+
                 case 1100:
                     WarnTriggerManager.Instance.TriggerSingleInteractionWarn(
                         "年龄限制",
@@ -148,12 +165,11 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
                     );
                     break;
 
-                // 1200：网络/配置错误，重新触发认证
                 case 1200:
                     WarnTriggerManager.Instance.TriggerSingleInteractionWarn(
                         "认证失败",
                         "网络异常或应用信息错误，请检查网络后重试",
-                        () => { StartCheckCompliance(); } // 此时可正常调用实例方法
+                        () => { StartCheckCompliance(); }
                     );
                     break;
 
@@ -173,7 +189,6 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
 
         try
         {
-            // 获取当前登录账号
             account = await TapTapLogin.Instance.GetCurrentTapAccount();
         }
         catch (Exception e)
@@ -183,15 +198,87 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
 
         if (account == null)
         {
-            // 无有效账号，强制登出
             TapTapLogin.Instance.Logout();
             WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "请先完成TapTap登录！");
             return;
         }
 
-        // 调用官方公开API启动实名认证
-        TapTapCompliance.Startup(account.unionId);
-        Debug.Log($"===== 启动实名认证检查，用户标识：{account.unionId} =====");
+        _currentComplianceUserId = account.unionId;
+        TapTapCompliance.Startup(_currentComplianceUserId);
+        Debug.Log($"===== 启动实名认证检查，用户标识：{_currentComplianceUserId} =====");
+    }
+    #endregion
+
+    #region 合规状态辅助
+    private async void RefreshCompliancePlayerState()
+    {
+        try
+        {
+            CurrentAgeRange = await TapTapCompliance.GetAgeRange();
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"获取年龄段失败：{e.Message}");
+            CurrentAgeRange = -1;
+        }
+
+        try
+        {
+            CurrentRemainingTimeSeconds = await TapTapCompliance.GetRemainingTime();
+            Debug.Log($"===== 合规信息：年龄段={CurrentAgeRange} 剩余时长={CurrentRemainingTimeSeconds}秒 =====");
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"获取剩余时长失败：{e.Message}");
+            CurrentRemainingTimeSeconds = -1;
+        }
+    }
+
+    private void ForceComplianceLogout(string warnContent)
+    {
+        try
+        {
+            TapTapCompliance.Exit();
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"退出防沉迷状态失败：{e.Message}");
+        }
+
+        try
+        {
+            TapTapLogin.Instance.Logout();
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"TapTap登出失败：{e.Message}");
+        }
+
+        hasCheckedCompliance = false;
+        CurrentAgeRange = -1;
+        CurrentRemainingTimeSeconds = -1;
+        _currentComplianceUserId = null;
+
+        if (UImanager.Instance != null)
+        {
+            UImanager.Instance.ShowPanel<TapTapLoginPanel>();
+        }
+
+        WarnTriggerManager.Instance.TriggerNoInteractionWarn(2f, warnContent);
+    }
+
+    public void DebugSetUnderageState(int remainingSeconds = 7200, int ageRange = 8)
+    {
+        CurrentAgeRange = ageRange;
+        CurrentRemainingTimeSeconds = Mathf.Max(remainingSeconds, 0);
+        hasCheckedCompliance = true;
+
+        if (UImanager.Instance != null)
+        {
+            UImanager.Instance.ShowPanel<UnderageTimePromptPanel>();
+        }
+
+        Debug.Log($"===== 测试未成年人状态：年龄段={CurrentAgeRange} 剩余时长={CurrentRemainingTimeSeconds}秒 =====");
     }
     #endregion
 
@@ -213,7 +300,7 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
                 Debug.Log("===== 检测到已登录账号 =====");
                 if (!hasCheckedCompliance)
                 {
-                    StartCheckCompliance(); // 此时可正常调用
+                    StartCheckCompliance();
                 }
             }
         }
@@ -229,12 +316,27 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
         CheckLoginState();
     }
 
+    private void OnApplicationQuit()
+    {
+        if (!string.IsNullOrEmpty(_currentComplianceUserId))
+        {
+            TapTapCompliance.Exit();
+        }
+    }
+
     protected override void OnDestroy()
     {
         base.OnDestroy();
+        if (!string.IsNullOrEmpty(_currentComplianceUserId))
+        {
+            TapTapCompliance.Exit();
+        }
         isSdkInited = false;
         hasCheckedCompliance = false;
-        ComplianceCallback = null; // 清空委托，避免内存泄漏
+        CurrentAgeRange = -1;
+        CurrentRemainingTimeSeconds = -1;
+        _currentComplianceUserId = null;
+        ComplianceCallback = null;
     }
     #endregion
 }

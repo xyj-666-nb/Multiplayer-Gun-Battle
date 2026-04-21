@@ -17,6 +17,7 @@ public class SendMessagePanel : BasePanel
     public Dictionary<GameObject, MessagePack> MessageInfoDic = new Dictionary<GameObject, MessagePack>();
     private float StartPosY = -300;//消息起始位置
     private float EndPosX = -420;//消息结束位置X
+    private const float MessageSpacingY = 40f;
 
     // 存储每个消息的动画序列，方便销毁
     private Dictionary<GameObject, Sequence> _messageAnimaSeqDic = new Dictionary<GameObject, Sequence>();
@@ -168,7 +169,7 @@ public class SendMessagePanel : BasePanel
             return null;
         }
 
-        messageObj.transform.SetParent(this.transform);
+        messageObj.transform.SetParent(this.transform, false);
         messageObj.transform.localScale = Vector3.one; // 重置缩放，避免异常
 
         var textComp = messageObj.GetComponentInChildren<TextMeshProUGUI>(true);
@@ -185,6 +186,8 @@ public class SendMessagePanel : BasePanel
 
         info.CurrentIndex = CurrentMessageCount;
         info.IsInRecycle = false; // 初始化回收标记
+        ResetMessageTransform(messageObj, info.CurrentIndex);
+        RefreshMessageSiblingOrder();
         MessageEnterAnima(messageObj);
         CurrentMessageCount++;
 
@@ -222,8 +225,8 @@ public class SendMessagePanel : BasePanel
             Debug.LogError("[SendMessagePanel] 消息对象缺少RectTransform组件！");
             return;
         }
-        rt.anchoredPosition = new Vector2(0, StartPosY);
-        seq.Join(rt.DOAnchorPosY(-MessageInfoDic[message].CurrentIndex * 40, 1f))
+        ResetMessageTransform(message, MessageInfoDic[message].CurrentIndex);
+        seq.Join(rt.DOAnchorPosY(GetTargetPosY(MessageInfoDic[message].CurrentIndex), 1f))
            .OnComplete(() =>
            {
                // 核心防护：面板/消息无效时直接返回
@@ -300,22 +303,35 @@ public class SendMessagePanel : BasePanel
             isAdjustingPos = false;
             return;
         }
-        // 正在调整位置则直接返回，避免重复调整
-        if (isAdjustingPos) return;
+
+        if (isAdjustingPos)
+        {
+            return;
+        }
 
         isAdjustingPos = true;
-        int needAdjustCount = 0; // 需要调整的消息数量
-        int adjustedCount = 0;    // 已完成调整的消息数量
+        int needAdjustCount = 0;
+        int adjustedCount = 0;
 
-        foreach (var item in MessageInfoDic)
+        var orderedMessages = new List<KeyValuePair<GameObject, MessagePack>>(MessageInfoDic);
+        orderedMessages.Sort((a, b) => a.Value.CurrentIndex.CompareTo(b.Value.CurrentIndex));
+
+        foreach (var item in orderedMessages)
         {
+            if (item.Key == null || item.Value == null)
+            {
+                continue;
+            }
+
             if (item.Value.CurrentIndex > removeIndex && !item.Value.IsInRecycle)
             {
+                item.Value.CurrentIndex--;
                 needAdjustCount++;
             }
         }
 
-        // 无需要调整的消息，直接处理待移除列表
+        RefreshMessageSiblingOrder();
+
         if (needAdjustCount == 0)
         {
             isAdjustingPos = false;
@@ -324,33 +340,46 @@ public class SendMessagePanel : BasePanel
             return;
         }
 
-        foreach (var item in MessageInfoDic)
+        foreach (var item in orderedMessages)
         {
-            if (item.Value.CurrentIndex > removeIndex && !item.Value.IsInRecycle)
+            if (item.Key == null || item.Value == null)
             {
-                item.Value.CurrentIndex--;
-                var rt = item.Key.GetComponent<RectTransform>();
-                if (rt != null)
-                {
-                    rt.DOAnchorPosY(-item.Value.CurrentIndex * 40, 0.5f)
-                       .SetEase(Ease.OutQuad)
-                       .OnComplete(() =>
-                       {
-                           adjustedCount++;
-                           // 所有消息调整完成后处理待移除列表
-                           if (adjustedCount >= needAdjustCount)
-                           {
-                               isAdjustingPos = false;
-                               ClearWaitRemoveMessage();
-                               CreateMessage();
-                           }
-                       });
-                }
-                else
-                {
-                    adjustedCount++;
-                }
+                continue;
             }
+
+            if (item.Value.CurrentIndex < removeIndex || item.Value.IsInRecycle)
+            {
+                continue;
+            }
+
+            var rt = item.Key.GetComponent<RectTransform>();
+            if (rt == null)
+            {
+                adjustedCount++;
+                if (adjustedCount >= needAdjustCount)
+                {
+                    RefreshMessageSiblingOrder();
+                    isAdjustingPos = false;
+                    ClearWaitRemoveMessage();
+                    CreateMessage();
+                }
+                continue;
+            }
+
+            rt.DOKill();
+            rt.DOAnchorPosY(GetTargetPosY(item.Value.CurrentIndex), 0.35f)
+              .SetEase(Ease.OutQuad)
+              .OnComplete(() =>
+              {
+                  adjustedCount++;
+                  if (adjustedCount >= needAdjustCount)
+                  {
+                      RefreshMessageSiblingOrder();
+                      isAdjustingPos = false;
+                      ClearWaitRemoveMessage();
+                      CreateMessage();
+                  }
+              });
         }
     }
     #endregion
@@ -376,6 +405,7 @@ public class SendMessagePanel : BasePanel
         }
         MessageInfoDic.Remove(message);
         CurrentMessageCount--;
+        RefreshMessageSiblingOrder();
         // 移除后从待移除列表删除
         if (WaitRemoveList.Contains(message))
         {
@@ -399,6 +429,52 @@ public class SendMessagePanel : BasePanel
             {
                 MessageExitAnima(item);
                 WaitRemoveList.Remove(item);
+            }
+        }
+    }
+
+    private float GetTargetPosY(int index)
+    {
+        return -index * MessageSpacingY;
+    }
+
+    private void ResetMessageTransform(GameObject message, int index)
+    {
+        if (message == null)
+        {
+            return;
+        }
+
+        var rt = message.GetComponent<RectTransform>();
+        if (rt != null)
+        {
+            rt.DOKill();
+            rt.anchoredPosition = new Vector2(0f, StartPosY);
+            rt.localScale = Vector3.one;
+            rt.localRotation = Quaternion.identity;
+        }
+
+        var image = message.GetComponent<Image>();
+        if (image != null)
+        {
+            image.DOKill();
+            image.color = ColorManager.SetColorAlpha(image.color, 0);
+        }
+
+        message.transform.SetSiblingIndex(index);
+    }
+
+    private void RefreshMessageSiblingOrder()
+    {
+        var orderedMessages = new List<KeyValuePair<GameObject, MessagePack>>(MessageInfoDic);
+        orderedMessages.Sort((a, b) => a.Value.CurrentIndex.CompareTo(b.Value.CurrentIndex));
+
+        for (int i = 0; i < orderedMessages.Count; i++)
+        {
+            var message = orderedMessages[i].Key;
+            if (message != null)
+            {
+                message.transform.SetSiblingIndex(i);
             }
         }
     }

@@ -1,12 +1,9 @@
 using DG.Tweening;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
-using Unity.Sync.Relay.Model;
 using Unity.Sync.Relay.Lobby;
+using System.Collections.Generic;
 
 public class Match_EnterRoomPanel : BasePanel
 {
@@ -15,12 +12,8 @@ public class Match_EnterRoomPanel : BasePanel
     public TMP_Text statusText;
     public TextMeshProUGUI PromptText;
 
-    private const string MATCH_ROOM_NAME_PREFIX = "PUBLIC_MATCH_";
-    private const int MATCH_ROOM_COUNT = 1000;
-    private int _currentQueryIndex = 0;
     private bool _isQuerying = false;
-    // 新增：保存查询协程，用于取消时停止
-    private Coroutine _queryCoroutine;
+    private int _queryVersion = 0;
 
     private int CountID = -1;
     private int CountID1 = -1;
@@ -47,13 +40,9 @@ public class Match_EnterRoomPanel : BasePanel
     public override void ShowMe(bool IsNeedDefalutAnimator = true)
     {
         base.ShowMe(IsNeedDefalutAnimator);
-        _currentQueryIndex = 0;
         _isQuerying = false;
-        if (statusText != null)
-        {
-            statusText.text = "点击检测查找公共房间";
-            statusText.color = Color.white;
-        }
+        _queryVersion++;
+        ResetStatusText();
     }
 
     public override void ClickButton(string controlName)
@@ -62,25 +51,20 @@ public class Match_EnterRoomPanel : BasePanel
         switch (controlName)
         {
             case "CheckButton":
-                // UI选择音效
                 MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 if (!_isQuerying)
                 {
-                    _currentQueryIndex = 0;
-                    StartQueryMatchRooms();
+                    StartMatchSearch(false);
                 }
                 break;
             case "JoinButton":
-                // UI选择音效
                 MusicManager.Instance.PlayEffect("Music/update415/ui选择");
                 if (!_isQuerying)
                 {
-                    _currentQueryIndex = 0;
-                    StartQueryMatchRooms();
+                    StartMatchSearch(true);
                 }
                 break;
             case "ExitButton":
-                // UI返回音效
                 MusicManager.Instance.PlayEffect("Music/update415/ui返回");
                 UImanager.Instance.ShowPanel<RoomPanel>();
                 UImanager.Instance.HidePanel<Match_EnterRoomPanel>();
@@ -88,12 +72,13 @@ public class Match_EnterRoomPanel : BasePanel
         }
     }
 
-    private void StartQueryMatchRooms()
+    private void StartMatchSearch(bool shouldJoinWhenFound)
     {
         _isQuerying = true;
+        _queryVersion++;
+        int currentVersion = _queryVersion;
         SetAllButtonsInteractable(false);
 
-        // 显示加载面板，并绑定取消事件
         ServerOnlinePanel onlinePanel = UImanager.Instance?.ShowPanel<ServerOnlinePanel>();
         if (onlinePanel != null)
         {
@@ -103,46 +88,94 @@ public class Match_EnterRoomPanel : BasePanel
 
         if (statusText != null)
         {
-            statusText.text = $"正在检测公共房间... ({_currentQueryIndex + 1}/{MATCH_ROOM_COUNT})";
+            statusText.text = shouldJoinWhenFound ? "正在匹配公共房间..." : "正在检测公共房间...";
             statusText.DOKill();
             statusText.DOColor(Color.yellow, 0.2f);
         }
-        // 保存协程
-        _queryCoroutine = StartCoroutine(QueryMatchRoomsCoroutine());
+
+        UOSRelaySimple.Instance.QueryBestMatchRoom((success, room, message) =>
+        {
+            if (this == null || !gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            if (!_isQuerying || currentVersion != _queryVersion)
+            {
+                return;
+            }
+
+            HandleMatchQueryResult(shouldJoinWhenFound, success, room, message);
+        });
+    }
+
+    private void HandleMatchQueryResult(bool shouldJoinWhenFound, bool success, LobbyRoom room, string message)
+    {
+        if (shouldJoinWhenFound && success && room != null)
+        {
+            if (statusText != null)
+            {
+                statusText.text = $"找到房间，正在连接... ({room.PlayerCount}/{room.MaxPlayers})";
+                statusText.DOKill();
+                statusText.DOColor(Color.green, 0.2f);
+            }
+            StartConnectRelay(room);
+            return;
+        }
+
+        _isQuerying = false;
+        SetAllButtonsInteractable(true);
+        UImanager.Instance.HidePanel<ServerOnlinePanel>();
+
+        if (success && room != null)
+        {
+            if (statusText != null)
+            {
+                statusText.text = $"检测到可加入房间 ({room.PlayerCount}/{room.MaxPlayers})";
+                statusText.DOKill();
+                statusText.DOColor(Color.green, 0.2f);
+            }
+        }
+        else
+        {
+            if (statusText != null)
+            {
+                statusText.text = shouldJoinWhenFound ? "当前没有可加入房间，请先创建房间" : "当前没有可加入房间";
+                statusText.DOKill();
+                statusText.DOColor(Color.red, 0.2f).OnComplete(() =>
+                {
+                    CountID1 = CountDownManager.Instance.CreateTimer(false, 1000, () =>
+                    {
+                        ResetStatusText();
+                    });
+                });
+            }
+
+            if (!string.IsNullOrEmpty(message))
+            {
+                ShowPromptError(message);
+            }
+        }
     }
 
     private void CancelMatchQuery()
     {
-        // 停止查询协程
-        if (_queryCoroutine != null)
-        {
-            StopCoroutine(_queryCoroutine);
-            _queryCoroutine = null;
-        }
-
-        // 隐藏加载面板
-        UImanager.Instance.HidePanel<ServerOnlinePanel>();
-
-        // 重置所有状态
         _isQuerying = false;
-        _currentQueryIndex = 0;
+        _queryVersion++;
+        UImanager.Instance.HidePanel<ServerOnlinePanel>();
         SetAllButtonsInteractable(true);
 
-        // 恢复文本显示
         if (statusText != null)
         {
             statusText.DOKill();
             statusText.text = "已取消查找";
             statusText.color = Color.gray;
-            // 1秒后恢复默认文本
             CountID1 = CountDownManager.Instance.CreateTimer(false, 1000, () =>
             {
-                statusText.color = Color.white;
-                statusText.text = "点击检测查找公共房间";
+                ResetStatusText();
             });
         }
 
-        // 清理事件绑定
         ServerOnlinePanel onlinePanel = FindObjectOfType<ServerOnlinePanel>();
         if (onlinePanel != null)
         {
@@ -150,71 +183,9 @@ public class Match_EnterRoomPanel : BasePanel
         }
     }
 
-    private IEnumerator QueryMatchRoomsCoroutine()
-    {
-        while (_currentQueryIndex < MATCH_ROOM_COUNT)
-        {
-            if (statusText != null)
-            {
-                statusText.text = $"正在检测公共房间... ({_currentQueryIndex + 1}/{MATCH_ROOM_COUNT})";
-            }
-
-            bool queryFinished = false;
-            bool roomFound = false;
-            LobbyRoom foundRoom = null;
-
-            UOSRelaySimple.Instance.QueryMatchRoom(_currentQueryIndex, (success, room) =>
-            {
-                roomFound = success;
-                foundRoom = room;
-                queryFinished = true;
-            });
-
-            yield return new WaitUntil(() => queryFinished);
-
-            if (roomFound)
-            {
-                Debug.Log($"【匹配模式】找到可用房间：{foundRoom.Name}");
-                StartConnectRelay(foundRoom);
-                yield break;
-            }
-
-            _currentQueryIndex++;
-            yield return null;
-        }
-
-        // 未找到房间，隐藏面板
-        UImanager.Instance.HidePanel<ServerOnlinePanel>();
-        _isQuerying = false;
-        _queryCoroutine = null;
-        SetAllButtonsInteractable(true);
-
-        if (statusText != null)
-        {
-            statusText.text = "未找到可用公共房间";
-            statusText.DOKill();
-            statusText.DOColor(Color.red, 0.2f).OnComplete(() =>
-            {
-                CountID1 = CountDownManager.Instance.CreateTimer(false, 1000, () =>
-                {
-                    statusText.DOColor(Color.white, 0.5f);
-                    statusText.text = "点击检测查找公共房间";
-                });
-            });
-        }
-    }
-
     private void StartConnectRelay(LobbyRoom room)
     {
         _isQuerying = false;
-        _queryCoroutine = null;
-
-        if (statusText != null)
-        {
-            statusText.text = "正在连接...";
-            statusText.DOKill();
-            statusText.DOColor(Color.green, 0.2f);
-        }
 
         void UnsubscribeConnect()
         {
@@ -228,7 +199,12 @@ public class Match_EnterRoomPanel : BasePanel
             UImanager.Instance.HidePanel<ServerOnlinePanel>();
             Debug.Log("【匹配模式】连接成功！");
             SetAllButtonsInteractable(true);
-            if (statusText != null) statusText.text = "连接成功！";
+            if (statusText != null)
+            {
+                statusText.text = "连接成功！";
+                statusText.DOKill();
+                statusText.DOColor(Color.green, 0.2f);
+            }
         }
 
         void OnJoinFailed(string error)
@@ -245,8 +221,7 @@ public class Match_EnterRoomPanel : BasePanel
                 {
                     CountID1 = CountDownManager.Instance.CreateTimer(false, 1000, () =>
                     {
-                        statusText.DOColor(Color.white, 0.5f);
-                        statusText.text = "点击检测查找公共房间";
+                        ResetStatusText();
                     });
                 });
             }
@@ -255,6 +230,16 @@ public class Match_EnterRoomPanel : BasePanel
         UOSRelaySimple.OnRelaySuccess += OnJoinSuccess;
         UOSRelaySimple.OnRelayFailed += OnJoinFailed;
         UOSRelaySimple.Instance.JoinMatchRoom(room);
+    }
+
+    private void ResetStatusText()
+    {
+        if (statusText != null)
+        {
+            statusText.text = "点击检测查找公共房间";
+            statusText.color = Color.white;
+            statusText.DOKill();
+        }
     }
 
     private void SetAllButtonsInteractable(bool interactable)
@@ -292,8 +277,7 @@ public class Match_EnterRoomPanel : BasePanel
         CountDownManager.Instance.StopTimer(CountID);
         CountDownManager.Instance.StopTimer(CountID1);
         _isQuerying = false;
-        // 销毁时清理协程
-        if (_queryCoroutine != null) StopCoroutine(_queryCoroutine);
+        _queryVersion++;
     }
 
     protected override void SpecialAnimator_Show() { }

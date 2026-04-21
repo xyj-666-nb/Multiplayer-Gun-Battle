@@ -27,27 +27,13 @@ public class GunSkipPanel : BasePanel
     [Header("展示按钮父对象 (ScrollRect-Content)")]
     public RectTransform skinChooseParent;
 
-    [Header("代表枪械的图")]
+    [Header("统一枪械显示")]
     public CanvasGroup RifleCanvasGroup;
-    public CanvasGroup ChargeCanvasGroup;
-    public CanvasGroup DMRCanvasGroup;
-    public CanvasGroup LightMachineCanvasGroup;
-    public CanvasGroup SnipeCanvasGroup;
 
     [Header("子弹捆绑包交互对象")]
     public Image Bullet;
     public List<Image> CartridgeCaseImageList;
     public Image GunLightImage;
-
-    [Header("子弹图片配置（按枪械类型分组）")]
-    public Sprite ChargeBullet;
-    public Sprite ChargeCartridgeCase;
-    [Space(10)]
-    public Sprite RifleBullet;
-    public Sprite RifleCartridgeCase;
-    [Space(10)]
-    public Sprite SnipeBullet;
-    public Sprite SnipeCartridgeCase;
 
     [Header("显示屏幕")]
     public RawImage DisplayScreen;
@@ -61,10 +47,12 @@ public class GunSkipPanel : BasePanel
     #region 控制变量
     private GunType _currentGunType = GunType.Rifle;
     private const float GUN_FADE_DURATION = 0.15f;
-    private const float SPRITE_FADE_DURATION = 0.12f;
     private bool _isFirstInit = true;
 
     private bool IsScale = false;
+
+    [Header("枪械大图标显示")]
+    public List<Image> bigGunShowImageList;
 
     public void IsTriggerQuestionPanel(bool IsTrigger)
     {
@@ -80,6 +68,32 @@ public class GunSkipPanel : BasePanel
         public Vector3 showImageLocalScale;
     }
     private Dictionary<GameObject, ButtonOriginalState> _btnOriginalStateCache = new Dictionary<GameObject, ButtonOriginalState>();
+
+    private void SetSkinChooseButtonDisplay(GameObject obj, bool showImageActive, bool bulletActive, bool gunImageActive)
+    {
+        if (obj == null)
+        {
+            return;
+        }
+
+        Transform showImageTrans = obj.transform.Find("ShowImage");
+        if (showImageTrans != null)
+        {
+            showImageTrans.gameObject.SetActive(showImageActive);
+        }
+
+        Transform bulletTrans = obj.transform.Find("Bullet");
+        if (bulletTrans != null)
+        {
+            bulletTrans.gameObject.SetActive(bulletActive);
+        }
+
+        Transform gunImageTrans = obj.transform.Find("GunImage");
+        if (gunImageTrans != null)
+        {
+            gunImageTrans.gameObject.SetActive(gunImageActive);
+        }
+    }
 
     // 子弹配置相关
     private List<GameObject> GunTypeButtonList;
@@ -158,6 +172,7 @@ public class GunSkipPanel : BasePanel
             ClearBulletBindButton();
             ClearHitEffectButton();
             ClearGunSkinButton();
+            ClearButtonGroup();
 
             // ========== 返回默认：主选单开启，关闭皮肤按钮，关闭演示面板 ==========
             IsActiveButtonGroup(true);
@@ -171,6 +186,7 @@ public class GunSkipPanel : BasePanel
             gunViewZoom.ChangeView(GunViewType.BulletConfig);
             VCTopic.text = "子弹配置";
             currentPanelType = GunViewType.BulletConfig;
+            EnsureGunTypeButtonsCreated();
 
             ClearHitEffectButton();
             ClearGunSkinButton();
@@ -189,6 +205,7 @@ public class GunSkipPanel : BasePanel
             gunViewZoom.ChangeView(GunViewType.GunSkin);
             VCTopic.text = "枪械皮肤";
             currentPanelType = GunViewType.GunSkin;
+            EnsureGunTypeButtonsCreated();
 
             ClearBulletBindButton();
             ClearHitEffectButton();
@@ -207,6 +224,7 @@ public class GunSkipPanel : BasePanel
             gunViewZoom.ChangeView(GunViewType.HitParticle);
             VCTopic.text = "打击粒子";
             currentPanelType = GunViewType.HitParticle;
+            EnsureGunTypeButtonsCreated();
 
             ClearBulletBindButton();
             ClearGunSkinButton();
@@ -346,10 +364,25 @@ public class GunSkipPanel : BasePanel
             obj.name = hitData.HitName;
 
             ButtonOriginalState originalState = new ButtonOriginalState();
+            SetSkinChooseButtonDisplay(obj, true, false, false);
             Transform showImageTrans = obj.transform.Find("ShowImage");
-            TextMeshProUGUI btnText = obj.GetComponentInChildren<TextMeshProUGUI>();
+            TextMeshProUGUI[] allTexts = obj.GetComponentsInChildren<TextMeshProUGUI>(true);
+            if (allTexts != null)
+            {
+                foreach (var text in allTexts)
+                {
+                    if (text == null)
+                    {
+                        continue;
+                    }
 
-            btnText.text = hitData.HitName;
+                    text.gameObject.SetActive(true);
+                    text.text = hitData.HitName;
+                    text.color = ColorManager.SetColorAlpha(text.color, 1f);
+                    text.ForceMeshUpdate();
+                    text.SetAllDirty();
+                }
+            }
             if (showImageTrans != null && showImageTrans.TryGetComponent(out Image showImage))
             {
                 originalState.showImageColor = showImage.color;
@@ -407,6 +440,15 @@ public class GunSkipPanel : BasePanel
                         showImage.color = originalState.showImageColor;
                         showImage.sprite = null;
                     }
+
+                    Transform gunImageTrans = item.transform.Find("GunImage");
+                    if (gunImageTrans != null && gunImageTrans.TryGetComponent(out Image gunImage))
+                    {
+                        gunImage.sprite = null;
+                        gunImage.color = Color.white;
+                    }
+
+                    SetSkinChooseButtonDisplay(item, true, false, false);
                 }
                 PoolManage.Instance.PushObj(skinChoosePrefabs, item);
             }
@@ -447,7 +489,6 @@ public class GunSkipPanel : BasePanel
         {
             _currentGunType = type;
             RefreshGunDisplay();
-            RefreshBulletSpriteWithFade();
 
             // 仅清空由于枪械类型而产生变化的选项，打击特效因为是全枪械通用所以不清除！
             ClearBulletBindButton();
@@ -494,7 +535,6 @@ public class GunSkipPanel : BasePanel
             return;
         }
 
-        var (bulletSprite, caseSprite) = GetSpriteByGunType(Type);
         bool isRifleSeries = Type == GunType.Rifle || Type == GunType.LightMachineGun;
 
         foreach (var InfoPack in bulletList)
@@ -504,6 +544,7 @@ public class GunSkipPanel : BasePanel
             obj.name = InfoPack.name;
 
             ButtonOriginalState originalState = new ButtonOriginalState();
+            SetSkinChooseButtonDisplay(obj, true, true, false);
             Transform showImageTrans = obj.transform.Find("ShowImage");
             Transform bulletTrans = obj.transform.Find("Bullet");
             Transform headTrans = bulletTrans?.Find("Head");
@@ -540,14 +581,12 @@ public class GunSkipPanel : BasePanel
             {
                 if (headTrans != null && headTrans.TryGetComponent(out Image headImg))
                 {
-                    headImg.sprite = bulletSprite;
                     headImg.color = InfoPack.bulletVisualConfig.bulletColor;
                     headImg.SetAllDirty();
                 }
                 Transform caseTrans = bulletTrans.Find("Case");
                 if (caseTrans != null && caseTrans.TryGetComponent(out Image caseImg))
                 {
-                    caseImg.sprite = caseSprite;
                     caseImg.color = InfoPack.bulletVisualConfig.cartridgeCaseColor;
                     caseImg.SetAllDirty();
                 }
@@ -640,6 +679,15 @@ public class GunSkipPanel : BasePanel
                     {
                         headTrans.localScale = originalState.headLocalScale;
                     }
+
+                    Transform gunImageTrans = item.transform.Find("GunImage");
+                    if (gunImageTrans != null && gunImageTrans.TryGetComponent(out Image gunImage))
+                    {
+                        gunImage.sprite = null;
+                        gunImage.color = Color.white;
+                    }
+
+                    SetSkinChooseButtonDisplay(item, true, true, false);
                 }
 
                 PoolManage.Instance.PushObj(skinChoosePrefabs, item);
@@ -683,41 +731,31 @@ public class GunSkipPanel : BasePanel
 
                 ButtonOriginalState originalState = new ButtonOriginalState();
                 originalState.showImageLocalScale = Vector3.one;
+                SetSkinChooseButtonDisplay(obj, false, false, true);
                 Transform showImageTrans = obj.transform.Find("ShowImage");
+                Transform gunImageTrans = obj.transform.Find("GunImage");
                 TextMeshProUGUI btnText = obj.GetComponentInChildren<TextMeshProUGUI>();
 
                 btnText.text = skinPack.skinName;
                 if (showImageTrans != null && showImageTrans.TryGetComponent(out Image showImage))
                 {
                     originalState.showImageColor = showImage.color;
-                    showImage.sprite = skinPack.skinIcon;
+                    showImage.sprite = null;
                     showImage.color = Color.white;
+                    showImage.transform.localScale = Vector3.one;
                     showImage.SetAllDirty();
+                }
 
-                    Vector3 targetScale = Vector3.one;
-                    switch (Type)
+                if (gunImageTrans != null && gunImageTrans.TryGetComponent(out Image gunImage))
+                {
+                    gunImage.sprite = null;
+                    if (skinPack.standardSprite != null)
                     {
-                        case GunType.Rifle:
-                            targetScale = new Vector3(2.5f, 3.5f, 1);
-                            break;
-                        case GunType.Charge:
-                            if (skinPack.GunRealName.Equals("P90", StringComparison.OrdinalIgnoreCase))
-                                targetScale = new Vector3(3, 4, 1);
-                            else if (skinPack.GunRealName.Equals("UZI", StringComparison.OrdinalIgnoreCase))
-                                targetScale = new Vector3(1.5f, 1.5f, 1);
-                            else if (skinPack.GunRealName.Equals("Vector-45", StringComparison.OrdinalIgnoreCase))
-                                targetScale = new Vector3(2, 3, 1);
-                            break;
-                        case GunType.LightMachineGun:
-                        case GunType.Snipe:
-                        case GunType.DMR:
-                            targetScale = new Vector3(2, 3, 1);
-                            break;
-                        default:
-                            targetScale = Vector3.one;
-                            break;
+                        gunImage.sprite = skinPack.standardSprite;
                     }
-                    showImage.transform.localScale = targetScale;
+                    gunImage.color = Color.white;
+                    gunImage.transform.localScale = Vector3.one;
+                    gunImage.SetAllDirty();
                 }
 
                 _btnOriginalStateCache.Add(obj, originalState);
@@ -745,6 +783,7 @@ public class GunSkipPanel : BasePanel
             if (item.Key.name == buttonName)
             {
                 CurrentChooseGunSkinPack = item.Value;
+                ApplySelectedGunSkinToBigImages();
                 break;
             }
         }
@@ -770,6 +809,16 @@ public class GunSkipPanel : BasePanel
                         showImage.sprite = null;
                         showImage.transform.localScale = originalState.showImageLocalScale;
                     }
+
+                    Transform gunImageTrans = item.transform.Find("GunImage");
+                    if (gunImageTrans != null && gunImageTrans.TryGetComponent(out Image gunImage))
+                    {
+                        gunImage.sprite = null;
+                        gunImage.color = Color.white;
+                        gunImage.transform.localScale = Vector3.one;
+                    }
+
+                    SetSkinChooseButtonDisplay(item, true, true, false);
                 }
                 PoolManage.Instance.PushObj(skinChoosePrefabs, item);
             }
@@ -784,6 +833,14 @@ public class GunSkipPanel : BasePanel
     private IEnumerator RefreshContentHeightCoroutine()
     {
         yield return null;
+    }
+
+    private void EnsureGunTypeButtonsCreated()
+    {
+        if (GunTypeButtonList.Count == 0)
+        {
+            CreateGunTypeButton();
+        }
     }
 
     public void ClearButtonGroup()
@@ -830,16 +887,11 @@ public class GunSkipPanel : BasePanel
     {
         base.ShowMe(isNeedDefaultAnimator);
 
-        if (GunTypeButtonList.Count == 0)
-        {
-            CreateGunTypeButton();
-        }
 
         if (_isFirstInit)
         {
             _isFirstInit = false;
             RefreshGunDisplay();
-            SetBulletSpriteImmediately();
             IsActiveEffectShowCanvasGroup(false);
         }
     }
@@ -866,169 +918,53 @@ public class GunSkipPanel : BasePanel
     #region 枪械显示控制
     private void RefreshGunDisplay()
     {
-        foreach (GunType gunType in System.Enum.GetValues(typeof(GunType)))
-        {
-            CanvasGroup cg = GetGunCanvasGroupByType(gunType);
-            if (cg == null) continue;
+        EnsureRifleCanvasGroupVisible();
+    }
 
-            if (gunType == _currentGunType)
-            {
-                ShowCanvasGroup(cg);
-            }
-            else
-            {
-                HideCanvasGroup(cg);
-            }
+    private void EnsureRifleCanvasGroupVisible()
+    {
+        if (RifleCanvasGroup == null)
+        {
+            return;
         }
+
+        RifleCanvasGroup.blocksRaycasts = true;
+        RifleCanvasGroup.interactable = true;
+        RifleCanvasGroup.DOKill();
+        RifleCanvasGroup.alpha = 1f;
     }
 
-    private void ShowCanvasGroup(CanvasGroup cg)
+    private void ApplySelectedGunSkinToBigImages()
     {
-        if (cg == null) return;
-
-        cg.blocksRaycasts = true;
-        cg.interactable = true;
-        cg.DOKill();
-        cg.DOFade(1, GUN_FADE_DURATION).SetEase(Ease.OutQuad);
-    }
-
-    private void HideCanvasGroup(CanvasGroup cg)
-    {
-        if (cg == null) return;
-
-        cg.blocksRaycasts = false;
-        cg.interactable = false;
-        cg.DOKill();
-        cg.DOFade(0, GUN_FADE_DURATION).SetEase(Ease.OutQuad);
-    }
-
-    private CanvasGroup GetGunCanvasGroupByType(GunType gunType)
-    {
-        return gunType switch
+        if (CurrentChooseGunSkinPack == null || CurrentChooseGunSkinPack.standardSprite == null || bigGunShowImageList == null)
         {
-            GunType.Rifle => RifleCanvasGroup,
-            GunType.Charge => ChargeCanvasGroup,
-            GunType.DMR => DMRCanvasGroup,
-            GunType.LightMachineGun => LightMachineCanvasGroup,
-            GunType.Snipe => SnipeCanvasGroup,
-            _ => null
-        };
+            return;
+        }
+
+        foreach (var image in bigGunShowImageList)
+        {
+            if (image == null)
+            {
+                continue;
+            }
+
+            image.sprite = CurrentChooseGunSkinPack.standardSprite;
+            image.SetAllDirty();
+        }
     }
     #endregion
 
     #region 子弹/弹壳图片替换逻辑
-    private (Sprite bulletSprite, Sprite caseSprite) GetSpriteByGunType(GunType gunType)
-    {
-        return gunType switch
-        {
-            GunType.Charge => (ChargeBullet, ChargeCartridgeCase),
-            GunType.Rifle or GunType.LightMachineGun => (RifleBullet, RifleCartridgeCase),
-            GunType.Snipe or GunType.DMR => (SnipeBullet, SnipeCartridgeCase),
-            _ => (RifleBullet, RifleCartridgeCase)
-        };
-    }
-
     private void SetBulletSpriteImmediately()
     {
-        var (bulletSprite, caseSprite) = GetSpriteByGunType(_currentGunType);
-
-        if (Bullet != null && bulletSprite != null)
-        {
-            Bullet.sprite = bulletSprite;
-            Bullet.SetAllDirty();
-        }
-
-        if (CartridgeCaseImageList != null && caseSprite != null)
-        {
-            foreach (var img in CartridgeCaseImageList)
-            {
-                if (img != null)
-                {
-                    img.sprite = caseSprite;
-                    img.SetAllDirty();
-                }
-            }
-        }
     }
 
     private void RefreshBulletSpriteWithFade()
     {
-        var (targetBulletSprite, targetCaseSprite) = GetSpriteByGunType(_currentGunType);
-
-        KillAllSpriteTweens();
-
-        Sequence spriteSequence = DOTween.Sequence();
-
-        if (Bullet != null)
-        {
-            spriteSequence.Join(Bullet.DOFade(0, SPRITE_FADE_DURATION).SetEase(Ease.OutQuad));
-        }
-        if (CartridgeCaseImageList != null)
-        {
-            foreach (var img in CartridgeCaseImageList)
-            {
-                if (img != null)
-                {
-                    spriteSequence.Join(img.DOFade(0, SPRITE_FADE_DURATION).SetEase(Ease.OutQuad));
-                }
-            }
-        }
-
-        spriteSequence.AppendCallback(() =>
-        {
-            if (Bullet != null && targetBulletSprite != null)
-            {
-                Bullet.sprite = targetBulletSprite;
-                Bullet.SetAllDirty();
-            }
-
-            if (CartridgeCaseImageList != null && targetCaseSprite != null)
-            {
-                foreach (var img in CartridgeCaseImageList)
-                {
-                    if (img != null)
-                    {
-                        img.sprite = targetCaseSprite;
-                        img.SetAllDirty();
-                    }
-                }
-            }
-        });
-
-        if (Bullet != null)
-        {
-            spriteSequence.Append(Bullet.DOFade(1, SPRITE_FADE_DURATION).SetEase(Ease.InQuad));
-        }
-        if (CartridgeCaseImageList != null)
-        {
-            foreach (var img in CartridgeCaseImageList)
-            {
-                if (img != null)
-                {
-                    spriteSequence.Join(img.DOFade(1, SPRITE_FADE_DURATION).SetEase(Ease.InQuad));
-                }
-            }
-        }
-
-        spriteSequence.Play();
     }
 
     private void KillAllSpriteTweens()
     {
-        if (Bullet != null)
-        {
-            Bullet.DOKill();
-        }
-        if (CartridgeCaseImageList != null)
-        {
-            foreach (var img in CartridgeCaseImageList)
-            {
-                if (img != null)
-                {
-                    img.DOKill();
-                }
-            }
-        }
     }
     #endregion
 }
