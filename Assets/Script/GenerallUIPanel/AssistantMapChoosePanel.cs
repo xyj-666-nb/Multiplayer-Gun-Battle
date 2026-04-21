@@ -1,11 +1,17 @@
 using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class AssistantMapChoosePanel : BasePanel
 {
+    private const string UiSelectSound = "Music/update415/ui选择";
+    private const string UiBackSound = "Music/update415/ui返回";
+    private const string MapSelectSound = "Music/正式/交互/选地图";
+
     [Header("大选项导航")]
     public CanvasGroup BigChooseCanvasGroup;
     private Sequence BigChooseCanvasGroupSequence;
@@ -18,21 +24,32 @@ public class AssistantMapChoosePanel : BasePanel
     public float ShowUpMoveY = 0;
     public float DefaultMoveY = -133;
 
-    // ===================== 新增状态变量 =====================
     [Header("运行时状态")]
     [Tooltip("当前选中的地图ID (1或2)，返回不清除")]
     private int _selectedMapIndex = -1;
-    private bool _hasConfirmed = false; // 是否已确认
+    private int _preparedMapIndex = -1;
+    private bool _hasConfirmed = false;
+    private TextMeshProUGUI _chooseButtonText;
 
     #region 生命周期
     public override void Awake()
     {
         base.Awake();
-        // 初始化：显示大选项，隐藏小选项
+
+        if (controlDic.ContainsKey("ChooseButton") && controlDic["ChooseButton"] != null)
+        {
+            Button chooseButton = controlDic["ChooseButton"] as Button;
+            _chooseButtonText = chooseButton != null
+                ? chooseButton.GetComponentInChildren<TextMeshProUGUI>(true)
+                : controlDic["ChooseButton"].GetComponentInChildren<TextMeshProUGUI>(true);
+        }
+
         IsTriggerPanel(false, ChooseCanvasGroup);
         IsTriggerPanel(true, BigChooseCanvasGroup);
         _selectedMapIndex = -1;
+        _preparedMapIndex = -1;
         _hasConfirmed = false;
+        RefreshChooseButtonState();
     }
 
     public override void Start()
@@ -51,69 +68,59 @@ public class AssistantMapChoosePanel : BasePanel
     }
     #endregion
 
-    // ===================== 核心按钮逻辑 =====================
     public override void ClickButton(string controlName)
     {
         base.ClickButton(controlName);
 
-        // 如果已经确认过，禁止操作
-        if (_hasConfirmed) return;
+        if (_hasConfirmed && controlName != "ReturnButton") return;
 
         if (controlName == "Map1")
         {
+            MusicManager.Instance?.PlayEffect(MapSelectSound);
             HandleMapSelect(1);
         }
         else if (controlName == "Map2")
         {
+            MusicManager.Instance?.PlayEffect(MapSelectSound);
             HandleMapSelect(2);
         }
         else if (controlName == "ReturnButton")
         {
+            MusicManager.Instance?.PlayEffect(UiBackSound);
             HandleReturnToMainPanel();
         }
         else if (controlName == "ChooseButton")
         {
+            MusicManager.Instance?.PlayEffect(UiSelectSound);
             HandleConfirmSelection();
         }
     }
 
-    /// <summary>
-    /// 处理：点击地图1/2
-    /// </summary>
     private void HandleMapSelect(int mapId)
     {
-        _selectedMapIndex = mapId; // 记录选择，不清除
+        _selectedMapIndex = mapId;
 
-        // 切换相机预览
         if (MapChooseWall.Instance != null)
         {
             MapChooseWall.Instance.Public_PreviewMap(mapId);
         }
 
-        // 切换UI：关闭大选项，打开小选项
         SwitchToSubPanel();
+        RefreshChooseButtonState();
     }
 
-    /// <summary>
-    /// 处理：点击返回（不取消选择）
-    /// </summary>
     private void HandleReturnToMainPanel()
     {
-        // 【关键】不重置 _selectedMapIndex
+        _hasConfirmed = false;
 
-        // 切回总览相机
         if (MapChooseWall.Instance != null)
         {
             MapChooseWall.Instance.Public_ReturnToOverview();
         }
 
-        // 切换UI：关闭小选项，打开大选项
         SwitchToMainPanel();
     }
 
-    /// <summary>
-    /// 处理：点击确认
-    /// </summary>
     private void HandleConfirmSelection()
     {
         if (_selectedMapIndex == -1)
@@ -123,8 +130,9 @@ public class AssistantMapChoosePanel : BasePanel
         }
 
         _hasConfirmed = true;
+        _preparedMapIndex = _selectedMapIndex;
+        RefreshChooseButtonState();
 
-        // 调用 MapChooseWall 的确认逻辑
         if (MapChooseWall.Instance != null)
         {
             if (_selectedMapIndex == 1)
@@ -133,12 +141,9 @@ public class AssistantMapChoosePanel : BasePanel
                 MapChooseWall.Instance.Public_ConfirmMap2();
         }
 
-        // UI表现：确认按钮变灰
-        // (你可以在这里加一个按钮变灰的逻辑)
         Debug.Log($"已确认选择地图 {_selectedMapIndex}");
     }
 
-    // ===================== UI 切换辅助方法 =====================
     private void SwitchToMainPanel()
     {
         IsTriggerPanel(true, BigChooseCanvasGroup);
@@ -149,11 +154,25 @@ public class AssistantMapChoosePanel : BasePanel
     {
         IsTriggerPanel(false, BigChooseCanvasGroup);
         IsTriggerPanel(true, ChooseCanvasGroup);
+        RefreshChooseButtonState();
+    }
+
+    private void RefreshChooseButtonState()
+    {
+        if (_chooseButtonText == null)
+            return;
+
+        bool isPreparedCurrentMap = _selectedMapIndex != -1 && _selectedMapIndex == _preparedMapIndex;
+        _chooseButtonText.text = isPreparedCurrentMap ? "已准备" : "选择";
     }
 
     public void IsTriggerPanel(bool IsTrigger, CanvasGroup Group)
     {
+        if (Group == null)
+            return;
+
         Group.blocksRaycasts = IsTrigger;
+        Group.interactable = IsTrigger;
         if (Group == BigChooseCanvasGroup)
         {
             SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(BigChooseCanvasGroup, ref BigChooseCanvasGroupSequence, IsTrigger, () => { });
@@ -164,30 +183,23 @@ public class AssistantMapChoosePanel : BasePanel
         }
     }
 
-    // ===================== 面板显隐 =====================
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
     {
         base.HideMe(callback, isNeedDefaultAnimator);
-        // 隐藏面板时，通知 MapChooseWall 也退出
-        if (MapChooseWall.Instance != null)
-        {
-            MapChooseWall.Instance.ExitMapChooseSystem();
-        }
     }
 
     public override void ShowMe(bool isNeedDefaultAnimator = true)
     {
         base.ShowMe(isNeedDefaultAnimator);
 
-        // 重置状态
         _selectedMapIndex = -1;
+        _preparedMapIndex = -1;
         _hasConfirmed = false;
 
-        // 显示大选项
         IsTriggerPanel(true, BigChooseCanvasGroup);
         IsTriggerPanel(false, ChooseCanvasGroup);
+        RefreshChooseButtonState();
 
-        // 启动 MapChooseWall 系统
         if (MapChooseWall.Instance != null)
         {
             MapChooseWall.Instance.Public_EnterSystem();

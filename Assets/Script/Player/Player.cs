@@ -278,11 +278,6 @@ public class Player : Base_Entity
 
         if (_gameScorePanel != null)
             _gameScorePanel.ChangeTeamSprite(CurrentTeam);
-
-
-        //玩家生成触发本地GC
-        GC.Collect();
-        Resources.UnloadUnusedAssets();
         CountDownManager.Instance.CreateTimer(false, 1000, () =>
         {
             //触发每日奖励

@@ -131,10 +131,11 @@ public class Main : SingleMonoAutoBehavior<Main>
     /// </summary>
     private void OnServerStopped()
     {
-        if (!NetworkServer.active)
-            return;
-
-        PlayerRespawnManager.DestroyRespawnManager();
+        // OnServerStopped 回调触发时服务器通常已经不再 active，这里直接做清理即可
+        if (PlayerRespawnManager.Instance != null)
+        {
+            PlayerRespawnManager.DestroyRespawnManager();
+        }
         Debug.Log("[Main] 服务端已停止，销毁重生管理器");
     }
 

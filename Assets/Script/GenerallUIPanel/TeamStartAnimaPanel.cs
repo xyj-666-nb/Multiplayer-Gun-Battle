@@ -42,10 +42,15 @@ public class TeamStartAnimaPanel : BasePanel
     
     public void StopTimeLine()
     {
-        UImanager.Instance.HidePanel<TeamStartAnimaPanel>();
-        UImanager.Instance.GetPanel<PlayerPanel>().SimpleShowPanel();
-    }
+        if (UImanager.Instance == null)
+        {
+            return;
+        }
 
+        UImanager.Instance.HidePanel<TeamStartAnimaPanel>();
+        PlayerPanel playerPanel = UImanager.Instance.GetPanel<PlayerPanel>();
+        playerPanel?.SimpleShowPanel();
+    }
     public void Init()
     {
         TeamText.text = Player.LocalPlayer.CurrentTeam==Team.Red? "ºì¶Ó":"À¶¶Ó";

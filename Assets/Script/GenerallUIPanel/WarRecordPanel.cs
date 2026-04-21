@@ -1,16 +1,21 @@
+锘縰sing System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class WarRecordPanel : BasePanel
 {
-    [Header("引用")]
+    private const string UiBackSound = "Music/update415/ui杩斿洖";
+
+    [Header("寮曠敤")]
     public GameObject playerInfoPrefabs;
     public Transform RedTeamUIParent;
     public Transform BlueTeamUIParent;
 
     private List<PlayerWarRecordUI> _redUIList = new List<PlayerWarRecordUI>();
     private List<PlayerWarRecordUI> _blueUIList = new List<PlayerWarRecordUI>();
+
+    public Action OnPanelClosed;
 
     public void RefreshWarRecordData(NetworkPlayerInfo[] allPlayerData)
     {
@@ -34,7 +39,6 @@ public class WarRecordPanel : BasePanel
 
     private void UpdateTeamList(Transform parent, List<PlayerWarRecordUI> uiList, List<NetworkPlayerInfo> dataList)
     {
-        // 判空保护
         if (parent == null || playerInfoPrefabs == null)
             return;
 
@@ -56,14 +60,13 @@ public class WarRecordPanel : BasePanel
             if (ui != null)
             {
                 ui.gameObject.SetActive(true);
-                if (dataList[i].GunName!=null)
-                    ui.UpdateInfo(dataList[i].KillCount.ToString(), dataList[i].DeathCount.ToString(), dataList[i].PlayerName, MilitaryManager.Instance.GetInfo(dataList[i].GunName).GunSprite);//传入枪械的UI图
+                if (dataList[i].GunName != null)
+                    ui.UpdateInfo(dataList[i].KillCount.ToString(), dataList[i].DeathCount.ToString(), dataList[i].PlayerName, MilitaryManager.Instance.GetInfo(dataList[i].GunName).GunSprite);
                 else
-                  ui.UpdateInfo(dataList[i].KillCount.ToString(), dataList[i].DeathCount.ToString() , dataList[i].PlayerName, null);
+                    ui.UpdateInfo(dataList[i].KillCount.ToString(), dataList[i].DeathCount.ToString(), dataList[i].PlayerName, null);
             }
         }
 
-        // 隐藏多余的
         for (int i = dataList.Count; i < uiList.Count; i++)
         {
             if (uiList[i] != null)
@@ -73,7 +76,12 @@ public class WarRecordPanel : BasePanel
         }
     }
 
-    #region 面板显隐 (关键修改在这里)
+    public void SetCloseCallback(Action callback)
+    {
+        OnPanelClosed = callback;
+    }
+
+    #region 闈㈡澘鏄鹃殣
     public override void ShowMe(bool isNeedDefaultAnimator = true)
     {
         base.ShowMe(isNeedDefaultAnimator);
@@ -85,7 +93,7 @@ public class WarRecordPanel : BasePanel
         }
         else
         {
-            Debug.Log("[战绩面板] 暂无缓存数据，等待服务器同步...");
+            Debug.Log("[鎴樼哗闈㈡澘] 鏆傛棤缂撳瓨鏁版嵁锛岀瓑寰呮湇鍔″櫒鍚屾...");
         }
     }
 
@@ -112,27 +120,40 @@ public class WarRecordPanel : BasePanel
         }
         else
         {
-            Debug.Log("[战绩面板] 暂无缓存数据，等待服务器同步...");
+            Debug.Log("[鎴樼哗闈㈡澘] 鏆傛棤缂撳瓨鏁版嵁锛岀瓑寰呮湇鍔″櫒鍚屾...");
         }
     }
     #endregion
 
-    #region 生命周期
+    #region 鐢熷懡鍛ㄦ湡
     public override void Awake()
     {
         base.Awake();
-        //注册按钮动画
-   
     }
     #endregion
 
-    #region UI控件
+    #region UI鎺т欢
     public override void ClickButton(string controlName)
     {
         base.ClickButton(controlName);
         if (controlName == "ExitButton")
         {
+            MusicManager.Instance?.PlayEffect(UiBackSound);
+            if (UImanager.Instance != null)
+            {
+                UImanager.Instance.HidePanel<WarRecordPanel>(true, () =>
+                {
+                    Action callback = OnPanelClosed;
+                    OnPanelClosed = null;
+                    callback?.Invoke();
+                });
+                return;
+            }
+
             SimpleHidePanel();
+            Action fallbackCallback = OnPanelClosed;
+            OnPanelClosed = null;
+            fallbackCallback?.Invoke();
         }
     }
     #endregion

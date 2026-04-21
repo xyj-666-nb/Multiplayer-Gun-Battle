@@ -1,5 +1,6 @@
 using Mirror;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -82,15 +83,15 @@ public class GamePausePanel : BasePanel
                     {
                         UImanager.Instance.ShowPanel<GameStartPanel>();
                         Main.Instance.IsInSingleMode = false;
-                        //触发GC回收
-                        GC.Collect();
-                        Resources.UnloadUnusedAssets();
                     }
                     else
+                    {
                         UImanager.Instance.ShowPanel<RoomPanel>();
+                    }
 
                     //返回视角系统
                     ModeChooseSystem.instance.EnterSystem_Quick();//快速回到主界面
+                    TriggerDelayedMemoryCleanup();
                 });
                 break;
             case "OperationSettingButton":
@@ -102,6 +103,24 @@ public class GamePausePanel : BasePanel
         }
 
     }
+    #endregion
+
+    #region 内存回收
+    private void TriggerDelayedMemoryCleanup()
+    {
+        MonoMange.Instance.StartCoroutine(DelayedMemoryCleanupCoroutine());
+    }
+
+    private IEnumerator DelayedMemoryCleanupCoroutine()
+    {
+        yield return new WaitForSecondsRealtime(0.5f);
+        ResourcesManager.Instance.UnloadUnusedAssets(() =>
+        {
+            GC.Collect();
+            Debug.Log("[GamePausePanel] 已完成退房后的延迟内存回收");
+        });
+    }
+
     #endregion
 
     #region 面板显隐特殊动画制作

@@ -189,7 +189,6 @@ public class MapChooseWall : MonoBehaviour
             CountDownText.color = Color.red;
             OnCountdownFinished();
         });
-        UImanager.Instance.HidePanel<AssistantMapChoosePanel>();//显示地图选择辅助面板
     }
 
     private void OnCountdownFinished()
@@ -256,8 +255,10 @@ public class MapChooseWall : MonoBehaviour
     {
         SetCinemachineBlendTime(defaultBlendTime);
         SwitchToPlayerView();
+        UImanager.Instance.HidePanel<AssistantMapChoosePanel>(false);
         UImanager.Instance.GetPanel<PlayerPanel>().SimpleShowPanel();
         _countdownColorSequence?.Kill();
+        MainCanvasGroup.blocksRaycasts = false;
     }
 
     private void SwitchToPlayerView()
@@ -267,6 +268,9 @@ public class MapChooseWall : MonoBehaviour
 
     public void EnterVC()
     {
+        UImanager.Instance.HidePanel<AssistantMapChoosePanel>(false);
+        MainCanvasGroup.blocksRaycasts = false;
+
         PlayerRespawnManager.Instance.CmdRequestDecideFinalMap();
 
         CountDownManager.Instance.CreateTimer(false, 300, () => {

@@ -1,4 +1,4 @@
-using Mirror;
+ï»¿using Mirror;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Events;
@@ -6,36 +6,36 @@ using DG.Tweening;
 
 public class BaseGun : NetworkBehaviour
 {
-    #region ¼æÈÝC#9.0 ×Ö·û´®³£Á¿
+    #region ï¿½ï¿½ï¿½ï¿½C#9.0 ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private const string LOG_PREFIX = "[BaseGun]";
-    private const string LOG_TIMELINE_RELOAD_NULL = "[BaseGun] [¿Í»§¶Ë] »»µ¯TimelineÎ´¸³Öµ£¡";
-    private const string LOG_TIMELINE_SHOOT_NULL = "[BaseGun] [¿Í»§¶Ë] Éä»÷TimelineÎ´¸³Öµ£¡";
-    private const string LOG_SERVER_ERROR = "[BaseGun] [·þÎñÆ÷] ·Ç·þÎñÆ÷»·¾³£¡";
-    private const string LOG_HIT_EFFECT_NULL = "[BaseGun] [´ò»÷ÌØÐ§] hitwalleffect Ô¤ÖÆÌåÎ´¸³Öµ£¡";
-    private const string LOG_CARTRIDGE_POINT_NULL = "[BaseGun] [¿Í»§¶Ë] Å×¿ÇµãÎ´¸³Öµ£¡";
-    private const string LOG_CARTRIDGE_POOL_NULL = "[BaseGun] [¿Í»§¶Ë] ¶ÔÏó³Ø»ñÈ¡µ¯¿ÇÊ§°Ü£¡";
-    private const string LOG_RECOIL_NULL = "[BaseGun] [¿Í»§¶Ë] ºó×øÁ¦²ÎÊýÎ´¸³Öµ£¡";
-    private const string LOG_GUNINFO_NULL = "[BaseGun] gunInfoÎ´¸³Öµ£¡";
-    private const string LOG_GUNINFO_MANAGER_NULL = "[BaseGun] GunInfoManagerÎªnull£¡";
-    private const string LOG_BULLET_TEMPLATE = "[BaseGun] [×Óµ¯Ïß¶Î] ×Ô¶¯´´½¨Ä£°å£º";
-    private const string LOG_INTERACT_SCRIPT_NULL = "[BaseGun] Ã»ÕÒµ½½»»¥½Å±¾£¡";
-    private const string LOG_SHOOT_FAIL = "[BaseGun] Éä»÷Ê§°Ü£º";
-    private const string LOG_FORCE_DROP = "[BaseGun] [Ç¿ÖÆ¶ªÇ¹] ½ö·þÎñÆ÷¿ÉÖ´ÐÐ¸ÃÂß¼­£¡";
+    private const string LOG_TIMELINE_RELOAD_NULL = "[BaseGun] [ï¿½Í»ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½ï¿½TimelineÎ´ï¿½ï¿½Öµï¿½ï¿½";
+    private const string LOG_TIMELINE_SHOOT_NULL = "[BaseGun] [ï¿½Í»ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½TimelineÎ´ï¿½ï¿½Öµï¿½ï¿½";
+    private const string LOG_SERVER_ERROR = "[BaseGun] [ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½] ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+    private const string LOG_HIT_EFFECT_NULL = "[BaseGun] [ï¿½ï¿½ï¿½ï¿½ï¿½Ð§] hitwalleffect Ô¤ï¿½ï¿½ï¿½ï¿½Î´ï¿½ï¿½Öµï¿½ï¿½";
+    private const string LOG_CARTRIDGE_POINT_NULL = "[BaseGun] [ï¿½Í»ï¿½ï¿½ï¿½] ï¿½×¿Çµï¿½Î´ï¿½ï¿½Öµï¿½ï¿½";
+    private const string LOG_CARTRIDGE_POOL_NULL = "[BaseGun] [ï¿½Í»ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½ï¿½Ø»ï¿½È¡ï¿½ï¿½ï¿½ï¿½Ê§ï¿½Ü£ï¿½";
+    private const string LOG_RECOIL_NULL = "[BaseGun] [ï¿½Í»ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î´ï¿½ï¿½Öµï¿½ï¿½";
+    private const string LOG_GUNINFO_NULL = "[BaseGun] gunInfoÎ´ï¿½ï¿½Öµï¿½ï¿½";
+    private const string LOG_GUNINFO_MANAGER_NULL = "[BaseGun] GunInfoManagerÎªnullï¿½ï¿½";
+    private const string LOG_BULLET_TEMPLATE = "[BaseGun] [ï¿½Óµï¿½ï¿½ß¶ï¿½] ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½å£º";
+    private const string LOG_INTERACT_SCRIPT_NULL = "[BaseGun] Ã»ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å±ï¿½ï¿½ï¿½";
+    private const string LOG_SHOOT_FAIL = "[BaseGun] ï¿½ï¿½ï¿½Ê§ï¿½Ü£ï¿½";
+    private const string LOG_FORCE_DROP = "[BaseGun] [Ç¿ï¿½Æ¶ï¿½Ç¹] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½Ð¸ï¿½ï¿½ß¼ï¿½ï¿½ï¿½";
     private const string BULLET_TEMPLATE_NAME = "Auto_BulletSegmentTemplate";
-    private const string SOUND_HIT_WALL = "Music/ÕýÊ½/½»»¥/»÷ÖÐÇ½";
-    private const string SOUND_HIT_BULLSEYE = "Music/ÕýÊ½/½»»¥/»÷ÖÐ°Ð×Ó";
-    private const string SOUND_DROP_GUN = "Music/ÕýÊ½/½»»¥/µôÇ¹";
+    private const string SOUND_HIT_WALL = "Music/ï¿½ï¿½Ê½/ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½Ç½";
+    private const string SOUND_HIT_BULLSEYE = "Music/ï¿½ï¿½Ê½/ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½Ð°ï¿½ï¿½ï¿½";
+    private const string SOUND_DROP_GUN = "Music/ï¿½ï¿½Ê½/ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½Ç¹";
     private const string SHADER_DEFAULT = "Sprites/Default";
     #endregion
 
     private static Material _sharedBulletMaterial;
 
-    #region ¡¾GC»º´æÓÅ»¯¡¿¹Ì¶¨ÏòÁ¿»º´æ
+    #region ï¿½ï¿½GCï¿½ï¿½ï¿½ï¿½ï¿½Å»ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private readonly Vector2 _zeroVector2 = Vector2.zero;
     private readonly Vector3 _zeroVector3 = Vector3.zero;
     #endregion
 
-    #region ¡¾GC»º´æÓÅ»¯¡¿È«¾Öµ¥Àý»º´æ
+    #region ï¿½ï¿½GCï¿½ï¿½ï¿½ï¿½ï¿½Å»ï¿½ï¿½ï¿½È«ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private ConfigManager _configManager;
     private GameSkinManager _gameSkinManager;
     private PoolManage _poolManage;
@@ -46,15 +46,15 @@ public class BaseGun : NetworkBehaviour
     private CountDownManager _countDownManager;
     #endregion
 
-    #region »ù´¡×é¼þÒýÓÃ
-    [Header("¸ÕÌå×é¼þ")]
+    #region ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public Rigidbody2D myRigidbody;
     private NetworkIdentity _netIdentity;
     private SpriteRenderer MySprite;
     #endregion
 
-    #region ÍøÂçÍ¬²½×´Ì¬£¨SyncVar£©
-    [Header("=== Ç¹ÐµºËÐÄ×´Ì¬£¨·þÎñÆ÷È¨Íþ£¬SyncVarÍ¬²½£© ===")]
+    #region ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½×´Ì¬ï¿½ï¿½SyncVarï¿½ï¿½
+    [Header("=== Ç¹Ðµï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¨ï¿½ï¿½ï¿½ï¿½SyncVarÍ¬ï¿½ï¿½ï¿½ï¿½ ===")]
     [SerializeField]
     [SyncVar(hook = nameof(OnIsInReloadChanged))]
     protected bool _isInReload = false;
@@ -73,12 +73,12 @@ public class BaseGun : NetworkBehaviour
     [SyncVar(hook = nameof(OnIsEnterAimState))]
     public bool IsEnterAimState = false;
 
-    [Header("Ïú»Ù¼ÆÊ±")]
+    [Header("ï¿½ï¿½ï¿½Ù¼ï¿½Ê±")]
     [SyncVar(hook = nameof(OnChangeRemainTime))]
     public float RemainingDestoryTime;
     public float DestoryTime = 20;
 
-    [Header("µ±Ç°Ê°È¡Íæ¼Ò")]
+    [Header("ï¿½ï¿½Ç°Ê°È¡ï¿½ï¿½ï¿½")]
     [SyncVar]
     public Player ownerPlayer;
     [SyncVar(hook = nameof(OnIsInPlayerHandChanged))]
@@ -86,33 +86,33 @@ public class BaseGun : NetworkBehaviour
 
     #endregion
 
-    #region ¼ì²âÓëÊäÈëÅäÖÃ
-    [Header("ÉäÏß¼ì²âÅäÖÃ")]
-    [Tooltip("ÉäÏß½ö¼ì²âÕâÐ©²ã£¨PlayerºÍGround£©")]
+    #region ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    [Header("ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
+    [Tooltip("ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð©ï¿½ã£¨Playerï¿½ï¿½Groundï¿½ï¿½")]
     public LayerMask shootRaycastLayers;
     #endregion
 
-    #region Ç¹Ðµ×é¼þÓëÅäÖÃ
-    [Header("Timeline¶¯»­")]
+    #region Ç¹Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    [Header("Timelineï¿½ï¿½ï¿½ï¿½")]
     public PlayableDirector timelineDirector_Reload;
     public PlayableDirector timelineDirector_Shoot;
 
-    [Header("Ç¹ÐµÅäÖÃÎÄ¼þ")]
+    [Header("Ç¹Ðµï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½")]
     public GunInfo gunInfo;
     #endregion
 
-    #region Æ¤·ôÊý¾ÝÅäÖÃ
-    [Header("Ç¹¿Ú»ð¿Ø")]
+    #region Æ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    [Header("Ç¹ï¿½Ú»ï¿½ï¿½")]
     public MuzzleFlashConfig muzzleFlashConfig;
     public MuzzleFlash muzzleFlash;
-    [Header("×Óµ¯ÊÓ¾õÅäÖÃ")]
-    public BulletVisualConfig bulletVisualConfig;//ÊÓ¾õÅäÖÃÀà£¬°üº¬ÑÕÉ«¡¢³¤¶È¡¢¿í¶È¡¢·ÉÐÐËÙ¶ÈµÈ²ÎÊý
+    [Header("ï¿½Óµï¿½ï¿½Ó¾ï¿½ï¿½ï¿½ï¿½ï¿½")]
+    public BulletVisualConfig bulletVisualConfig;//ï¿½Ó¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½à£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ÈµÈ²ï¿½ï¿½ï¿½
 
-    [Header("Ç¹¿Ú»ð¿ØÊý¾ÝID")]
+    [Header("Ç¹ï¿½Ú»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID")]
     [SyncVar(hook = nameof(OnChangeMuzzleFlashConfigID))]
     public int muzzleFlashConfigID;
 
-    [Header("´ò»÷ÌØÐ§ÅäÖÃID")]
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½ID")]
     [SyncVar(hook = nameof(OnChangeHitEffectConfigID))]
     public int hitEffectConfigID = 1;
 
@@ -139,7 +139,7 @@ public class BaseGun : NetworkBehaviour
         }
     }
 
-    [Header("×Óµ¯ÊÓ¾õÊý¾ÝID")]
+    [Header("ï¿½Óµï¿½ï¿½Ó¾ï¿½ï¿½ï¿½ï¿½ï¿½ID")]
     [SyncVar(hook = nameof(OnChangeBulletVisualConfigID))]
     public int bulletVisualConfigID;
 
@@ -155,8 +155,8 @@ public class BaseGun : NetworkBehaviour
 
     #endregion
 
-    #region Éä»÷ÌØÐ§ÅäÖÃ
-    [Header("Éä»÷ÌØÐ§")]
+    #region ï¿½ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½Ð§")]
     public Transform firePoint;
     public GameObject cartridgeCasePrefab;
     public Transform cartridgeEjectPoint;
@@ -164,15 +164,15 @@ public class BaseGun : NetworkBehaviour
     public Vector3 cartridgeFixedScale = new Vector3(0.2f, 0.2f, 1f);
     public GameObject hitwalleffect;
 
-    [Header("ÊÇ·ñÓ¦ÓÃ×Ô¶¯Å×¿Ç")]
+    [Header("ï¿½Ç·ï¿½Ó¦ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½×¿ï¿½")]
     public bool applyAutoEjectCartridge = true;
     #endregion
 
-    #region µ÷ÊÔÓë×Óµ¯ÊÓ¾õÅäÖÃ
-    [Header("µ÷ÊÔÅäÖÃ")]
+    #region ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½ï¿½Ó¾ï¿½ï¿½ï¿½ï¿½ï¿½
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public bool isDebug = true;
 
-    [Header("×Óµ¯Ð¡Ïß¶ÎÅäÖÃ(Èç¹ûÇ¹ÐµÔ­±¾µÄÅäÖÃÈ±Ê§¾ÍÊ¹ÓÃÄ¬ÈÏÊýÖµ)")]
+    [Header("ï¿½Óµï¿½Ð¡ï¿½ß¶ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½Ç¹ÐµÔ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È±Ê§ï¿½ï¿½Ê¹ï¿½ï¿½Ä¬ï¿½ï¿½ï¿½ï¿½Öµ)")]
     public Color bulletColor = new Color(0.83f, 0.68f, 0.22f);
     public float bulletSegmentLength = 0.2f;
     public float bulletLineWidth = 0.03f;
@@ -181,12 +181,12 @@ public class BaseGun : NetworkBehaviour
     [SerializeField]
     public GameObject bulletSegmentPrefab;
 
-    [Header("ÉËº¦Êý×ÖÏÔÊ¾")]
+    [Header("ï¿½Ëºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾")]
     public GameObject DamageFloatObj;
     #endregion
 
 
-    #region ÉËº¦Êý×Ö±¾µØÏÔÊ¾
+    #region ï¿½Ëºï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾
     private void ServerNotifyShowDamage(float damage, Vector2 hitPos, Player attackerPlayer)
     {
         if (attackerPlayer == null || attackerPlayer.connectionToClient == null) return;
@@ -212,24 +212,24 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region ÄÚ²¿»º´æ×Ö¶Î
+    #region ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¶ï¿½
     private GameObject _autoBulletSegmentTemplate;
     [HideInInspector]
     public Vector3 originalWorldScale;
     private GunWorldInfoShow _gunWorldInfoShow;
     #endregion
 
-    #region ÊÂ¼þÓë¹ÜÀíÆ÷ÒýÓÃ
+    #region ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public UnityAction ReloadSuccessAction;
     public GunWorldInfoShow GunInfoManager;
     #endregion
 
-    #region Ïú»Ù¼ÆÊ±Óë¶¯»­±äÁ¿
+    #region ï¿½ï¿½ï¿½Ù¼ï¿½Ê±ï¿½ë¶¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private Coroutine _destroyTimerCoroutine;
     private Tween _flashTween;
     #endregion
 
-    #region ¹«ÓÐÊôÐÔ·â×°
+    #region ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô·ï¿½×°
     public bool IsInReload
     {
         get => _isInReload;
@@ -280,7 +280,7 @@ public class BaseGun : NetworkBehaviour
     public float AllReserveBulletCount => _allReserveBulletCount;
     #endregion
 
-    #region SyncVar¹³×Ó
+    #region SyncVarï¿½ï¿½ï¿½ï¿½
     private void OnIsInReloadChanged(bool oldValue, bool newValue)
     {
         if (!isClient)
@@ -353,7 +353,7 @@ public class BaseGun : NetworkBehaviour
     {
         if (!isClient || gunInfo == null || ownerPlayer == null || ownerPlayer.myStats == null || _animatorTool == null)
         {
-            Debug.LogError($"{LOG_PREFIX}[Ãé×¼×´Ì¬] Ö´ÐÐÌõ¼þ²»Âú×ã£¬Ìø¹ý×´Ì¬ÇÐ»»");
+            Debug.LogError($"{LOG_PREFIX}[ï¿½ï¿½×¼×´Ì¬] Ö´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã£¬ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½Ð»ï¿½");
             return;
         }
         if (newValue) EnterAimState();
@@ -379,7 +379,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region ¶Ô×Óµ¯µÄ²¹³ä
+    #region ï¿½ï¿½ï¿½Óµï¿½ï¿½Ä²ï¿½ï¿½ï¿½
     [Command]
     public void CmdBulletSupplement()
     {
@@ -390,11 +390,11 @@ public class BaseGun : NetworkBehaviour
         }
         _allReserveBulletCount = gunInfo.AllBulletAmount;
 
-        Debug.Log($"{LOG_PREFIX}[±¸µ¯²¹³ä] Íê³É£¡±¸µ¯ÒÑ¼ÓÂúÖÁ {_allReserveBulletCount}");
+        Debug.Log($"{LOG_PREFIX}[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½É£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¼ï¿½ï¿½ï¿½ï¿½ï¿½ {_allReserveBulletCount}");
     }
     #endregion
 
-    #region ºËÐÄCommand·½·¨
+    #region ï¿½ï¿½ï¿½ï¿½Commandï¿½ï¿½ï¿½ï¿½
     [Command]
     public void ChangeAimState(bool IsEnter)
     {
@@ -451,7 +451,7 @@ public class BaseGun : NetworkBehaviour
                         CharacterStats attackerStats = ownerPlayer.myStats;
                         if (attackerStats == null)
                         {
-                            Debug.LogError($"{LOG_PREFIX} ¹¥»÷Õß{ownerPlayer.name} ÎÞmyStats×é¼þ£¡");
+                            Debug.LogError($"{LOG_PREFIX} ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½{ownerPlayer.name} ï¿½ï¿½myStatsï¿½ï¿½ï¿½ï¿½ï¿½");
                             return;
                         }
                         ServerNotifyShowDamage(gunInfo.Damage, hit.point, ownerPlayer);
@@ -484,11 +484,11 @@ public class BaseGun : NetworkBehaviour
         }
 
         RpcPlaySingleShootVFX();
-        //  ÍêÈ«±£Áô×Óµ¯»æÖÆ£¬²»¶¯Âß¼­£¡
+        //  ï¿½ï¿½È«ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½
         RpcDrawBulletSegment(bulletTargetPos);
     }
 
-    #region È«¾ÖÒôÐ§²¥·Å
+    #region È«ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½
     [ClientRpc]
     public void RpcPlayerMusic(string SoundPath, float maxDistance, float minDistance)
     {
@@ -525,7 +525,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region ClientRpc£¨·þÎñÆ÷¡úËùÓÐ¿Í»§¶Ë£©
+    #region ClientRpcï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¿Í»ï¿½ï¿½Ë£ï¿½
     [ClientRpc]
     private void RpcPlaySingleShootVFX() => PlaySingleShootVFX();
 
@@ -569,14 +569,14 @@ public class BaseGun : NetworkBehaviour
     [ClientRpc]
     private void RpcDrawBulletSegment(Vector2 targetPos)
     {
-        //  ×Óµ¯ÊÓ¾õ100%±£Áô£¬¾ø²»¹Ø±Õ£¡
+        //  ï¿½Óµï¿½ï¿½Ó¾ï¿½100%ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø±Õ£ï¿½
         if (firePoint == null)
             return;
 
         GameObject template = GetBulletSegmentTemplate();
         if (template == null)
         {
-            Debug.LogError($"{LOG_PREFIX}[×Óµ¯Ïß¶Î] Ä£°å´´½¨Ê§°Ü£¬Ìø¹ý»æÖÆ");
+            Debug.LogError($"{LOG_PREFIX}[ï¿½Óµï¿½ï¿½ß¶ï¿½] Ä£ï¿½å´´ï¿½ï¿½Ê§ï¿½Ü£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
             return;
         }
 
@@ -644,7 +644,7 @@ public class BaseGun : NetworkBehaviour
         return _sharedBulletMaterial;
     }
 
-    #region ¿Í»§¶ËÊÓ¾õÌØÐ§Âß¼­
+    #region ï¿½Í»ï¿½ï¿½ï¿½ï¿½Ó¾ï¿½ï¿½ï¿½Ð§ï¿½ß¼ï¿½
     public void PlaySingleShootVFX()
     {
         if (applyAutoEjectCartridge)
@@ -693,7 +693,7 @@ public class BaseGun : NetworkBehaviour
                     _musicManager?.PlayEffect3D_Custom($"{SOUND_HIT_BULLSEYE}{Random.Range(1, 3)}", 0.5f, targetPos, playerPos);
                 });
 
-                Debug.Log($"{LOG_PREFIX}»÷ÖÐ°Ð×Ó | ¾àÀë£º{distance:F1}m | ÉùÒôÑÓ³Ù£º{(int)dynamicDelay}ms");
+                Debug.Log($"{LOG_PREFIX}ï¿½ï¿½ï¿½Ð°ï¿½ï¿½ï¿½ | ï¿½ï¿½ï¿½ë£º{distance:F1}m | ï¿½ï¿½ï¿½ï¿½ï¿½Ó³Ù£ï¿½{(int)dynamicDelay}ms");
             }
         }
 
@@ -793,7 +793,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region ·þÎñÆ÷¸¨ÖúÂß¼­
+    #region ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
     private Vector2 CalculateBulletScattering(Vector2 centerDir)
     {
         if (gunInfo == null)
@@ -836,7 +836,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region ¶ÔÍâ·â×°·½·¨
+    #region ï¿½ï¿½ï¿½ï¿½ï¿½×°ï¿½ï¿½ï¿½ï¿½
     public virtual void TriggerSingleShoot()
     {
         if (!IsCanShoot())
@@ -852,14 +852,14 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region Timeline¶¯»­»Øµ÷
+    #region Timelineï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½
     public void OnShootFire_Timeline() => CmdExecuteShootLogic();
     public void OnShootEnd_Timeline() => CmdFinishShoot();
     public void OnReloadEnd_Timeline() => CmdFinishReloadLogic();
     public void OnShootVFX_Timeline() => PlaySingleShootVFX();
     #endregion
 
-    #region ×´Ì¬¼ì²â·½·¨
+    #region ×´Ì¬ï¿½ï¿½â·½ï¿½ï¿½
     public bool IsCanReload()
     {
         if (gunInfo == null) { Debug.LogError(LOG_GUNINFO_NULL); return false; }
@@ -877,11 +877,11 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region ³õÊ¼»¯ÓëÉúÃüÖÜÆÚ
+    #region ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public virtual void Awake()
     {
         MySprite = GetComponent<SpriteRenderer>();
-        // È·±£²»»áÔÚ´Ë´¦¹ÒÔØÃ»×¢²áÔ¤ÖÆÌåµÄNetworkIdentityµ¼ÖÂÎÊÌâ
+        // È·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´Ë´ï¿½ï¿½ï¿½ï¿½ï¿½Ã»×¢ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½ï¿½ï¿½NetworkIdentityï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         _netIdentity = GetComponent<NetworkIdentity>();
         myRigidbody = GetComponent<Rigidbody2D>();
         _gunWorldInfoShow = GetComponentInChildren<GunWorldInfoShow>() ?? GetComponent<GunWorldInfoShow>();
@@ -892,7 +892,7 @@ public class BaseGun : NetworkBehaviour
     }
 
     /// <summary>
-    /// »º´æÈ«¾Öµ¥Àý£¬Ïû³ýÖØ¸´Instanceµ÷ÓÃGC
+    /// ï¿½ï¿½ï¿½ï¿½È«ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¸ï¿½Instanceï¿½ï¿½ï¿½ï¿½GC
     /// </summary>
     private void CacheSingletonInstances()
     {
@@ -914,7 +914,7 @@ public class BaseGun : NetworkBehaviour
         {
             _currentMagazineBulletCount = 0;
             _allReserveBulletCount = gunInfo.AllBulletAmount;
-            Debug.Log($"{LOG_PREFIX}[·þÎñÆ÷] ³õÊ¼»¯×Óµ¯ ¡ú µ¯Ï»:{_currentMagazineBulletCount} | ±¸ÓÃ:{_allReserveBulletCount}");
+            Debug.Log($"{LOG_PREFIX}[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Óµï¿½ ï¿½ï¿½ ï¿½ï¿½Ï»:{_currentMagazineBulletCount} | ï¿½ï¿½ï¿½ï¿½:{_allReserveBulletCount}");
         }
         else Debug.LogError(LOG_GUNINFO_NULL);
 
@@ -923,11 +923,11 @@ public class BaseGun : NetworkBehaviour
 
     private GunSkinPack _currentSkinPack;
 
-    [Header("Ç¹ÐµÆ¤·ôÊý¾ÝID")]
+    [Header("Ç¹ÐµÆ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID")]
     [SyncVar(hook = nameof(OnChangeGunSkinID))]
     public int gunSkinID;
 
-    // ¿Í»§¶ËÊÕµ½Í¬²½ºó£¬¼ÓÔØÆ¤·ôÍ¼Æ¬ºÍ¶¯»­
+    // ï¿½Í»ï¿½ï¿½ï¿½ï¿½Õµï¿½Í¬ï¿½ï¿½ï¿½ó£¬¼ï¿½ï¿½ï¿½Æ¤ï¿½ï¿½Í¼Æ¬ï¿½Í¶ï¿½ï¿½ï¿½
     private void OnChangeGunSkinID(int oldValue, int newValue)
     {
         if (newValue > 0)
@@ -938,11 +938,11 @@ public class BaseGun : NetworkBehaviour
                 _currentSkinPack = skinManager.GetGunSkinPack(newValue);
                 if (_currentSkinPack != null)
                 {
-                    // Ìæ»»Í¼Æ¬
+                    // ï¿½æ»»Í¼Æ¬
                     if (MySprite != null)
                         MySprite.sprite = _currentSkinPack.skinIcon;
 
-                    // Ìæ»»»»µ¯¶¯»­
+                    // ï¿½æ»»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     if (timelineDirector_Reload != null)
                         timelineDirector_Reload.playableAsset = _currentSkinPack.GunReload;
                 }
@@ -950,7 +950,7 @@ public class BaseGun : NetworkBehaviour
         }
     }
 
-    // Õâ¸ö·½·¨ÊÇ·þÎñÆ÷×¨ÓÃµÄ£¬¾ø²»ÄÜ´ø
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½×¨ï¿½ÃµÄ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü´ï¿½
     [Server]
     public void SetGunConfig(int muzzleFlashID, int bulletVisualID, int hitID, int skinID)
     {
@@ -963,7 +963,7 @@ public class BaseGun : NetworkBehaviour
 
     #endregion
 
-    #region Ç¹ÐµÊ°È¡/¶ªÆúÂß¼­
+    #region Ç¹ÐµÊ°È¡/ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
     [Server]
     public void SafeServerOnGunPicked()
     {
@@ -979,7 +979,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region ×Óµ¯Ïß¶ÎÄ£°å¹ÜÀí
+    #region ï¿½Óµï¿½ï¿½ß¶ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½
     private void InitBulletSegmentTemplate()
     {
         _autoBulletSegmentTemplate = new GameObject(BULLET_TEMPLATE_NAME);
@@ -1020,14 +1020,14 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region Ãé×¼×´Ì¬Âß¼­
-    [Header("Ãé×¼×´Ì¬±äÁ¿ÉèÖÃ")]
+    #region ï¿½ï¿½×¼×´Ì¬ï¿½ß¼ï¿½
+    [Header("ï¿½ï¿½×¼×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public float Duration = 0.5f;
     private int AnimationID_Recoil = -1;
     private int AnimationID_ViewRange = -1;
     private int AnimationID_Accuracy = -1;
 
-    [Header("±¾µØµÄÃé×¼ÊôÐÔ")]
+    [Header("ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½×¼ï¿½ï¿½ï¿½ï¿½")]
     public float _localRecoil;
     public float _localAccuracy;
 
@@ -1107,7 +1107,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region Ç¿ÖÆ¶ªÆúÇ¹Ðµ
+    #region Ç¿ï¿½Æ¶ï¿½ï¿½ï¿½Ç¹Ðµ
     [Command(requiresAuthority = false)]
     public void CmdForceDiscardGun()
     {
@@ -1159,7 +1159,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region ·þÎñÆ÷¶ËÏú»Ù¼ÆÊ±Âß¼­
+    #region ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¼ï¿½Ê±ï¿½ß¼ï¿½
     [Server]
     private void StartDestroyTimer()
     {
@@ -1188,7 +1188,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region ¿Í»§¶ËDOTweenÉÁË¸¶¯»­Âß¼­
+    #region ï¿½Í»ï¿½ï¿½ï¿½DOTweenï¿½ï¿½Ë¸ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
     [Client]
     private void StartFlashAnimation(float cycleDuration)
     {
@@ -1221,7 +1221,7 @@ public class BaseGun : NetworkBehaviour
     }
     #endregion
 
-    #region Ç¹ÐµÎïÀíÏà¹Ø
+    #region Ç¹Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.collider.CompareTag("Ground") && !isInPlayerHand)
@@ -1239,7 +1239,7 @@ public class BaseGun : NetworkBehaviour
     #endregion
 }
 
-#region ¸¨ÖúÀà£º×Óµ¯·ÉÐÐÂß¼­
+#region ï¿½ï¿½ï¿½ï¿½ï¿½à£ºï¿½Óµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
 public class BulletSegmentFly : MonoBehaviour
 {
     private LineRenderer _lr;

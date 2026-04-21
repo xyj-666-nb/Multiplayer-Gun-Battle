@@ -1,5 +1,6 @@
-using DG.Tweening;
+ï»¿using DG.Tweening;
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -8,206 +9,298 @@ using UnityEngine.UI;
 
 public class GameSettlementPanel : BasePanel
 {
-    [Header("»ù´¡½áËãUI")]
+    private const string UiSelectSound = "Music/update415/uié€‰æ‹©";
+    private const string UiBackSound = "Music/update415/uiè¿”å›";
+    private const string SuccessSound = "Music/æ­£å¼/äº¤äº’/ç»“æŸï¼ˆæˆåŠŸ";
+    private const string FailSound = "Music/æ­£å¼/äº¤äº’/ç»“æŸï¼ˆå¤±è´¥";
+
+    [Header("åŸºç¡€ç»“ç®—UI")]
     public Image RedImage;
     public Image BlueImage;
-    public TextMeshProUGUI WinText;//Ê¤ÀûĞûÅĞÎÄ±¾
+    public TextMeshProUGUI WinText;
     public TextMeshProUGUI RedScore;
     public TextMeshProUGUI BlueScore;
-    public PlayableDirector TimeLine;//Ê±¼äÏß
+    public PlayableDirector TimeLine;
 
-    [Header("½ğ±ÒÏÔÊ¾")]
-    public TextMeshProUGUI GoldNumber;//»ù´¡½ğ±ÒÊıÁ¿ÎÄ±¾
-    private int _currentBaseGold = 0;//»º´æ±¾¾Ö»ù´¡½ğ±Ò
-    private bool _hasGivenReward = false; // ·ÀÖ¹ÖØ¸´·¢·Å½±ÀøµÄ±ê¼Ç
+    [Header("é‡‘å¸æ˜¾ç¤º")]
+    public TextMeshProUGUI GoldNumber;
+    private int _currentBaseGold = 0;
+    private bool _hasGivenReward = false;
+    private bool _isGoldRevealPlaying = false;
+    private bool _canExitSettlement = false;
+    private bool _shouldPopupAd = false;
+    private Sequence _goldRevealSequence;
+    private Color _originGoldColor = Color.white;
+    private Vector3 _originGoldScale = Vector3.one;
+    private const float MaxGoldScale = 1.3f;
+    private const int GoldVisualCap = 300;
 
-    [Header("¼¤Àø¹ã¸æÃæ°å")]
-    public CanvasGroup MotivatePanelCanvasGroup;//¹ã¸æ¼¤ÀøÃæ°å
-    private Sequence MotivatePanelSequence;//¶¯»­ĞòÁĞ
-    private const int GoldMulti = 3;//½ğ±Ò±¶Êı
-    public TextMeshProUGUI goldMultiText;//·­±¶ºó½ğ±ÒÎÄ±¾
-    [Header("¹ã¸æµ¯³öÅäÖÃ")]
-    [Range(0, 100)] public int AdPopupChance = 60;//¹ã¸æµ¯³ö¸ÅÂÊ£¨Ä¬ÈÏ60%£©
+    [Header("æ¿€åŠ±å¹¿å‘Šé¢æ¿")]
+    public CanvasGroup MotivatePanelCanvasGroup;
+    private Sequence MotivatePanelSequence;
+    private const int GoldMulti = 3;
+    public TextMeshProUGUI goldMultiText;
+    [Header("å¹¿å‘Šå¼¹å‡ºé…ç½®")]
+    [Range(0, 100)] public int AdPopupChance = 60;
 
     public Team WinTeam;
 
-    #region ºËĞÄÊı¾İÉèÖÃ
-    /// <summary>
-    /// ½ÓÊÕ·şÎñ¶ËÏÂ·¢µÄ½ğ±ÒÊı¾İ£¬³õÊ¼»¯ÏÔÊ¾
-    /// </summary>
+    private Button _exitButton;
+
+    #region æ ¸å¿ƒæ•°æ®è®¾ç½®
     public void SetGoldData(int baseGold)
     {
-        _currentBaseGold = baseGold;
-        _hasGivenReward = false; // ÖØÖÃ½±Àø·¢·Å±ê¼Ç
-        GoldNumber.text = baseGold.ToString();
-        goldMultiText.text = (baseGold * GoldMulti).ToString();
+        _currentBaseGold = Mathf.Max(0, baseGold);
+        _hasGivenReward = false;
+        _isGoldRevealPlaying = false;
+        _canExitSettlement = false;
+        PrepareHiddenGoldDisplay();
     }
     #endregion
 
-    #region TimelineÊÂ¼ş
-    // Timeline´¥·¢£º²¥·ÅÊ¤Àû·½¶¯»­¡¢³õÊ¼»¯±È·Ö
+    #region Timelineäº‹ä»¶
     public void TimeLineTrigger()
     {
         RectTransform winRect;
-        // ³õÊ¼»¯Ê¤¸ºÎÄ±¾ºÍ±È·Ö
         if (WinTeam == Team.Red)
         {
             winRect = RedImage.GetComponent<RectTransform>();
-            WinText.text = "ºì·½Ê¤Àû";
+            WinText.text = "çº¢æ–¹èƒœåˆ©";
         }
         else
         {
             winRect = BlueImage.GetComponent<RectTransform>();
-            WinText.text = "À¶·½Ê¤Àû";
+            WinText.text = "è“æ–¹èƒœåˆ©";
         }
 
-        // Í¬²½×îÖÕ±È·Ö
         if (PlayerRespawnManager.Instance != null)
         {
             RedScore.text = PlayerRespawnManager.Instance.RedTeamScoreCount.ToString();
             BlueScore.text = PlayerRespawnManager.Instance.BlueTeamScoreCount.ToString();
         }
 
-        // Ê¤Àû·½Ëõ·Å¶¯»­
+        PlaySettlementResultSound();
+
         winRect
             .DOScale(Vector3.one * 1.2f, 1f)
             .SetEase(Ease.OutQuad)
             .SetLink(winRect.gameObject);
     }
 
-    // Timeline½áÊø£º´ò¿ªÕ½¼¨Ãæ°å¡¢´¥·¢¹ã¸æ¸ÅÂÊÅĞ¶¨
     public void TimeLineEnd()
     {
         TimeLine.Pause();
-        // ´ò¿ªÕ½¼¨Ãæ°å
-        UImanager.Instance.ShowPanel<WarRecordPanel>();
-        controlDic["ExitButton"].gameObject.SetActive(true);
+        PrepareHiddenGoldDisplay();
+        SetExitButtonState(false, true);
+        SetMotivatePanelActive(false);
+        _shouldPopupAd = ShouldPopupAdPanel();
 
-        // 60%¸ÅÂÊµ¯³ö¹ã¸æ¼¤ÀøÃæ°å
-        TryTriggerAdPanel();
+        WarRecordPanel warRecordPanel = UImanager.Instance.ShowPanel<WarRecordPanel>();
+        warRecordPanel.SetCloseCallback(OnWarRecordPanelClosed);
     }
     #endregion
 
-    #region ¹ã¸æÃæ°åÂß¼­
-    /// <summary>
-    /// °´¸ÅÂÊ´¥·¢¹ã¸æÃæ°åµ¯³ö
-    /// </summary>
-    private void TryTriggerAdPanel()
+    #region ç»“ç®—æµç¨‹
+    private void OnWarRecordPanelClosed()
     {
-        int randomValue = UnityEngine.Random.Range(0, 100);
-        Debug.Log($"[¹ã¸æÂß¼­] Ëæ»úÖµ:{randomValue}, ´¥·¢¸ÅÂÊ:{AdPopupChance}%");
-
-        // ÃüÖĞ¸ÅÂÊÔòµ¯³öÃæ°å
-        if (randomValue < AdPopupChance)
+        if (_isGoldRevealPlaying)
         {
-            SetMotivatePanelActive(true);
+            return;
+        }
+
+        PlayGoldRevealAnimation();
+    }
+
+    private void PrepareHiddenGoldDisplay()
+    {
+        if (GoldNumber != null)
+        {
+            GoldNumber.text = "???";
+            GoldNumber.color = _originGoldColor;
+            GoldNumber.rectTransform.localScale = _originGoldScale;
+        }
+
+        if (goldMultiText != null)
+        {
+            goldMultiText.text = "???";
         }
     }
 
-    /// <summary>
-    /// ¿ØÖÆ¼¤ÀøÃæ°åÏÔÒş
-    /// </summary>
+    private void PlayGoldRevealAnimation()
+    {
+        if (GoldNumber == null)
+        {
+            OnGoldRevealComplete();
+            return;
+        }
+
+        _goldRevealSequence?.Kill();
+        _isGoldRevealPlaying = true;
+        _canExitSettlement = false;
+        SetExitButtonState(false, true);
+
+        float normalizedValue = Mathf.Clamp01(_currentBaseGold / (float)GoldVisualCap);
+        float targetScaleValue = Mathf.Lerp(1f, MaxGoldScale, normalizedValue);
+        Vector3 targetScale = _originGoldScale * targetScaleValue;
+        Color targetColor = Color.Lerp(_originGoldColor, new Color(1f, 0.25f, 0.25f, 1f), normalizedValue);
+        float duration = Mathf.Lerp(0.9f, 1.8f, normalizedValue);
+        int displayedGold = 0;
+
+        GoldNumber.text = "0";
+        GoldNumber.color = _originGoldColor;
+        GoldNumber.rectTransform.localScale = _originGoldScale;
+
+        if (goldMultiText != null)
+        {
+            goldMultiText.text = (_currentBaseGold * GoldMulti).ToString();
+        }
+
+        _goldRevealSequence = DOTween.Sequence();
+        _goldRevealSequence.Join(
+            DOTween.To(() => displayedGold, x =>
+            {
+                displayedGold = x;
+                GoldNumber.text = x.ToString();
+            }, _currentBaseGold, duration).SetEase(Ease.OutCubic)
+        );
+        _goldRevealSequence.Join(GoldNumber.DOColor(targetColor, duration * 0.8f).SetEase(Ease.OutQuad));
+        _goldRevealSequence.Join(GoldNumber.rectTransform.DOScale(targetScale, duration * 0.7f).SetEase(Ease.OutBack));
+        _goldRevealSequence.AppendInterval(0.05f);
+        _goldRevealSequence.Append(GoldNumber.rectTransform.DOPunchScale(targetScale * 0.08f, 0.35f, 6, 0.8f));
+        _goldRevealSequence.OnComplete(OnGoldRevealComplete);
+    }
+
+    private void OnGoldRevealComplete()
+    {
+        _isGoldRevealPlaying = false;
+
+        if (_shouldPopupAd)
+        {
+            SetMotivatePanelActive(true);
+            return;
+        }
+
+        _canExitSettlement = true;
+        SetExitButtonState(true, true);
+    }
+    #endregion
+
+    #region å¹¿å‘Šé¢æ¿é€»è¾‘
+    private bool ShouldPopupAdPanel()
+    {
+        int randomValue = UnityEngine.Random.Range(0, 100);
+        Debug.Log($"[å¹¿å‘Šé€»è¾‘] éšæœºå€¼:{randomValue}, è§¦å‘æ¦‚ç‡:{AdPopupChance}%");
+        return randomValue < AdPopupChance;
+    }
+
     public void SetMotivatePanelActive(bool isActive)
     {
+        if (MotivatePanelCanvasGroup == null)
+        {
+            return;
+        }
+
         MotivatePanelCanvasGroup.interactable = isActive;
         MotivatePanelCanvasGroup.blocksRaycasts = isActive;
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(MotivatePanelCanvasGroup, ref MotivatePanelSequence, isActive, () => { });
     }
     #endregion
 
-    #region ÉúÃüÖÜÆÚ
+    #region ç”Ÿå‘½å‘¨æœŸ
     public override void Awake()
     {
         base.Awake();
-        // ³õÊ¼»¯Òş²Ø¼¤ÀøÃæ°å
+
+        if (GoldNumber != null)
+        {
+            _originGoldColor = GoldNumber.color;
+            _originGoldScale = GoldNumber.rectTransform.localScale;
+        }
+
+        if (controlDic.ContainsKey("ExitButton"))
+        {
+            _exitButton = controlDic["ExitButton"] as Button;
+        }
+
         if (MotivatePanelCanvasGroup != null)
         {
             MotivatePanelCanvasGroup.alpha = 0;
             MotivatePanelCanvasGroup.interactable = false;
             MotivatePanelCanvasGroup.blocksRaycasts = false;
         }
+
+        PrepareHiddenGoldDisplay();
+        SetExitButtonState(false, false);
+    }
+
+    protected override void OnDestroy()
+    {
+        _goldRevealSequence?.Kill();
+        MotivatePanelSequence?.Kill();
+        base.OnDestroy();
     }
     #endregion
 
-    #region UI°´Å¥µã»÷
+    #region UIæŒ‰é’®ç‚¹å‡»
     public override void ClickButton(string controlName)
     {
         base.ClickButton(controlName);
         switch (controlName)
         {
             case "ExitButton":
-                // Ö±½ÓÍË³ö£º¸ø»ù´¡½ğ±Ò
+                if (!_canExitSettlement)
+                {
+                    return;
+                }
+                MusicManager.Instance?.PlayEffect(UiBackSound);
                 TryGiveBaseGoldAndExit();
                 break;
             case "ConfirmButton":
-                Debug.Log($"[¹ã¸æ] ÇëÇó¹Û¿´¼¤Àø¹ã¸æ£¬Ô¤ÆÚ½±Àø: {_currentBaseGold * GoldMulti}");
-
+                MusicManager.Instance?.PlayEffect(UiSelectSound);
+                SetExitButtonState(false, true);
+                Debug.Log($"[å¹¿å‘Š] è¯·æ±‚è§‚çœ‹æ¿€åŠ±å¹¿å‘Šï¼Œé¢„æœŸå¥–åŠ±: {_currentBaseGold * GoldMulti}");
                 TapAdManager.Instance.ShowRewardAd(
                     onRewarded: OnAdRewarded,
                     onFailed: OnAdFailed
                 );
-
                 break;
             case "CancelButton":
-                // È¡Ïû¹ã¸æ£º¸ø»ù´¡½ğ±Ò²¢ÍË³ö
-                Debug.Log($"[¹ã¸æ] È¡Ïû¹Û¿´¼¤Àø¹ã¸æ£¬»ñµÃ»ù´¡½ğ±Ò: {_currentBaseGold}");
+                MusicManager.Instance?.PlayEffect(UiBackSound);
+                Debug.Log($"[å¹¿å‘Š] å–æ¶ˆè§‚çœ‹æ¿€åŠ±å¹¿å‘Šï¼Œè·å¾—åŸºç¡€é‡‘å¸: {_currentBaseGold}");
                 TryGiveBaseGoldAndExit();
                 break;
         }
     }
 
-    #region ½±Àø·¢·ÅºËĞÄÂß¼­
-    /// <summary>
-    /// ³¢ÊÔ·¢·Å»ù´¡½ğ±Ò²¢ÍË³ö£¨·ÀÖ¹ÖØ¸´·¢·Å£©
-    /// </summary>
+    private void SetExitButtonState(bool isInteractable, bool isVisible)
+    {
+        if (_exitButton == null)
+        {
+            return;
+        }
+
+        _exitButton.gameObject.SetActive(isVisible);
+        _exitButton.interactable = isInteractable;
+    }
+
+    #region å¥–åŠ±å‘æ”¾æ ¸å¿ƒé€»è¾‘
     private void TryGiveBaseGoldAndExit()
     {
         if (_hasGivenReward)
         {
-            Debug.LogWarning("[½±Àø] ½±ÀøÒÑ·¢·Å¹ı£¬Ìø¹ıÖØ¸´²Ù×÷");
+            Debug.LogWarning("[å¥–åŠ±] å¥–åŠ±å·²å‘æ”¾è¿‡ï¼Œè·³è¿‡é‡å¤æ“ä½œ");
             ExitGameSettlement();
             return;
         }
 
-        // ·¢·Å»ù´¡½ğ±Ò
         if (GoldSystem.Instance != null)
         {
             GoldSystem.Instance.AddGold(_currentBaseGold);
-            Debug.Log($"[½±Àø] ·¢·Å»ù´¡½ğ±Ò³É¹¦: {_currentBaseGold}");
+            Debug.Log($"[å¥–åŠ±] å‘æ”¾åŸºç¡€é‡‘å¸æˆåŠŸ: {_currentBaseGold}");
         }
         else
         {
-            Debug.LogError("[½±Àø] GoldSystem ²»´æÔÚ£¬ÎŞ·¨·¢·Å½ğ±Ò£¡");
-        }
-
-        _hasGivenReward = true;
-        SetMotivatePanelActive(false); // È·±£¹Ø±Õ¹ã¸æÃæ°å
-        ExitGameSettlement();
-    }
-
-    /// <summary>
-    /// ¹ã¸æ¹Û¿´³É¹¦»Øµ÷£º·¢·Å3±¶½ğ±Ò²¢ÍË³ö
-    /// </summary>
-    public void OnAdRewarded()
-    {
-        if (_hasGivenReward)
-        {
-            Debug.LogWarning("[½±Àø] ½±ÀøÒÑ·¢·Å¹ı£¬Ìø¹ıÖØ¸´²Ù×÷");
-            ExitGameSettlement();
-            return;
-        }
-
-        int multiGold = _currentBaseGold * GoldMulti;
-
-        // ·¢·Å3±¶½ğ±Ò
-        if (GoldSystem.Instance != null)
-        {
-            GoldSystem.Instance.AddGold(multiGold);
-            Debug.Log($"[½±Àø] ¼¤Àø¹ã¸æ¹Û¿´³É¹¦£¬·¢·Å3±¶½ğ±Ò: {multiGold}");
-        }
-        else
-        {
-            Debug.LogError("[½±Àø] GoldSystem ²»´æÔÚ£¬ÎŞ·¨·¢·Å½ğ±Ò£¡");
+            Debug.LogError("[å¥–åŠ±] GoldSystem ä¸å­˜åœ¨ï¼Œæ— æ³•å‘æ”¾é‡‘å¸ï¼");
         }
 
         _hasGivenReward = true;
@@ -215,40 +308,88 @@ public class GameSettlementPanel : BasePanel
         ExitGameSettlement();
     }
 
-    /// <summary>
-    /// ¹ã¸æ¹Û¿´Ê§°Ü»Øµ÷£º¸ø»ù´¡½ğ±Ò»òÌáÊ¾
-    /// </summary>
+    public void OnAdRewarded()
+    {
+        if (_hasGivenReward)
+        {
+            Debug.LogWarning("[å¥–åŠ±] å¥–åŠ±å·²å‘æ”¾è¿‡ï¼Œè·³è¿‡é‡å¤æ“ä½œ");
+            ExitGameSettlement();
+            return;
+        }
+
+        int multiGold = _currentBaseGold * GoldMulti;
+
+        if (GoldSystem.Instance != null)
+        {
+            GoldSystem.Instance.AddGold(multiGold);
+            Debug.Log($"[å¥–åŠ±] æ¿€åŠ±å¹¿å‘Šè§‚çœ‹æˆåŠŸï¼Œå‘æ”¾3å€é‡‘å¸: {multiGold}");
+        }
+        else
+        {
+            Debug.LogError("[å¥–åŠ±] GoldSystem ä¸å­˜åœ¨ï¼Œæ— æ³•å‘æ”¾é‡‘å¸ï¼");
+        }
+
+        _hasGivenReward = true;
+        SetMotivatePanelActive(false);
+        ExitGameSettlement();
+    }
+
     public void OnAdFailed()
     {
-        Debug.LogWarning("[¹ã¸æ] ¼¤Àø¹ã¸æ¼ÓÔØ/¹Û¿´Ê§°Ü£¬·¢·Å»ù´¡½ğ±Ò");
-        // ¹ã¸æÊ§°ÜÒ²¸ø»ù´¡½ğ±Ò£¬±£Ö¤Íæ¼ÒÌåÑé
+        Debug.LogWarning("[å¹¿å‘Š] æ¿€åŠ±å¹¿å‘ŠåŠ è½½/è§‚çœ‹å¤±è´¥ï¼Œå‘æ”¾åŸºç¡€é‡‘å¸");
         TryGiveBaseGoldAndExit();
     }
     #endregion
 
-    /// <summary>
-    /// ½áËãÍË³öÂß¼­
-    /// </summary>
     private void ExitGameSettlement()
     {
-        Debug.Log("ÍË³ö¶Ô¾Ö£¬·µ»ØÖ÷½çÃæ");
+        Debug.Log("é€€å‡ºå¯¹å±€ï¼Œè¿”å›ä¸»ç•Œé¢");
 
         AllMapManager.Instance?.TriggerMap(MapType.StartCG, true);
         ModeChooseSystem.instance?.EnterSystem_Quick();
 
+        UImanager.Instance?.HidePanel<WarRecordPanel>(false);
         UImanager.Instance?.HidePanel<GameSettlementPanel>();
         UImanager.Instance.ShowPanel<GameStartPanel>();
 
         if (PlayerRespawnManager.Instance != null)
         {
             PlayerRespawnManager.Instance.CleanupAndExitGame();
-            GC.Collect();
-            Resources.UnloadUnusedAssets();
         }
+
+        TriggerDelayedMemoryCleanup();
+    }
+
+    private void PlaySettlementResultSound()
+    {
+        if (Player.LocalPlayer == null || MusicManager.Instance == null)
+        {
+            return;
+        }
+
+        bool isVictory = Player.LocalPlayer.CurrentTeam == WinTeam;
+        MusicManager.Instance.PlayEffect(isVictory ? SuccessSound : FailSound, 1f);
     }
     #endregion
 
-    #region Ãæ°åÏÔÒş
+    #region å†…å­˜å›æ”¶
+    private void TriggerDelayedMemoryCleanup()
+    {
+        MonoMange.Instance.StartCoroutine(DelayedMemoryCleanupCoroutine());
+    }
+
+    private IEnumerator DelayedMemoryCleanupCoroutine()
+    {
+        yield return new WaitForSecondsRealtime(0.5f);
+        ResourcesManager.Instance.UnloadUnusedAssets(() =>
+        {
+            GC.Collect();
+            Debug.Log("[GameSettlementPanel] å·²å®Œæˆç»“ç®—ç¦»åœºåçš„å»¶è¿Ÿå†…å­˜å›æ”¶");
+        });
+    }
+    #endregion
+
+    #region é¢æ¿æ˜¾éš
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
     {
         base.HideMe(callback, isNeedDefaultAnimator);

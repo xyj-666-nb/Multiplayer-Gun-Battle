@@ -1,17 +1,20 @@
-using TMPro;
+ï»¿using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using DG.Tweening;
 
 public class CountDownPanel : BasePanel
 {
-    [Header("UIÒýÓÃ")]
+    private const string CountdownSound = "Music/update415/å€’è®¡æ—¶";
+
+    [Header("UIå¼•ç”¨")]
     public TextMeshProUGUI TopicText;
     public TextMeshProUGUI CountDownText;
 
     private UnityAction Callback;
     private float CurrentTime = 0;
     private bool _isCounting = false;
+    private int _lastCountdownSecond = -1;
 
     private Sequence _colorTweenSequence;
 
@@ -24,12 +27,10 @@ public class CountDownPanel : BasePanel
         CountDownText.color = Color.white;
         UpdateCountDownText();
         _isCounting = true;
+        _lastCountdownSecond = Mathf.CeilToInt(CurrentTime);
 
         SetupColorTween(Duration);
-        if(Duration==5f)
-        {
-            MusicManager.Instance.PlayEffect("Music/update415/µ¹¼ÆÊ±");
-        }
+        TryPlayCountdownTick();
     }
 
     private void SetupColorTween(float totalDuration)
@@ -49,7 +50,7 @@ public class CountDownPanel : BasePanel
         _colorTweenSequence.SetAutoKill(false);
     }
 
-    #region ÉúÃüÖÜÆÚ
+    #region ç”Ÿå‘½å‘¨æœŸ
     protected override void Update()
     {
         base.Update();
@@ -60,6 +61,7 @@ public class CountDownPanel : BasePanel
             if (CurrentTime < 0) CurrentTime = 0;
 
             UpdateCountDownText();
+            TryPlayCountdownTick();
 
             if (CurrentTime <= 0)
             {
@@ -76,7 +78,7 @@ public class CountDownPanel : BasePanel
     }
     #endregion
 
-    #region ÆäËûÂß¼­ (±£³Ö²»±ä)
+    #region å…¶ä»–é€»è¾‘
     public override void ClickButton(string controlName) { base.ClickButton(controlName); }
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true) { base.HideMe(callback, isNeedDefaultAnimator); }
     public override void ShowMe(bool isNeedDefaultAnimator = true) { base.ShowMe(isNeedDefaultAnimator); }
@@ -84,10 +86,25 @@ public class CountDownPanel : BasePanel
     protected override void SpecialAnimator_Show() { }
     #endregion
 
-    #region µ¹¼ÆÊ±ºËÐÄÂß¼­
+    #region å€’è®¡æ—¶æ ¸å¿ƒé€»è¾‘
     private void UpdateCountDownText()
     {
         CountDownText.text = CurrentTime.ToString("F2");
+    }
+
+    private void TryPlayCountdownTick()
+    {
+        int currentSecond = Mathf.CeilToInt(CurrentTime);
+        if (currentSecond == _lastCountdownSecond)
+        {
+            return;
+        }
+
+        _lastCountdownSecond = currentSecond;
+        if (currentSecond > 0 && currentSecond <= 5)
+        {
+            MusicManager.Instance?.PlayEffect(CountdownSound);
+        }
     }
 
     private void OnCountDownFinish()

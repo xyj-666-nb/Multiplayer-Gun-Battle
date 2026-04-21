@@ -18,7 +18,7 @@ public class CreateRoomPanel : BasePanel
     private GameMode currentGameMode = GameMode.Team_Battle;     // 当前的游戏模式
 
     [Header("房间设置的数据")]
-    public int GameTime;//游戏时间 (1/10/15)
+    public int GameTime;//游戏时间 (5/10/15)
     public int GameGoalScore;//游戏目标分数 (10/15/30)
 
     // 内部标记
@@ -57,13 +57,13 @@ public class CreateRoomPanel : BasePanel
     #region 核心新增：档位映射逻辑
     /// <summary>
     /// 将 GameTime 转换为档位索引
-    /// 1分钟 -> 0 (5分钟档) | 10分钟 -> 1 | 15分钟 -> 2
+    /// 5分钟 -> 0 (5分钟档) | 10分钟 -> 1 | 15分钟 -> 2
     /// </summary>
     private int GetTimeLevelIndex()
     {
         switch (GameTime)
         {
-            case 1: return 0;  // 5分钟档
+            case 5: return 0;  // 5分钟档
             case 10: return 1; // 10分钟档
             case 15: return 2; // 15分钟档
             default: return 0;
@@ -135,7 +135,7 @@ public class CreateRoomPanel : BasePanel
 
             if (ButtonGroupManager.Instance != null && controlDic != null)
             {
-                TryAddRadio(TimeChooseName, "Button_5minute", () => { GameTime = 1; MusicManager.Instance.PlayEffect("Music/update415/ui选择"); });
+                TryAddRadio(TimeChooseName, "Button_5minute", () => { GameTime = 5; MusicManager.Instance.PlayEffect("Music/update415/ui选择"); });
                 TryAddRadio(TimeChooseName, "Button_10minute", () => { GameTime = 10; MusicManager.Instance.PlayEffect("Music/update415/ui选择"); });
                 TryAddRadio(TimeChooseName, "Button_15minute", () => { GameTime = 15; MusicManager.Instance.PlayEffect("Music/update415/ui选择"); });
                 SafeSelectFirst(TimeChooseName);

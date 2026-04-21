@@ -244,8 +244,25 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         {
             Debug.LogError("未找到 CinemachineVirtualCamera，相机控制功能失效");
         }
+
+        EnsureMainCameraClearState();
     }
 
+    /// <summary>
+    /// 针对 RenderTexture 输出链做兜底，避免透明背景导致历史帧残留。
+    /// </summary>
+    private void EnsureMainCameraClearState()
+    {
+        if (MainCamera == null)
+        {
+            return;
+        }
+
+        Color backgroundColor = MainCamera.backgroundColor;
+        backgroundColor.a = 1f;
+        MainCamera.backgroundColor = backgroundColor;
+        MainCamera.clearFlags = CameraClearFlags.SolidColor;
+    }
     private void SetCameraTargetToPlayer(GameObject player)
     {
         SetCameraMode_FollowPlayerMode(player);
@@ -376,6 +393,8 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             task.IsStaying = false;
             task.IsZoomingBack = true; // 开始还原到基准尺寸
         }
+
+        EnsureMainCameraClearState();
     }
 
     /// <summary>
@@ -392,6 +411,8 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
                 task.IsZoomingBack = true;
             }
         }
+
+        EnsureMainCameraClearState();
     }
 
     /// <summary>
@@ -471,6 +492,8 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
                 task.OnCompleted?.Invoke(); // 触发回调（核心保留）
             }
         }
+
+        EnsureMainCameraClearState();
     }
 
     /// <summary>
@@ -639,6 +662,8 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
                 return;
             }
         }
+
+        EnsureMainCameraClearState();
     }
 
     /// <summary>
@@ -708,6 +733,8 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             _framingTransposer.m_YDamping = yDamping;
             _framingTransposer.m_ZDamping = zDamping;
         }
+
+        EnsureMainCameraClearState();
     }
 
     /// <summary>
@@ -750,6 +777,8 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             _framingTransposer.m_XDamping = xDamping;
             _framingTransposer.m_YDamping = yDamping;
         }
+
+        EnsureMainCameraClearState();
     }
 
     /// <summary>
@@ -792,6 +821,8 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             _framingTransposer.m_XDamping = xDamping;
             _framingTransposer.m_YDamping = yDamping;
         }
+
+        EnsureMainCameraClearState();
     }
 
     /// <summary>
@@ -959,6 +990,8 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         {
             _confiner.m_BoundingShape2D = _boundaryCollider;
         }
+
+        EnsureMainCameraClearState();
     }
 
     /// <summary>

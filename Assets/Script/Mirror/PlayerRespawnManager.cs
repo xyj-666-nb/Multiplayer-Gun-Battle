@@ -66,9 +66,19 @@ public class PlayerRespawnManager : NetworkBehaviour
     [Command(requiresAuthority = false)]
     public void CmdSetTimeLevel(int level, NetworkConnectionToClient sender = null)
     {
-        // 仅房主可修改
-        if (sender != null  ) 
+        // Host 模式下仅允许房主(本地连接/0号连接)修改，避免其他客户端篡改房间档位
+        if (sender != null && sender.connectionId != 0)
+        {
+            Debug.LogWarning($"[档位设置] 拒绝非房主玩家{sender.connectionId}修改对局时长档位");
             return;
+        }
+
+        if (IsGameStart)
+        {
+            Debug.LogWarning("[档位设置] 对局已开始，忽略时长档位修改");
+            return;
+        }
+
         // 限制合法范围
         level = Mathf.Clamp(level, 0, TimeLevelCoefficient.Count - 1);
         CurrentTimeLevel = level;
@@ -82,9 +92,19 @@ public class PlayerRespawnManager : NetworkBehaviour
     [Command(requiresAuthority = false)]
     public void CmdSetScoreLimitLevel(int level, NetworkConnectionToClient sender = null)
     {
-        // 仅房主可修改
-        if (sender != null
-            ) return;
+        // Host 模式下仅允许房主(本地连接/0号连接)修改，避免其他客户端篡改房间档位
+        if (sender != null && sender.connectionId != 0)
+        {
+            Debug.LogWarning($"[档位设置] 拒绝非房主玩家{sender.connectionId}修改比分上限档位");
+            return;
+        }
+
+        if (IsGameStart)
+        {
+            Debug.LogWarning("[档位设置] 对局已开始，忽略比分上限档位修改");
+            return;
+        }
+
         // 限制合法范围
         level = Mathf.Clamp(level, 0, ScoreLimitLevelCoefficient.Count - 1);
         CurrentScoreLimitLevel = level;
@@ -1181,7 +1201,6 @@ public class PlayerRespawnManager : NetworkBehaviour
 
     #region 地图传送与队伍出生点核心逻辑 
 
-    [Server]
     private MapManager GetCurrentMapManager()
     {
 
@@ -1198,11 +1217,11 @@ public class PlayerRespawnManager : NetworkBehaviour
         return PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentMapIndex];
     }
 
-    [Server]
     public Transform GetTeamSpawnPoint(Team playerTeam)
     {
-        if (!IsGameStart || CurrentMapIndex < 0)
+        if (CurrentMapIndex < 0)
         {
+            Debug.LogWarning("[传送] 当前还没有确定地图，使用默认出生点！");
             return GetRandomSpawnPoint();
         }
 
@@ -1230,10 +1249,11 @@ public class PlayerRespawnManager : NetworkBehaviour
             return GetRandomSpawnPoint();
         }
 
-        return targetBornList[Random.Range(0, targetBornList.Count)];
+        Transform spawnPoint = targetBornList[Random.Range(0, targetBornList.Count)];
+        Debug.Log($"[传送] {playerTeam}队使用地图出生点：{spawnPoint.name} -> {spawnPoint.position}");
+        return spawnPoint;
     }
 
-    [Server]
     public void TeleportAllPlayersToMap()
     {
         if (CurrentMapIndex < 0)
@@ -1242,34 +1262,66 @@ public class PlayerRespawnManager : NetworkBehaviour
             return;
         }
 
-        Debug.Log($"[传送] 服务端开始批量通知所有客户端传送...");
-
-        foreach (var conn in NetworkServer.connections.Values)
+        Player localPlayer = Player.LocalPlayer;
+        if (localPlayer == null && NetworkClient.localPlayer != null)
         {
-            if (conn != null && conn.isReady && conn.identity != null)
+            localPlayer = NetworkClient.localPlayer.GetComponent<Player>();
+        }
+
+        if (localPlayer != null)
+        {
+            Transform localSpawnPoint = GetTeamSpawnPoint(localPlayer.CurrentTeam);
+            if (localSpawnPoint != null)
             {
-                if (conn.identity.TryGetComponent<Player>(out Player playerScript))
+                localPlayer.transform.SetPositionAndRotation(localSpawnPoint.position, localSpawnPoint.rotation);
+                if (localPlayer.MyRigdboby != null)
                 {
-                    Transform spawnPoint = GetTeamSpawnPoint(playerScript.CurrentTeam);
-                    if (spawnPoint != null)
-                    {
-                        TargetTeleportPlayer(conn, spawnPoint.position, spawnPoint.rotation);
-                        Debug.Log($"[传送] 已通知玩家 {conn.connectionId} 传送到：{spawnPoint.position}");
-                    }
+                    localPlayer.MyRigdboby.velocity = Vector2.zero;
+                    localPlayer.MyRigdboby.angularVelocity = 0f;
+                    localPlayer.MyRigdboby.position = localSpawnPoint.position;
+                    localPlayer.MyRigdboby.rotation = localSpawnPoint.eulerAngles.z;
                 }
+
+                Physics2D.SyncTransforms();
+                Debug.Log($"[传送] 本地玩家已传送到地图出生点：{localSpawnPoint.name} -> {localSpawnPoint.position}");
             }
         }
+        else
+        {
+            Debug.LogWarning("[传送] 当前客户端未找到本地玩家，跳过本地传送");
+        }
 
-        Debug.Log("[传送] 所有客户端传送通知发送完成！");
-        //进行地图的一个初始化
+        if (UImanager.Instance != null)
+        {
+            var playerPanel = UImanager.Instance.GetPanel<PlayerPanel>();
+            playerPanel?.SimpleHidePanel();
+        }
+
+        if (!isServer)
+        {
+            return;
+        }
+
+        Debug.Log("[传送] Host 端开始执行对局初始化流程");
         IsGameRealStart = true;//启动游戏
-        //对所有玩家进行初始化
+
         foreach (PlayerInfo playerInfoPack in _playerInfoList)
         {
+            if (playerInfoPack?.Monster == null)
+            {
+                continue;
+            }
+
             playerInfoPack.Monster.CmdClearAllPlayerObj();
-            //设置当前手部为拿枪状态
         }
-        PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentMapIndex].MapInit();//地图初始化
+
+        if (PlayerAndGameInfoManger.Instance != null
+            && CurrentMapIndex >= 0
+            && CurrentMapIndex < PlayerAndGameInfoManger.Instance.AllMapManagerList.Count
+            && PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentMapIndex] != null)
+        {
+            PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentMapIndex].MapInit();//地图初始化
+        }
     }
 
     [TargetRpc]
@@ -1278,6 +1330,15 @@ public class PlayerRespawnManager : NetworkBehaviour
         if (NetworkClient.localPlayer != null)
         {
             NetworkClient.localPlayer.transform.SetPositionAndRotation(spawnPos, spawnRot);
+            Player localPlayer = NetworkClient.localPlayer.GetComponent<Player>();
+            if (localPlayer != null && localPlayer.MyRigdboby != null)
+            {
+                localPlayer.MyRigdboby.velocity = Vector2.zero;
+                localPlayer.MyRigdboby.angularVelocity = 0f;
+                localPlayer.MyRigdboby.position = spawnPos;
+                localPlayer.MyRigdboby.rotation = spawnRot.eulerAngles.z;
+            }
+            Physics2D.SyncTransforms();
             Debug.Log($"[客户端] 本地传送完成，新位置：{spawnPos}");
             if (UImanager.Instance != null)
             {

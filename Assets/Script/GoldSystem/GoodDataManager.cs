@@ -52,6 +52,10 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
 
     // 内存中的折扣字典
     private Dictionary<string, float> currentGoodsDiscountDict = new Dictionary<string, float>();
+    private readonly Dictionary<string, GoodsData> _goodsByGuid = new Dictionary<string, GoodsData>();
+    private readonly HashSet<string> _ownedGoodsGuidSet = new HashSet<string>();
+    private readonly Dictionary<SkinType, int> _skinTypeWeightDict = new Dictionary<SkinType, int>();
+    private readonly Dictionary<GoodsQuality, int> _qualityWeightDict = new Dictionary<GoodsQuality, int>();
 
     [Header("显示图片")]
     public RenderTexture displayRenderTexture;
@@ -84,6 +88,14 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         public int weight = 10;
     }
     #endregion
+    protected override void Awake()
+    {
+        base.Awake();
+        RebuildGoodsLookupCache();
+        RebuildWeightCaches();
+        ValidateAllGoodsData();
+    }
+
     private void Start()
     {
         //  先加载玩家已拥有的永久商品
@@ -146,7 +158,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
             string[] guids = goodsStr.Split('|');
             foreach (var guid in guids)
             {
-                var goods = AllGoodsDataList.FirstOrDefault(g => g.goodsGuid == guid);
+                var goods = TryGetGoodsByGuid(guid);
                 if (goods != null) ToDayRefreshGoodsList.Add(goods);
             }
         }
@@ -254,8 +266,11 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         ToDayRefreshGoodsList.Clear();
         currentGoodsDiscountDict.Clear();
 
+        if (AllGoodsDataList == null || AllGoodsDataList.Count == 0)
+            return;
+
         List<GoodsData> availableGoods = AllGoodsDataList
-            .Where(goods => !string.IsNullOrEmpty(goods.goodsGuid) && !UserObtainGoodsList.Contains(goods))
+            .Where(goods => goods != null && !string.IsNullOrEmpty(goods.goodsGuid) && !_ownedGoodsGuidSet.Contains(goods.goodsGuid))
             .ToList();
 
         if (availableGoods.Count == 0) return;
@@ -304,8 +319,8 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
 
         foreach (var goods in pool)
         {
-            int typeW = skinTypeWeights.FirstOrDefault(t => t.skinType == goods.skinType)?.weight ?? 5;
-            int qualityW = qualityWeights.FirstOrDefault(q => q.quality == goods.quality)?.weight ?? 5;
+            int typeW = _skinTypeWeightDict.TryGetValue(goods.skinType, out int cachedTypeWeight) ? cachedTypeWeight : 5;
+            int qualityW = _qualityWeightDict.TryGetValue(goods.quality, out int cachedQualityWeight) ? cachedQualityWeight : 5;
             int finalW = typeW * qualityW;
 
             weightList.Add(finalW);
@@ -342,9 +357,13 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     #region 玩家拥有商品管理
     public void PurchaseGoodToUser(GoodsData Data)
     {
-        if (AllGoodsDataList.Contains(Data))
+        if (Data == null || string.IsNullOrEmpty(Data.goodsGuid))
+            return;
+
+        if (_goodsByGuid.ContainsKey(Data.goodsGuid))
         {
-            if (UserObtainGoodsList.Contains(Data)) return;
+            if (_ownedGoodsGuidSet.Contains(Data.goodsGuid))
+                return;
 
             int finalPrice = GetGoodsDiscountedPrice(Data);
 
@@ -352,6 +371,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
             {
                 GoldSystem.Instance.CostGold(finalPrice, $"购买商品: {Data.goodsName}");
                 UserObtainGoodsList.Add(Data);
+                _ownedGoodsGuidSet.Add(Data.goodsGuid);
                 SavePlayerGood();
                 LoadGoodsDataIntoSkinManager(Data);
             }
@@ -393,11 +413,13 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         }
     }
 
-    public bool JudgeUserHasGood(GoodsData Data) => UserObtainGoodsList.Contains(Data);
+    public bool JudgeUserHasGood(GoodsData Data) => Data != null && !string.IsNullOrEmpty(Data.goodsGuid) && _ownedGoodsGuidSet.Contains(Data.goodsGuid);
 
     public void SavePlayerGood()
     {
         if (!Application.isPlaying) return;
+
+        RebuildOwnedGoodsCache();
 
         // 改用 PlayerPrefs 存储已拥有商品
         string goodsStr = string.Join("|", UserObtainGoodsList.Select(g => g.goodsGuid));
@@ -417,12 +439,13 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
             string[] guids = goodsStr.Split('|');
             foreach (string goodID in guids)
             {
-                GoodsData data = AllGoodsDataList.Find(g => g.goodsGuid == goodID);
+                GoodsData data = TryGetGoodsByGuid(goodID);
                 if (data != null) UserObtainGoodsList.Add(data);
             }
         }
 
         ValidateAndCompleteDefaultGoods();
+        RebuildOwnedGoodsCache();
         SyncAllOwnedGoodsToSkinManager();
         SavePlayerGood(); // 重新保存确保存档干净
     }
@@ -435,12 +458,13 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         {
             if (defaultGoods == null || string.IsNullOrEmpty(defaultGoods.goodsGuid)) continue;
 
-            if (!UserObtainGoodsList.Contains(defaultGoods))
+            if (!_ownedGoodsGuidSet.Contains(defaultGoods.goodsGuid))
             {
-                var goodsInAll = AllGoodsDataList.FirstOrDefault(g => g.goodsGuid == defaultGoods.goodsGuid);
+                var goodsInAll = TryGetGoodsByGuid(defaultGoods.goodsGuid);
                 if (goodsInAll != null)
                 {
                     UserObtainGoodsList.Add(goodsInAll);
+                    _ownedGoodsGuidSet.Add(goodsInAll.goodsGuid);
                 }
             }
         }
@@ -464,6 +488,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         if (!Application.isPlaying) return;
 
         UserObtainGoodsList.Clear();
+        _ownedGoodsGuidSet.Clear();
 
         // 删除所有 PlayerPrefs 对应的 Key
         PlayerPrefs.DeleteKey(PREF_OWNED_GOODS);
@@ -480,6 +505,93 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     }
     #endregion
 
+
+    private void RebuildGoodsLookupCache()
+    {
+        _goodsByGuid.Clear();
+
+        if (AllGoodsDataList == null)
+            return;
+
+        foreach (var goods in AllGoodsDataList)
+        {
+            if (goods == null || string.IsNullOrEmpty(goods.goodsGuid))
+                continue;
+
+            if (_goodsByGuid.ContainsKey(goods.goodsGuid))
+            {
+                Debug.LogWarning($"[GoodDataManager] 检测到重复商品 Guid: {goods.goodsGuid}", goods);
+                continue;
+            }
+
+            _goodsByGuid.Add(goods.goodsGuid, goods);
+        }
+    }
+
+    private void RebuildOwnedGoodsCache()
+    {
+        _ownedGoodsGuidSet.Clear();
+
+        if (UserObtainGoodsList == null)
+            return;
+
+        UserObtainGoodsList = UserObtainGoodsList
+            .Where(goods => goods != null && !string.IsNullOrEmpty(goods.goodsGuid))
+            .Distinct()
+            .ToList();
+
+        foreach (var goods in UserObtainGoodsList)
+        {
+            _ownedGoodsGuidSet.Add(goods.goodsGuid);
+        }
+    }
+
+    private void RebuildWeightCaches()
+    {
+        _skinTypeWeightDict.Clear();
+        _qualityWeightDict.Clear();
+
+        if (skinTypeWeights != null)
+        {
+            foreach (var weight in skinTypeWeights)
+            {
+                _skinTypeWeightDict[weight.skinType] = weight.weight;
+            }
+        }
+
+        if (qualityWeights != null)
+        {
+            foreach (var weight in qualityWeights)
+            {
+                _qualityWeightDict[weight.quality] = weight.weight;
+            }
+        }
+    }
+
+    private GoodsData TryGetGoodsByGuid(string goodsGuid)
+    {
+        if (string.IsNullOrEmpty(goodsGuid))
+            return null;
+
+        return _goodsByGuid.TryGetValue(goodsGuid, out GoodsData goods) ? goods : null;
+    }
+
+    private void ValidateAllGoodsData()
+    {
+        if (AllGoodsDataList == null)
+            return;
+
+        foreach (var goods in AllGoodsDataList)
+        {
+            if (goods == null)
+                continue;
+
+            if (goods.ValidateData(out string errorMessage))
+                continue;
+
+            Debug.LogWarning($"[GoodDataManager] 商品配置异常: {errorMessage}", goods);
+        }
+    }
     #region GM 测试指令
     [ContextMenu("GM_清空本地所有数据")]
     private void GM_ClearLocalData() => ClearLocalData();
