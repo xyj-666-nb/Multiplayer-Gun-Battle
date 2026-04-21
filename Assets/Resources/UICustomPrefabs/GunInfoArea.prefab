@@ -1,17 +1,18 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!1 &10198445087587422
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 6604020686470734284}
   - component: {fileID: 7236657096470453067}
   - component: {fileID: 2446821639574414207}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -66,9 +67,10 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u4E22\n\u5F03"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
-  m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: bbeff449864cc864593de8f0e82fecd6, type: 2}
+  m_sharedMaterial: {fileID: 5674614687546227106, guid: bbeff449864cc864593de8f0e82fecd6, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -140,12 +142,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2814934448095289479}
   - component: {fileID: 1798869575818329421}
   - component: {fileID: 7655447243847778160}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: HealthUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -215,12 +218,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5956397706939520608}
   - component: {fileID: 3477475868443690657}
   - component: {fileID: 4899271537274721429}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: BulletIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -290,12 +294,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 8886232556917493544}
   - component: {fileID: 5108285584537668046}
   - component: {fileID: 1159152062093806096}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: GunSprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -365,13 +370,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 28212045026855756}
   - component: {fileID: 8301782464842508287}
   - component: {fileID: 380835973337010079}
   - component: {fileID: 8509592580954428003}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: DiscardButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -486,12 +492,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 4361213200485532110}
   - component: {fileID: 632347269948179170}
   - component: {fileID: 5970358123491582896}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: OutLine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -561,12 +568,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7209835128783697759}
   - component: {fileID: 577412050747263701}
   - component: {fileID: 2109226044562497484}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: GunName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -621,6 +629,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: 417
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -695,12 +704,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 857561878966661305}
   - component: {fileID: 5250111386945572493}
   - component: {fileID: 2540073707780271904}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: HealthUIBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -770,12 +780,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2713226148364338334}
   - component: {fileID: 6277125505963673354}
   - component: {fileID: 2442157407921642354}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: GunBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -847,12 +858,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3314904482940306174}
   - component: {fileID: 6174637738285193324}
   - component: {fileID: 2415329212296331582}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: GunBulletCountInfo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -907,6 +919,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: 32/120
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
   m_sharedMaterial: {fileID: 5674614687546227106, guid: fe376df40be8d924fb13e7390d7199f0, type: 2}
@@ -981,11 +994,12 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3344241841157074389}
   - component: {fileID: 5436560599385120709}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1033,11 +1047,12 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2816156220902488376}
   - component: {fileID: 2252810160135713115}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: BuffermanagerArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1095,13 +1110,14 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 1341709747918658016}
   - component: {fileID: 8967536400569102997}
   - component: {fileID: 8325607931357410426}
   - component: {fileID: 6866641756380394689}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: GunInfoArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}

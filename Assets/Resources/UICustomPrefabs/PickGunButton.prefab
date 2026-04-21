@@ -1,17 +1,18 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!1 &401895302106340594
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 2297909897258418982}
   - component: {fileID: 8427547188068711972}
   - component: {fileID: 4127774464211763581}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Outline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -81,7 +82,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7147429973029691538}
   - component: {fileID: 8021151666561603290}
@@ -89,6 +90,7 @@ GameObject:
   - component: {fileID: 7955536872798209017}
   - component: {fileID: 8307599610879230622}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: PickGunButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -223,12 +225,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 7896022041719180343}
   - component: {fileID: 8848144841527206345}
   - component: {fileID: 7377983794658994351}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -282,10 +285,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: PickUp
+  m_text: "\u6361\u8D77"
+  m_enableAdvanceTextProcess: 0
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: bbeff449864cc864593de8f0e82fecd6, type: 2}
+  m_sharedMaterial: {fileID: 5674614687546227106, guid: bbeff449864cc864593de8f0e82fecd6, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

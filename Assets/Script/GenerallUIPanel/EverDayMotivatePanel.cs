@@ -4,6 +4,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class EverDayMotivatePanel : BasePanel
 {
@@ -33,11 +34,14 @@ public class EverDayMotivatePanel : BasePanel
     // ª∫¥Êµƒ≥ı º◊¥Ã¨
     private Vector3 _originalTextScale;
     private float _originalFontSize;
+    [Header("Õº∆¨∂Øª≠")]
+    public Image AnimaImage;
+    public Sprite[] AnimaSpriteList;
 
     #region ∫À–ƒœ‘“˛¬ﬂº≠
     private void IsTriggerPrizeDrawPanel(bool IsTrigger)
     {
-        PrizeDrawCanvas.interactable = IsTrigger;
+        PrizeDrawCanvas.blocksRaycasts = IsTrigger;
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(PrizeDrawCanvas, ref PrizeDrawCanvasSequence, IsTrigger, () => { });
         if (IsTrigger)
         {
@@ -65,7 +69,7 @@ public class EverDayMotivatePanel : BasePanel
     public void IsTriggerButtonGroup(bool IsTrigger)
     {
         controlDic["PrizeDrawbutton"].gameObject.SetActive(!IsTrigger);
-        ButtonGroup.interactable = IsTrigger;
+        ButtonGroup.blocksRaycasts = IsTrigger;
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(ButtonGroup, ref ButtonGroupSequence, IsTrigger, () => { });
     }
     #endregion
@@ -75,6 +79,7 @@ public class EverDayMotivatePanel : BasePanel
     {
         base.Awake();
         IsTriggerPrizeDrawPanel(false);//ƒ¨»œπÿ±’
+        SimpleSpritePlayer.PlayLoop(AnimaImage, AnimaSpriteList,0.1f);
     }
     public override void Start()
     {
@@ -86,6 +91,7 @@ public class EverDayMotivatePanel : BasePanel
         base.OnDestroy();
         // «Â¿Ì DOTween ∂Øª≠
         PrizeDrawText.DOKill();
+        SimpleSpritePlayer.Stop(AnimaImage);
     }
 
     protected override void SpecialAnimator_Hide()

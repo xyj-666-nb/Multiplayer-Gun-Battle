@@ -152,7 +152,7 @@ public class SpriteMergerEditor : EditorWindow
     /// <summary>
     /// 右键菜单快速合并
     /// </summary>
-    [MenuItem("GameObject/2D工具/快速合并背景植物 ", false, 10)]
+    [MenuItem("Tools/2D工具/快速合并背景植物 ", false, 10)]
     public static void QuickMerge()
     {
         if (Selection.activeTransform == null)

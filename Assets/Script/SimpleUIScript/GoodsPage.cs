@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 public class GoodsPage : MonoBehaviour
 {
@@ -70,6 +71,11 @@ public class GoodsPage : MonoBehaviour
     public TextMeshProUGUI GunSkinName;//枪械皮肤专用名字
     public Image GunShowImage;//枪械展示大图（新增）
 
+    [Header("表情系统业务")]
+    public List<Image> ExpressionImageList;//表情图列表
+    public CanvasGroup ExpressionCanvasGroup;//表情面板
+    private Sequence expressionSeq;
+
     void Start()
     {
         if (GoldBackGround != null)
@@ -124,6 +130,14 @@ public class GoodsPage : MonoBehaviour
             GunShowImage.color = ColorManager.SetColorAlpha(GunShowImage.color, 0);
         }
 
+        // 【新增】表情系统：默认隐藏并清空
+        if (ExpressionCanvasGroup != null)
+        {
+            ExpressionCanvasGroup.alpha = 0;
+            ExpressionCanvasGroup.blocksRaycasts = false;
+        }
+        ClearExpressionImages();
+
         if (IntroduceRawImage != null)
         {
             IntroduceRawImage.texture = null;
@@ -142,12 +156,56 @@ public class GoodsPage : MonoBehaviour
         }
     }
 
+    // 【新增】清空表情图片列表
+    private void ClearExpressionImages()
+    {
+        if (ExpressionImageList == null || ExpressionImageList.Count == 0) return;
+
+        foreach (var img in ExpressionImageList)
+        {
+            if (img != null)
+            {
+                img.sprite = null;
+                img.color = ColorManager.SetColorAlpha(img.color, 0);
+                img.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 展开时才设置预览显示
+    /// </summary>
     /// <summary>
     /// 展开时才设置预览显示
     /// </summary>
     private void SetupPreviewDisplay()
     {
         if (goodsData == null || IntroduceRawImage == null) return;
+
+        // ========== 表情系统：展开时保持默认图（新增） ==========
+        if (goodsData.skinType == SkinType.Expression)
+        {
+            // 表情商品：使用默认图
+            if (IntroduceRawImage != null)
+            {
+                IntroduceRawImage.gameObject.SetActive(true);
+                if (DefaultSprite != null)
+                    IntroduceRawImage.texture = DefaultSprite.texture;
+            }
+
+            // 关闭其他预览
+            if (playerImage != null) playerImage.gameObject.SetActive(false);
+            if (PlayerButton != null) PlayerButton.gameObject.SetActive(false);
+            if (GunShowImage != null) GunShowImage.gameObject.SetActive(false);
+
+            // 确保表情面板在展开时也是显示的
+            if (ExpressionCanvasGroup != null)
+            {
+                ExpressionCanvasGroup.alpha = 1;
+                ExpressionCanvasGroup.blocksRaycasts = true;
+            }
+            return;
+        }
 
         // ========== 枪械皮肤：显示大图 + 渐显动画 ==========
         if (goodsData.skinType == SkinType.GunAppearance && goodsData.gunSkinPack != null)
@@ -424,6 +482,9 @@ public class GoodsPage : MonoBehaviour
     /// <summary>
     /// 统一刷新：枪械皮肤→子弹→默认图标
     /// </summary>
+    /// <summary>
+    /// 统一刷新：枪械皮肤→子弹→表情→默认图标
+    /// </summary>
     private void RefreshAllDisplay()
     {
         BulletShowCanvas.alpha = 0;
@@ -431,11 +492,19 @@ public class GoodsPage : MonoBehaviour
         // 隐藏枪械皮肤物体
         if (GunSkinImage != null) GunSkinImage.gameObject.SetActive(false);
         if (GunSkinName != null) GunSkinName.gameObject.SetActive(false);
+        // 【新增】隐藏表情面板
+        if (ExpressionCanvasGroup != null)
+        {
+            ExpressionCanvasGroup.alpha = 0;
+            ExpressionCanvasGroup.blocksRaycasts = false;
+        }
+        ClearExpressionImages();
         // 默认显示商品名称
         if (GoodsName != null) GoodsName.gameObject.SetActive(true);
 
         if (goodsData == null) return;
 
+        // ========== 1. 枪械皮肤 ==========
         if (goodsData.skinType == SkinType.GunAppearance && goodsData.gunSkinPack != null)
         {
             if (GunSkinImage != null)
@@ -447,6 +516,14 @@ public class GoodsPage : MonoBehaviour
                 if (gunRealName == "M762" || gunRealName == "AWP")
                 {
                     GunSkinImage.transform.localScale = new Vector3(0.8f, 0.8f, 1f);
+                }
+                else if (gunRealName == "AUG" || gunRealName == "XM50")
+                {
+                        GunSkinImage.transform.localScale = new Vector3(0.8f, 0.8f, 1f);
+                }
+                else if (gunRealName == "MK20" )
+                {
+                    GunSkinImage.transform.localScale = new Vector3(0.75f, 0.75f, 1f);
                 }
                 else
                 {
@@ -464,6 +541,29 @@ public class GoodsPage : MonoBehaviour
             return;
         }
 
+        // ========== 2. 表情系统（新增） ==========
+        if (goodsData.skinType == SkinType.Expression && goodsData.expressionPacks != null && goodsData.expressionPacks.Count > 0)
+        {
+            // 隐藏其他预览
+            GoodsImage.color = ColorManager.SetColorAlpha(GoodsImage.color, 0);
+            if (IntroduceRawImage != null) IntroduceRawImage.gameObject.SetActive(false);
+            if (playerImage != null) playerImage.gameObject.SetActive(false);
+            if (PlayerButton != null) PlayerButton.gameObject.SetActive(false);
+            if (GunShowImage != null) GunShowImage.gameObject.SetActive(false);
+
+            // 显示表情面板
+            if (ExpressionCanvasGroup != null)
+            {
+                ExpressionCanvasGroup.alpha = 1;
+                ExpressionCanvasGroup.blocksRaycasts = true;
+            }
+
+            // 赋值表情图片
+            SetupExpressionImages();
+            return;
+        }
+
+        // ========== 3. 子弹/打击特效 ==========
         bool isEffectGoods = (goodsData.skinType == SkinType.SpecialBullet && goodsData.bulletPack != null)
                           || (goodsData.skinType == SkinType.GunHitEffect && goodsData.gunHitData != null);
 
@@ -515,6 +615,43 @@ public class GoodsPage : MonoBehaviour
         }
     }
 
+    // 【新增】设置表情图片列表
+    private void SetupExpressionImages()
+    {
+        if (ExpressionImageList == null || goodsData.expressionPacks == null) return;
+
+        int packCount = goodsData.expressionPacks.Count;
+        int imageCount = ExpressionImageList.Count;
+
+        for (int i = 0; i < imageCount; i++)
+        {
+            Image img = ExpressionImageList[i];
+            if (img == null) continue;
+
+            if (i < packCount)
+            {
+                // 有对应表情：显示并赋值
+                ExpressionPack pack = goodsData.expressionPacks[i];
+                if (pack != null && pack.ExpressionSprite != null)
+                {
+                    img.sprite = pack.ExpressionSprite;
+                    img.color = Color.white;
+                    img.gameObject.SetActive(true);
+                }
+                else
+                {
+                    img.gameObject.SetActive(false);
+                }
+            }
+            else
+            {
+                // 没有对应表情：隐藏
+                img.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    // 对象池重置
     // 对象池重置
     public void ResetPos()
     {
@@ -566,6 +703,15 @@ public class GoodsPage : MonoBehaviour
             GunShowImage.sprite = null;
             GunShowImage.color = ColorManager.SetColorAlpha(GunShowImage.color, 0);
         }
+
+        // 【新增】重置表情系统
+        if (ExpressionCanvasGroup != null)
+        {
+            ExpressionCanvasGroup.DOKill();
+            ExpressionCanvasGroup.alpha = 0;
+            ExpressionCanvasGroup.blocksRaycasts = false;
+        }
+        ClearExpressionImages();
 
         // 重置金币背景
         if (GoldBackGround != null)

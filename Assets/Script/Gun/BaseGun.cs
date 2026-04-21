@@ -119,15 +119,23 @@ public class BaseGun : NetworkBehaviour
 
     private void OnChangeHitEffectConfigID(int OldValue, int newValue)
     {
-        hitwalleffect = _gameSkinManager.GetHitData(newValue)?.HitObj;
+        var skinManager = _gameSkinManager ?? GameSkinManager.Instance;
+        if (skinManager != null)
+        {
+            hitwalleffect = skinManager.GetHitData(newValue)?.HitObj;
+        }
     }
 
     private void OnChangeMuzzleFlashConfigID(int OldValue, int newValue)
     {
         if (newValue > 0)
         {
-            muzzleFlashConfig = _configManager.GetMuzzleConfig(newValue);
-            muzzleFlash.config = muzzleFlashConfig;
+            var confManager = _configManager ?? ConfigManager.Instance;
+            if (confManager != null)
+            {
+                muzzleFlashConfig = confManager.GetMuzzleConfig(newValue);
+                if (muzzleFlash != null) muzzleFlash.config = muzzleFlashConfig;
+            }
         }
     }
 
@@ -138,7 +146,11 @@ public class BaseGun : NetworkBehaviour
     private void OnChangeBulletVisualConfigID(int OldValue, int newValue)
     {
         if (newValue > 0)
-            bulletVisualConfig = _configManager.GetBulletConfig(newValue);
+        {
+            var confManager = _configManager ?? ConfigManager.Instance;
+            if (confManager != null)
+                bulletVisualConfig = confManager.GetBulletConfig(newValue);
+        }
     }
 
     #endregion
@@ -158,7 +170,7 @@ public class BaseGun : NetworkBehaviour
 
     #region 调试与子弹视觉配置
     [Header("调试配置")]
-    public bool isDebug = true; 
+    public bool isDebug = true;
 
     [Header("子弹小线段配置(如果枪械原本的配置缺失就使用默认数值)")]
     public Color bulletColor = new Color(0.83f, 0.68f, 0.22f);
@@ -289,7 +301,7 @@ public class BaseGun : NetworkBehaviour
         if (Player.LocalPlayer == null)
             return;
 
-        if (this == Player.LocalPlayer.currentGun && _uiManager.GetPanel<PlayerPanel>() != null)
+        if (this == Player.LocalPlayer.currentGun && _uiManager != null && _uiManager.GetPanel<PlayerPanel>() != null)
         {
             _uiManager.GetPanel<PlayerPanel>().UpdateGunBulletAmountText();
         }
@@ -299,7 +311,7 @@ public class BaseGun : NetworkBehaviour
     {
         if (Player.LocalPlayer == null)
             return;
-        if (this == Player.LocalPlayer.currentGun && _uiManager.GetPanel<PlayerPanel>() != null)
+        if (this == Player.LocalPlayer.currentGun && _uiManager != null && _uiManager.GetPanel<PlayerPanel>() != null)
         {
             _uiManager.GetPanel<PlayerPanel>().UpdateGunBulletAmountText();
         }
@@ -480,7 +492,7 @@ public class BaseGun : NetworkBehaviour
     [ClientRpc]
     public void RpcPlayerMusic(string SoundPath, float maxDistance, float minDistance)
     {
-        _musicManager.PlayEffect3D(SoundPath, maxDistance: maxDistance, minDistance: minDistance);
+        _musicManager?.PlayEffect3D(SoundPath, maxDistance: maxDistance, minDistance: minDistance);
     }
 
     #endregion
@@ -525,14 +537,16 @@ public class BaseGun : NetworkBehaviour
             Debug.LogError(LOG_HIT_EFFECT_NULL);
             return;
         }
+        if (_poolManage == null) return;
+
         GameObject hitEffectObj = _poolManage.GetObj(hitwalleffect);
         if (hitEffectObj == null)
             return;
         hitEffectObj.transform.position = hitPos;
         hitEffectObj.transform.rotation = Quaternion.LookRotation(_zeroVector3, hitNormal);
-        _countDownManager.CreateTimer(false, 500, () => { _poolManage.PushObj(hitwalleffect, hitEffectObj); });
+        _countDownManager?.CreateTimer(false, 500, () => { _poolManage.PushObj(hitwalleffect, hitEffectObj); });
 
-        _musicManager.PlayEffect3D_Custom($"{SOUND_HIT_WALL}{Random.Range(1, 4)}", 0.2f, hitPos, Player.LocalPlayer.transform.position, maxDistance: 5f);
+        _musicManager?.PlayEffect3D_Custom($"{SOUND_HIT_WALL}{Random.Range(1, 4)}", 0.2f, hitPos, Player.LocalPlayer.transform.position, maxDistance: 5f);
     }
 
     [ClientRpc]
@@ -613,7 +627,7 @@ public class BaseGun : NetworkBehaviour
         fly.Init(lr, startPos, targetPos, shootDir, applyLength, applySpeed, applyDuration, template);
 
         float totalDuration = Vector2.Distance(startPos, targetPos) / applySpeed + applyDuration;
-        _countDownManager.CreateTimer(false, (int)(totalDuration * 500), () =>
+        _countDownManager?.CreateTimer(false, (int)(totalDuration * 500), () =>
         {
             if (bulletObj != null) _poolManage.PushObj(template, bulletObj);
         });
@@ -643,7 +657,7 @@ public class BaseGun : NetworkBehaviour
             MuzzleSmokeManager.Instance?.PlayMuzzleSmoke(cartridgeEjectPoint, bulletVisualConfig);
         }
 
-        muzzleFlash.PlayFlash();
+        if (muzzleFlash != null) muzzleFlash.PlayFlash();
         if (ownerPlayer != null && ownerPlayer.isLocalPlayer && firePoint != null && gunInfo != null)
         {
             Vector2 firePointRightDir = firePoint.transform.right;
@@ -675,8 +689,8 @@ public class BaseGun : NetworkBehaviour
 
                 float dynamicDelay = Mathf.Clamp(distance * soundSpeed * 10f, minDelay, maxDelay);
 
-                _countDownManager.CreateTimer(false, (int)dynamicDelay, () => {
-                    _musicManager.PlayEffect3D_Custom($"{SOUND_HIT_BULLSEYE}{Random.Range(1, 3)}", 0.5f, targetPos, playerPos);
+                _countDownManager?.CreateTimer(false, (int)dynamicDelay, () => {
+                    _musicManager?.PlayEffect3D_Custom($"{SOUND_HIT_BULLSEYE}{Random.Range(1, 3)}", 0.5f, targetPos, playerPos);
                 });
 
                 Debug.Log($"{LOG_PREFIX}击中靶子 | 距离：{distance:F1}m | 声音延迟：{(int)dynamicDelay}ms");
@@ -684,7 +698,7 @@ public class BaseGun : NetworkBehaviour
         }
 
         if (isLocalPlayer)
-            _cameraControl.AddTimeBasedShake(gunInfo.ShackStrength, gunInfo.ShackTime);
+            _cameraControl?.AddTimeBasedShake(gunInfo.ShackStrength, gunInfo.ShackTime);
     }
 
     private Vector2 CalculateLocalBulletScattering(Vector2 centerDir)
@@ -741,7 +755,7 @@ public class BaseGun : NetworkBehaviour
             rb2D.AddTorque(Random.Range(-5f, 5f));
         }
 
-        _countDownManager.CreateTimer(false, 1000, () =>
+        _countDownManager?.CreateTimer(false, 1000, () =>
         {
             if (bulletVisualConfig != null)
                 cartridgeObj.transform.localScale = Vector3.one * bulletVisualConfig.cartridgeCaseSize;
@@ -757,7 +771,7 @@ public class BaseGun : NetworkBehaviour
                     sr.color = new Color(0.83f, 0.68f, 0.22f);
             }
 
-            _poolManage.PushObj(cartridgeCasePrefab, cartridgeObj);
+            _poolManage?.PushObj(cartridgeCasePrefab, cartridgeObj);
         });
     }
 
@@ -775,7 +789,7 @@ public class BaseGun : NetworkBehaviour
             _cameraControl?.AddTimeBasedShake(gunInfo.ShackStrength, gunInfo.ShackTime);
             Player.LocalPlayer.MyHandControl.AddGunMomentOfForce();
         }
-        _musicManager.PlayEffect3D(gunInfo.ShootAudio, 0.7f, 1, 10, this.transform);
+        _musicManager?.PlayEffect3D(gunInfo.ShootAudio, 0.7f, 1, 10, this.transform);
     }
     #endregion
 
@@ -864,10 +878,11 @@ public class BaseGun : NetworkBehaviour
     #endregion
 
     #region 初始化与生命周期
-    public virtual  void  Awake()
+    public virtual void Awake()
     {
         MySprite = GetComponent<SpriteRenderer>();
-        _netIdentity = GetComponent<NetworkIdentity>() ?? gameObject.AddComponent<NetworkIdentity>();
+        // 确保不会在此处挂载没注册预制体的NetworkIdentity导致问题
+        _netIdentity = GetComponent<NetworkIdentity>();
         myRigidbody = GetComponent<Rigidbody2D>();
         _gunWorldInfoShow = GetComponentInChildren<GunWorldInfoShow>() ?? GetComponent<GunWorldInfoShow>();
         GunInfoManager = _gunWorldInfoShow;
@@ -905,25 +920,46 @@ public class BaseGun : NetworkBehaviour
 
         RemainingDestoryTime = DestoryTime;
     }
+
     private GunSkinPack _currentSkinPack;
-    [Command]
-    public void SetGunConfig(int muzzleFlashConfigID, int bulletVisualConfigID, int hitID,int GunSkipID)
+
+    [Header("枪械皮肤数据ID")]
+    [SyncVar(hook = nameof(OnChangeGunSkinID))]
+    public int gunSkinID;
+
+    // 客户端收到同步后，加载皮肤图片和动画
+    private void OnChangeGunSkinID(int oldValue, int newValue)
     {
-        this.muzzleFlashConfigID = muzzleFlashConfigID;
-        this.bulletVisualConfigID = bulletVisualConfigID;
+        if (newValue > 0)
+        {
+            var skinManager = _gameSkinManager ?? GameSkinManager.Instance;
+            if (skinManager != null)
+            {
+                _currentSkinPack = skinManager.GetGunSkinPack(newValue);
+                if (_currentSkinPack != null)
+                {
+                    // 替换图片
+                    if (MySprite != null)
+                        MySprite.sprite = _currentSkinPack.skinIcon;
+
+                    // 替换换弹动画
+                    if (timelineDirector_Reload != null)
+                        timelineDirector_Reload.playableAsset = _currentSkinPack.GunReload;
+                }
+            }
+        }
+    }
+
+    // 这个方法是服务器专用的，绝不能带
+    [Server]
+    public void SetGunConfig(int muzzleFlashID, int bulletVisualID, int hitID, int skinID)
+    {
+        this.muzzleFlashConfigID = muzzleFlashID;
+        this.bulletVisualConfigID = bulletVisualID;
         this.hitEffectConfigID = hitID;
-        //加载枪械皮肤
-        _currentSkinPack= GameSkinManager.Instance.GetGunSkinPack(GunSkipID);//配置配置样貌
-        timelineDirector_Reload.playableAsset = _currentSkinPack.GunReload;//配置换弹动画
-    }
 
-    public void EquipmentGunSkip(GunSkinPack InfoPack)
-    {
-        //置换图片，换弹动画
-        MySprite.sprite= InfoPack.skinIcon;
-        
+        this.gunSkinID = skinID;
     }
-
 
     #endregion
 
@@ -1190,7 +1226,7 @@ public class BaseGun : NetworkBehaviour
     {
         if (collision.collider.CompareTag("Ground") && !isInPlayerHand)
         {
-            _musicManager.PlayEffect3D_Custom(
+            _musicManager?.PlayEffect3D_Custom(
                 SOUND_DROP_GUN,
                 1f,
                 transform.position,

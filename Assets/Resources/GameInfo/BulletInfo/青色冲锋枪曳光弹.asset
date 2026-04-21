@@ -18,11 +18,11 @@ MonoBehaviour:
   bulletFlySpeed: 80
   bulletShowDuration: 0.5
   gunType: 1
-  BulletID: 35
+  BulletID: 30
   cartridgeCaseColor: {r: 0.3, g: 1, b: 1, a: 1}
   cartridgeCaseSize: 0.2
   smokeColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.8}
-  smokeSizeMin: 0.5
-  smokeSizeMax: 1.2
-  smokeDuration: 0.3
+  smokeSizeMin: 0.02
+  smokeSizeMax: 0.08
+  smokeDuration: 0.2
   smokeDecaySpeed: 10

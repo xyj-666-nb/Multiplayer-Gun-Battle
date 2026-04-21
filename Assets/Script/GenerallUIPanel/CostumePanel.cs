@@ -8,6 +8,8 @@ public class CostumePanel : BasePanel
     [Header("子面板填充区域")]
     public RectTransform PanelArea;
 
+    private string _currentActiveTab = "";
+
     #region UI控件
     public override void ClickButton(string controlName)
     {
@@ -15,6 +17,8 @@ public class CostumePanel : BasePanel
 
         if (controlName == "PlayerSkipButton")
         {
+            if (_currentActiveTab == "PlayerSkipButton") return;
+
             // UI选择音效
             MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             HideAllPanel();
@@ -23,9 +27,15 @@ public class CostumePanel : BasePanel
             UImanager.Instance.ShowPanel<PlayerSkipPanel>();
             BasePanel playerPanel = UImanager.Instance.GetPanel<PlayerSkipPanel>();
             FillParentPanel(playerPanel.GetComponent<RectTransform>());
+
+            // 更新当前状态
+            _currentActiveTab = "PlayerSkipButton";
         }
         else if (controlName == "GunSkipButton")
         {
+
+            if (_currentActiveTab == "GunSkipButton") return;
+
             // UI选择音效
             MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             HideAllPanel();
@@ -34,9 +44,14 @@ public class CostumePanel : BasePanel
             UImanager.Instance.ShowPanel<GunSkipPanel>();
             BasePanel gunPanel = UImanager.Instance.GetPanel<GunSkipPanel>();
             FillParentPanel(gunPanel.GetComponent<RectTransform>());
+
+            // 更新当前状态
+            _currentActiveTab = "GunSkipButton";
         }
         else if (controlName == "ExpressionButton")
         {
+            if (_currentActiveTab == "ExpressionButton") return;
+
             // UI选择音效
             MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             //打开表情面板
@@ -44,6 +59,9 @@ public class CostumePanel : BasePanel
             UImanager.Instance.ShowPanel<ExpressionPanel>();
             BasePanel expressionPanel = UImanager.Instance.GetPanel<ExpressionPanel>();
             FillParentPanel(expressionPanel.GetComponent<RectTransform>());
+
+            // 更新当前状态
+            _currentActiveTab = "ExpressionButton";
         }
         else if (controlName == "ReturnButton")
         {
@@ -94,10 +112,13 @@ public class CostumePanel : BasePanel
         ButtonGroupManager.Instance.AddRadioButtonToGroup("CostumePanel", controlDic["GunSkipButton"] as Button);
         ButtonGroupManager.Instance.AddRadioButtonToGroup("CostumePanel", controlDic["ExpressionButton"] as Button);
         ButtonGroupManager.Instance.ManualSelectToggleButton("CostumePanel");
+
         // 显示玩家面板并填充
         UImanager.Instance.ShowPanel<PlayerSkipPanel>();
         BasePanel playerPanel = UImanager.Instance.GetPanel<PlayerSkipPanel>();
         FillParentPanel(playerPanel.GetComponent<RectTransform>());
+
+        _currentActiveTab = "PlayerSkipButton";
     }
 
     public override void Start()
@@ -132,6 +153,8 @@ public class CostumePanel : BasePanel
         base.HideMe(callback, isNeedDefaultAnimator);
         HideAllPanel();
         ButtonGroupManager.Instance.DestroyRadioGroup("CostumePanel");
+
+        _currentActiveTab = "";
     }
 
     protected override void SpecialAnimator_Hide()

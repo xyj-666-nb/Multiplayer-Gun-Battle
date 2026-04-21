@@ -469,12 +469,14 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
     public void SetPlayerSkinPack(PlayerSkinPack SkinPack)
     {
         CurrentPlayerSkinPack = SkinPack;
+
         SavePlayerData();
     }
 
     public void SetPlayerSkinPack(int PackID)
     {
-        if (_playerSkinDict.TryGetValue(PackID, out var pack)) SetPlayerSkinPack(pack);
+        if (_playerSkinDict.TryGetValue(PackID, out var pack)) 
+            SetPlayerSkinPack(pack);
     }
 
     public void SetCurrentHitEffect(GunHitData hitData)

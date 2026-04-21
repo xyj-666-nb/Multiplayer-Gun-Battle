@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fa9bf9f44b774a419ebe1fc00f1efc7, type: 3}
+  m_Name: "\u8868\u60C5\u6346\u7ED1\u53055"
+  m_EditorClassIdentifier: 
+  goodsPrice: 40
+  goodsGuid: c4317a7e-7029-4a88-bcab-c9306ff5f28e
+  skinType: 4
+  goodsIcon: {fileID: 0}
+  goodsName: "\u8868\u60C5\u6346\u7ED1\u5305"
+  goodsDescription: "4\u4E2A\u53EF\u4EE5\u4F7F\u7528\u7684\u8868\u60C5"
+  quality: 0
+  bulletPack: {fileID: 0}
+  expressionPacks:
+  - {fileID: 11400000, guid: 6f76e0df85f2d1144872547cbd41ff32, type: 2}
+  - {fileID: 11400000, guid: 2610bc3cfd7902946ad4b1ad83f48571, type: 2}
+  - {fileID: 11400000, guid: 95acd998e1be13f40bf0f400a9e1bca2, type: 2}
+  - {fileID: 11400000, guid: ab30c9d7c99f8f64c8f1b7fd368fe087, type: 2}
+  playerSkinPack: {fileID: 0}
+  gunHitData: {fileID: 0}
+  gunSkinPack: {fileID: 0}

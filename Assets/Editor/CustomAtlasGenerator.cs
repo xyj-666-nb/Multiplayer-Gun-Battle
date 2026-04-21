@@ -66,7 +66,7 @@ public class CustomAtlasGenerator : EditorWindow
         public Vector4 border;
     }
 
-    [MenuItem("工具/自研图集生成器(混合精灵打包)")]
+    [MenuItem("Tools/自研图集生成器(混合精灵打包)")]
     public static void ShowWindow()
     {
         GetWindow<CustomAtlasGenerator>("混合精灵打包工具").minSize = new Vector2(480, 750);

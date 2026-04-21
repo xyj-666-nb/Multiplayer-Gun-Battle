@@ -337,6 +337,7 @@ MonoBehaviour:
   DamageFloatObj: {fileID: 2756252371298464814, guid: 3e7323927bac5b346a9ad9150c883b53, type: 3}
   originalWorldScale: {x: 0, y: 0, z: 0}
   GunInfoManager: {fileID: 0}
+  gunSkinID: 0
   Duration: 0.5
   _localRecoil: 0
   _localAccuracy: 0
@@ -609,6 +610,14 @@ PlayableDirector:
   - key: {fileID: 6721639572692249604, guid: 5aabc50bb054adb41bcec6499f13a142, type: 2}
     value: {fileID: 3329342980537219533}
   - key: {fileID: -8460495715230298186, guid: 5aabc50bb054adb41bcec6499f13a142, type: 2}
+    value: {fileID: 3329342980537219533}
+  - key: {fileID: 6721639572692249604, guid: fee21b336dbb0dd499738e09f3dfeb16, type: 2}
+    value: {fileID: 3329342980537219533}
+  - key: {fileID: -8460495715230298186, guid: fee21b336dbb0dd499738e09f3dfeb16, type: 2}
+    value: {fileID: 3329342980537219533}
+  - key: {fileID: 6721639572692249604, guid: 9e4b5a6000a1edb4d88d1d5326e89a81, type: 2}
+    value: {fileID: 3329342980537219533}
+  - key: {fileID: -8460495715230298186, guid: 9e4b5a6000a1edb4d88d1d5326e89a81, type: 2}
     value: {fileID: 3329342980537219533}
   m_ExposedReferences:
     m_References: []

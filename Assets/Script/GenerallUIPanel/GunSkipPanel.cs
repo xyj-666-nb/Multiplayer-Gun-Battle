@@ -54,6 +54,9 @@ public class GunSkipPanel : BasePanel
     private float DefaultTop = 300;
     public float DefaultLeft = 800;
 
+    [Header("疑惑面板")]
+    public CanvasGroup questionPanel;
+    private Sequence questionPanelSequence;
 
     #region 控制变量
     private GunType _currentGunType = GunType.Rifle;
@@ -62,6 +65,12 @@ public class GunSkipPanel : BasePanel
     private bool _isFirstInit = true;
 
     private bool IsScale = false;
+
+    public void IsTriggerQuestionPanel(bool IsTrigger)
+    {
+        questionPanel.blocksRaycasts = IsTrigger;
+        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(questionPanel, ref questionPanelSequence, IsTrigger, () => { });
+    }
 
     private class ButtonOriginalState
     {
@@ -101,7 +110,6 @@ public class GunSkipPanel : BasePanel
     public override void Start()
     {
         base.Start();
-        // 初始化默认隐藏枪械皮肤装备按钮
         SetGunSkinEquipButtonActive(false);
     }
 
@@ -121,20 +129,16 @@ public class GunSkipPanel : BasePanel
     }
     #endregion
 
-    #region 核心：枪械皮肤装备按钮 + 演示面板 显隐控制
+    #region 核心：枪械皮肤装备按钮 显隐控制
     /// <summary>
-    /// 统一控制：演示面板 + 枪械皮肤专属装备按钮
+    /// 控制：枪械皮肤专属装备按钮
     /// </summary>
-    /// <param name="isGunSkinPanel">是否是枪械皮肤面板</param>
-    private void SetGunSkinEquipButtonActive(bool isGunSkinPanel)
+    private void SetGunSkinEquipButtonActive(bool isActive)
     {
-        IsActiveEffectShowCanvasGroup(!isGunSkinPanel);
-
         if (controlDic != null && controlDic.ContainsKey("GunSkipButton"))
         {
             GameObject btnObj = controlDic["GunSkipButton"].gameObject;
-            btnObj.SetActive(isGunSkinPanel);
-
+            btnObj.SetActive(isActive);
         }
     }
     #endregion
@@ -148,63 +152,71 @@ public class GunSkipPanel : BasePanel
             // UI返回音效
             MusicManager.Instance.PlayEffect("Music/update415/ui返回");
             gunViewZoom.ChangeView(GunViewType.Normal);
-            IsActiveButtonGroup(true);
             VCTopic.text = "默认";
             currentPanelType = GunViewType.Normal;
+
             ClearBulletBindButton();
             ClearHitEffectButton();
             ClearGunSkinButton();
 
-            // ========== 返回默认：关闭皮肤按钮，打开演示面板 ==========
+            // ========== 返回默认：主选单开启，关闭皮肤按钮，关闭演示面板 ==========
+            IsActiveButtonGroup(true);
             SetGunSkinEquipButtonActive(false);
+            IsActiveEffectShowCanvasGroup(false);
         }
         else if (controlName == "BulletButton")
         {
             // UI选择音效
             MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             gunViewZoom.ChangeView(GunViewType.BulletConfig);
-            IsActiveButtonGroup(false);
             VCTopic.text = "子弹配置";
             currentPanelType = GunViewType.BulletConfig;
+
             ClearHitEffectButton();
             ClearGunSkinButton();
             CreateBulletBind(_currentGunType);
             PlayDemoGunByCurrentPanel();
 
-            // ========== 子弹配置：关闭皮肤按钮，打开演示面板 ==========
+            // ========== 子弹配置：主选单隐藏，关闭皮肤按钮，打开演示面板 ==========
+            IsActiveButtonGroup(false);
             SetGunSkinEquipButtonActive(false);
+            IsActiveEffectShowCanvasGroup(true);
         }
         else if (controlName == "GunSkipButton_Test")
         {
             // UI选择音效
             MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             gunViewZoom.ChangeView(GunViewType.GunSkin);
-            IsActiveButtonGroup(false);
             VCTopic.text = "枪械皮肤";
             currentPanelType = GunViewType.GunSkin;
+
             ClearBulletBindButton();
             ClearHitEffectButton();
             CreateGunSkinButton(_currentGunType);
             PlayDemoGunByCurrentPanel();
 
-            // ========== 枪械皮肤：激活皮肤按钮，关闭演示面板 ==========
+            // ========== 枪械皮肤：主选单隐藏，激活皮肤按钮，关闭演示面板 ==========
+            IsActiveButtonGroup(false);
             SetGunSkinEquipButtonActive(true);
+            IsActiveEffectShowCanvasGroup(false);
         }
         else if (controlName == "HitObjtButton")
         {
             // UI选择音效
             MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             gunViewZoom.ChangeView(GunViewType.HitParticle);
-            IsActiveButtonGroup(false);
             VCTopic.text = "打击粒子";
             currentPanelType = GunViewType.HitParticle;
+
             ClearBulletBindButton();
             ClearGunSkinButton();
             CreateHitEffectBind();
             PlayDemoGunByCurrentPanel();
 
-            // ========== 打击粒子：关闭皮肤按钮，打开演示面板 ==========
+            // ========== 主选单隐藏，关闭皮肤按钮，打开演示面板 ==========
+            IsActiveButtonGroup(false);
             SetGunSkinEquipButtonActive(false);
+            IsActiveEffectShowCanvasGroup(true);
         }
         else if (controlName == "EffectScreen")
         {
@@ -238,7 +250,7 @@ public class GunSkipPanel : BasePanel
             {
                 if (CurrentChooseSpecialBulletBindPack != null)
                 {
-                    GameSkinManager.Instance.SetPlayerSkinPack(CurrentChooseSpecialBulletBindPack.BulletBindID);
+                    GameSkinManager.Instance.EquipBulletBindPack(CurrentChooseSpecialBulletBindPack.BulletBindID);//装备子弹包
                     WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "已装备子弹配置");
                 }
             }
@@ -255,6 +267,14 @@ public class GunSkipPanel : BasePanel
             //枪械皮肤专属安装按钮
             WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "已装备枪械皮肤");
             GameSkinManager.Instance.EquipmentGunSkin(CurrentChooseGunSkinPack.skinGuid);//传入ID自动装备
+        }
+        else if (controlName == "ProblemButton")
+        {
+            IsTriggerQuestionPanel(true);
+        }
+        else if (controlName == "ConfirmButton")
+        {
+            IsTriggerQuestionPanel(false);
         }
     }
     #endregion
@@ -429,8 +449,8 @@ public class GunSkipPanel : BasePanel
             RefreshGunDisplay();
             RefreshBulletSpriteWithFade();
 
+            // 仅清空由于枪械类型而产生变化的选项，打击特效因为是全枪械通用所以不清除！
             ClearBulletBindButton();
-            ClearHitEffectButton();
             ClearGunSkinButton();
 
             switch (currentPanelType)
@@ -447,6 +467,12 @@ public class GunSkipPanel : BasePanel
                         CreateGunSkinButton(type);
                     }
                     break;
+            }
+
+            // 因为切换了测试武器大类，所以立刻更新Demo靶场的表现效果
+            if (currentPanelType != GunViewType.Normal)
+            {
+                PlayDemoGunByCurrentPanel();
             }
         }
     }
@@ -626,9 +652,9 @@ public class GunSkipPanel : BasePanel
     }
     #endregion
 
-    #region 枪械皮肤按钮逻辑（含特殊缩放+重置）
+    #region 枪械皮肤按钮逻辑
     /// <summary>
-    /// 生成枪械皮肤交互按钮（特殊缩放规则）
+    /// 生成枪械皮肤交互按钮
     /// </summary>
     public void CreateGunSkinButton(GunType Type)
     {
@@ -778,7 +804,6 @@ public class GunSkipPanel : BasePanel
     {
         ChooseButtonCanvasGroup.blocksRaycasts = IsTrigger;
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(ChooseButtonCanvasGroup, ref ChooseButtonCanvasGroupSequence, IsTrigger, () => { });
-        IsActiveEffectShowCanvasGroup(!IsTrigger);
     }
 
     public void IsActiveEffectShowCanvasGroup(bool IsTrigger)
@@ -795,8 +820,10 @@ public class GunSkipPanel : BasePanel
         ClearBulletBindButton();
         ClearHitEffectButton();
         ClearGunSkinButton();
-        // 隐藏面板时重置皮肤按钮
+
+        // 隐藏面板时关闭额外组件
         SetGunSkinEquipButtonActive(false);
+        IsActiveEffectShowCanvasGroup(false);
     }
 
     public override void ShowMe(bool isNeedDefaultAnimator = true)
@@ -813,6 +840,7 @@ public class GunSkipPanel : BasePanel
             _isFirstInit = false;
             RefreshGunDisplay();
             SetBulletSpriteImmediately();
+            IsActiveEffectShowCanvasGroup(false);
         }
     }
 

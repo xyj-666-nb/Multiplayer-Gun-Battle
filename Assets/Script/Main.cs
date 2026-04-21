@@ -209,7 +209,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         // Developer_GUITestManger.Instance.RegisterGuiButton("保存数据", () => { PlayerAndGameInfoManger.Instance.SavePlayerData(); });
         Developer_GUITestManger.Instance.RegisterGuiButton("进入地图选择", () => { MapChooseWall.Instance.EnterMapChooseSystem(); });
         Developer_GUITestManger.Instance.RegisterGuiButton("测试射击", () => { DemoGun.Instance.TestShoot(test); });
-        Developer_GUITestManger.Instance.RegisterGuiButton("触发护盾", () => { Player.LocalPlayer.TriggerShield(); });
+       // Developer_GUITestManger.Instance.RegisterGuiButton("触发护盾", () => { Player.LocalPlayer.TriggerShield(); });
          Developer_GUITestManger.Instance.RegisterGuiButton("靶子音效", () => {         MusicManager.Instance.PlayEffect3D("Music/正式/交互/击中靶子1", 10f, owner: this.transform); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("进入飞机视角", () => { MapChooseWall.Instance.EnterVC(); });
         // Developer_GUITestManger.Instance.RegisterGuiButton("测试地图2视角", () => { MapChooseWall.Instance.TestScene2(); });

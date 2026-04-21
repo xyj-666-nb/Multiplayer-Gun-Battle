@@ -3,7 +3,6 @@ using Unity.Profiling;
 using System.Text;
 using UnityEngine.Rendering;
 using System;
-using UnityEditor;
 
 [DisallowMultipleComponent]
 public class PerformanceMonitor : MonoBehaviour
@@ -172,10 +171,10 @@ public class PerformanceMonitor : MonoBehaviour
         }
         _sb.AppendLine();
 
-        // 5. DrawCall（核心修复：改用Unity官方稳定API，100%可获取）
-        _sb.AppendLine($"<b>Draw Calls:</b> {UnityStats.drawCalls}");
-        _sb.AppendLine($"<b>三角面数:</b> {UnityStats.triangles / 10000.0:F2} 万");
-        _sb.AppendLine();
+        //// 5. DrawCall（核心修复：改用Unity官方稳定API，100%可获取）
+        //_sb.AppendLine($"<b>Draw Calls:</b> {UnityStats.drawCalls}");
+        //_sb.AppendLine($"<b>三角面数:</b> {UnityStats.triangles / 10000.0:F2} 万");
+        //_sb.AppendLine();
 
         // 6. GPU帧时间（修复：异常值处理+兼容性提示）
         if (_gpuFrameTimeRecorder.Valid && _gpuFrameTimeRecorder.LastValue > 0)

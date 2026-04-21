@@ -17,12 +17,12 @@ MonoBehaviour:
   bulletLineWidth: 0.03
   bulletFlySpeed: 80
   bulletShowDuration: 0.5
-  gunType: 2
-  BulletID: 36
+  gunType: 4
+  BulletID: 31
   cartridgeCaseColor: {r: 0.3, g: 1, b: 1, a: 1}
   cartridgeCaseSize: 0.2
   smokeColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.8}
-  smokeSizeMin: 0.5
-  smokeSizeMax: 1.2
-  smokeDuration: 0.3
+  smokeSizeMin: 0.03
+  smokeSizeMax: 0.08
+  smokeDuration: 0.2
   smokeDecaySpeed: 10

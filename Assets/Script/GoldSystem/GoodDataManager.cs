@@ -3,12 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+// 保留 Inspector 面板配置所需要的类
+[Serializable]
+public class DiscountLevel
+{
+    [Tooltip("折扣率（0.9=9折，0.5=5折）")]
+    public float discountRate;
+    [Tooltip("抽取权重，数值越大概率越高")]
+    public int weight;
+}
+
 public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
 {
+    [Header("商品总库与玩家拥有")]
     public List<GoodsData> AllGoodsDataList;
     public List<GoodsData> UserObtainGoodsList;
-    private List<string> UserObtainGoodIDsList;
-    private string PlayerGoodsDataFileName = "PlayerGoodsData";
 
     [Header("商店信息关联")]
     public int EverydayRefreshGoodsAmount = 6;
@@ -17,8 +26,6 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     [Header("===== 每日商店配置 =====")]
     [Tooltip("自动刷新日期：存储最后一次刷新的日期")]
     [SerializeField] private string lastRefreshDate;
-    [Tooltip("每日商店本地存档文件名")]
-    [SerializeField] private string dailyShopSaveName = "DailyShopData";
     [Tooltip("皮肤类型抽取权重")]
     public SkinTypeWeight[] skinTypeWeights;
     [Tooltip("商品品质抽取权重")]
@@ -36,13 +43,14 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     [Tooltip("折扣档位配置：权重越高，抽到该折扣的概率越大")]
     public DiscountLevel[] discountLevels = new DiscountLevel[]
     {
-        new DiscountLevel(){ discountRate = 0.9f, weight = 50 }, // 9折，权重最高，概率最大
-        new DiscountLevel(){ discountRate = 0.8f, weight = 30 }, // 8折，次高概率
-        new DiscountLevel(){ discountRate = 0.7f, weight = 10 }, // 7折，中等概率
-        new DiscountLevel(){ discountRate = 0.6f, weight = 7 },  // 6折，低概率
-        new DiscountLevel(){ discountRate = 0.5f, weight = 3 },  // 5折，最低概率
+        new DiscountLevel(){ discountRate = 0.9f, weight = 50 },
+        new DiscountLevel(){ discountRate = 0.8f, weight = 30 },
+        new DiscountLevel(){ discountRate = 0.7f, weight = 10 },
+        new DiscountLevel(){ discountRate = 0.6f, weight = 7 },
+        new DiscountLevel(){ discountRate = 0.5f, weight = 3 },
     };
 
+    // 内存中的折扣字典
     private Dictionary<string, float> currentGoodsDiscountDict = new Dictionary<string, float>();
 
     [Header("显示图片")]
@@ -55,41 +63,12 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     [Header("今日是否给与过每日奖励")]
     public bool hasGivenDailyReward = false;
 
-    [Serializable]
-    private class DailyShopSaveData
-    {
-        public string date;
-        public List<string> goodsGuids = new List<string>();
-        public int dailyRefreshCount;
-        // 存储折扣数据
-        public List<DiscountData> discounts = new List<DiscountData>();
-        // 存储今日是否已领取每日奖励
-        public bool hasGivenDailyReward;
-    }
-
-    [Serializable]
-    private class DiscountData
-    {
-        public string goodsGuid;
-        public float discount;
-    }
-
-    /// <summary>
-    /// 折扣档位配置类
-    /// </summary>
-    [Serializable]
-    public class DiscountLevel
-    {
-        [Tooltip("折扣率（0.9=9折，0.5=5折）")]
-        public float discountRate;
-        [Tooltip("抽取权重，数值越大概率越高")]
-        public int weight;
-    }
-
-    public bool IsReachUpperLimit()
-    {
-        return todayUsedRefreshCount >= maxDailyRefreshCount;
-    }
+    private const string PREF_OWNED_GOODS = "PlayerOwnedGoods_Guids";
+    private const string PREF_DAILY_DATE = "DailyShop_LastDate";
+    private const string PREF_DAILY_REWARD = "DailyShop_HasReward";
+    private const string PREF_DAILY_REFRESH = "DailyShop_RefreshCount";
+    private const string PREF_DAILY_GOODS = "DailyShop_GoodsList";
+    private const string PREF_DAILY_DISCOUNTS = "DailyShop_Discounts";
 
     #region 权重配置类
     [Serializable]
@@ -105,211 +84,182 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         public int weight = 10;
     }
     #endregion
-
-    #region 折扣公共方法
-    /// <summary>
-    /// 获取某商品的当前折扣
-    /// </summary>
-    public float GetGoodsDiscount(string guid)
+    private void Start()
     {
-        if (currentGoodsDiscountDict.TryGetValue(guid, out float discount))
-        {
-            return discount;
-        }
-        return 1.0f; // 默认不打折
-    }
-
-    /// <summary>
-    /// 获取某商品的折后价 
-    /// </summary>
-    public int GetGoodsDiscountedPrice(GoodsData goods)
-    {
-        float discount = GetGoodsDiscount(goods.goodsGuid);
-        return Mathf.FloorToInt(goods.goodsPrice * discount);
-    }
-    #endregion
-
-    #region 每日奖励公共方法
-    /// <summary>
-    /// 检查今日是否可以领取每日奖励
-    /// </summary>
-    public bool CanReceiveDailyReward()
-    {
-        return !hasGivenDailyReward;
-    }
-
-    /// <summary>
-    /// 标记今日已领取每日奖励
-    /// </summary>
-    public void MarkDailyRewardGiven()
-    {
-        if (hasGivenDailyReward)
-        {
-            Debug.LogWarning("[每日奖励] 今日已领取过奖励，请勿重复领取！");
-            return;
-        }
-
-        hasGivenDailyReward = true;
-        SaveDailyShopData(); // 立即保存到本地
-        Debug.Log("[每日奖励] 今日奖励已领取，状态已保存");
-    }
-
-    /// <summary>
-    /// GM功能：重置今日每日奖励状态（用于测试）
-    /// </summary>
-    [ContextMenu("GM_重置每日奖励状态")]
-    private void GM_ResetDailyReward()
-    {
-        if (!Application.isPlaying)
-        {
-            Debug.LogWarning("请在游戏运行（Play Mode）下使用此功能！");
-            return;
-        }
-
-        hasGivenDailyReward = false;
-        SaveDailyShopData();
-        Debug.Log("[GM] 每日奖励状态已重置为可领取");
-    }
-    #endregion
-
-    protected override void Awake()
-    {
-        base.Awake();
+        //  先加载玩家已拥有的永久商品
         LoadPlayerGood();
-        // 启动时自动生成今日商店数据
-        CreateToDayData();
+        //  执行严格的每日状态校验
+        CheckAndInitDailyState();
     }
 
-    #region 每日商店生成逻辑 (修复版)
-    public void CreateToDayData()
+    #region 
+    /// <summary>
+    /// 唯一入口：检查并初始化每日状态
+    /// </summary>
+    public void CheckAndInitDailyState()
     {
-        string today = DateTime.Now.Date.ToString("yyyyMMdd");
-
-        //  先尝试加载完整数据（包括折扣）
-        // 这里我们不再分开加载元数据，而是直接尝试加载完整列表，确保折扣不丢失
-        bool hasValidLoadedData = TryLoadCompleteDailyShopData();
-
-        // 判断今天是否已经生成过，且数据有效
-        if (lastRefreshDate == today && hasValidLoadedData)
-        {
-            //如果商品列表有了，但折扣字典是空的（旧存档），补全折扣
-            if (ToDayRefreshGoodsList.Count > 0 && currentGoodsDiscountDict.Count == 0)
-            {
-                Debug.LogWarning("[商店] 检测到旧存档数据，正在补全折扣信息...");
-                foreach (var goods in ToDayRefreshGoodsList)
-                {
-                    if (!string.IsNullOrEmpty(goods.goodsGuid))
-                    {
-                        GenerateDiscountForGoods(goods.goodsGuid);
-                    }
-                }
-                SaveDailyShopData(); // 补全后立即保存
-            }
-
-            Debug.Log($"[商店] 今日商品已加载，数量：{ToDayRefreshGoodsList.Count}，剩余刷新次数：{maxDailyRefreshCount - todayUsedRefreshCount}，今日奖励状态：{(hasGivenDailyReward ? "已领取" : "未领取")}");
+        if (!Application.isPlaying) 
             return;
-        }
 
-        //新的一天 或 数据无效，重新生成商品
-        GenerateNewDailyShopGoods(isNewDay: true);
+        string todayString = DateTime.Now.Date.ToString("yyyyMMdd");
+        string savedDate = PlayerPrefs.GetString(PREF_DAILY_DATE, "");
+
+        if (!string.IsNullOrEmpty(savedDate) && savedDate == todayString)
+        {
+            Debug.Log($"[系统校验] 校验通过，读取今日({todayString})数据...");
+            RestoreStateFromPrefs();
+
+            if (ToDayRefreshGoodsList.Count == 0)
+            {
+                GenerateShopGoodsListAndDiscount();
+                SaveDailyStateToDisk();
+            }
+        }
+        else
+        {
+            Debug.Log($"[系统校验] 检测到新日期或无存档(旧:{savedDate} 新:{todayString})，强制重置所有每日状态！");
+
+            lastRefreshDate = todayString;
+            todayUsedRefreshCount = 0;
+            hasGivenDailyReward = false; // 核心：新的一天绝对重置为未领取！
+
+            GenerateShopGoodsListAndDiscount();
+
+            SaveDailyStateToDisk();
+        }
     }
 
     /// <summary>
-    /// 尝试加载完整的每日商店数据
-    /// 返回是否加载成功
+    /// 从 PlayerPrefs 恢复数据
     /// </summary>
-    private bool TryLoadCompleteDailyShopData()
+    private void RestoreStateFromPrefs()
     {
-        if (!Application.isPlaying) return false;
+        lastRefreshDate = PlayerPrefs.GetString(PREF_DAILY_DATE, "");
+        hasGivenDailyReward = PlayerPrefs.GetInt(PREF_DAILY_REWARD, 0) == 1; // 1代表true，0代表false
+        todayUsedRefreshCount = PlayerPrefs.GetInt(PREF_DAILY_REFRESH, 0);
 
-        var saveData = DataEncryptionManger.Instance.LoadEncryptedComplexData<DailyShopSaveData>(dailyShopSaveName);
-
-        if (saveData == null || string.IsNullOrEmpty(saveData.date))
-        {
-            return false; // 没有存档或存档损坏
-        }
-
-        // 恢复数据
-        lastRefreshDate = saveData.date;
-        todayUsedRefreshCount = saveData.dailyRefreshCount;
-        // 【新增】恢复每日奖励标记
-        hasGivenDailyReward = saveData.hasGivenDailyReward;
-
-        // 恢复商品列表
+        // 恢复商品列表 (格式: guid1|guid2|guid3)
         ToDayRefreshGoodsList.Clear();
-        if (saveData.goodsGuids != null)
+        string goodsStr = PlayerPrefs.GetString(PREF_DAILY_GOODS, "");
+        if (!string.IsNullOrEmpty(goodsStr))
         {
-            foreach (var guid in saveData.goodsGuids)
+            string[] guids = goodsStr.Split('|');
+            foreach (var guid in guids)
             {
                 var goods = AllGoodsDataList.FirstOrDefault(g => g.goodsGuid == guid);
                 if (goods != null) ToDayRefreshGoodsList.Add(goods);
             }
         }
 
-        // 恢复折扣字典
+        // 恢复折扣 (格式: guid1:0.9|guid2:0.8)
         currentGoodsDiscountDict.Clear();
-        if (saveData.discounts != null)
+        string discountStr = PlayerPrefs.GetString(PREF_DAILY_DISCOUNTS, "");
+        if (!string.IsNullOrEmpty(discountStr))
         {
-            foreach (var d in saveData.discounts)
+            string[] pairs = discountStr.Split('|');
+            foreach (var pair in pairs)
             {
-                currentGoodsDiscountDict[d.goodsGuid] = d.discount;
+                string[] kv = pair.Split(':');
+                if (kv.Length == 2 && float.TryParse(kv[1], out float val))
+                {
+                    currentGoodsDiscountDict[kv[0]] = val;
+                }
             }
         }
 
-        return true;
+        Debug.Log($"[读取完毕] 奖励状态：{(hasGivenDailyReward ? "已领取" : "未领取")}");
     }
 
     /// <summary>
-    /// 手动强制刷新今日商品
+    /// 将当前内存中的所有每日状态保存到 PlayerPrefs
+    /// </summary>
+    private void SaveDailyStateToDisk()
+    {
+        if (!Application.isPlaying) return;
+
+        PlayerPrefs.SetString(PREF_DAILY_DATE, lastRefreshDate);
+        PlayerPrefs.SetInt(PREF_DAILY_REWARD, hasGivenDailyReward ? 1 : 0); // 保存奖励状态
+        PlayerPrefs.SetInt(PREF_DAILY_REFRESH, todayUsedRefreshCount);
+
+        // 拼接商品列表
+        string goodsStr = string.Join("|", ToDayRefreshGoodsList.Select(g => g.goodsGuid));
+        PlayerPrefs.SetString(PREF_DAILY_GOODS, goodsStr);
+
+        // 拼接折扣字典
+        List<string> discList = new List<string>();
+        foreach (var kvp in currentGoodsDiscountDict)
+        {
+            discList.Add($"{kvp.Key}:{kvp.Value}");
+        }
+        PlayerPrefs.SetString(PREF_DAILY_DISCOUNTS, string.Join("|", discList));
+
+        PlayerPrefs.Save(); // 强制立即写入硬盘
+    }
+    #endregion
+
+    #region 每日奖励公共方法
+    public bool CanReceiveDailyReward()
+    {
+        return !hasGivenDailyReward;
+    }
+
+    public void MarkDailyRewardGiven()
+    {
+        if (hasGivenDailyReward)
+        {
+            Debug.LogWarning("[每日奖励] 今日已领取过奖励，无法重复领取！");
+            return;
+        }
+
+        hasGivenDailyReward = true;
+        SaveDailyStateToDisk(); // 标记为 true 后立即落盘
+        Debug.Log("[每日奖励] 奖励领取成功！状态已永久写入 PlayerPrefs。");
+    }
+    #endregion
+
+    #region 商店刷新与商品生成逻辑
+    public bool IsReachUpperLimit()
+    {
+        return todayUsedRefreshCount >= maxDailyRefreshCount;
+    }
+
+    public int GetRemainingRefreshCount()
+    {
+        return maxDailyRefreshCount - todayUsedRefreshCount;
+    }
+
+    /// <summary>
+    /// 玩家手动点击刷新商店
     /// </summary>
     public void RefRefreshToDay()
     {
-        if (todayUsedRefreshCount >= maxDailyRefreshCount)
+        if (IsReachUpperLimit())
         {
-            Debug.LogWarning("[商店] 今日刷新次数已用完！请明天再试。");
+            Debug.LogWarning("[商店] 今日刷新次数已用完！");
             return;
         }
 
-        GenerateNewDailyShopGoods(isNewDay: false);
-
+        // 仅刷新商品，不修改日期和奖励状态
+        GenerateShopGoodsListAndDiscount();
         todayUsedRefreshCount++;
-        SaveDailyShopData();
-
-        Debug.Log($"[商店] 手动刷新完成！今日已用 {todayUsedRefreshCount}/{maxDailyRefreshCount} 次");
+        SaveDailyStateToDisk();
+        Debug.Log($"[商店] 刷新成功！今日已用刷新次数: {todayUsedRefreshCount}/{maxDailyRefreshCount}");
     }
 
     /// <summary>
-    /// 生成新的每日商品
+    /// 仅负责从总库中抽取商品并生成折扣
     /// </summary>
-    private void GenerateNewDailyShopGoods(bool isNewDay)
+    private void GenerateShopGoodsListAndDiscount()
     {
         ToDayRefreshGoodsList.Clear();
-        currentGoodsDiscountDict.Clear(); // 清空旧折扣
-        string today = DateTime.Now.Date.ToString("yyyyMMdd");
+        currentGoodsDiscountDict.Clear();
 
-        if (isNewDay)
-        {
-            todayUsedRefreshCount = 0;
-            // 【新增】新的一天，重置每日奖励标记为未领取
-            hasGivenDailyReward = false;
-            Debug.Log($"[每日奖励] 新的一天到来，每日奖励已重置为可领取状态");
-        }
-
-        // 筛选玩家未拥有的商品
         List<GoodsData> availableGoods = AllGoodsDataList
-            .Where(goods => !string.IsNullOrEmpty(goods.goodsGuid)
-                 && !UserObtainGoodsList.Contains(goods))
+            .Where(goods => !string.IsNullOrEmpty(goods.goodsGuid) && !UserObtainGoodsList.Contains(goods))
             .ToList();
 
-        if (availableGoods.Count == 0)
-        {
-            Debug.LogWarning("[商店] 玩家已拥有所有商品，无商品可刷新！");
-            lastRefreshDate = today;
-            SaveDailyShopData();
-            return;
-        }
+        if (availableGoods.Count == 0) return;
 
-        // 加权随机抽取商品
         while (ToDayRefreshGoodsList.Count < EverydayRefreshGoodsAmount && availableGoods.Count > 0)
         {
             GoodsData selectedGoods = GetWeightedRandomGoods(availableGoods);
@@ -317,27 +267,15 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
             {
                 ToDayRefreshGoodsList.Add(selectedGoods);
                 availableGoods.Remove(selectedGoods);
-
-                // 为选中的商品生成权重化折扣
-                GenerateDiscountForGoods(selectedGoods.goodsGuid);
+                GenerateDiscountForSingleGoods(selectedGoods.goodsGuid);
             }
         }
-
-        lastRefreshDate = today;
-        SaveDailyShopData();
-
-        Debug.Log($"[商店] 已重新生成今日商品，打折商品数量：{currentGoodsDiscountDict.Count(kvp => kvp.Value < 1.0f)}");
     }
 
-    /// <summary>
-    /// 权重化随机折扣生成
-    /// </summary>
-    private void GenerateDiscountForGoods(string guid)
+    private void GenerateDiscountForSingleGoods(string guid)
     {
-        // 先判断是否命中打折概率
         if (UnityEngine.Random.value <= discountChance)
         {
-            // 轮盘赌算法，按权重抽取折扣档位
             int totalWeight = discountLevels.Sum(level => level.weight);
             int randomValue = UnityEngine.Random.Range(0, totalWeight);
             int currentWeight = 0;
@@ -351,19 +289,14 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
                     return;
                 }
             }
-
-            // 兜底：默认9折
             currentGoodsDiscountDict[guid] = 0.9f;
         }
         else
         {
-            // 不打折
             currentGoodsDiscountDict[guid] = 1.0f;
         }
     }
-    #endregion
 
-    #region 商品加权随机核心算法
     private GoodsData GetWeightedRandomGoods(List<GoodsData> pool)
     {
         int totalWeight = 0;
@@ -385,125 +318,78 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         for (int i = 0; i < pool.Count; i++)
         {
             current += weightList[i];
-            if (randomValue <= current)
-            {
-                return pool[i];
-            }
+            if (randomValue <= current) return pool[i];
         }
 
         return pool.FirstOrDefault();
     }
     #endregion
 
-    #region 数据持久化
-    private void SaveDailyShopData()
+    #region 获取折扣与价格
+    public float GetGoodsDiscount(string guid)
     {
-        // 只有在播放模式下才执行保存
-        if (!Application.isPlaying) return;
+        if (currentGoodsDiscountDict.TryGetValue(guid, out float discount)) return discount;
+        return 1.0f;
+    }
 
-        DailyShopSaveData saveData = new DailyShopSaveData();
-        saveData.date = lastRefreshDate;
-        saveData.goodsGuids = ToDayRefreshGoodsList.Select(g => g.goodsGuid).ToList();
-        saveData.dailyRefreshCount = todayUsedRefreshCount;
-        // 【新增】保存每日奖励标记
-        saveData.hasGivenDailyReward = hasGivenDailyReward;
-
-        // 保存折扣数据
-        saveData.discounts = new List<DiscountData>();
-        foreach (var kvp in currentGoodsDiscountDict)
-        {
-            saveData.discounts.Add(new DiscountData { goodsGuid = kvp.Key, discount = kvp.Value });
-        }
-
-        DataEncryptionManger.Instance.SaveEncryptedComplexData(dailyShopSaveName, saveData);
+    public int GetGoodsDiscountedPrice(GoodsData goods)
+    {
+        float discount = GetGoodsDiscount(goods.goodsGuid);
+        return Mathf.FloorToInt(goods.goodsPrice * discount);
     }
     #endregion
 
-    #region 原有商品功能
-    public GoodsData GetData()
-    {
-        if (AllGoodsDataList != null && AllGoodsDataList.Count > 0)
-        {
-            int randomIndex = UnityEngine.Random.Range(0, AllGoodsDataList.Count);
-            return AllGoodsDataList[randomIndex];
-        }
-        else
-        {
-            Debug.LogWarning("AllGoodsDataList 为空");
-            return null;
-        }
-    }
-
+    #region 玩家拥有商品管理
     public void PurchaseGoodToUser(GoodsData Data)
     {
         if (AllGoodsDataList.Contains(Data))
         {
-            if (UserObtainGoodsList.Contains(Data))
-            {
-                Debug.LogWarning("商品已经被购买");
-                return;
-            }
+            if (UserObtainGoodsList.Contains(Data)) return;
 
-            // 使用折后价计算
             int finalPrice = GetGoodsDiscountedPrice(Data);
 
             if (GoldSystem.Instance.GetGold() >= finalPrice)
             {
-                GoldSystem.Instance.CostGold(finalPrice, $"成功购买商品: {Data.goodsName} 原价:{Data.goodsPrice} 折后价:{finalPrice}");
+                GoldSystem.Instance.CostGold(finalPrice, $"购买商品: {Data.goodsName}");
                 UserObtainGoodsList.Add(Data);
                 SavePlayerGood();
-                // 开始对数据进行设置
-                LoadGoodsData(Data);
+                LoadGoodsDataIntoSkinManager(Data);
             }
             else
             {
-                Debug.LogWarning($"金币不足！当前：{GoldSystem.Instance.GetGold()} 折后价：{finalPrice}");
+                Debug.LogWarning("金币不足！");
             }
-        }
-        else
-        {
-            Debug.LogWarning($"商品 {Data.goodsName} 不存在");
         }
     }
 
-    /// <summary>
-    /// 购买成功后，将数据加载到 GameSkinManager
-    /// </summary>
-    public void LoadGoodsData(GoodsData Data)
+    public void LoadGoodsDataIntoSkinManager(GoodsData Data)
     {
-        if (GameSkinManager.Instance == null)
-        {
-            Debug.LogError("GameSkinManager 实例不存在，无法加载数据！");
-            return;
-        }
+        if (GameSkinManager.Instance == null) return;
 
         switch (Data.skinType)
         {
             case SkinType.PlayerCharacter:
                 if (Data.playerSkinPack != null && !GameSkinManager.Instance.PlayerOwnerSkinPackList.Contains(Data.playerSkinPack))
-                {
                     GameSkinManager.Instance.PlayerOwnerSkinPackList.Add(Data.playerSkinPack);
-                }
                 break;
-
             case SkinType.GunHitEffect:
                 if (Data.gunHitData != null && !GameSkinManager.Instance.CurrentGunHitDataList.Contains(Data.gunHitData))
-                {
                     GameSkinManager.Instance.CurrentGunHitDataList.Add(Data.gunHitData);
-                }
                 break;
-
             case SkinType.SpecialBullet:
                 if (Data.bulletPack != null && !GameSkinManager.Instance.CurrentBulletBundleList.Contains(Data.bulletPack.BulletBindID))
-                {
                     GameSkinManager.Instance.CurrentBulletBundleList.Add(Data.bulletPack.BulletBindID);
-                }
                 break;
             case SkinType.GunAppearance:
-                //加载枪械外观
                 GameSkinManager.Instance.AddGunSkinPack(Data.gunSkinPack);
                 break;
-
+            case SkinType.Expression:
+                if (Data.expressionPacks != null && Data.expressionPacks.Count > 0)
+                {
+                    foreach (var pack in Data.expressionPacks)
+                        ExpressionSystem.Instance.PlayerOwnExpressionIDList.Add(pack.ExpressionID);
+                }
+                break;
         }
     }
 
@@ -511,149 +397,116 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
 
     public void SavePlayerGood()
     {
-        // 只有在播放模式下才执行保存
         if (!Application.isPlaying) return;
 
-        UserObtainGoodIDsList = new List<string>();
-        foreach (GoodsData data in UserObtainGoodsList) UserObtainGoodIDsList.Add(data.goodsGuid);
-        DataEncryptionManger.Instance.SaveEncryptedComplexData<List<string>>(PlayerGoodsDataFileName, UserObtainGoodIDsList);
+        // 改用 PlayerPrefs 存储已拥有商品
+        string goodsStr = string.Join("|", UserObtainGoodsList.Select(g => g.goodsGuid));
+        PlayerPrefs.SetString(PREF_OWNED_GOODS, goodsStr);
+        PlayerPrefs.Save();
     }
 
-    /// <summary>
-    /// 加载玩家商品数据，并验证/补全默认商品
-    /// </summary>
     public void LoadPlayerGood()
     {
-        // 只有在播放模式下才执行加载
-        if (!Application.isPlaying)
-            return;
+        if (!Application.isPlaying) return;
 
-        // 从存档加载已购买的商品
-        UserObtainGoodIDsList = DataEncryptionManger.Instance.LoadEncryptedComplexData<List<string>>(PlayerGoodsDataFileName);
         UserObtainGoodsList = new List<GoodsData>();
 
-        if (UserObtainGoodIDsList != null)
+        string goodsStr = PlayerPrefs.GetString(PREF_OWNED_GOODS, "");
+        if (!string.IsNullOrEmpty(goodsStr))
         {
-            foreach (string goodID in UserObtainGoodIDsList)
+            string[] guids = goodsStr.Split('|');
+            foreach (string goodID in guids)
             {
                 GoodsData data = AllGoodsDataList.Find(g => g.goodsGuid == goodID);
                 if (data != null) UserObtainGoodsList.Add(data);
             }
         }
 
-        //验证并补全默认商品
         ValidateAndCompleteDefaultGoods();
-
-        //同步数据到 GameSkinManager
         SyncAllOwnedGoodsToSkinManager();
-
-        // 保存
-        SavePlayerGood();
+        SavePlayerGood(); // 重新保存确保存档干净
     }
 
-    /// <summary>
-    /// 验证默认商品是否都在已购买列表中，不在则补加
-    /// </summary>
     private void ValidateAndCompleteDefaultGoods()
     {
         if (DefaultInitGoodsData == null || DefaultInitGoodsData.Count == 0) return;
 
-        int addCount = 0;
         foreach (var defaultGoods in DefaultInitGoodsData)
         {
             if (defaultGoods == null || string.IsNullOrEmpty(defaultGoods.goodsGuid)) continue;
 
-            // 检查默认商品是否已在已购买列表中
             if (!UserObtainGoodsList.Contains(defaultGoods))
             {
-                // 同时也检查一下 AllGoodsDataList 里有没有，防止引用丢失
                 var goodsInAll = AllGoodsDataList.FirstOrDefault(g => g.goodsGuid == defaultGoods.goodsGuid);
                 if (goodsInAll != null)
                 {
                     UserObtainGoodsList.Add(goodsInAll);
-                    addCount++;
-                    Debug.Log($"[默认商品补全] 发现缺失的默认商品，已补回：{goodsInAll.goodsName}");
-                }
-                else
-                {
-                    Debug.LogError($"[默认商品错误] 默认商品 {defaultGoods.name} 不在 AllGoodsDataList 中，无法补全！请检查配置。");
                 }
             }
         }
-
-        if (addCount > 0)
-        {
-            Debug.Log($"[默认商品验证] 本次共补全 {addCount} 个默认商品");
-        }
     }
 
-    /// <summary>
-    /// 将所有已购买商品强制同步到 GameSkinManager
-    /// </summary>
     private void SyncAllOwnedGoodsToSkinManager()
     {
-        if (GameSkinManager.Instance == null)
-            return;
+        if (GameSkinManager.Instance == null) return;
 
         foreach (var goods in UserObtainGoodsList)
         {
-            if (goods == null)
-                continue;
-            LoadGoodsData(goods);
+            if (goods == null) continue;
+            LoadGoodsDataIntoSkinManager(goods);
         }
-        //触发本地已经保存的数据加载
         GameSkinManager.Instance.ReturnLastGameEquipment();
+        ExpressionSystem.Instance.SystemInit();
     }
 
     public void ClearLocalData()
     {
-        // 只有在播放模式下才执行
-        if (!Application.isPlaying)
-        {
-            Debug.LogWarning("请在游戏运行（Play Mode）下使用此功能！");
-            return;
-        }
+        if (!Application.isPlaying) return;
 
-        if (UserObtainGoodIDsList != null) UserObtainGoodIDsList.Clear();
-        else UserObtainGoodsList = new List<GoodsData>();
-        DataEncryptionManger.Instance.DeleteEncryptedComplexData(PlayerGoodsDataFileName);
-        // 同时也清空商店数据
-        DataEncryptionManger.Instance.DeleteEncryptedComplexData(dailyShopSaveName);
+        UserObtainGoodsList.Clear();
+
+        // 删除所有 PlayerPrefs 对应的 Key
+        PlayerPrefs.DeleteKey(PREF_OWNED_GOODS);
+        PlayerPrefs.DeleteKey(PREF_DAILY_DATE);
+        PlayerPrefs.DeleteKey(PREF_DAILY_REWARD);
+        PlayerPrefs.DeleteKey(PREF_DAILY_REFRESH);
+        PlayerPrefs.DeleteKey(PREF_DAILY_GOODS);
+        PlayerPrefs.DeleteKey(PREF_DAILY_DISCOUNTS);
+        PlayerPrefs.Save();
+
         LoadPlayerGood();
-        Debug.Log("玩家商品数据 & 商店数据已清空");
+        CheckAndInitDailyState(); // 清空后彻底重置每日状态
+        Debug.Log("玩家商品数据 & 商店数据已全部清空！");
     }
+    #endregion
 
-    [ContextMenu("GM_清空本地数据")]
+    #region GM 测试指令
+    [ContextMenu("GM_清空本地所有数据")]
     private void GM_ClearLocalData() => ClearLocalData();
 
     [ContextMenu("GM_手动刷新今日商店")]
     private void GM_RefreshDailyShop()
     {
-        if (!Application.isPlaying)
-        {
-            Debug.LogWarning("请在游戏运行（Play Mode）下使用此功能！");
-            return;
-        }
+        if (!Application.isPlaying) return;
         RefRefreshToDay();
     }
 
-    /// <summary>
-    /// GM功能：重置今日刷新次数
-    /// </summary>
     [ContextMenu("GM_重置今日刷新次数")]
     private void GM_ResetRefreshCount()
     {
-        if (!Application.isPlaying)
-        {
-            Debug.LogWarning("请在游戏运行（Play Mode）下使用此功能！");
-            return;
-        }
-
+        if (!Application.isPlaying) return;
         todayUsedRefreshCount = 0;
-        SaveDailyShopData(); // 保存到本地
-        Debug.Log($"[GM] 今日刷新次数已重置！剩余次数：{maxDailyRefreshCount - todayUsedRefreshCount}/{maxDailyRefreshCount}");
+        SaveDailyStateToDisk();
+        Debug.Log("[GM] 今日刷新次数已重置为0");
     }
 
-    public int GetRemainingRefreshCount() => maxDailyRefreshCount - todayUsedRefreshCount;
+    [ContextMenu("GM_重置每日奖励状态为未领取")]
+    private void GM_ResetDailyReward()
+    {
+        if (!Application.isPlaying) return;
+        hasGivenDailyReward = false;
+        SaveDailyStateToDisk();
+        Debug.Log("[GM] 每日奖励状态已重置为可领取");
+    }
     #endregion
 }

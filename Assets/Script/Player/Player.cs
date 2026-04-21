@@ -72,10 +72,6 @@ public class Player : Base_Entity
         MyExpressionSystem.CmdPlayExpression(ExpressionID);
     }
 
-    public void TriggerShield()
-    {
-        reBornShield.TriggerShield();//触发护盾
-    }
 
     // 公开属性
     public BaseGun CurrentTouchGun
@@ -194,20 +190,17 @@ public class Player : Base_Entity
         }
 
         transform.localScale = Vector3.one;
-        Debug.Log("护盾触发");
-        reBornShield.TriggerShield();//重生就触发护盾
     }
 
     public override void OnStartClient()
     {
         base.OnStartClient();
-        Debug.Log("护盾触发");
-        reBornShield.TriggerShield();//重生就触发护盾
+
     }
 
     #endregion
 
-    #region Mirror生命周期（优化：缓存复用+逻辑冗余+GC减少）
+    #region Mirror生命周期
     public override void OnStartServer()
     {
         base.OnStartServer();
@@ -228,6 +221,8 @@ public class Player : Base_Entity
             PlayerName = _sb.ToString();
             Debug.Log($"[服务器] 玩家{connectionToClient.connectionId}名称兜底：{PlayerName}");
         }
+
+        reBornShield.ServerTriggerShield();
     }
 
 
@@ -297,6 +292,7 @@ public class Player : Base_Entity
                 UImanager.Instance.ShowPanel<EverDayMotivatePanel>();
             }
         });
+
     }
 
     public override void OnStopLocalPlayer()
@@ -598,15 +594,17 @@ public class Player : Base_Entity
         if (!isLocalPlayer || _militaryManager == null)
             return;
 
-
         GunType gunType = MilitaryManager.Instance.GetGunType(gunName);
         GunSkinInfo skinInfo = new GunSkinInfo();//声明结构体
         var bulletConfig = GameSkinManager.Instance.ReturnBulletVisualConfig(gunType);
         var flashConfig = GameSkinManager.Instance.ReturnMuzzleFlashConfig(gunType);
 
-        // 做空值保护，避免空引用报错
         skinInfo.BulletID = bulletConfig != null ? bulletConfig.BulletID : 0;
         skinInfo.MuzzleFlashID = flashConfig != null ? flashConfig.MuzzleFlashID : 0;
+
+        skinInfo.HitID = GameSkinManager.Instance.CurrentOwnerHitObj != null ? GameSkinManager.Instance.CurrentOwnerHitObj.HitID : 1;
+        var skinPack = GameSkinManager.Instance.GetCurrentGunEquipmentSkinPack(gunName);
+        skinInfo.GunSkinID = skinPack != null ? skinPack.skinGuid : 0;
 
         LocalPlayer.CmdSpawnAndPickGun(gunName, skinInfo);
 
@@ -621,6 +619,8 @@ public class Player : Base_Entity
     {
         public int MuzzleFlashID;
         public int BulletID;//子弹ID
+        public int HitID;  
+        public int GunSkinID;
     }
 
     [Command]
@@ -637,14 +637,15 @@ public class Player : Base_Entity
         NetworkServer.Spawn(gunObj, connectionToClient);
 
         BaseGun gun = gunObj.GetComponent<BaseGun>();
-        GunSkipID = GameSkinManager.Instance.GetCurrentGunEquipmentSkinPack(gunName).skinGuid;//赋值当前装备皮肤的ID
-        gun.SetGunConfig(skinInfo.MuzzleFlashID, skinInfo.BulletID,GameSkinManager.Instance.CurrentOwnerHitObj.HitID, GunSkipID);//传入打击特效ID
+
+        gun.SetGunConfig(skinInfo.MuzzleFlashID, skinInfo.BulletID, skinInfo.HitID, skinInfo.GunSkinID);
 
         ServerHandlePickUpGun(gunObj);
     }
     private int GunSkipID;
 
 
+    // 将原来的直接赋值改为协程延迟一帧赋值
     private void ServerHandlePickUpGun(GameObject gunObj)
     {
         if (!isServer || gunObj == null || playerHandPos == null)
@@ -662,19 +663,27 @@ public class Player : Base_Entity
             ServerHandleDropGun(currentGun.gameObject, false);
         }
 
-        Vector3 gunScale = gunObj.transform.localScale;
-        gunScale.x = -Mathf.Abs(gunScale.x);
-        gunObj.transform.localScale = gunScale;
 
         gunObj.transform.SetParent(playerHandPos);
         gunObj.transform.localPosition = Vector3.zero;
         gunObj.transform.localRotation = Quaternion.identity;
 
-        newGun.isInPlayerHand = true;
-        currentGun = newGun;
-        newGun.ownerPlayer = this;
+        Vector3 gunScale = gunObj.transform.localScale;
+        gunScale.x = -Mathf.Abs(gunScale.x);
+        gunObj.transform.localScale = gunScale;
 
+        newGun.isInPlayerHand = true;
+        newGun.ownerPlayer = this;
         newGun.SafeServerOnGunPicked();
+
+        StartCoroutine(DelaySetCurrentGun(newGun));
+    }
+
+    private System.Collections.IEnumerator DelaySetCurrentGun(BaseGun newGun)
+    {
+        // 等待当前帧结束，或者直接 yield return new WaitForSeconds(0.1f);
+        yield return null;
+        currentGun = newGun; 
     }
 
     public void DropCurrentGun(bool IsDestroy = false)
@@ -800,12 +809,6 @@ public class Player : Base_Entity
     #endregion
 
     #region 销毁清理
-
-
-    protected override void DeserializeSyncVars(NetworkReader reader, bool initialState)
-    {
-        base.DeserializeSyncVars(reader, initialState);
-    }
 
     protected override void OnDestroy()
     {

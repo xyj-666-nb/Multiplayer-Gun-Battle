@@ -42,7 +42,7 @@ public class BulletGeneratorWithFix : EditorWindow
     private string BindFolder => ROOT_FOLDER + "/BulletBindPack";
     private string GoodsFolder => ROOT_FOLDER + "/GoodInfo";
 
-    [MenuItem("游戏工具/子弹生成器(带修复功能)")]
+    [MenuItem("Tools/子弹生成器(带修复功能)")]
     public static void ShowWindow()
     {
         GetWindow<BulletGeneratorWithFix>("子弹生成器(带修复)");
