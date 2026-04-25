@@ -1,21 +1,24 @@
-using DG.Tweening;
+ï»¿using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
+using UnityEngine.EventSystems; // æ–°å¢ï¼šç”¨äºEventTrigger
 
 /// <summary>
-/// °´Å¥×é¹ÜÀíÆ÷
+/// æŒ‰é’®ç»„ç®¡ç†å™¨
 /// </summary>
 public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
 {
-    #region ºËĞÄ´æ´¢
+    #region æ ¸å¿ƒå­˜å‚¨
+    // å•é€‰æŒ‰é’®ç»„å­—å…¸
     private Dictionary<string, RadioButtonGroupPack> _radioGroupDict = new Dictionary<string, RadioButtonGroupPack>();
+    // Toggleåˆ‡æ¢æŒ‰é’®ç»„å­—å…¸
     private Dictionary<string, ToggleButtonGroupPack> _toggleGroupDict = new Dictionary<string, ToggleButtonGroupPack>();
+
     #endregion
 
-    #region ÉúÃüÖÜÆÚ
+    #region ç”Ÿå‘½å‘¨æœŸ
     public ButtonGroupManager()
     {
         MonoMange.Instance.AddLister_OnDestroy(OnDestroy);
@@ -23,10 +26,12 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
 
     private void OnDestroy()
     {
+        // æ¸…ç†æ‰€æœ‰å•é€‰ç»„
         foreach (var group in _radioGroupDict.Values)
             group.ClearAllButtons();
         _radioGroupDict.Clear();
 
+        // æ¸…ç†æ‰€æœ‰Toggleç»„
         foreach (var group in _toggleGroupDict.Values)
             group.ClearAllButtons();
         _toggleGroupDict.Clear();
@@ -35,19 +40,18 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
     }
     #endregion
 
-    #region µ¥Ñ¡°´Å¥×é¹¦ÄÜ (ÒÑ¼ò»¯ÖØÔØ)
-
+    #region åŸæœ‰å•é€‰æŒ‰é’®ç»„åŠŸèƒ½
     public RadioButtonGroupPack CreateRadioGroup(string groupName)
     {
         if (string.IsNullOrEmpty(groupName))
         {
-            Debug.LogError("µ¥Ñ¡·Ö×éÃû³Æ²»ÄÜÎª¿Õ£¡");
+            Debug.LogError("å•é€‰åˆ†ç»„åç§°ä¸èƒ½ä¸ºç©ºï¼");
             return null;
         }
 
         if (_radioGroupDict.TryGetValue(groupName, out var existingGroup))
         {
-            Debug.LogWarning($"·Ö×é {groupName} ÒÑ´æÔÚ£¬½«·µ»ØÒÑÓĞ·Ö×é£¡");
+            Debug.LogWarning($"åˆ†ç»„ {groupName} å·²å­˜åœ¨ï¼Œå°†è¿”å›å·²æœ‰åˆ†ç»„ï¼");
             return existingGroup;
         }
 
@@ -69,46 +73,28 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
                                            float changeDuration = 0.2f,
                                            Color? chooseColor = null)
     {
-        if (button == null)
-        {
-            Debug.LogError("Ìí¼ÓµÄµ¥Ñ¡°´Å¥²»ÄÜÎª¿Õ£¡");
-            return null;
-        }
-
-        var group = GetRadioGroup(groupName) ?? CreateRadioGroup(groupName);
-
-        var radioButton = new RadioButton();
-        // °ü×°Ò»ÏÂ£¬°ÑÎŞ²Î»Øµ÷×ª³ÉÓĞ²ÎµÄÄÚ²¿µ÷ÓÃ
-        UnityAction<string> wrappedTrigger = (name) => triggerEvent?.Invoke();
-        UnityAction<string> wrappedCancel = (name) => cancelEvent?.Invoke();
-
-        radioButton.InitRadioButton(button, wrappedTrigger, wrappedCancel);
-        radioButton.ChooseScale = chooseScale;
-        radioButton.ChangeDuration = changeDuration;
-        if (chooseColor.HasValue)
-            radioButton.ChooseColor = chooseColor.Value;
-
-        group.AddRadioButton(radioButton);
-        return radioButton;
+        return AddRadioButtonToGroup_Str(groupName, button,
+                                       (btnName) => triggerEvent?.Invoke(),
+                                       cancelEvent, chooseScale, changeDuration, chooseColor);
     }
 
     public RadioButton AddRadioButtonToGroup_Str(string groupName, Button button,
-                                              UnityAction<string> triggerEventWithStr = null,
-                                              UnityAction<string> cancelEventWithStr = null,
-                                              float chooseScale = 1.05f,
-                                              float changeDuration = 0.2f,
-                                              Color? chooseColor = null)
+                                               UnityAction<string> triggerEventWithStr = null,
+                                               UnityAction cancelEvent = null,
+                                               float chooseScale = 1.05f,
+                                               float changeDuration = 0.2f,
+                                               Color? chooseColor = null)
     {
         if (button == null)
         {
-            Debug.LogError("Ìí¼ÓµÄµ¥Ñ¡°´Å¥²»ÄÜÎª¿Õ£¡");
+            Debug.LogError("æ·»åŠ çš„å•é€‰æŒ‰é’®ä¸èƒ½ä¸ºç©ºï¼");
             return null;
         }
 
         var group = GetRadioGroup(groupName) ?? CreateRadioGroup(groupName);
 
         var radioButton = new RadioButton();
-        radioButton.InitRadioButton(button, triggerEventWithStr, cancelEventWithStr);
+        radioButton.InitRadioButton(button, triggerEventWithStr, cancelEvent);
         radioButton.ChooseScale = chooseScale;
         radioButton.ChangeDuration = changeDuration;
         if (chooseColor.HasValue)
@@ -122,7 +108,7 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
     {
         if (button == null)
         {
-            Debug.LogError("ÒªÒÆ³ıµÄµ¥Ñ¡°´Å¥²»ÄÜÎª¿Õ£¡");
+            Debug.LogError("è¦ç§»é™¤çš„å•é€‰æŒ‰é’®ä¸èƒ½ä¸ºç©ºï¼");
             return;
         }
 
@@ -135,11 +121,11 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
         if (_radioGroupDict.Remove(groupName, out var group))
         {
             group.ClearAllButtons();
-            Debug.Log($"µ¥Ñ¡·Ö×é {groupName} ÒÑÏú»Ù£¡");
+            Debug.Log($"å•é€‰åˆ†ç»„ {groupName} å·²é”€æ¯ï¼");
         }
         else
         {
-            Debug.LogWarning($"µ¥Ñ¡·Ö×é {groupName} ²»´æÔÚ£¬ÎŞĞèÏú»Ù£¡");
+            Debug.LogWarning($"å•é€‰åˆ†ç»„ {groupName} ä¸å­˜åœ¨ï¼Œæ— éœ€é”€æ¯ï¼");
         }
     }
 
@@ -149,32 +135,46 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
         if (group != null)
             group.SelectFirstButton(triggerOnClick);
         else
-            Debug.LogWarning($"µ¥Ñ¡·Ö×é {groupName} ²»´æÔÚ£¬ÎŞ·¨Ñ¡ÔñµÚÒ»¸ö°´Å¥£¡");
+            Debug.LogWarning($"Radio group {groupName} does not exist, cannot select first button.");
     }
 
-    // ¡¾ĞÂÔö¡¿Í¨¹ı°´Å¥Ãû×ÖÊÖ¶¯Ñ¡ÖĞÖ¸¶¨°´Å¥
-    public void SelectRadioButtonByName(string groupName, string buttonName, bool triggerEvent = true)
+    public void SelectRadioButtonByName(string groupName, string buttonName, bool triggerOnClick = true)
     {
+        if (string.IsNullOrEmpty(buttonName))
+        {
+            Debug.LogWarning($"Radio group {groupName} target button name is null or empty.");
+            return;
+        }
+
         var group = GetRadioGroup(groupName);
-        if (group != null)
-            group.SelectButtonByName(buttonName, triggerEvent);
-        else
-            Debug.LogWarning($"µ¥Ñ¡·Ö×é {groupName} ²»´æÔÚ£¬ÎŞ·¨Ñ¡Ôñ°´Å¥ {buttonName}£¡");
+        if (group == null)
+        {
+            Debug.LogWarning($"Radio group {groupName} does not exist.");
+            return;
+        }
+
+        if (!group.SelectButtonByName(buttonName, triggerOnClick))
+        {
+            Debug.LogWarning($"Radio group {groupName} cannot find button named {buttonName}.");
+        }
     }
     #endregion
 
-    #region ToggleÇĞ»»°´Å¥×é¹¦ÄÜ (±£³Ö²»±ä)
+    #region Toggleåˆ‡æ¢æŒ‰é’®ç»„åŠŸèƒ½
+    /// <summary>
+    /// åˆ›å»ºToggleç»„
+    /// </summary>
     public ToggleButtonGroupPack CreateToggleGroup(string groupName)
     {
         if (string.IsNullOrEmpty(groupName))
         {
-            Debug.LogError("Toggle·Ö×éÃû³Æ²»ÄÜÎª¿Õ£¡");
+            Debug.LogError("Toggleåˆ†ç»„åç§°ä¸èƒ½ä¸ºç©ºï¼");
             return null;
         }
 
         if (_toggleGroupDict.TryGetValue(groupName, out var existingGroup))
         {
-            Debug.LogWarning($"Toggle·Ö×é {groupName} ÒÑ´æÔÚ£¬½«·µ»ØÒÑÓĞ·Ö×é£¡");
+            Debug.LogWarning($"Toggleåˆ†ç»„ {groupName} å·²å­˜åœ¨ï¼Œå°†è¿”å›å·²æœ‰åˆ†ç»„ï¼");
             return existingGroup;
         }
 
@@ -183,12 +183,27 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
         return newGroup;
     }
 
+    /// <summary>
+    /// è·å–Toggleç»„
+    /// </summary>
     public ToggleButtonGroupPack GetToggleGroup(string groupName)
     {
         _toggleGroupDict.TryGetValue(groupName, out var group);
         return group;
     }
 
+    /// <summary>
+    /// æ³¨å†Œå·²æœ‰æŒ‰é’®ä¸ºToggleæŒ‰é’®
+    /// <param name="groupName">åˆ†ç»„åç§°</param>
+    /// <param name="button">ä¼ å…¥çš„å·²æœ‰æŒ‰é’®ï¼ˆå¿…ä¼ ï¼‰</param>
+    /// <param name="buttonCustomName">æŒ‰é’®è‡ªå®šä¹‰åç§°ï¼‰</param>
+    /// <param name="onActive">é€‰ä¸­æ—¶è§¦å‘çš„å‡½æ•°ï¼ˆä¼ æŒ‰é’®åï¼‰</param>
+    /// <param name="onCancel">å–æ¶ˆé€‰ä¸­æ—¶è§¦å‘çš„å‡½æ•°ï¼ˆä¼ æŒ‰é’®åï¼‰</param>
+    /// <param name="chooseScale">é€‰ä¸­ç¼©æ”¾ï¼ˆé»˜è®¤1.05ï¼‰</param>
+    /// <param name="changeDuration">åŠ¨ç”»æ—¶é•¿ï¼ˆé»˜è®¤0.2ï¼‰</param>
+    /// <param name="chooseColor">é€‰ä¸­é¢œè‰²ï¼ˆé»˜è®¤æµ…ç»¿è‰²ï¼‰</param>
+    /// <param name="isDefaultSelected">æ˜¯å¦é»˜è®¤é€‰ä¸­ï¼ˆé»˜è®¤falseï¼‰</param>
+    /// <param name="isManualTrigger">æ˜¯å¦å®Œå…¨æ‰‹åŠ¨è§¦å‘ï¼ˆtrue=ä¸ç»‘å®šç‚¹å‡»äº‹ä»¶ï¼Œä»…ä»£ç æ§åˆ¶ï¼›false=æ­£å¸¸ç»‘å®šç‚¹å‡»ï¼‰</param>
     public ToggleButton AddToggleButtonToGroup(string groupName, Button button,
                                               string buttonCustomName = "",
                                               UnityAction<string> onActive = null,
@@ -201,28 +216,36 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
     {
         if (button == null)
         {
-            Debug.LogError("Toggle°´Å¥²»ÄÜÎª¿Õ£¡Çë´«ÈëÒÑÓĞ°´Å¥×é¼ş£¡");
+            Debug.LogError("ToggleæŒ‰é’®ä¸èƒ½ä¸ºç©ºï¼è¯·ä¼ å…¥å·²æœ‰æŒ‰é’®ç»„ä»¶ï¼");
             return null;
         }
 
         string finalBtnName = string.IsNullOrEmpty(buttonCustomName) ? button.gameObject.name : buttonCustomName;
         var group = GetToggleGroup(groupName) ?? CreateToggleGroup(groupName);
 
+        // ä»…åˆå§‹åŒ–ä¼ å…¥çš„æŒ‰é’®ï¼Œä¸ç”Ÿæˆæ–°æŒ‰é’®
         var toggleButton = new ToggleButton();
         toggleButton.InitToggleButton(button, finalBtnName, onActive, onCancel);
         toggleButton.ChooseScale = chooseScale;
         toggleButton.ChangeDuration = changeDuration;
         toggleButton.ChooseColor = chooseColor ?? new Color(0.2f, 0.8f, 0.2f);
+
+        // å…¬å¼€æ–¹æ³•è®¾ç½®é»˜è®¤çŠ¶æ€ï¼Œæ‰‹åŠ¨æ¨¡å¼ä¸‹é»˜è®¤ä¸è§¦å‘äº‹ä»¶
         toggleButton.SetSelectedState(isDefaultSelected, false);
+
+        // ä¼ é€’ isManualTrigger å‚æ•°ç»™åˆ†ç»„
         group.AddToggleButton(toggleButton, isManualTrigger);
         return toggleButton;
     }
 
+    /// <summary>
+    /// ä»Toggleç»„ç§»é™¤å·²æ³¨å†Œçš„æŒ‰é’®
+    /// </summary>
     public void RemoveToggleButtonFromGroup(string groupName, Button button)
     {
         if (button == null)
         {
-            Debug.LogError("ÒªÒÆ³ıµÄToggle°´Å¥²»ÄÜÎª¿Õ£¡");
+            Debug.LogError("è¦ç§»é™¤çš„ToggleæŒ‰é’®ä¸èƒ½ä¸ºç©ºï¼");
             return;
         }
 
@@ -230,63 +253,81 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
         group?.RemoveToggleButton(button);
     }
 
+    /// <summary>
+    /// é”€æ¯Toggleç»„
+    /// </summary>
     public void DestroyToggleGroup(string groupName)
     {
         if (_toggleGroupDict.Remove(groupName, out var group))
         {
             group.ClearAllButtons();
-            Debug.Log($"Toggle·Ö×é {groupName} ÒÑÏú»Ù£¡");
+            Debug.Log($"Toggleåˆ†ç»„ {groupName} å·²é”€æ¯ï¼");
         }
         else
         {
-            Debug.LogWarning($"Toggle·Ö×é {groupName} ²»´æÔÚ£¬ÎŞĞèÏú»Ù£¡");
+            Debug.LogWarning($"Toggleåˆ†ç»„ {groupName} ä¸å­˜åœ¨ï¼Œæ— éœ€é”€æ¯ï¼");
         }
     }
 
+    /// <summary>
+    /// æ‰‹åŠ¨è®¾ç½®ToggleæŒ‰é’®é€‰ä¸­çŠ¶æ€
+    /// </summary>
     public void SetToggleButtonSelected(string groupName, Button button, bool isSelected, bool triggerEvent = true)
     {
         var group = GetToggleGroup(groupName);
         if (group == null)
         {
-            Debug.LogWarning($"Toggle·Ö×é {groupName} ²»´æÔÚ£¡");
+            Debug.LogWarning($"Toggleåˆ†ç»„ {groupName} ä¸å­˜åœ¨ï¼");
             return;
         }
 
         group.SetToggleButtonSelected(button, isSelected, triggerEvent);
     }
 
+    /// <summary>
+    /// æ‰‹åŠ¨é€‰ä¸­æŒ‡å®šToggleåˆ†ç»„çš„æŒ‰é’®
+    /// </summary>
+    /// <param name="groupName">Toggleåˆ†ç»„å</param>
+    /// <param name="triggerEvent">æ˜¯å¦è§¦å‘é€‰ä¸­äº‹ä»¶ï¼ˆé»˜è®¤trueï¼‰</param>
     public void ManualSelectToggleButton(string groupName, bool triggerEvent = true)
     {
         var group = GetToggleGroup(groupName);
         if (group == null)
         {
-            Debug.LogWarning($"Toggle·Ö×é {groupName} ²»´æÔÚ£¬ÎŞ·¨Ñ¡ÖĞ°´Å¥£¡");
+            Debug.LogWarning($"Toggleåˆ†ç»„ {groupName} ä¸å­˜åœ¨ï¼Œæ— æ³•é€‰ä¸­æŒ‰é’®ï¼");
             return;
         }
 
+        // è·å–åˆ†ç»„å†…ç¬¬ä¸€ä¸ªæŒ‰é’®ï¼ˆé€‚é…å•æŒ‰é’®åœºæ™¯ï¼‰
         var toggleButton = group.GetFirstToggleButton();
         if (toggleButton == null)
         {
-            Debug.LogWarning($"Toggle·Ö×é {groupName} ÄÚÎŞ°´Å¥£¬ÎŞ·¨Ö´ĞĞÑ¡ÖĞ²Ù×÷£¡");
+            Debug.LogWarning($"Toggleåˆ†ç»„ {groupName} å†…æ— æŒ‰é’®ï¼Œæ— æ³•æ‰§è¡Œé€‰ä¸­æ“ä½œï¼");
             return;
         }
 
         toggleButton.ManualSelect(triggerEvent);
     }
 
+    /// <summary>
+    /// æ‰‹åŠ¨å–æ¶ˆæŒ‡å®šToggleåˆ†ç»„çš„æŒ‰é’®
+    /// </summary>
+    /// <param name="groupName">Toggleåˆ†ç»„å</param>
+    /// <param name="triggerEvent">æ˜¯å¦è§¦å‘å–æ¶ˆäº‹ä»¶ï¼ˆé»˜è®¤trueï¼‰</param>
     public void ManualCancelToggleButton(string groupName, bool triggerEvent = true)
     {
         var group = GetToggleGroup(groupName);
         if (group == null)
         {
-            Debug.LogWarning($"Toggle·Ö×é {groupName} ²»´æÔÚ£¬ÎŞ·¨È¡Ïû°´Å¥£¡");
+            Debug.LogWarning($"Toggleåˆ†ç»„ {groupName} ä¸å­˜åœ¨ï¼Œæ— æ³•å–æ¶ˆæŒ‰é’®ï¼");
             return;
         }
 
+        // è·å–åˆ†ç»„å†…ç¬¬ä¸€ä¸ªæŒ‰é’®
         var toggleButton = group.GetFirstToggleButton();
         if (toggleButton == null)
         {
-            Debug.LogWarning($"Toggle·Ö×é {groupName} ÄÚÎŞ°´Å¥£¬ÎŞ·¨Ö´ĞĞÈ¡Ïû²Ù×÷£¡");
+            Debug.LogWarning($"Toggleåˆ†ç»„ {groupName} å†…æ— æŒ‰é’®ï¼Œæ— æ³•æ‰§è¡Œå–æ¶ˆæ“ä½œï¼");
             return;
         }
 
@@ -295,7 +336,7 @@ public class ButtonGroupManager : SingleBehavior<ButtonGroupManager>
     #endregion
 }
 
-#region µ¥Ñ¡°´Å¥×éÊµÌå
+#region å•é€‰æŒ‰é’®ç»„å®ä½“
 public class RadioButtonGroupPack
 {
     public string GroupName { get; }
@@ -311,13 +352,13 @@ public class RadioButtonGroupPack
     {
         if (radioButton?.RadioButtonComponent == null)
         {
-            Debug.LogError("ÎŞĞ§µÄµ¥Ñ¡°´Å¥£¬ÎŞ·¨Ìí¼Óµ½·Ö×é£¡");
+            Debug.LogError("æ— æ•ˆçš„å•é€‰æŒ‰é’®ï¼Œæ— æ³•æ·»åŠ åˆ°åˆ†ç»„ï¼");
             return;
         }
 
         if (RadioButtonList.Contains(radioButton))
         {
-            Debug.LogWarning($"°´Å¥ {radioButton.RadioButtonComponent.name} ÒÑÔÚµ¥Ñ¡·Ö×é {GroupName} ÖĞ£¬ÎŞĞèÖØ¸´Ìí¼Ó£¡");
+            Debug.LogWarning($"æŒ‰é’® {radioButton.RadioButtonComponent.name} å·²åœ¨å•é€‰åˆ†ç»„ {GroupName} ä¸­ï¼Œæ— éœ€é‡å¤æ·»åŠ ï¼");
             return;
         }
 
@@ -326,7 +367,7 @@ public class RadioButtonGroupPack
 
         if (RadioButtonList.Count == 1 && _currentSelectedButton == null)
         {
-            Debug.Log($"[µ¥Ñ¡·Ö×é {GroupName}] µÚÒ»¸ö°´Å¥ {radioButton.RadioButtonComponent.name} Ä¬ÈÏÑ¡ÖĞ");
+            Debug.Log($"[å•é€‰åˆ†ç»„ {GroupName}] ç¬¬ä¸€ä¸ªæŒ‰é’® {radioButton.RadioButtonComponent.name} é»˜è®¤é€‰ä¸­");
             SetButtonSelected(radioButton, true);
         }
     }
@@ -336,7 +377,7 @@ public class RadioButtonGroupPack
         var target = RadioButtonList.Find(b => b.RadioButtonComponent == button);
         if (target == null)
         {
-            Debug.LogWarning($"µ¥Ñ¡·Ö×é {GroupName} ÖĞÎ´ÕÒµ½°´Å¥ {button.name}£¬ÒÆ³ıÊ§°Ü£¡");
+            Debug.LogWarning($"å•é€‰åˆ†ç»„ {GroupName} ä¸­æœªæ‰¾åˆ°æŒ‰é’® {button.name}ï¼Œç§»é™¤å¤±è´¥ï¼");
             return;
         }
 
@@ -346,7 +387,7 @@ public class RadioButtonGroupPack
 
         if (target == _currentSelectedButton && RadioButtonList.Count > 0)
         {
-            Debug.Log($"[µ¥Ñ¡·Ö×é {GroupName}] µ±Ç°Ñ¡ÖĞ°´Å¥±»ÒÆ³ı£¬×Ô¶¯Ñ¡ÖĞ {RadioButtonList[0].RadioButtonComponent.name}");
+            Debug.Log($"[å•é€‰åˆ†ç»„ {GroupName}] å½“å‰é€‰ä¸­æŒ‰é’®è¢«ç§»é™¤ï¼Œè‡ªåŠ¨é€‰ä¸­ {RadioButtonList[0].RadioButtonComponent.name}");
             SetButtonSelected(RadioButtonList[0], true);
         }
     }
@@ -379,7 +420,7 @@ public class RadioButtonGroupPack
     {
         if (RadioButtonList == null || RadioButtonList.Count == 0)
         {
-            Debug.LogWarning($"µ¥Ñ¡·Ö×é {GroupName} Ã»ÓĞ°´Å¥£¬ÎŞ·¨Ñ¡ÔñµÚÒ»¸ö£¡");
+            Debug.LogWarning($"å•é€‰åˆ†ç»„ {GroupName} æ²¡æœ‰æŒ‰é’®ï¼Œæ— æ³•é€‰æ‹©ç¬¬ä¸€ä¸ªï¼");
             return;
         }
         var first = RadioButtonList[0];
@@ -390,60 +431,49 @@ public class RadioButtonGroupPack
         }
     }
 
-    // ¡¾ĞÂÔö¡¿Í¨¹ıÃû×ÖÑ¡ÖĞÖ¸¶¨°´Å¥
-    public void SelectButtonByName(string buttonName, bool triggerEvent = true)
+    public bool SelectButtonByName(string buttonName, bool triggerOnClick = true)
     {
         if (RadioButtonList == null || RadioButtonList.Count == 0)
         {
-            Debug.LogWarning($"µ¥Ñ¡·Ö×é {GroupName} Ã»ÓĞ°´Å¥£¬ÎŞ·¨Ñ¡Ôñ {buttonName}£¡");
-            return;
+            Debug.LogWarning($"Radio group {GroupName} has no buttons.");
+            return false;
         }
 
-        // ÕÒµ½Ä¿±ê°´Å¥
-        RadioButton targetBtn = null;
+        var target = RadioButtonList.Find(btn =>
+            btn?.RadioButtonComponent != null &&
+            btn.RadioButtonComponent.gameObject.name == buttonName);
+
+        if (target == null)
+        {
+            return false;
+        }
+
         foreach (var btn in RadioButtonList)
+            SetButtonSelected(btn, btn == target);
+
+        if (triggerOnClick)
         {
-            if (btn.RadioButtonComponent != null && btn.RadioButtonComponent.gameObject.name == buttonName)
-            {
-                targetBtn = btn;
-                break;
-            }
+            target.RadioButtonComponent?.onClick?.Invoke();
         }
 
-        if (targetBtn == null)
-        {
-            Debug.LogWarning($"µ¥Ñ¡·Ö×é {GroupName} ÖĞÎ´ÕÒµ½°´Å¥ {buttonName}£¡");
-            return;
-        }
-
-        // Ñ¡ÖĞÄ¿±ê£¬È¡ÏûÆäËû
-        foreach (var btn in RadioButtonList)
-        {
-            SetButtonSelected(btn, btn == targetBtn);
-        }
-
-        // Èç¹ûĞèÒª´¥·¢ÊÂ¼ş£¬ÊÖ¶¯µ÷ÓÃÒ»ÏÂ
-        if (triggerEvent)
-        {
-            // ÕâÀï²»ĞèÒªÊÖ¶¯µ÷ÓÃ onClick£¬ÒòÎªÉèÖÃ IsChoose »á×Ô¶¯´¥·¢»Øµ÷
-            // Èç¹ûĞèÒªÇ¿ÖÆ´¥·¢£¬¿ÉÒÔÔÚÕâÀïÊÖ¶¯µ÷ÓÃ ButtonTriggerEventWithStr
-        }
+        return true;
     }
 
     public RadioButton GetCurrentSelectedButton() => _currentSelectedButton;
 }
 #endregion
 
-#region µ¥Ñ¡°´Å¥ÊµÌå
+#region å•é€‰æŒ‰é’®å®ä½“
 public class RadioButton
 {
     private Button _radioButton;
     public Button RadioButtonComponent => _radioButton;
 
     public UnityAction<string> ButtonTriggerEventWithStr;
-    public UnityAction<string> ButtonCancelEventWithStr;
+    public UnityAction ButtonCancelEvent;
 
     private Sequence _animaSequence;
+    private ButtonPressAnimationRelay _pressRelay;
     private RectTransform _rt;
     private Image _buttonImage;
     private Color _originalColor;
@@ -459,41 +489,39 @@ public class RadioButton
         get => _isChoose;
         set
         {
-            if (value == _isChoose)
-                return;
-            if (_radioButton == null || this == null) return;
+            if (value == _isChoose) return;
 
             if (value)
             {
                 PlayChooseAnima();
-                string btnName = _radioButton?.gameObject?.name ?? "Î´Öªµ¥Ñ¡°´Å¥";
+                string btnName = _radioButton?.gameObject?.name ?? "æœªçŸ¥å•é€‰æŒ‰é’®";
                 ButtonTriggerEventWithStr?.Invoke(btnName);
-
+                Debug.Log($"[å•é€‰æŒ‰é’® {btnName}] é€‰ä¸­ï¼Œæ‰§è¡Œæ¿€æ´»å›è°ƒ");
             }
             else
             {
                 PlayCancelAnima();
-                string btnName = _radioButton?.gameObject?.name ?? "Î´Öªµ¥Ñ¡°´Å¥";
-                ButtonCancelEventWithStr?.Invoke(btnName);
+                ButtonCancelEvent?.Invoke();
+                Debug.Log($"[å•é€‰æŒ‰é’® {_radioButton?.name}] å–æ¶ˆé€‰ä¸­ï¼Œæ‰§è¡Œå–æ¶ˆå›è°ƒ");
             }
 
             _isChoose = value;
         }
     }
 
-    public void InitRadioButton(Button button, UnityAction<string> triggerEventWithStr, UnityAction<string> cancelEventWithStr)
+    public void InitRadioButton(Button button, UnityAction<string> triggerEventWithStr, UnityAction cancelEvent)
     {
         _radioButton = button;
         ButtonTriggerEventWithStr = triggerEventWithStr;
-        ButtonCancelEventWithStr = cancelEventWithStr;
+        ButtonCancelEvent = cancelEvent;
 
         _rt = button.GetComponent<RectTransform>();
         _buttonImage = button.GetComponent<Image>();
 
         if (_rt == null)
-            Debug.LogError($"µ¥Ñ¡°´Å¥ {button.name} È±ÉÙ RectTransform ×é¼ş£¬¶¯»­½«ÎŞ·¨²¥·Å£¡");
+            Debug.LogError($"å•é€‰æŒ‰é’® {button.name} ç¼ºå°‘ RectTransform ç»„ä»¶ï¼ŒåŠ¨ç”»å°†æ— æ³•æ’­æ”¾ï¼");
         if (_buttonImage == null)
-            Debug.LogWarning($"µ¥Ñ¡°´Å¥ {button.name} È±ÉÙ Image ×é¼ş£¬ÑÕÉ«¶¯»­½«Ê§Ğ§£¡");
+            Debug.LogWarning($"å•é€‰æŒ‰é’® {button.name} ç¼ºå°‘ Image ç»„ä»¶ï¼Œé¢œè‰²åŠ¨ç”»å°†å¤±æ•ˆï¼");
 
         _originalScale = _rt ? _rt.localScale : Vector3.one;
         _originalColor = _buttonImage ? _buttonImage.color : Color.white;
@@ -501,26 +529,22 @@ public class RadioButton
         _animaSequence?.Kill();
         _animaSequence = DOTween.Sequence();
 
-        AddPressEventTrigger(button);
+        // æ–°å¢ï¼šæ·»åŠ æŒ‰å‹åŠ¨ç”»ç›‘å¬
+        BindPressEventRelay(button);
     }
 
-    private void AddPressEventTrigger(Button button)
+    // æ–°å¢ï¼šæ·»åŠ EventTriggerç›‘å¬æŒ‰ä¸‹/æŠ¬èµ·
+    private void BindPressEventRelay(Button button)
     {
-        EventTrigger trigger = button.GetComponent<EventTrigger>();
-        if (trigger == null)
-            trigger = button.gameObject.AddComponent<EventTrigger>();
+        _pressRelay = button.GetComponent<ButtonPressAnimationRelay>();
+        if (_pressRelay == null)
+            _pressRelay = button.gameObject.AddComponent<ButtonPressAnimationRelay>();
 
-        EventTrigger.Entry downEntry = new EventTrigger.Entry();
-        downEntry.eventID = EventTriggerType.PointerDown;
-        downEntry.callback.AddListener((data) => PlayPressAnima());
-        trigger.triggers.Add(downEntry);
-
-        EventTrigger.Entry upEntry = new EventTrigger.Entry();
-        upEntry.eventID = EventTriggerType.PointerUp;
-        upEntry.callback.AddListener((data) => PlayReleaseAnima());
-        trigger.triggers.Add(upEntry);
+        _pressRelay.OnPointerDownAction = PlayPressAnima;
+        _pressRelay.OnPointerUpAction = PlayReleaseAnima;
     }
 
+    // æ–°å¢ï¼šæŒ‰ä¸‹åŠ¨ç”»ï¼ˆç¼©å°åˆ°0.95ï¼‰
     private void PlayPressAnima()
     {
         if (_rt == null) return;
@@ -530,6 +554,7 @@ public class RadioButton
             .Append(_rt.DOScale(0.95f, 0.1f).SetEase(Ease.OutQuad));
     }
 
+    // æ–°å¢ï¼šæ¾å¼€åŠ¨ç”»ï¼ˆæ¢å¤åŸå§‹å¤§å°ï¼‰
     private void PlayReleaseAnima()
     {
         if (_rt == null) return;
@@ -565,11 +590,17 @@ public class RadioButton
     {
         _animaSequence?.Kill();
         _animaSequence = null;
+
+        if (_pressRelay != null)
+        {
+            _pressRelay.OnPointerDownAction = null;
+            _pressRelay.OnPointerUpAction = null;
+        }
     }
 }
 #endregion
 
-#region ToggleÇĞ»»°´Å¥×éÊµÌå 
+#region Toggleåˆ‡æ¢æŒ‰é’®ç»„å®ä½“
 public class ToggleButtonGroupPack
 {
     public string GroupName { get; }
@@ -580,29 +611,33 @@ public class ToggleButtonGroupPack
         GroupName = groupName;
     }
 
+    /// <summary>æ·»åŠ å·²æ³¨å†Œçš„ToggleæŒ‰é’®åˆ°ç»„</summary>
+    /// <param name="toggleButton">æŒ‰é’®å®ä½“</param>
+    /// <param name="isManualTrigger">æ˜¯å¦å®Œå…¨æ‰‹åŠ¨è§¦å‘</param>
     public void AddToggleButton(ToggleButton toggleButton, bool isManualTrigger = false)
     {
         if (toggleButton?.ButtonComponent == null)
         {
-            Debug.LogError("ÎŞĞ§µÄToggle°´Å¥£¬ÎŞ·¨Ìí¼Óµ½·Ö×é£¡");
+            Debug.LogError("æ— æ•ˆçš„ToggleæŒ‰é’®ï¼Œæ— æ³•æ·»åŠ åˆ°åˆ†ç»„ï¼");
             return;
         }
 
         if (ToggleButtonList.Contains(toggleButton))
         {
-            Debug.LogWarning($"Toggle°´Å¥ {toggleButton.ButtonName} ÒÑÔÚ·Ö×é {GroupName} ÖĞ£¬ÎŞĞèÖØ¸´Ìí¼Ó£¡");
+            Debug.LogWarning($"ToggleæŒ‰é’® {toggleButton.ButtonName} å·²åœ¨åˆ†ç»„ {GroupName} ä¸­ï¼Œæ— éœ€é‡å¤æ·»åŠ ï¼");
             return;
         }
 
         ToggleButtonList.Add(toggleButton);
 
+        // å…³é”®ä¿®æ”¹ï¼šåªæœ‰éæ‰‹åŠ¨æ¨¡å¼ä¸‹ï¼Œæ‰ç»‘å®šæŒ‰é’®çš„ç‚¹å‡»äº‹ä»¶
         if (!isManualTrigger)
         {
             toggleButton.ButtonComponent.onClick.AddListener(() => toggleButton.ToggleSelectedState());
         }
         else
         {
-            Debug.Log($"[Toggle·Ö×é {GroupName}] °´Å¥ {toggleButton.ButtonName} ÒÑÉèÎªÍêÈ«ÊÖ¶¯Ä£Ê½£¬µã»÷ÊÂ¼şÎ´°ó¶¨¡£");
+            Debug.Log($"[Toggleåˆ†ç»„ {GroupName}] æŒ‰é’® {toggleButton.ButtonName} å·²è®¾ä¸ºå®Œå…¨æ‰‹åŠ¨æ¨¡å¼ï¼Œç‚¹å‡»äº‹ä»¶æœªç»‘å®šã€‚");
         }
     }
 
@@ -611,7 +646,7 @@ public class ToggleButtonGroupPack
         var target = ToggleButtonList.Find(b => b.ButtonComponent == button);
         if (target == null)
         {
-            Debug.LogWarning($"Toggle·Ö×é {GroupName} ÖĞÎ´ÕÒµ½°´Å¥ {button.name}£¬ÒÆ³ıÊ§°Ü£¡");
+            Debug.LogWarning($"Toggleåˆ†ç»„ {GroupName} ä¸­æœªæ‰¾åˆ°æŒ‰é’® {button.name}ï¼Œç§»é™¤å¤±è´¥ï¼");
             return;
         }
 
@@ -630,28 +665,32 @@ public class ToggleButtonGroupPack
         ToggleButtonList.Clear();
     }
 
+    /// <summary>é€šè¿‡å…¬å¼€æ–¹æ³•è®¾ç½®é€‰ä¸­çŠ¶æ€</summary>
     public void SetToggleButtonSelected(Button button, bool isSelected, bool triggerEvent = true)
     {
         var target = ToggleButtonList.Find(b => b.ButtonComponent == button);
         if (target == null)
         {
-            Debug.LogWarning($"Toggle·Ö×é {GroupName} ÖĞÎ´ÕÒµ½°´Å¥ {button.name}£¡");
+            Debug.LogWarning($"Toggleåˆ†ç»„ {GroupName} ä¸­æœªæ‰¾åˆ°æŒ‰é’® {button.name}ï¼");
             return;
         }
 
         target.SetSelectedState(isSelected, triggerEvent);
     }
 
+    /// <summary>æ‰‹åŠ¨é€‰ä¸­ç»„å†…æŒ‡å®šToggleæŒ‰é’®</summary>
     public void ManualSelectButton(Button button, bool triggerEvent = true)
     {
         SetToggleButtonSelected(button, true, triggerEvent);
     }
 
+    /// <summary>æ‰‹åŠ¨å–æ¶ˆç»„å†…æŒ‡å®šToggleæŒ‰é’®</summary>
     public void ManualCancelButton(Button button, bool triggerEvent = true)
     {
         SetToggleButtonSelected(button, false, triggerEvent);
     }
 
+    /// <summary>è·å–åˆ†ç»„å†…ç¬¬ä¸€ä¸ªToggleæŒ‰é’®ï¼ˆå•æŒ‰é’®åœºæ™¯ä¸“ç”¨ï¼‰</summary>
     public ToggleButton GetFirstToggleButton()
     {
         return ToggleButtonList.Count > 0 ? ToggleButtonList[0] : null;
@@ -664,26 +703,35 @@ public class ToggleButtonGroupPack
 }
 #endregion
 
-#region ToggleÇĞ»»°´Å¥ÊµÌå (±£³Ö²»±ä)
+#region Toggleåˆ‡æ¢æŒ‰é’®å®ä½“
 public class ToggleButton
 {
+    // ä»…å¼•ç”¨ä¼ å…¥çš„æŒ‰é’®ç»„ä»¶
     private Button _button;
     private RectTransform _rt;
     private Image _buttonImage;
     private Vector3 _originalScale;
     private Color _originalColor;
     private Sequence _animationSequence;
+    private ButtonPressAnimationRelay _pressRelay;
 
+    #region å¯è‡ªå®šä¹‰å‚æ•°
     public float ChooseScale = 1.05f;
     public float ChangeDuration = 0.2f;
     public Color ChooseColor = new Color(0.2f, 0.8f, 0.2f);
+    #endregion
 
+    #region å…¬å¼€å±æ€§/äº‹ä»¶
     public string ButtonName { get; private set; }
     public UnityAction<string> OnActive;
     public UnityAction<string> OnCancel;
+    /// <summary>ä»…å…¬å¼€getï¼Œseté€šè¿‡SetSelectedStateæ–¹æ³•</summary>
     public bool IsSelected { get; private set; }
+    /// <summary>è¿”å›ä¼ å…¥çš„æŒ‰é’®ç»„ä»¶</summary>
     public Button ButtonComponent => _button;
+    #endregion
 
+    /// <summary>åˆå§‹åŒ–ï¼šä»…æ¥æ”¶ä¼ å…¥çš„å·²æœ‰æŒ‰é’®</summary>
     public void InitToggleButton(Button button, string btnName, UnityAction<string> onActive, UnityAction<string> onCancel)
     {
         _button = button;
@@ -695,9 +743,9 @@ public class ToggleButton
         _buttonImage = button.GetComponent<Image>();
 
         if (_rt == null)
-            Debug.LogError($"Toggle°´Å¥ {ButtonName} È±ÉÙ RectTransform ×é¼ş£¬Ëõ·Å¶¯»­Ê§Ğ§£¡");
+            Debug.LogError($"ToggleæŒ‰é’® {ButtonName} ç¼ºå°‘ RectTransform ç»„ä»¶ï¼Œç¼©æ”¾åŠ¨ç”»å¤±æ•ˆï¼");
         if (_buttonImage == null)
-            Debug.LogWarning($"Toggle°´Å¥ {ButtonName} È±ÉÙ Image ×é¼ş£¬ÑÕÉ«¶¯»­Ê§Ğ§£¡");
+            Debug.LogWarning($"ToggleæŒ‰é’® {ButtonName} ç¼ºå°‘ Image ç»„ä»¶ï¼Œé¢œè‰²åŠ¨ç”»å¤±æ•ˆï¼");
 
         _originalScale = _rt ? _rt.localScale : Vector3.one;
         _originalColor = _buttonImage ? _buttonImage.color : Color.white;
@@ -705,24 +753,18 @@ public class ToggleButton
         _animationSequence?.Kill();
         _animationSequence = DOTween.Sequence();
 
-        AddPressEventTrigger(button);
+        // æ–°å¢ï¼šæ·»åŠ æŒ‰å‹åŠ¨ç”»ç›‘å¬
+        BindPressEventRelay(button);
     }
 
-    private void AddPressEventTrigger(Button button)
+    private void BindPressEventRelay(Button button)
     {
-        EventTrigger trigger = button.GetComponent<EventTrigger>();
-        if (trigger == null)
-            trigger = button.gameObject.AddComponent<EventTrigger>();
+        _pressRelay = button.GetComponent<ButtonPressAnimationRelay>();
+        if (_pressRelay == null)
+            _pressRelay = button.gameObject.AddComponent<ButtonPressAnimationRelay>();
 
-        EventTrigger.Entry downEntry = new EventTrigger.Entry();
-        downEntry.eventID = EventTriggerType.PointerDown;
-        downEntry.callback.AddListener((data) => PlayPressAnima());
-        trigger.triggers.Add(downEntry);
-
-        EventTrigger.Entry upEntry = new EventTrigger.Entry();
-        upEntry.eventID = EventTriggerType.PointerUp;
-        upEntry.callback.AddListener((data) => PlayReleaseAnima());
-        trigger.triggers.Add(upEntry);
+        _pressRelay.OnPointerDownAction = PlayPressAnima;
+        _pressRelay.OnPointerUpAction = PlayReleaseAnima;
     }
 
     private void PlayPressAnima()
@@ -743,17 +785,18 @@ public class ToggleButton
             .Append(_rt.DOScale(_originalScale, 0.1f).SetEase(Ease.OutQuad));
     }
 
+    /// <summary>åˆ‡æ¢é€‰ä¸­çŠ¶æ€ï¼‰</summary>
     public void ToggleSelectedState()
     {
         SetSelectedState(!IsSelected, true);
     }
 
+    /// <summary>å…¬å¼€çš„è®¾ç½®çŠ¶æ€æ–¹æ³•</summary>
+    /// <param name="isSelected">æ˜¯å¦é€‰ä¸­</param>
+    /// <param name="triggerEvent">æ˜¯å¦è§¦å‘äº‹ä»¶</param>
     public void SetSelectedState(bool isSelected, bool triggerEvent = true)
     {
         if (IsSelected == isSelected) return;
-
-        // °²È«¼ì²é
-        if (_button == null) return;
 
         IsSelected = isSelected;
 
@@ -765,24 +808,31 @@ public class ToggleButton
             if (IsSelected)
             {
                 OnActive?.Invoke(ButtonName);
+                Debug.Log($"[ToggleæŒ‰é’® {ButtonName}] é€‰ä¸­ï¼Œæ‰§è¡Œæ¿€æ´»å›è°ƒ");
             }
             else
             {
                 OnCancel?.Invoke(ButtonName);
+                Debug.Log($"[ToggleæŒ‰é’® {ButtonName}] å–æ¶ˆé€‰ä¸­ï¼Œæ‰§è¡Œå–æ¶ˆå›è°ƒ");
             }
         }
     }
 
+    /// <summary>æ‰‹åŠ¨é€‰ä¸­å½“å‰ToggleæŒ‰é’®</summary>
+    /// <param name="triggerEvent">æ˜¯å¦è§¦å‘é€‰ä¸­äº‹ä»¶ï¼ˆé»˜è®¤trueï¼‰</param>
     public void ManualSelect(bool triggerEvent = true)
     {
         SetSelectedState(true, triggerEvent);
     }
 
+    /// <summary>æ‰‹åŠ¨å–æ¶ˆå½“å‰ToggleæŒ‰é’®</summary>
+    /// <param name="triggerEvent">æ˜¯å¦è§¦å‘å–æ¶ˆäº‹ä»¶ï¼ˆé»˜è®¤trueï¼‰</param>
     public void ManualCancel(bool triggerEvent = true)
     {
         SetSelectedState(false, triggerEvent);
     }
 
+    #region åŠ¨ç”»é€»è¾‘
     private void PlaySelectedAnimation()
     {
         if (_rt == null) return;
@@ -809,13 +859,36 @@ public class ToggleButton
             _animationSequence.Join(_buttonImage.DOColor(_originalColor, ChangeDuration).SetEase(Ease.InQuad));
     }
 
+    /// <summary>æ¸…ç†åŠ¨ç”»</summary>
     public void ClearAnimation()
     {
         _animationSequence?.Kill();
         _animationSequence = null;
 
+        if (_pressRelay != null)
+        {
+            _pressRelay.OnPointerDownAction = null;
+            _pressRelay.OnPointerUpAction = null;
+        }
+
         if (_rt != null) _rt.localScale = _originalScale;
         if (_buttonImage != null) _buttonImage.color = _originalColor;
     }
+    #endregion
 }
 #endregion
+public class ButtonPressAnimationRelay : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+{
+    public UnityAction OnPointerDownAction;
+    public UnityAction OnPointerUpAction;
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        OnPointerDownAction?.Invoke();
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        OnPointerUpAction?.Invoke();
+    }
+}

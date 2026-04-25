@@ -144,7 +144,7 @@ public class InGameLogViewer : MonoBehaviour
     {
         if (string.IsNullOrEmpty(_logText))
         {
-            Debug.Log("【日志查看器】没有日志可复制");
+            /* Debug.Log("【日志查看器】没有日志可复制"); */
             return;
         }
 
@@ -156,7 +156,7 @@ public class InGameLogViewer : MonoBehaviour
 
         // 手动加一条日志，提示复制成功
         AddCustomLog("已复制所有日志到剪贴板！", Color.green);
-        Debug.Log("【日志查看器】已复制所有日志到剪贴板");
+        /* Debug.Log("【日志查看器】已复制所有日志到剪贴板"); */
     }
 
     // 【新增】辅助方法：去除富文本标签

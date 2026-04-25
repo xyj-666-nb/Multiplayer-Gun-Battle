@@ -27,6 +27,7 @@ public class MyPlayerInput : NetworkBehaviour
     #region 视野缩放相关
     private int ViewTaskID=-1;//视野缩放任务ID
     private float ChangeSpeed_View = 4;//缩放视野的速度
+    private const float GunMobilityAimViewSpeedScale = 0.45f;
     #endregion
 
     public bool IsInteractButtonTrigger=false;//是否触发交互按钮
@@ -56,7 +57,7 @@ public class MyPlayerInput : NetworkBehaviour
     {
         if (Myplayer == null)
         {
-            Debug.LogError("MyPlayerInput.TriggerBinding：本地玩家实例为null，无法绑定输入！");
+            /* Debug.LogError("MyPlayerInput.TriggerBinding：本地玩家实例为null，无法绑定输入！"); */
             return;
         }
 
@@ -71,7 +72,7 @@ public class MyPlayerInput : NetworkBehaviour
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.DiscardGun, DiscardGun_Start, null, null);
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.GunAim, GunAim_Start, null, GunAim_End, GunAim_UpdateCheck);
             InputInfoManager.Instance.RegisterInputLogicEvent(E_InputAction.Interact, Interact_Start, null, null, null);
-            Debug.Log("MyPlayerInput：本地玩家输入事件绑定成功！");
+            /* Debug.Log("MyPlayerInput：本地玩家输入事件绑定成功！"); */
         }
     }
 
@@ -96,14 +97,14 @@ public class MyPlayerInput : NetworkBehaviour
         // 玩家实例不能为空
         if (Myplayer == null)
         {
-            Debug.LogWarning("[MyPlayerInput] 玩家实例为空，跳过输入触发");
+            /* Debug.LogWarning("[MyPlayerInput] 玩家实例为空，跳过输入触发"); */
             return false;
         }
 
         // Rigidbody2D不能为空
         if (Myplayer.MyRigdboby == null)
         {
-            Debug.LogWarning("[MyPlayerInput] 玩家Rigidbody2D为空/已销毁，跳过输入触发");
+            /* Debug.LogWarning("[MyPlayerInput] 玩家Rigidbody2D为空/已销毁，跳过输入触发"); */
             return false;
         }
 
@@ -248,6 +249,14 @@ public class MyPlayerInput : NetworkBehaviour
         Myplayer.MyExpressionSystem.SetParentRectDir(targetFacingDir);
         float dynamicMaxSpeed = Myplayer.MyHandControl != null && Myplayer.MyHandControl.IsEnterAim
             ? MyStats.AimMoveMaxSpeed : MyStats.MaxXSpeed;
+
+        if (Myplayer.currentGun != null && Myplayer.currentGun.gunInfo != null)
+        {
+            float mobility = Mathf.Clamp(Myplayer.currentGun.gunInfo.Mobility, -1f, 1f);
+            dynamicMaxSpeed *= 1f + mobility * MyStats.GunMobilityMoveSpeedScale;
+        }
+
+        dynamicMaxSpeed = Mathf.Max(0.1f, dynamicMaxSpeed);
 
         if (Myplayer.currentGun != null && Myplayer.currentGun.IsInShoot)
             dynamicMaxSpeed /= 2;
@@ -420,7 +429,7 @@ public class MyPlayerInput : NetworkBehaviour
             PlayerTacticControl.Instance.SetIsChooseButton(false);
         }
 
-        Debug.Log("开始射击");
+        /* Debug.Log("开始射击"); */
     }
 
     public void Shoot_Continue(CustomInputContext Content)
@@ -491,7 +500,7 @@ public class MyPlayerInput : NetworkBehaviour
         if (Myplayer.MyHandControl.IsEnterAim || Myplayer.MyHandControl.IsHolsterGun)
             return;
 
-        Debug.Log("正在判断丢弃条件");
+        /* Debug.Log("正在判断丢弃条件"); */
         if (Myplayer != null
       && Myplayer.currentGun != null
       && !Myplayer.currentGun.IsInReload
@@ -552,18 +561,25 @@ public class MyPlayerInput : NetworkBehaviour
         return true;
     }
 
+    private float GetAimViewChangeSpeed()
+    {
+        float finalSpeed = ChangeSpeed_View;
+        if (Myplayer != null && Myplayer.currentGun != null && Myplayer.currentGun.gunInfo != null)
+        {
+            float mobility = Mathf.Clamp(Myplayer.currentGun.gunInfo.Mobility, -1f, 1f);
+            finalSpeed *= Mathf.Max(0.1f, 1f + mobility * GunMobilityAimViewSpeedScale);
+        }
+        return Mathf.Max(0.1f, finalSpeed);
+    }
+
     private void AimState_Enter()
     {
-        Debug.Log("进入瞄准状态");
-        //触发枪进入瞄准状态
         Myplayer.currentGun.ChangeAimState(true);
-        //手动触发toggle按钮
         ButtonGroupManager.Instance.ManualSelectToggleButton(PlayerPanel.GetAimButtonButtonGroupName());
-        //触发手部进入瞄准状态
         Myplayer.MyHandControl.SetAimState(true);
-        //缩放视野
+        float aimViewSpeed = GetAimViewChangeSpeed();
         MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
-        ViewTaskID = MyCameraControl.Instance.AddZoomTask_ByPercent_TemporaryManual(1 + Myplayer.myStats.AimViewBonus, ChangeSpeed_View, Player.LocalPlayer.CameraSizeBaseValue);//对记录的基础摄像机大小进行缩放
+        ViewTaskID = MyCameraControl.Instance.AddZoomTask_ByPercent_TemporaryManual(1 + Myplayer.myStats.AimViewBonus, aimViewSpeed, Player.LocalPlayer.CameraSizeBaseValue);//对记录的基础摄像机大小进行缩放
     }
 
 
@@ -581,18 +597,32 @@ public class MyPlayerInput : NetworkBehaviour
         return true;
     }
 
-    private void AimState_Exit()
+    public void ForceResetAimViewOnDeath()
     {
-        Debug.Log("退出瞄准状态");
+        IsEnterAim = false;
+        AimState_Exit(false);
+    }
+
+    private void AimState_Exit(bool playSound = true)
+    {
+        /* Debug.Log("退出瞄准状态"); */
         //触发枪退出瞄准状态
-        Myplayer.currentGun.ChangeAimState(false);
+        if (Myplayer != null && Myplayer.currentGun != null)
+            Myplayer.currentGun.ChangeAimState(false);
         //手动退出触发toggle按钮
-        ButtonGroupManager.Instance.ManualCancelToggleButton(PlayerPanel.GetAimButtonButtonGroupName());
+        if (ButtonGroupManager.Instance != null)
+            ButtonGroupManager.Instance.ManualCancelToggleButton(PlayerPanel.GetAimButtonButtonGroupName());
         //触发手部退出瞄准状态
-        Myplayer.MyHandControl.SetAimState(false);
+        if (Myplayer != null && Myplayer.MyHandControl != null)
+            Myplayer.MyHandControl.SetAimState(false);
         //停止任务
-        MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
-        CmdPlaySound("Music/正式/瞄准");
+        if (MyCameraControl.Instance != null && ViewTaskID != -1)
+        {
+            MyCameraControl.Instance.ResetZoomTask(ViewTaskID);
+            ViewTaskID = -1;
+        }
+        if (playSound)
+            CmdPlaySound("Music/正式/瞄准");
     }
 
     private void GunAim_End(InputAction.CallbackContext Content)

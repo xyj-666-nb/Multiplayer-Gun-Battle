@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,10 +16,27 @@ public class WarRecordPanel : BasePanel
     private List<PlayerWarRecordUI> _redUIList = new List<PlayerWarRecordUI>();
     private List<PlayerWarRecordUI> _blueUIList = new List<PlayerWarRecordUI>();
 
+    [Header("比分文本")]
+    public TextMeshProUGUI RedTeamText;
+    public TextMeshProUGUI BlueTeamText;
+
     public Action OnPanelClosed;
+
+    public void RefreshScoreText()
+    {
+        if (PlayerRespawnManager.Instance == null)
+            return;
+
+        if (RedTeamText != null)
+            RedTeamText.text = PlayerRespawnManager.Instance.RedTeamScoreCount.ToString();
+        if (BlueTeamText != null)
+            BlueTeamText.text = PlayerRespawnManager.Instance.BlueTeamScoreCount.ToString();
+    }
 
     public void RefreshWarRecordData(NetworkPlayerInfo[] allPlayerData)
     {
+        RefreshScoreText();
+
         if (allPlayerData == null)
             return;
 
@@ -60,10 +78,23 @@ public class WarRecordPanel : BasePanel
             if (ui != null)
             {
                 ui.gameObject.SetActive(true);
-                if (dataList[i].GunName != null)
-                    ui.UpdateInfo(dataList[i].KillCount.ToString(), dataList[i].DeathCount.ToString(), dataList[i].PlayerName, MilitaryManager.Instance.GetInfo(dataList[i].GunName).GunSprite);
-                else
-                    ui.UpdateInfo(dataList[i].KillCount.ToString(), dataList[i].DeathCount.ToString(), dataList[i].PlayerName, null);
+
+                Sprite gunSprite = null;
+                if (!string.IsNullOrEmpty(dataList[i].GunName) && MilitaryManager.Instance != null)
+                {
+                    GunInfo gunInfo = MilitaryManager.Instance.GetInfo(dataList[i].GunName);
+                    if (gunInfo != null)
+                    {
+                        gunSprite = gunInfo.GunSprite;
+                    }
+                }
+
+                ui.UpdateInfo(
+                    dataList[i].KillCount.ToString(),
+                    dataList[i].DeathCount.ToString(),
+                    dataList[i].PlayerName,
+                    gunSprite
+                );
             }
         }
 
@@ -86,6 +117,8 @@ public class WarRecordPanel : BasePanel
     {
         base.ShowMe(isNeedDefaultAnimator);
 
+        RefreshScoreText();
+
         NetworkPlayerInfo[] cachedData = PlayerRespawnManager.GetCachedData();
         if (cachedData != null)
         {
@@ -93,7 +126,7 @@ public class WarRecordPanel : BasePanel
         }
         else
         {
-            Debug.Log("[战绩面板] 暂无缓存数据，等待服务器同步...");
+            /* Debug.Log("[战绩面板] 暂无缓存数据，等待服务器同步..."); */
         }
     }
 
@@ -113,6 +146,7 @@ public class WarRecordPanel : BasePanel
     public override void SimpleShowPanel()
     {
         base.SimpleShowPanel();
+        RefreshScoreText();
         NetworkPlayerInfo[] cachedData = PlayerRespawnManager.GetCachedData();
         if (cachedData != null)
         {
@@ -120,7 +154,7 @@ public class WarRecordPanel : BasePanel
         }
         else
         {
-            Debug.Log("[战绩面板] 暂无缓存数据，等待服务器同步...");
+            /* Debug.Log("[战绩面板] 暂无缓存数据，等待服务器同步..."); */
         }
     }
     #endregion

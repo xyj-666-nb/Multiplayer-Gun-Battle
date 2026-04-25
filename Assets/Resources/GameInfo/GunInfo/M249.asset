@@ -22,15 +22,16 @@ MonoBehaviour:
   AllBulletAmount: 160
   RateOfFires: 0
   Accuracy: 39
-  Damage: 36
+  Damage: 30
   Range: 230
   ReloadTime: 7
   BulletSpeed: 0
   Recoil: 1.2
   Recoil_Enemy: 0.8
-  ControlPower: 49.3
+  ControlPower: 45.9
   MaxPower: 5
   ViewRange: 0
+  Mobility: -1
   GunBodySprite: {fileID: 1119710342, guid: a867766272ff84f488521d6c5779e312, type: 3}
   ShootAudio: {fileID: 8300000, guid: 7c82cefc4bccc82498bb8b3a88a21b82, type: 3}
   BulletFill: {fileID: 8300000, guid: f4f7722094c4f054ebc1004771210a8b, type: 3}
@@ -41,6 +42,6 @@ MonoBehaviour:
   ShackTime_Enemy: 0.3
   smokeColor: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
   smokeSizeMin: 0.01
-  smokeSizeMax: 0.2
-  smokeDuration: 0.03
-  smokeDecaySpeed: 200
+  smokeSizeMax: 0.1
+  smokeDuration: 0.02
+  smokeDecaySpeed: 100

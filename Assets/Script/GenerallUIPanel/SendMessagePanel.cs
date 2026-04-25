@@ -39,7 +39,7 @@ public class SendMessagePanel : BasePanel
         }
         else
         {
-            Debug.LogError("[SendMessagePanel] SendMessageManger.Instance 为空，无法订阅消息事件！");
+            /* Debug.LogError("[SendMessagePanel] SendMessageManger.Instance 为空，无法订阅消息事件！"); */
         }
         // 边界校验：最大数量不能小于1
         if (MaxMessageCount < 1)
@@ -62,7 +62,7 @@ public class SendMessagePanel : BasePanel
     {
         // 标记面板为无效，拦截所有后续逻辑
         _isPanelInvalid = true;
-        Debug.Log("[SendMessagePanel] 面板已销毁，标记为无效");
+        /* Debug.Log("[SendMessagePanel] 面板已销毁，标记为无效"); */
 
         ClearAllMessages();
         // 取消事件订阅（增加空值检查）
@@ -138,7 +138,7 @@ public class SendMessagePanel : BasePanel
         // 空值检查：管理器为空
         if (SendMessageManger.Instance == null)
         {
-            Debug.LogError("[SendMessagePanel] SendMessageManger.Instance 为空，无法获取消息");
+            /* Debug.LogError("[SendMessagePanel] SendMessageManger.Instance 为空，无法获取消息"); */
             return null;
         }
 
@@ -149,7 +149,7 @@ public class SendMessagePanel : BasePanel
         // 空值检查：预制体为空
         if (MessagePrefab == null)
         {
-            Debug.LogError("[SendMessagePanel] MessagePrefab 未赋值！");
+            /* Debug.LogError("[SendMessagePanel] MessagePrefab 未赋值！"); */
             return null;
         }
 
@@ -157,14 +157,14 @@ public class SendMessagePanel : BasePanel
         // 空值检查：对象池获取失败
         if (messageObj == null)
         {
-            Debug.LogError("[SendMessagePanel] 消息预制体从对象池获取失败！");
+            /* Debug.LogError("[SendMessagePanel] 消息预制体从对象池获取失败！"); */
             return null;
         }
 
         // 核心防护：检查自身transform是否有效（解决第112行报错）
         if (this == null || this.transform == null)
         {
-            Debug.LogError("[SendMessagePanel] 面板transform已销毁，无法设置消息父物体");
+            /* Debug.LogError("[SendMessagePanel] 面板transform已销毁，无法设置消息父物体"); */
             PoolManage.Instance.PushObj(MessagePrefab, messageObj);
             return null;
         }
@@ -175,7 +175,7 @@ public class SendMessagePanel : BasePanel
         var textComp = messageObj.GetComponentInChildren<TextMeshProUGUI>(true);
         if (textComp == null)
         {
-            Debug.LogError("[SendMessagePanel] 消息UI缺少TextMeshProUGUI组件！");
+            /* Debug.LogError("[SendMessagePanel] 消息UI缺少TextMeshProUGUI组件！"); */
             PoolManage.Instance.PushObj(MessagePrefab, messageObj);
             return null;
         }
@@ -222,7 +222,7 @@ public class SendMessagePanel : BasePanel
         var rt = message.GetComponent<RectTransform>();
         if (rt == null)
         {
-            Debug.LogError("[SendMessagePanel] 消息对象缺少RectTransform组件！");
+            /* Debug.LogError("[SendMessagePanel] 消息对象缺少RectTransform组件！"); */
             return;
         }
         ResetMessageTransform(message, MessageInfoDic[message].CurrentIndex);
@@ -276,7 +276,7 @@ public class SendMessagePanel : BasePanel
         var rt = message.GetComponent<RectTransform>();
         if (rt == null)
         {
-            Debug.LogError("[SendMessagePanel] 消息对象缺少RectTransform组件！");
+            /* Debug.LogError("[SendMessagePanel] 消息对象缺少RectTransform组件！"); */
             return;
         }
         seq.Join(rt.DOAnchorPosX(EndPosX, 1f))
@@ -506,7 +506,7 @@ public class SendMessagePanel : BasePanel
     {
         _isPanelInvalid = true;
         ClearAllMessages();
-        Debug.Log("[SendMessagePanel] 执行退出清理，强制置空所有引用");
+        /* Debug.Log("[SendMessagePanel] 执行退出清理，强制置空所有引用"); */
     }
     #endregion
 }

@@ -27,7 +27,7 @@ public class AndroidNetworkPermissionChecker : MonoBehaviour
         // 只在Android平台执行检查
         if (Application.platform != RuntimePlatform.Android)
         {
-            Debug.LogWarning("[权限检查] 当前不是Android平台，跳过权限检查");
+            /* Debug.LogWarning("[权限检查] 当前不是Android平台，跳过权限检查"); */
             return;
         }
 
@@ -48,11 +48,11 @@ public class AndroidNetworkPermissionChecker : MonoBehaviour
 
             // 获取Android的权限检查类
             _permissionChecker = new AndroidJavaClass("android.content.pm.PackageManager");
-            Debug.Log("[权限检查] Android对象初始化成功");
+            /* Debug.Log("[权限检查] Android对象初始化成功"); */
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"[权限检查] Android对象初始化失败：{e.Message}");
+            /* Debug.LogError($"[权限检查] Android对象初始化失败：{e.Message}"); */
         }
     }
 
@@ -65,7 +65,7 @@ public class AndroidNetworkPermissionChecker : MonoBehaviour
     {
         if (_androidActivity == null || _permissionChecker == null)
         {
-            Debug.LogError($"[权限检查] 未初始化Android对象，无法检查权限：{permissionName}");
+            /* Debug.LogError($"[权限检查] 未初始化Android对象，无法检查权限：{permissionName}"); */
             return false;
         }
 
@@ -84,13 +84,13 @@ public class AndroidNetworkPermissionChecker : MonoBehaviour
             else
             {
                 // Android 6.0以下：只要Manifest声明就默认授予
-                Debug.Log($"[权限检查] Android {androidSDKVersion}（<6.0），Manifest声明即授予权限：{permissionName}");
+                /* Debug.Log($"[权限检查] Android {androidSDKVersion}（<6.0），Manifest声明即授予权限：{permissionName}"); */
                 return true;
             }
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"[权限检查] 检查权限{permissionName}失败：{e.Message}");
+            /* Debug.LogError($"[权限检查] 检查权限{permissionName}失败：{e.Message}"); */
             return false;
         }
     }
@@ -100,9 +100,9 @@ public class AndroidNetworkPermissionChecker : MonoBehaviour
     /// </summary>
     private void CheckAllNetworkPermissions()
     {
-        Debug.Log("\n==================== 网络权限检查结果 ====================");
+        /* Debug.Log("\n==================== 网络权限检查结果 ===================="); */
         int androidSDKVersion = GetAndroidSDKVersion();
-        Debug.Log($"当前Android SDK版本：{androidSDKVersion}（{GetAndroidVersionName(androidSDKVersion)}）");
+        /* Debug.Log($"当前Android SDK版本：{androidSDKVersion}（{GetAndroidVersionName(androidSDKVersion)}）"); */
 
         foreach (var permission in _networkPermissions)
         {
@@ -113,13 +113,13 @@ public class AndroidNetworkPermissionChecker : MonoBehaviour
             // 特殊说明：INTERNET权限在所有Android版本中，Manifest声明即自动授予（无需运行时授权）
             string specialNote = permName == "android.permission.INTERNET" ? "【特殊】Manifest声明即自动授予，无需运行时授权" : "";
 
-            Debug.Log($"【{permName}】\n描述：{permDesc}\n状态：{(isGranted ? " 已授予" : " 未授予")}\n备注：{specialNote}\n");
+            /* Debug.Log($"【{permName}】\n描述：{permDesc}\n状态：{(isGranted ? " 已授予" : " 未授予")}\n备注：{specialNote}\n"); */
         }
 
         // 额外检查关键配置
         CheckNetworkConfig();
 
-        Debug.Log("===========================================================\n");
+        /* Debug.Log("===========================================================\n"); */
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ public class AndroidNetworkPermissionChecker : MonoBehaviour
     {
         // 检查Unity的后台运行设置
         bool runInBackground = Application.runInBackground;
-        Debug.Log($"【Unity配置】RunInBackground：{(runInBackground ? " 开启" : " 关闭")}（后台联网必需）");
+        /* Debug.Log($"【Unity配置】RunInBackground：{(runInBackground ? " 开启" : " 关闭")}（后台联网必需）"); */
 
         // 检查当前网络类型（WiFi/移动数据）
         CheckNetworkType();
@@ -148,17 +148,17 @@ public class AndroidNetworkPermissionChecker : MonoBehaviour
 
             if (networkInfo == null || !networkInfo.Call<bool>("isConnected"))
             {
-                Debug.Log($"【网络状态】 当前无可用网络连接");
+                /* Debug.Log($"【网络状态】 当前无可用网络连接"); */
                 return;
             }
 
             int type = networkInfo.Call<int>("getType");
             string networkTypeName = type == 1 ? "WiFi" : (type == 0 ? "移动数据（蜂窝网络）" : "其他网络");
-            Debug.Log($"【网络状态】 当前连接类型：{networkTypeName}");
+            /* Debug.Log($"【网络状态】 当前连接类型：{networkTypeName}"); */
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"【网络状态】检查失败：{e.Message}");
+            /* Debug.LogError($"【网络状态】检查失败：{e.Message}"); */
         }
     }
 
@@ -194,7 +194,7 @@ public class AndroidNetworkPermissionChecker : MonoBehaviour
     /// </summary>
     public void ManualCheckPermissions()
     {
-        Debug.Log("\n========== 手动触发权限检查 ==========");
+        /* Debug.Log("\n========== 手动触发权限检查 =========="); */
         CheckAllNetworkPermissions();
     }
 }

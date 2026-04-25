@@ -1,36 +1,36 @@
-ï»¿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// è°ƒè¯•GUIç®¡ç†å™¨
-/// æ³¨å†Œè°ƒè¯•æŒ‰é’®ã€æŒ‰ç»„åˆ†ç±»å±•ç¤ºã€ç‹¬ç«‹æŠ˜å /å±•å¼€æ¯ç»„æŒ‰é’®
-/// 1. å…ˆæ³¨å†Œç»„(ä¸æ³¨å†Œä¹Ÿä¼šè‡ªåŠ¨æ³¨å†Œ)ï¼›2. æ³¨å†ŒæŒ‰é’®æ—¶æŒ‡å®šç»„åï¼ˆä¸å¡«=é»˜è®¤ç»„ï¼‰ï¼›3. æ€»å¼€å…³æ§åˆ¶æ˜¯å¦æ˜¾ç¤º
+/// µ÷ÊÔGUI¹ÜÀíÆ÷
+/// ×¢²áµ÷ÊÔ°´Å¥¡¢°´×é·ÖÀàÕ¹Ê¾¡¢¶ÀÁ¢ÕÛµş/Õ¹¿ªÃ¿×é°´Å¥
+/// 1. ÏÈ×¢²á×é(²»×¢²áÒ²»á×Ô¶¯×¢²á)£»2. ×¢²á°´Å¥Ê±Ö¸¶¨×éÃû£¨²»Ìî=Ä¬ÈÏ×é£©£»3. ×Ü¿ª¹Ø¿ØÖÆÊÇ·ñÏÔÊ¾
 /// </summary>
 public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestManger>
 {
-    #region ç®¡ç†å™¨å†…éƒ¨é€»è¾‘
-    #region æ ¸å¿ƒå­—æ®µ
-    public bool IsStartGUI = true; // GUIæ€»å¼€å…³
-    private bool _isMainPanelExpand = false; // æ€»é¢æ¿æ˜¯å¦å±•å¼€
-    private string _mainButtonName = "è°ƒè¯•å·¥å…·é¢æ¿"; // æ€»ç®¡ç†æŒ‰é’®åç§°
-    private const string DEFAULT_GROUP_NAME = "é»˜è®¤ç»„"; // é»˜è®¤ç»„åç§°
+    #region ¹ÜÀíÆ÷ÄÚ²¿Âß¼­
+    #region ºËĞÄ×Ö¶Î
+    public bool IsStartGUI = true; // GUI×Ü¿ª¹Ø
+    private bool _isMainPanelExpand = false; // ×ÜÃæ°åÊÇ·ñÕ¹¿ª
+    private string _mainButtonName = "µ÷ÊÔ¹¤¾ßÃæ°å"; // ×Ü¹ÜÀí°´Å¥Ãû³Æ
+    private const string DEFAULT_GROUP_NAME = "Ä¬ÈÏ×é"; // Ä¬ÈÏ×éÃû³Æ
 
-    // å­˜å‚¨æ‰€æœ‰ç»„çš„æ™®é€šæŒ‰é’®ï¼šKey=ç»„åï¼ŒValue=è¯¥ç»„çš„æŒ‰é’®åˆ—è¡¨
+    // ´æ´¢ËùÓĞ×éµÄÆÕÍ¨°´Å¥£ºKey=×éÃû£¬Value=¸Ã×éµÄ°´Å¥ÁĞ±í
     private Dictionary<string, List<GuiButtonInfo>> _groupButtonDict = new Dictionary<string, List<GuiButtonInfo>>();
-    // å­˜å‚¨æ¯ä¸ªç»„çš„æŠ˜å çŠ¶æ€ï¼šKey=ç»„åï¼ŒValue=æ˜¯å¦å±•å¼€
+    // ´æ´¢Ã¿¸ö×éµÄÕÛµş×´Ì¬£ºKey=×éÃû£¬Value=ÊÇ·ñÕ¹¿ª
     private Dictionary<string, bool> _groupExpandStates = new Dictionary<string, bool>();
-    // åŒå‘æŒ‰é’®ç›¸å…³å­˜å‚¨
-    private Dictionary<string, List<GuiTwoWayButtonInfo>> _groupTwoWayButtonDict = new Dictionary<string, List<GuiTwoWayButtonInfo>>(); // æŒ‰ç»„å­˜å‚¨åŒå‘æŒ‰é’®
-    private readonly Color TwoWayBtnTriggerColor = ColorManager.LightGreen; // è§¦å‘æ€æµ…ç»¿è‰²
+    // Ë«Ïò°´Å¥Ïà¹Ø´æ´¢
+    private Dictionary<string, List<GuiTwoWayButtonInfo>> _groupTwoWayButtonDict = new Dictionary<string, List<GuiTwoWayButtonInfo>>(); // °´×é´æ´¢Ë«Ïò°´Å¥
+    private readonly Color TwoWayBtnTriggerColor = ColorManager.LightGreen; // ´¥·¢Ì¬Ç³ÂÌÉ«
 
-    // æ™®é€šæŒ‰é’®ä¿¡æ¯ç»“æ„ä½“
+    // ÆÕÍ¨°´Å¥ĞÅÏ¢½á¹¹Ìå
     private struct GuiButtonInfo
     {
-        public string buttonName; // æŒ‰é’®æ˜¾ç¤ºåç§°
-        public Action onButtonClick; // æ— å‚ç‚¹å‡»å›è°ƒ
+        public string buttonName; // °´Å¥ÏÔÊ¾Ãû³Æ
+        public Action onButtonClick; // ÎŞ²Îµã»÷»Øµ÷
 
-        // æ„é€ å‡½æ•°
+        // ¹¹Ôìº¯Êı
         public GuiButtonInfo(string name, Action clickAction)
         {
             buttonName = name;
@@ -38,28 +38,28 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
         }
     }
 
-    // åŒå‘æŒ‰é’®ä¿¡æ¯ç»“æ„ä½“
+    // Ë«Ïò°´Å¥ĞÅÏ¢½á¹¹Ìå
     private class GuiTwoWayButtonInfo
     {
-        public string triggerName;   // å¼€å¯æ€æ˜¾ç¤ºåç§°
-        public string cancelName;    // å…³é—­æ€æ˜¾ç¤ºåç§°
-        public Action onTrigger;     // å¼€å¯é€»è¾‘
-        public Action onCancel;      // å…³é—­é€»è¾‘
-        public bool isTriggered;     // å½“å‰æ˜¯å¦ä¸ºè§¦å‘æ€ï¼ˆfalse=åˆå§‹/å…³é—­ï¼Œtrue=å¼€å¯ï¼‰
+        public string triggerName;   // ¿ªÆôÌ¬ÏÔÊ¾Ãû³Æ
+        public string cancelName;    // ¹Ø±ÕÌ¬ÏÔÊ¾Ãû³Æ
+        public Action onTrigger;     // ¿ªÆôÂß¼­
+        public Action onCancel;      // ¹Ø±ÕÂß¼­
+        public bool isTriggered;     // µ±Ç°ÊÇ·ñÎª´¥·¢Ì¬£¨false=³õÊ¼/¹Ø±Õ£¬true=¿ªÆô£©
 
-        // æ„é€ å‡½æ•°
+        // ¹¹Ôìº¯Êı
         public GuiTwoWayButtonInfo(string trigName, string cancName, Action trigAction, Action cancAction)
         {
             triggerName = trigName;
             cancelName = cancName;
             onTrigger = trigAction;
             onCancel = cancAction;
-            isTriggered = false; // åˆå§‹å¿…ä¸ºfalseï¼Œç¡®ä¿ç¬¬ä¸€æ¬¡ç‚¹å‡»æ˜¯å¼€å¯
+            isTriggered = false; // ³õÊ¼±ØÎªfalse£¬È·±£µÚÒ»´Îµã»÷ÊÇ¿ªÆô
         }
     }
     #endregion
 
-    #region GUIç»˜åˆ¶
+    #region GUI»æÖÆ
     private void OnGUI()
     {
         if (!IsStartGUI)
@@ -74,14 +74,14 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
     }
 
     /// <summary>
-    /// ç»˜åˆ¶æ€»ç®¡ç†æŒ‰é’®
+    /// »æÖÆ×Ü¹ÜÀí°´Å¥
     /// </summary>
     private void DrawMainControlButton()
     {
         GUILayout.BeginArea(new Rect(Screen.width - 200, 20, 180, 50));
         {
             GUI.backgroundColor = _isMainPanelExpand ? Color.green : Color.gray;
-            if (GUILayout.Button(_mainButtonName + (_isMainPanelExpand ? " [æ”¶èµ·]" : " [å±•å¼€]"), GUILayout.Height(40)))
+            if (GUILayout.Button(_mainButtonName + (_isMainPanelExpand ? " [ÊÕÆğ]" : " [Õ¹¿ª]"), GUILayout.Height(40)))
             {
                 _isMainPanelExpand = !_isMainPanelExpand;
             }
@@ -91,32 +91,32 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
     }
 
     /// <summary>
-    /// ç»˜åˆ¶æ‰€æœ‰åˆ†ç»„çš„æŒ‰é’®
+    /// »æÖÆËùÓĞ·Ö×éµÄ°´Å¥
     /// </summary>
     private void DrawAllGroupButtons()
     {
-        // æŒ‰é’®çŸ©é˜µåŒºåŸŸï¼šå±å¹•å³ä¸Šè§’ï¼Œå›ºå®šå®½é«˜
+        // °´Å¥¾ØÕóÇøÓò£ºÆÁÄ»ÓÒÉÏ½Ç£¬¹Ì¶¨¿í¸ß
         GUILayout.BeginArea(new Rect(Screen.width - 200, 80, 180, Screen.height - 100));
         {
             GUILayout.BeginVertical("Box");
             {
-                // æ— ä»»ä½•æŒ‰é’®æ—¶çš„ç©ºæç¤º
+                // ÎŞÈÎºÎ°´Å¥Ê±µÄ¿ÕÌáÊ¾
                 if (_groupButtonDict.Count == 0 && _groupTwoWayButtonDict.Count == 0 || IsAllGroupsEmpty())
                 {
-                    GUILayout.Label("æš‚æ— æ³¨å†Œçš„è°ƒè¯•æŒ‰é’®", GUILayout.Height(30));
+                    GUILayout.Label("ÔİÎŞ×¢²áµÄµ÷ÊÔ°´Å¥", GUILayout.Height(30));
                 }
                 else
                 {
-                    // éå†æ‰€æœ‰ç»„ï¼ŒæŒ‰ç»„ç»˜åˆ¶æŠ˜å é¢æ¿
+                    // ±éÀúËùÓĞ×é£¬°´×é»æÖÆÕÛµşÃæ°å
                     foreach (var groupPair in _groupButtonDict)
                     {
                         string groupName = groupPair.Key;
                         List<GuiButtonInfo> buttonList = groupPair.Value;
 
-                        // ç»˜åˆ¶ç»„çš„æŠ˜å /å±•å¼€å¤´éƒ¨
+                        // »æÖÆ×éµÄÕÛµş/Õ¹¿ªÍ·²¿
                         DrawGroupHeader(groupName);
 
-                        // ç»„å±•å¼€æ—¶ï¼Œç»˜åˆ¶è¯¥ç»„æ‰€æœ‰æŒ‰é’®
+                        // ×éÕ¹¿ªÊ±£¬»æÖÆ¸Ã×éËùÓĞ°´Å¥
                         if (_groupExpandStates[groupName])
                         {
                             DrawGroupButtonList(groupName, buttonList);
@@ -130,23 +130,23 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
     }
 
     /// <summary>
-    /// ç»˜åˆ¶å•ä¸ªç»„çš„å¤´éƒ¨
+    /// »æÖÆµ¥¸ö×éµÄÍ·²¿
     /// </summary>
-    /// <param name="groupName">ç»„å</param>
+    /// <param name="groupName">×éÃû</param>
     private void DrawGroupHeader(string groupName)
     {
         GUILayout.BeginHorizontal();
         {
-            // è®¡ç®—ç»„å†…æ€»æŒ‰é’®æ•°ï¼ˆæ™®é€š+åŒå‘ï¼‰
+            // ¼ÆËã×éÄÚ×Ü°´Å¥Êı£¨ÆÕÍ¨+Ë«Ïò£©
             int totalBtnCount = _groupButtonDict[groupName].Count;
             if (_groupTwoWayButtonDict.ContainsKey(groupName))
             {
                 totalBtnCount += _groupTwoWayButtonDict[groupName].Count;
             }
 
-            // ç»„æŠ˜å /å±•å¼€æŒ‰é’®æ ·å¼
+            // ×éÕÛµş/Õ¹¿ª°´Å¥ÑùÊ½
             GUI.backgroundColor = _groupExpandStates[groupName] ? Color.cyan : Color.gray;
-            string groupHeaderText = $"{groupName} [{totalBtnCount}ä¸ªæŒ‰é’®]" + (_groupExpandStates[groupName] ? " â–¼" : " â–¶");
+            string groupHeaderText = $"{groupName} [{totalBtnCount}¸ö°´Å¥]" + (_groupExpandStates[groupName] ? " ¨‹" : " ?");
             if (GUILayout.Button(groupHeaderText, GUILayout.Height(30)))
             {
                 _groupExpandStates[groupName] = !_groupExpandStates[groupName];
@@ -158,13 +158,13 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
 
 
     /// <summary>
-    /// ç»˜åˆ¶å•ä¸ªç»„çš„æŒ‰é’®åˆ—è¡¨
+    /// »æÖÆµ¥¸ö×éµÄ°´Å¥ÁĞ±í
     /// </summary>
-    /// <param name="groupName">ç»„å</param>
-    /// <param name="buttonList">æ™®é€šæŒ‰é’®åˆ—è¡¨</param>
+    /// <param name="groupName">×éÃû</param>
+    /// <param name="buttonList">ÆÕÍ¨°´Å¥ÁĞ±í</param>
     private void DrawGroupButtonList(string groupName, List<GuiButtonInfo> buttonList)
     {
-        // å·¦ä¾§ç¼©è¿›ï¼ŒåŒºåˆ†ç»„å¤´éƒ¨å’ŒæŒ‰é’®
+        // ×ó²àËõ½ø£¬Çø·Ö×éÍ·²¿ºÍ°´Å¥
         GUILayout.BeginHorizontal();
         {
             GUILayout.Space(10);
@@ -177,11 +177,11 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
                         try
                         {
                             btnInfo.onButtonClick?.Invoke();
-                            Debug.Log($"ç‚¹å‡»è°ƒè¯•æŒ‰é’®ï¼š[{groupName}] -> {btnInfo.buttonName}");
+                            /* Debug.Log($"µã»÷µ÷ÊÔ°´Å¥£º[{groupName}] -> {btnInfo.buttonName}"); */
                         }
                         catch (Exception e)
                         {
-                            Debug.LogError($"æ‰§è¡ŒæŒ‰é’®[{groupName}/{btnInfo.buttonName}]å›è°ƒå‡ºé”™ï¼š{e.Message}", this);
+                            /* Debug.LogError($"Ö´ĞĞ°´Å¥[{groupName}/{btnInfo.buttonName}]»Øµ÷³ö´í£º{e.Message}", this); */
                         }
                     }
                 }
@@ -191,7 +191,7 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
                     if (buttonList.Count > 0)
                     {
                         GUILayout.Space(4);
-                        GUILayout.Label("â–¶ åŒå‘æŒ‰é’®", GUILayout.Height(20));
+                        GUILayout.Label("? Ë«Ïò°´Å¥", GUILayout.Height(20));
                         GUILayout.Space(4);
                     }
                     for (int i = 0; i < _groupTwoWayButtonDict[groupName].Count; i++)
@@ -209,11 +209,11 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
                             twoWayBtn.isTriggered = !twoWayBtn.isTriggered;
                             if (twoWayBtn.isTriggered)
                             {
-                                twoWayBtn.onTrigger?.Invoke(); // è§¦å‘å¼€å¯é€»è¾‘
+                                twoWayBtn.onTrigger?.Invoke(); // ´¥·¢¿ªÆôÂß¼­
                             }
                             else
                             {
-                                twoWayBtn.onCancel?.Invoke(); // è§¦å‘å…³é—­é€»è¾‘
+                                twoWayBtn.onCancel?.Invoke(); // ´¥·¢¹Ø±ÕÂß¼­
                             }
 
                             _groupTwoWayButtonDict[groupName][i] = twoWayBtn;
@@ -226,46 +226,46 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
         }
         GUILayout.EndHorizontal();
 
-        // ç»„å†…æŒ‰é’®åº•éƒ¨åˆ†éš”çº¿
+        // ×éÄÚ°´Å¥µ×²¿·Ö¸ôÏß
         GUILayout.Space(5);
         GUILayout.Box("", GUILayout.ExpandWidth(true), GUILayout.Height(1));
         GUILayout.Space(5);
     }
     #endregion
 
-    #region å†…éƒ¨è¾…åŠ©æ–¹æ³•
+    #region ÄÚ²¿¸¨Öú·½·¨
     /// <summary>
-    /// æ ¡éªŒå¹¶è·å–æœ‰æ•ˆçš„ç»„å
+    /// Ğ£Ñé²¢»ñÈ¡ÓĞĞ§µÄ×éÃû
     /// </summary>
-    /// <param name="inputGroupName">è¾“å…¥çš„ç»„å</param>
-    /// <returns>æœ‰æ•ˆçš„ç»„å</returns>
+    /// <param name="inputGroupName">ÊäÈëµÄ×éÃû</param>
+    /// <returns>ÓĞĞ§µÄ×éÃû</returns>
     private string GetValidGroupName(string inputGroupName)
     {
-        // ç©ºç»„å â†’ å½’é»˜è®¤ç»„
+        // ¿Õ×éÃû ¡ú ¹éÄ¬ÈÏ×é
         if (string.IsNullOrEmpty(inputGroupName))
         {
             return DEFAULT_GROUP_NAME;
         }
 
-        // ç»„åå­˜åœ¨ â†’ ç›´æ¥è¿”å›
+        // ×éÃû´æÔÚ ¡ú Ö±½Ó·µ»Ø
         if (_groupButtonDict.ContainsKey(inputGroupName))
         {
             return inputGroupName;
         }
 
-        // æ ¸å¿ƒä¿®æ”¹ï¼šéç©ºä¸”ä¸å­˜åœ¨çš„ç»„å â†’ è‡ªåŠ¨åˆ›å»ºè¯¥ç»„
-        Debug.Log($"ç»„[{inputGroupName}]ä¸å­˜åœ¨ï¼Œå·²è‡ªåŠ¨åˆ›å»ºè¯¥ç»„ï¼");
+        // ºËĞÄĞŞ¸Ä£º·Ç¿ÕÇÒ²»´æÔÚµÄ×éÃû ¡ú ×Ô¶¯´´½¨¸Ã×é
+        /* Debug.Log($"×é[{inputGroupName}]²»´æÔÚ£¬ÒÑ×Ô¶¯´´½¨¸Ã×é£¡"); */
         RegisterGroup(inputGroupName);
         return inputGroupName;
     }
 
     /// <summary>
-    /// æ£€æŸ¥æ‰€æœ‰ç»„æ˜¯å¦éƒ½æ— æŒ‰é’®ï¼ˆæ™®é€š+åŒå‘ï¼‰
+    /// ¼ì²éËùÓĞ×éÊÇ·ñ¶¼ÎŞ°´Å¥£¨ÆÕÍ¨+Ë«Ïò£©
     /// </summary>
-    /// <returns>true=å…¨ç©ºï¼Œfalse=è‡³å°‘æœ‰ä¸€ä¸ªæŒ‰é’®</returns>
+    /// <returns>true=È«¿Õ£¬false=ÖÁÉÙÓĞÒ»¸ö°´Å¥</returns>
     private bool IsAllGroupsEmpty()
     {
-        // æ£€æŸ¥æ™®é€šæŒ‰é’®
+        // ¼ì²éÆÕÍ¨°´Å¥
         foreach (var groupPair in _groupButtonDict)
         {
             if (groupPair.Value.Count > 0)
@@ -273,7 +273,7 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
                 return false;
             }
         }
-        // æ£€æŸ¥åŒå‘æŒ‰é’®
+        // ¼ì²éË«Ïò°´Å¥
         foreach (var groupPair in _groupTwoWayButtonDict)
         {
             if (groupPair.Value.Count > 0)
@@ -285,156 +285,156 @@ public class Developer_GUITestManger : SingleMonoAutoBehavior<Developer_GUITestM
     }
 
     /// <summary>
-    /// åˆå§‹åŒ–é»˜è®¤ç»„+å•ä¾‹è·¨åœºæ™¯ä¿ç•™
+    /// ³õÊ¼»¯Ä¬ÈÏ×é+µ¥Àı¿ç³¡¾°±£Áô
     /// </summary>
     protected override void Awake()
     {
-        // åˆå§‹åŒ–æ™®é€šæŒ‰é’®é»˜è®¤ç»„
+        // ³õÊ¼»¯ÆÕÍ¨°´Å¥Ä¬ÈÏ×é
         if (!_groupButtonDict.ContainsKey(DEFAULT_GROUP_NAME))
         {
             RegisterGroup(DEFAULT_GROUP_NAME);
         }
-        // åˆå§‹åŒ–åŒå‘æŒ‰é’®é»˜è®¤ç»„å­˜å‚¨
+        // ³õÊ¼»¯Ë«Ïò°´Å¥Ä¬ÈÏ×é´æ´¢
         if (!_groupTwoWayButtonDict.ContainsKey(DEFAULT_GROUP_NAME))
         {
             _groupTwoWayButtonDict.Add(DEFAULT_GROUP_NAME, new List<GuiTwoWayButtonInfo>());
         }
-        // å•ä¾‹å¯¹è±¡è·¨åœºæ™¯ä¿ç•™ï¼Œé¿å…åˆ‡æ¢åœºæ™¯åè°ƒè¯•é¢æ¿æ¶ˆå¤±
+        // µ¥Àı¶ÔÏó¿ç³¡¾°±£Áô£¬±ÜÃâÇĞ»»³¡¾°ºóµ÷ÊÔÃæ°åÏûÊ§
         DontDestroyOnLoad(gameObject);
     }
     #endregion
     #endregion
 
-    #region å¤–éƒ¨æ¥å£
-    #region æ³¨å†ŒæŒ‰é’®ç»„
+    #region Íâ²¿½Ó¿Ú
+    #region ×¢²á°´Å¥×é
     /// <summary>
-    /// æ³¨å†ŒæŒ‰é’®ç»„ï¼ˆè‡ªåŠ¨åˆå§‹åŒ–æ™®é€š+åŒå‘æŒ‰é’®å­˜å‚¨ï¼‰
+    /// ×¢²á°´Å¥×é£¨×Ô¶¯³õÊ¼»¯ÆÕÍ¨+Ë«Ïò°´Å¥´æ´¢£©
     /// </summary>
-    /// <param name="groupName">ç»„åç§°ï¼ˆä¸èƒ½ä¸ºç©ºï¼‰</param>
+    /// <param name="groupName">×éÃû³Æ£¨²»ÄÜÎª¿Õ£©</param>
     public void RegisterGroup(string groupName)
     {
         if (string.IsNullOrEmpty(groupName))
         {
-            Debug.LogError("æ³¨å†ŒæŒ‰é’®ç»„å¤±è´¥ï¼šç»„åç§°ä¸èƒ½ä¸ºç©ºï¼");
+            /* Debug.LogError("×¢²á°´Å¥×éÊ§°Ü£º×éÃû³Æ²»ÄÜÎª¿Õ£¡"); */
             return;
         }
         if (_groupButtonDict.ContainsKey(groupName))
         {
-            Debug.LogWarning($"æŒ‰é’®ç»„[{groupName}]å·²å­˜åœ¨ï¼Œæ— éœ€é‡å¤æ³¨å†Œï¼");
+            /* Debug.LogWarning($"°´Å¥×é[{groupName}]ÒÑ´æÔÚ£¬ÎŞĞèÖØ¸´×¢²á£¡"); */
             return;
         }
-        // åˆå§‹åŒ–æ™®é€šæŒ‰é’®åˆ—è¡¨å’ŒæŠ˜å çŠ¶æ€
+        // ³õÊ¼»¯ÆÕÍ¨°´Å¥ÁĞ±íºÍÕÛµş×´Ì¬
         _groupButtonDict.Add(groupName, new List<GuiButtonInfo>());
-        _groupExpandStates.Add(groupName, true); // æ–°ç»„é»˜è®¤å±•å¼€
-        // åˆå§‹åŒ–åŒå‘æŒ‰é’®åˆ—è¡¨
+        _groupExpandStates.Add(groupName, true); // ĞÂ×éÄ¬ÈÏÕ¹¿ª
+        // ³õÊ¼»¯Ë«Ïò°´Å¥ÁĞ±í
         _groupTwoWayButtonDict.Add(groupName, new List<GuiTwoWayButtonInfo>());
-        Debug.Log($"æˆåŠŸåˆ›å»ºæŒ‰é’®ç»„ï¼š[{groupName}]ï¼ˆå«æ™®é€š+åŒå‘æŒ‰é’®å­˜å‚¨ï¼‰");
+        /* Debug.Log($"³É¹¦´´½¨°´Å¥×é£º[{groupName}]£¨º¬ÆÕÍ¨+Ë«Ïò°´Å¥´æ´¢£©"); */
     }
     #endregion
 
-    #region æ³¨å†Œæ™®é€šæ— å‚æŒ‰é’®
+    #region ×¢²áÆÕÍ¨ÎŞ²Î°´Å¥
     /// <summary>
-    /// æ³¨å†Œæ— å‚æ™®é€šæŒ‰é’®åˆ°æŒ‡å®šç»„
+    /// ×¢²áÎŞ²ÎÆÕÍ¨°´Å¥µ½Ö¸¶¨×é
     /// </summary>
-    /// <param name="buttonShowName">æŒ‰é’®æ˜¾ç¤ºåç§°</param>
-    /// <param name="noParamAction">æ— å‚ç‚¹å‡»å›è°ƒ</param>
-    /// <param name="groupName">å½’å±ç»„åï¼ˆé»˜è®¤=é»˜è®¤ç»„ï¼‰</param>
+    /// <param name="buttonShowName">°´Å¥ÏÔÊ¾Ãû³Æ</param>
+    /// <param name="noParamAction">ÎŞ²Îµã»÷»Øµ÷</param>
+    /// <param name="groupName">¹éÊô×éÃû£¨Ä¬ÈÏ=Ä¬ÈÏ×é£©</param>
     public void RegisterGuiButton(string buttonShowName, Action noParamAction, string groupName = DEFAULT_GROUP_NAME)
     {
         if (string.IsNullOrEmpty(buttonShowName) || noParamAction == null)
         {
-            Debug.LogError("æ³¨å†Œæ™®é€šæŒ‰é’®å¤±è´¥ï¼šæŒ‰é’®åç§°ä¸èƒ½ä¸ºç©ºï¼Œå›è°ƒå‡½æ•°ä¸èƒ½ä¸ºnullï¼");
+            /* Debug.LogError("×¢²áÆÕÍ¨°´Å¥Ê§°Ü£º°´Å¥Ãû³Æ²»ÄÜÎª¿Õ£¬»Øµ÷º¯Êı²»ÄÜÎªnull£¡"); */
             return;
         }
 
         string targetGroupName = GetValidGroupName(groupName);
-        // é¿å…åŒç»„é‡å¤æ³¨å†ŒåŒåæŒ‰é’®
+        // ±ÜÃâÍ¬×éÖØ¸´×¢²áÍ¬Ãû°´Å¥
         foreach (var btnInfo in _groupButtonDict[targetGroupName])
         {
             if (btnInfo.buttonName == buttonShowName)
             {
-                Debug.LogWarning($"ç»„[{targetGroupName}]å·²å­˜åœ¨åŒåæŒ‰é’®ï¼š{buttonShowName}ï¼Œæ— éœ€é‡å¤æ³¨å†Œï¼");
+                /* Debug.LogWarning($"×é[{targetGroupName}]ÒÑ´æÔÚÍ¬Ãû°´Å¥£º{buttonShowName}£¬ÎŞĞèÖØ¸´×¢²á£¡"); */
                 return;
             }
         }
-        // æ·»åŠ åˆ°ç›®æ ‡ç»„
+        // Ìí¼Óµ½Ä¿±ê×é
         _groupButtonDict[targetGroupName].Add(new GuiButtonInfo(buttonShowName, noParamAction));
-        Debug.Log($"æ™®é€šæŒ‰é’®[{buttonShowName}]å·²æ³¨å†Œåˆ°ç»„[{targetGroupName}]");
+        /* Debug.Log($"ÆÕÍ¨°´Å¥[{buttonShowName}]ÒÑ×¢²áµ½×é[{targetGroupName}]"); */
     }
     #endregion
 
-    #region æ³¨å†ŒåŒå‘åˆ‡æ¢æŒ‰é’®
+    #region ×¢²áË«ÏòÇĞ»»°´Å¥
     /// <summary>
-    /// æ³¨å†ŒåŒå‘åˆ‡æ¢æŒ‰é’®
+    /// ×¢²áË«ÏòÇĞ»»°´Å¥
     /// </summary>
-    /// <param name="ButtonTriggerName">å¼€å¯æ€åç§°</param>
-    /// <param name="ButtonCancelName">å…³é—­æ€åç§°</param>
-    /// <param name="triggerAction">å¼€å¯é€»è¾‘</param>
-    /// <param name="CancelAction">å…³é—­é€»è¾‘</param>
-    /// <param name="groupName">å½’å±ç»„å</param>
+    /// <param name="ButtonTriggerName">¿ªÆôÌ¬Ãû³Æ</param>
+    /// <param name="ButtonCancelName">¹Ø±ÕÌ¬Ãû³Æ</param>
+    /// <param name="triggerAction">¿ªÆôÂß¼­</param>
+    /// <param name="CancelAction">¹Ø±ÕÂß¼­</param>
+    /// <param name="groupName">¹éÊô×éÃû</param>
     public void RegisterGuiButton_TwoWay(string ButtonTriggerName, string ButtonCancelName, Action triggerAction, Action CancelAction, string groupName = DEFAULT_GROUP_NAME)
     {
         if (string.IsNullOrEmpty(ButtonTriggerName) || string.IsNullOrEmpty(ButtonCancelName) || triggerAction == null || CancelAction == null)
         {
-            Debug.LogError("æ³¨å†ŒåŒå‘æŒ‰é’®å¤±è´¥ï¼šåç§°/å›è°ƒä¸èƒ½ä¸ºç©ºï¼");
+            /* Debug.LogError("×¢²áË«Ïò°´Å¥Ê§°Ü£ºÃû³Æ/»Øµ÷²»ÄÜÎª¿Õ£¡"); */
             return;
         }
 
         string targetGroupName = GetValidGroupName(groupName);
-        // é¿å…åŒç»„é‡å¤æ³¨å†Œç›¸åŒåŒå‘æŒ‰é’®
+        // ±ÜÃâÍ¬×éÖØ¸´×¢²áÏàÍ¬Ë«Ïò°´Å¥
         string btnUniqueKey = $"{ButtonTriggerName}_{ButtonCancelName}";
         foreach (var twoWayBtn in _groupTwoWayButtonDict[targetGroupName])
         {
             string existKey = $"{twoWayBtn.triggerName}_{twoWayBtn.cancelName}";
             if (existKey == btnUniqueKey)
             {
-                Debug.LogWarning($"ç»„[{targetGroupName}]å·²å­˜åœ¨åŒå‘æŒ‰é’®[{btnUniqueKey}]ï¼Œæ— éœ€é‡å¤æ³¨å†Œï¼");
+                /* Debug.LogWarning($"×é[{targetGroupName}]ÒÑ´æÔÚË«Ïò°´Å¥[{btnUniqueKey}]£¬ÎŞĞèÖØ¸´×¢²á£¡"); */
                 return;
             }
         }
-        // æ·»åŠ åŒå‘æŒ‰é’®åˆ°ç›®æ ‡ç»„
+        // Ìí¼ÓË«Ïò°´Å¥µ½Ä¿±ê×é
         _groupTwoWayButtonDict[targetGroupName].Add(new GuiTwoWayButtonInfo(ButtonTriggerName, ButtonCancelName, triggerAction, CancelAction));
-        Debug.Log($"åŒå‘æŒ‰é’®[{btnUniqueKey}]å·²æ³¨å†Œåˆ°ç»„[{targetGroupName}]");
+        /* Debug.Log($"Ë«Ïò°´Å¥[{btnUniqueKey}]ÒÑ×¢²áµ½×é[{targetGroupName}]"); */
     }
     #endregion
 
-    #region æ¸…ç©ºæŒ‰é’®
+    #region Çå¿Õ°´Å¥
     /// <summary>
-    /// æ¸…ç©ºæŒ‡å®šç»„çš„æ‰€æœ‰æŒ‰é’®ï¼ˆæ™®é€š+åŒå‘ï¼‰
+    /// Çå¿ÕÖ¸¶¨×éµÄËùÓĞ°´Å¥£¨ÆÕÍ¨+Ë«Ïò£©
     /// </summary>
-    /// <param name="groupName">ç»„åï¼ˆé»˜è®¤=é»˜è®¤ç»„ï¼‰</param>
+    /// <param name="groupName">×éÃû£¨Ä¬ÈÏ=Ä¬ÈÏ×é£©</param>
     public void ClearGroupButtons(string groupName = DEFAULT_GROUP_NAME)
     {
         string targetGroupName = GetValidGroupName(groupName);
-        // æ¸…ç©ºæ™®é€šæŒ‰é’®
+        // Çå¿ÕÆÕÍ¨°´Å¥
         if (_groupButtonDict.ContainsKey(targetGroupName))
         {
             _groupButtonDict[targetGroupName].Clear();
         }
-        // æ¸…ç©ºåŒå‘æŒ‰é’®
+        // Çå¿ÕË«Ïò°´Å¥
         if (_groupTwoWayButtonDict.ContainsKey(targetGroupName))
         {
             _groupTwoWayButtonDict[targetGroupName].Clear();
         }
-        Debug.Log($"å·²æ¸…ç©ºç»„[{targetGroupName}]çš„æ‰€æœ‰æ™®é€šæŒ‰é’®å’ŒåŒå‘æŒ‰é’®ï¼");
+        /* Debug.Log($"ÒÑÇå¿Õ×é[{targetGroupName}]µÄËùÓĞÆÕÍ¨°´Å¥ºÍË«Ïò°´Å¥£¡"); */
     }
 
     /// <summary>
-    /// æ¸…ç©ºæ‰€æœ‰ç»„çš„æ‰€æœ‰æŒ‰é’®ï¼ˆæ™®é€š+åŒå‘ï¼‰ï¼Œä¿ç•™é»˜è®¤ç»„
+    /// Çå¿ÕËùÓĞ×éµÄËùÓĞ°´Å¥£¨ÆÕÍ¨+Ë«Ïò£©£¬±£ÁôÄ¬ÈÏ×é
     /// </summary>
     public void ClearAllRegisteredButtons()
     {
         _groupButtonDict.Clear();
         _groupExpandStates.Clear();
         _groupTwoWayButtonDict.Clear();
-        // é‡å»ºé»˜è®¤ç»„ï¼Œé¿å…åç»­æ³¨å†ŒæŠ¥é”™
+        // ÖØ½¨Ä¬ÈÏ×é£¬±ÜÃâºóĞø×¢²á±¨´í
         RegisterGroup(DEFAULT_GROUP_NAME);
         _groupTwoWayButtonDict.Add(DEFAULT_GROUP_NAME, new List<GuiTwoWayButtonInfo>());
-        Debug.Log("å·²æ¸…ç©ºæ‰€æœ‰ç»„çš„æ‰€æœ‰æŒ‰é’®ï¼ˆä¿ç•™é»˜è®¤ç»„ï¼Œæ™®é€š+åŒå‘å‡æ¸…ç©ºï¼‰ï¼");
+        /* Debug.Log("ÒÑÇå¿ÕËùÓĞ×éµÄËùÓĞ°´Å¥£¨±£ÁôÄ¬ÈÏ×é£¬ÆÕÍ¨+Ë«Ïò¾ùÇå¿Õ£©£¡"); */
     }
     #endregion
 
-    #region ç»Ÿä¸€æ‰“å¼€æ‰€æœ‰çš„è°ƒè¯•ä¿¡æ¯
+    #region Í³Ò»´ò¿ªËùÓĞµÄµ÷ÊÔĞÅÏ¢
     public void IsShowAllInfo(bool IsShow)
     {
         if (IsShow)

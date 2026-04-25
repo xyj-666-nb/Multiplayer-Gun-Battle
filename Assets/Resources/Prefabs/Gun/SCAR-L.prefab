@@ -236,6 +236,135 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3770770259112398018}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!1 &1870093124449279073
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 7
+  m_Component:
+  - component: {fileID: 6466922691725258401}
+  - component: {fileID: 4681795284369033323}
+  m_Layer: 0
+  m_HasEditorInfo: 1
+  m_Name: Audio Source
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6466922691725258401
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1870093124449279073}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.034, y: -0.002, z: 0}
+  m_LocalScale: {x: -0.5, y: 0.58823526, z: 0}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3770770259112398018}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &4681795284369033323
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1870093124449279073}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1.6649874
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &2749005941741618329
 GameObject:
   m_ObjectHideFlags: 0
@@ -393,6 +522,7 @@ Transform:
   - {fileID: 1570833065063249457}
   - {fileID: 1390246983190437702}
   - {fileID: 9142670758572806120}
+  - {fileID: 6466922691725258401}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &205491475027778761
@@ -1150,6 +1280,26 @@ PlayableDirector:
     value: {fileID: 2056040801058172428}
   - key: {fileID: -1194795938108129679, guid: 6e899eb9c6475594885d1887fe6802eb, type: 2}
     value: {fileID: 2056040801058172428}
+  - key: {fileID: -7716294275655431290, guid: 00649a269b5ff9e4c8371386b5a66d0e, type: 2}
+    value: {fileID: 2056040801058172428}
+  - key: {fileID: -1194795938108129679, guid: 00649a269b5ff9e4c8371386b5a66d0e, type: 2}
+    value: {fileID: 2056040801058172428}
+  - key: {fileID: -7716294275655431290, guid: 1eaaf5d8d4cfb5945a439ddc121eac3f, type: 2}
+    value: {fileID: 2056040801058172428}
+  - key: {fileID: -1194795938108129679, guid: 1eaaf5d8d4cfb5945a439ddc121eac3f, type: 2}
+    value: {fileID: 2056040801058172428}
+  - key: {fileID: -7716294275655431290, guid: 1a580dd37dfc04347b283e1a670bce98, type: 2}
+    value: {fileID: 2056040801058172428}
+  - key: {fileID: -1194795938108129679, guid: 1a580dd37dfc04347b283e1a670bce98, type: 2}
+    value: {fileID: 2056040801058172428}
+  - key: {fileID: 8600406552585998646, guid: 1a580dd37dfc04347b283e1a670bce98, type: 2}
+    value: {fileID: 4681795284369033323}
+  - key: {fileID: 8600406552585998646, guid: 1eaaf5d8d4cfb5945a439ddc121eac3f, type: 2}
+    value: {fileID: 4681795284369033323}
+  - key: {fileID: 8600406552585998646, guid: 00649a269b5ff9e4c8371386b5a66d0e, type: 2}
+    value: {fileID: 4681795284369033323}
+  - key: {fileID: 8600406552585998646, guid: 6e899eb9c6475594885d1887fe6802eb, type: 2}
+    value: {fileID: 4681795284369033323}
   m_ExposedReferences:
     m_References: []
 --- !u!114 &1014292479349210031

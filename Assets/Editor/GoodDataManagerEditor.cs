@@ -67,7 +67,7 @@ public class GoodDataManagerEditor : Editor
 
         GoodsDataEditorTool.RebuildEncryptedGuidFile();
 
-        Debug.Log($"[GoodDataManager] 刷新完成！共找到 {foundGoods.Count} 个商品数据，并更新了加密文件。");
+        /* Debug.Log($"[GoodDataManager] 刷新完成！共找到 {foundGoods.Count} 个商品数据，并更新了加密文件。"); */
         EditorUtility.DisplayDialog("成功", $"已自动扫描并填充 {foundGoods.Count} 个商品数据！\nGUID 加密文件也已同步更新。", "确定");
     }
 }
@@ -115,7 +115,7 @@ public class GoodDataAssetProcessor : AssetPostprocessor
             // 这里我们直接复用上面的逻辑，为了不重复代码，我们可以通过反射或者直接再写一遍
             // 为了稳定性，这里我们只打印日志，提示用户可以手动点一下按钮
             // 如果你想要完全自动，可以把上面 RefreshAllGoodsDataList 的逻辑复制一份到这里
-            Debug.Log("[GoodDataManager] 检测到商品资源变动，请点击 Inspector 上的「自动扫描」按钮刷新列表。");
+            /* Debug.Log("[GoodDataManager] 检测到商品资源变动，请点击 Inspector 上的「自动扫描」按钮刷新列表。"); */
 
             // 如果你想要【完全全自动】，取消下面这行的注释 (需要把上面 RefreshAllGoodsDataList 改成静态方法或放到这里)：
              //ForceRefreshSilent();

@@ -125,7 +125,7 @@ public class AssistantMapChoosePanel : BasePanel
     {
         if (_selectedMapIndex == -1)
         {
-            Debug.LogWarning("还没有选择地图！");
+            /* Debug.LogWarning("还没有选择地图！"); */
             return;
         }
 
@@ -141,7 +141,7 @@ public class AssistantMapChoosePanel : BasePanel
                 MapChooseWall.Instance.Public_ConfirmMap2();
         }
 
-        Debug.Log($"已确认选择地图 {_selectedMapIndex}");
+        /* Debug.Log($"已确认选择地图 {_selectedMapIndex}"); */
     }
 
     private void SwitchToMainPanel()

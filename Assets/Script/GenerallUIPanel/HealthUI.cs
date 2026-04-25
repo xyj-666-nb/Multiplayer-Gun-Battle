@@ -23,7 +23,7 @@ public class HealthUI : MonoBehaviour//血量UI
         _isValid = HPImage != null && HPImage.gameObject != null;
         if (!_isValid)
         {
-            Debug.LogError("[HealthUI] HPImage未赋值或所属对象已销毁！", this);
+            /* Debug.LogError("[HealthUI] HPImage未赋值或所属对象已销毁！", this); */
         }
     }
 
@@ -60,7 +60,7 @@ public class HealthUI : MonoBehaviour//血量UI
         // 核心校验：任何一步无效都直接返回
         if (!_isValid || this == null || HPImage == null || HPImage.gameObject == null)
         {
-            Debug.LogWarning("[HealthUI] 组件/HPImage已销毁，跳过血量更新");
+            /* Debug.LogWarning("[HealthUI] 组件/HPImage已销毁，跳过血量更新"); */
             return;
         }
 
@@ -116,7 +116,7 @@ public class HealthUI : MonoBehaviour//血量UI
         {
             _isValid = false;
             CleanAllAnimations();
-            Debug.LogWarning("[HealthUI] HPImage运行中被销毁，已清理所有动画", this);
+            /* Debug.LogWarning("[HealthUI] HPImage运行中被销毁，已清理所有动画", this); */
         }
     }
 }

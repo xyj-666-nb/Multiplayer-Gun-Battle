@@ -45,7 +45,7 @@ public class LevelManager : SingleMonoAutoBehavior<LevelManager>
         // 1. 校验关卡配置
         if (levelPack == null || string.IsNullOrEmpty(levelPack.sceneName))
         {
-            Debug.LogError("关卡配置为空或场景名无效！");
+            /* Debug.LogError("关卡配置为空或场景名无效！"); */
             return;
         }
 
@@ -95,7 +95,7 @@ public class LevelManager : SingleMonoAutoBehavior<LevelManager>
 
         // 6. 切换到加载的场景
         SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
-        Debug.Log($"关卡场景 {sceneName} 加载完成！");
+        /* Debug.Log($"关卡场景 {sceneName} 加载完成！"); */
 
         // 7. 触发加载完成回调
         OnLevelLoadComplete?.Invoke();
@@ -108,7 +108,7 @@ public class LevelManager : SingleMonoAutoBehavior<LevelManager>
     {
         if (CurrentLevelInfoPack == null)
         {
-            Debug.LogWarning("当前无运行中的关卡！");
+            /* Debug.LogWarning("当前无运行中的关卡！"); */
             return;
         }
 
@@ -138,7 +138,7 @@ public class LevelManager : SingleMonoAutoBehavior<LevelManager>
         }
         // 清理未使用的资源（避免内存泄漏，P1核心）
         Resources.UnloadUnusedAssets();
-        Debug.Log($"关卡场景 {sceneName} 卸载完成！");
+        /* Debug.Log($"关卡场景 {sceneName} 卸载完成！"); */
     }
     #endregion
 
@@ -161,7 +161,7 @@ public class LevelManager : SingleMonoAutoBehavior<LevelManager>
         }
         // 3. 提交存档（必须调用，否则数据不生效）
         PlayerPrefs.Save();
-        Debug.Log($"关卡 {levelIndex} 进度已保存！");
+        /* Debug.Log($"关卡 {levelIndex} 进度已保存！"); */
     }
 
     /// <summary>
@@ -195,7 +195,7 @@ public class LevelManager : SingleMonoAutoBehavior<LevelManager>
                 CurrentLevelInfoPack.PlayerBornPos.position = bornPos;
             }
         }
-        Debug.Log($"关卡 {levelIndex} 进度已加载！");
+        /* Debug.Log($"关卡 {levelIndex} 进度已加载！"); */
     }
 
     /// <summary>

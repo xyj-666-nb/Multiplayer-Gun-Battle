@@ -1,4 +1,4 @@
-﻿using UnityEngine.Events;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using System;
 using System.Collections;
@@ -135,7 +135,7 @@ namespace UnityEngine.UI
                     {
                         if (layout2.constraint == GridLayoutGroup.Constraint.Flexible)
                         {
-                            Debug.LogWarning("[LoopScrollRect] Flexible not supported yet");
+                            /* Debug.LogWarning("[LoopScrollRect] Flexible not supported yet"); */
                         }
                         m_ContentConstraintCount = layout2.constraintCount;
                     }
@@ -310,7 +310,7 @@ namespace UnityEngine.UI
         ///         // Is horizontal scrolling enabled?
         ///         if (myScrollRect.horizontal == true)
         ///         {
-        ///             Debug.Log("Horizontal Scrolling is Enabled!");
+        ///             /* Debug.Log("Horizontal Scrolling is Enabled!"); */
         ///         }
         ///     }
         /// }
@@ -339,7 +339,7 @@ namespace UnityEngine.UI
         ///         // Is Vertical scrolling enabled?
         ///         if (myScrollRect.vertical == true)
         ///         {
-        ///             Debug.Log("Vertical Scrolling is Enabled!");
+        ///             /* Debug.Log("Vertical Scrolling is Enabled!"); */
         ///         }
         ///     }
         /// }
@@ -594,7 +594,7 @@ namespace UnityEngine.UI
         ///
         ///     public void ListenerMethod(Vector2 value)
         ///     {
-        ///         Debug.Log("ListenerMethod: " + value);
+        ///         /* Debug.Log("ListenerMethod: " + value); */
         ///     }
         /// }
         /// </code>
@@ -1429,7 +1429,7 @@ namespace UnityEngine.UI
         ///         //Checks if the ScrollRect called "myScrollRect" is active.
         ///         if (myScrollRect.IsActive())
         ///         {
-        ///             Debug.Log("The Scroll Rect is active!");
+        ///             /* Debug.Log("The Scroll Rect is active!"); */
         ///         }
         ///     }
         /// }
@@ -1512,7 +1512,7 @@ namespace UnityEngine.UI
         ///     //Do this when the user starts dragging the element this script is attached to..
         ///     public void OnBeginDrag(PointerEventData data)
         ///     {
-        ///         Debug.Log("They started dragging " + this.name);
+        ///         /* Debug.Log("They started dragging " + this.name); */
         ///     }
         /// }
         /// </code>
@@ -1547,7 +1547,7 @@ namespace UnityEngine.UI
         ///     //Do this when the user stops dragging this UI Element.
         ///     public void OnEndDrag(PointerEventData data)
         ///     {
-        ///         Debug.Log("Stopped dragging " + this.name + "!");
+        ///         /* Debug.Log("Stopped dragging " + this.name + "!"); */
         ///     }
         /// }
         /// </code>
@@ -1574,7 +1574,7 @@ namespace UnityEngine.UI
         ///     //Do this while the user is dragging this UI Element.
         ///     public void OnDrag(PointerEventData data)
         ///     {
-        ///         Debug.Log("Currently dragging " + this.name);
+        ///         /* Debug.Log("Currently dragging " + this.name); */
         ///     }
         /// }
         /// </code>

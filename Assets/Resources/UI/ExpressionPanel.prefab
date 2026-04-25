@@ -2561,7 +2561,6 @@ GameObject:
   - component: {fileID: 796925102530138991}
   - component: {fileID: 3797200829634021406}
   - component: {fileID: 5594322506140522909}
-  - component: {fileID: 5737252418056013368}
   m_Layer: 8
   m_HasEditorInfo: 1
   m_Name: ExpressionBox
@@ -2640,31 +2639,6 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &5737252418056013368
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4850454610395863033}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 72c4caa22c633144d9f1d5ce75ca4d9b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncDirection: 0
-  syncMode: 0
-  syncInterval: 0
-  MyCanvasGroup: {fileID: 5594322506140522909}
-  ExpressionImage: {fileID: 8872417152741554618}
-  ParentRect: {fileID: 0}
-  ShowWidth: 1.6
-  ShowHeight: 1.3
-  ShowTime: 0.7
-  DefaultHideTime: 0.3
-  DefaultDuration: 1.5
-  ShowEase: 27
-  HideEase: 5
 --- !u!1 &5033245360983379973
 GameObject:
   m_ObjectHideFlags: 0

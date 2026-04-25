@@ -33,7 +33,7 @@ public class LightIntensityController : MonoBehaviour
         // 安全检查：确保组件存在
         if (_light2D == null)
         {
-            Debug.LogError($"[{gameObject.name}] 未找到Light2D组件，请确认挂载对象有该组件！", this);
+            /* Debug.LogError($"[{gameObject.name}] 未找到Light2D组件，请确认挂载对象有该组件！", this); */
             enabled = false;
             return;
         }

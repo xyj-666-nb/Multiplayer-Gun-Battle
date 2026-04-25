@@ -22,7 +22,7 @@ public class GunInfo : ScriptableObject
     public float Accuracy;
 
     [Header("伤害")]
-    [Range(0, 150)] // Damage：0到100的滑动条
+    [Range(0, 200)] // Damage：0到200的滑动条
     public float Damage;
 
     [Header("射程")]
@@ -45,6 +45,10 @@ public class GunInfo : ScriptableObject
     [Header("枪械的射击视野(这里是指对视野的百分比的提升，负数就是缩小)")]
     [Range(-2, 2)]
     public float ViewRange;//枪械的射击视野
+
+    [Header("枪械机动性")]
+    [Range(-1, 1)]
+    public float Mobility = 0f;//正数提升开镜速度和持枪移速，负数降低
 
     [Header("枪械的自身贴图")]
     public Sprite GunBodySprite;

@@ -27,7 +27,7 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
     {
         if (!InitSDK())
         {
-            Debug.LogError("SDK 初始化失败，无法登录");
+            /* Debug.LogError("SDK 初始化失败，无法登录"); */
             return;
         }
 
@@ -42,10 +42,10 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
 
             if (userInfo != null)
             {
-                Debug.Log("===== TapTap登录成功 =====");
-                Debug.Log($"用户 openId: {userInfo.openId}");
-                Debug.Log($"用户 unionId: {userInfo.unionId}");
-                Debug.Log($"用户昵称: {userInfo.name}");
+                /* Debug.Log("===== TapTap登录成功 ====="); */
+                /* Debug.Log($"用户 openId: {userInfo.openId}"); */
+                /* Debug.Log($"用户 unionId: {userInfo.unionId}"); */
+                /* Debug.Log($"用户昵称: {userInfo.name}"); */
 
                 // 登录成功后启动实名/防沉迷检查
                 StartCheckCompliance();
@@ -53,12 +53,12 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
         }
         catch (TaskCanceledException)
         {
-            Debug.Log("用户取消登录");
+            /* Debug.Log("用户取消登录"); */
             WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "您已取消登录!");
         }
         catch (Exception e)
         {
-            Debug.LogError($"登录失败：{e.Message}\n{e.StackTrace}");
+            /* Debug.LogError($"登录失败：{e.Message}\n{e.StackTrace}"); */
         }
     }
 
@@ -73,11 +73,11 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
             CurrentAgeRange = -1;
             CurrentRemainingTimeSeconds = -1;
             _currentComplianceUserId = null;
-            Debug.Log("===== TapTap登出成功 =====");
+            /* Debug.Log("===== TapTap登出成功 ====="); */
         }
         catch (Exception e)
         {
-            Debug.LogError($"登出失败：{e.Message}");
+            /* Debug.LogError($"登出失败：{e.Message}"); */
         }
     }
     #endregion
@@ -110,12 +110,12 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
             TapTapCompliance.RegisterComplianceCallback(ComplianceCallback);
 
             isSdkInited = true;
-            Debug.Log("===== TapSDK初始化成功 =====");
+            /* Debug.Log("===== TapSDK初始化成功 ====="); */
             return true;
         }
         catch (Exception e)
         {
-            Debug.LogError($"SDK初始化失败：{e.Message}");
+            /* Debug.LogError($"SDK初始化失败：{e.Message}"); */
             isSdkInited = false;
             return false;
         }
@@ -129,7 +129,7 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
             {
                 case 500:
                     hasCheckedCompliance = true;
-                    Debug.Log("===== 实名认证通过 =====");
+                    /* Debug.Log("===== 实名认证通过 ====="); */
                     RefreshCompliancePlayerState();
                     WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "登录成功！祝您游戏愉快!");
                     CountDownManager.Instance.CreateTimer(false, 1000, () =>
@@ -141,18 +141,18 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
                 case 1000:
                 case 1001:
                 case 9002:
-                    Debug.Log($"合规失败({code})：{errorMsg}");
+                    /* Debug.Log($"合规失败({code})：{errorMsg}"); */
                     ForceComplianceLogout("请重新登录并完成实名认证！");
                     break;
 
                 case 1030:
-                    Debug.Log($"未成年人时段限制：{errorMsg}");
+                    /* Debug.Log($"未成年人时段限制：{errorMsg}"); */
                     RefreshCompliancePlayerState();
                     ForceComplianceLogout("当前时段无法进入游戏，请稍后再试。");
                     break;
 
                 case 1050:
-                    Debug.Log($"未成年人时长限制：{errorMsg}");
+                    /* Debug.Log($"未成年人时长限制：{errorMsg}"); */
                     RefreshCompliancePlayerState();
                     ForceComplianceLogout("今日游戏时长已用尽，请明天再来。");
                     break;
@@ -174,7 +174,7 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
                     break;
 
                 default:
-                    Debug.Log($"其他合规状态({code})：{errorMsg}");
+                    /* Debug.Log($"其他合规状态({code})：{errorMsg}"); */
                     break;
             }
         };
@@ -193,7 +193,7 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
         }
         catch (Exception e)
         {
-            Debug.Log($"获取用户信息失败：{e.Message}");
+            /* Debug.Log($"获取用户信息失败：{e.Message}"); */
         }
 
         if (account == null)
@@ -205,7 +205,7 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
 
         _currentComplianceUserId = account.unionId;
         TapTapCompliance.Startup(_currentComplianceUserId);
-        Debug.Log($"===== 启动实名认证检查，用户标识：{_currentComplianceUserId} =====");
+        /* Debug.Log($"===== 启动实名认证检查，用户标识：{_currentComplianceUserId} ====="); */
     }
     #endregion
 
@@ -218,18 +218,18 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"获取年龄段失败：{e.Message}");
+            /* Debug.LogWarning($"获取年龄段失败：{e.Message}"); */
             CurrentAgeRange = -1;
         }
 
         try
         {
             CurrentRemainingTimeSeconds = await TapTapCompliance.GetRemainingTime();
-            Debug.Log($"===== 合规信息：年龄段={CurrentAgeRange} 剩余时长={CurrentRemainingTimeSeconds}秒 =====");
+            /* Debug.Log($"===== 合规信息：年龄段={CurrentAgeRange} 剩余时长={CurrentRemainingTimeSeconds}秒 ====="); */
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"获取剩余时长失败：{e.Message}");
+            /* Debug.LogWarning($"获取剩余时长失败：{e.Message}"); */
             CurrentRemainingTimeSeconds = -1;
         }
     }
@@ -242,7 +242,7 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"退出防沉迷状态失败：{e.Message}");
+            /* Debug.LogWarning($"退出防沉迷状态失败：{e.Message}"); */
         }
 
         try
@@ -251,7 +251,7 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"TapTap登出失败：{e.Message}");
+            /* Debug.LogWarning($"TapTap登出失败：{e.Message}"); */
         }
 
         hasCheckedCompliance = false;
@@ -278,7 +278,7 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
             UImanager.Instance.ShowPanel<UnderageTimePromptPanel>();
         }
 
-        Debug.Log($"===== 测试未成年人状态：年龄段={CurrentAgeRange} 剩余时长={CurrentRemainingTimeSeconds}秒 =====");
+        /* Debug.Log($"===== 测试未成年人状态：年龄段={CurrentAgeRange} 剩余时长={CurrentRemainingTimeSeconds}秒 ====="); */
     }
     #endregion
 
@@ -292,12 +292,12 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
             var account = await TapTapLogin.Instance.GetCurrentTapAccount();
             if (account == null)
             {
-                Debug.Log("===== 当前无登录账号 =====");
+                /* Debug.Log("===== 当前无登录账号 ====="); */
                 UImanager.Instance.ShowPanel<TapTapLoginPanel>();
             }
             else
             {
-                Debug.Log("===== 检测到已登录账号 =====");
+                /* Debug.Log("===== 检测到已登录账号 ====="); */
                 if (!hasCheckedCompliance)
                 {
                     StartCheckCompliance();
@@ -306,13 +306,13 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
         }
         catch (Exception e)
         {
-            Debug.LogError($"检查登录状态失败：{e.Message}");
+            /* Debug.LogError($"检查登录状态失败：{e.Message}"); */
         }
     }
 
     private void Start()
     {
-        Debug.Log("===== TapTap登录管理器启动 =====");
+        /* Debug.Log("===== TapTap登录管理器启动 ====="); */
         CheckLoginState();
     }
 

@@ -51,7 +51,7 @@ public class RoomPlayerCheck : BaseSceneInteract
         IsEnterRoom = true;//标记已进入房间
                            //设置玩家进入房间
         Player.LocalPlayer.CmdChangeEnterRoomState(true);
-        Debug.Log("玩家进入房间：内部门启用，外部门禁用，房子外围隐藏");
+        /* Debug.Log("玩家进入房间：内部门启用，外部门禁用，房子外围隐藏"); */
     }
 
     #region 内部门控制方法（加判空保护）
@@ -59,7 +59,7 @@ public class RoomPlayerCheck : BaseSceneInteract
     {
         if (InnerAllDoors == null || InnerAllDoors.Count == 0)
         {
-            Debug.LogWarning("内部门列表为空，无法启用内部门！");
+            /* Debug.LogWarning("内部门列表为空，无法启用内部门！"); */
             return;
         }
 
@@ -73,7 +73,7 @@ public class RoomPlayerCheck : BaseSceneInteract
     {
         if (InnerAllDoors == null || InnerAllDoors.Count == 0)
         {
-            Debug.LogWarning("内部门列表为空，无法禁用内部门！");
+            /* Debug.LogWarning("内部门列表为空，无法禁用内部门！"); */
             return;
         }
 
@@ -89,7 +89,7 @@ public class RoomPlayerCheck : BaseSceneInteract
     {
         if (OutsideAllDoors == null || OutsideAllDoors.Count == 0)
         {
-            Debug.LogWarning("外部门列表为空，无法启用外部门！");
+            /* Debug.LogWarning("外部门列表为空，无法启用外部门！"); */
             return;
         }
 
@@ -103,7 +103,7 @@ public class RoomPlayerCheck : BaseSceneInteract
     {
         if (OutsideAllDoors == null || OutsideAllDoors.Count == 0)
         {
-            Debug.LogWarning("外部门列表为空，无法禁用外部门！");
+            /* Debug.LogWarning("外部门列表为空，无法禁用外部门！"); */
             return;
         }
 
@@ -133,7 +133,7 @@ public class RoomPlayerCheck : BaseSceneInteract
         float roomPosX = transform.position.x;
         bool isPlayerReallyLeave = false;
 
-        Debug.Log($"离开判断日志 → 玩家X：{playerPosX} | 房间锚点X：{roomPosX} | EnterDir：{EnterDir}| ");
+        /* Debug.Log($"离开判断日志 → 玩家X：{playerPosX} | 房间锚点X：{roomPosX} | EnterDir：{EnterDir}| "); */
 
         if (EnterDir == 1)
         {
@@ -162,7 +162,7 @@ public class RoomPlayerCheck : BaseSceneInteract
 
             IsEnterRoom = false;
 
-            Debug.Log("玩家真正离开房间：恢复房子外围，禁用内部门，启用外部门");
+            /* Debug.Log("玩家真正离开房间：恢复房子外围，禁用内部门，启用外部门"); */
             Player.LocalPlayer.CmdChangeEnterRoomState(false);
         }
     }

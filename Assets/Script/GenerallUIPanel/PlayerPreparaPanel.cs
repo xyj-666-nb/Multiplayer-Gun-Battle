@@ -231,7 +231,7 @@ public class PlayerPreparaPanel : BasePanel
 
         // 显示面板时立即刷新
         ManualRefreshUI();
-        RoomNumber.text = UOSRelaySimple.Instance.currentRoomCode;//把房间码给房主
+        RoomNumber.text = UOSRelaySimple.Instance != null ? UOSRelaySimple.Instance.currentRoomCode : string.Empty;//把房间码给房主
     }
 
     protected override void SpecialAnimator_Hide() { }

@@ -42,11 +42,6 @@ public class MuzzleSmokeController : MonoBehaviour
         // 初始化烟雾列表
         smokeInstances = new List<SmokeInstance>();
 
-        // 自检：提示必填参数
-        if (firePoint == null)
-            Debug.LogError($"[{gameObject.name}] MuzzleSmokeController - firePoint未赋值！");
-        if (gunInfo == null)
-            Debug.LogError($"[{gameObject.name}] MuzzleSmokeController - gunInfo未赋值！");
     }
 
     private void Update()
@@ -83,7 +78,7 @@ public class MuzzleSmokeController : MonoBehaviour
         // 前置检查（仅提示，不中断，避免影响已有烟雾）
         if (gunInfo == null || fluidController == null || firePoint == null)
         {
-            Debug.LogWarning($"[{gameObject.name}] 烟雾参数不完整，跳过本次烟雾生成！");
+            /* Debug.LogWarning($"[{gameObject.name}] 烟雾参数不完整，跳过本次烟雾生成！"); */
             return;
         }
 

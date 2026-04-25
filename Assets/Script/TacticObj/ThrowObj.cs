@@ -106,7 +106,7 @@ public class ThrowObj : NetworkBehaviour
 
         if (ExplosionPrefab == null && tacticType == TacticType.Grenade)
         {
-            Debug.LogError("[ThrowObj] 手雷的 ExplosionPrefab 未赋值！", this);
+            /* Debug.LogError("[ThrowObj] 手雷的 ExplosionPrefab 未赋值！", this); */
         }
         CountDownManager.Instance.CreateTimer(false, 100, () => { MyMonster = HandControl.ownerPlayer.myStats; });
     }
@@ -171,7 +171,7 @@ public class ThrowObj : NetworkBehaviour
 
         if (_isDestroyed || !IsThrown) yield break;
 
-        Debug.Log($"[烟雾弹] 效果结束，销毁对象：{gameObject.name}", this);
+        /* Debug.Log($"[烟雾弹] 效果结束，销毁对象：{gameObject.name}", this); */
         RequestSelfDestruction();
     }
 
@@ -239,7 +239,7 @@ public class ThrowObj : NetworkBehaviour
                 Player targetPlayer = col.GetComponent<Player>();
                 if (targetPlayer != null && targetPlayer.myStats != null)
                 {
-                    Debug.Log($"[Server] 手雷命中 {targetPlayer.name}，伤害 {damage}，击退 {finalKnockbackForce}");
+                    /* Debug.Log($"[Server] 手雷命中 {targetPlayer.name}，伤害 {damage}，击退 {finalKnockbackForce}"); */
                     targetPlayer.myStats.ServerApplyGrenadeDamage(damage, explosionPos, finalKnockbackForce, attackerStats);
                 }
             }
@@ -269,7 +269,7 @@ public class ThrowObj : NetworkBehaviour
         if (_isDestroyed || ExplosionPrefab == null)
             return;
 
-        Debug.Log($"[爆炸特效] 客户端触发：{gameObject.name}");
+        /* Debug.Log($"[爆炸特效] 客户端触发：{gameObject.name}"); */
         GameObject explosion = Instantiate(ExplosionPrefab, transform.position, Quaternion.identity);
 
         //播放音乐
@@ -303,7 +303,7 @@ public class ThrowObj : NetworkBehaviour
         if (gameObject != null && NetworkServer.active)
         {
             NetworkServer.Destroy(gameObject);
-            Debug.Log($"[销毁] 投掷物已销毁：{gameObject.name} 类型：{tacticType}", this);
+            /* Debug.Log($"[销毁] 投掷物已销毁：{gameObject.name} 类型：{tacticType}", this); */
         }
     }
 

@@ -282,9 +282,14 @@ public class GunSkipPanel : BasePanel
         {
             // UI选择音效
             MusicManager.Instance.PlayEffect("Music/update415/ui选择");
-            //枪械皮肤专属安装按钮
-            WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "已装备枪械皮肤");
-            GameSkinManager.Instance.EquipmentGunSkin(CurrentChooseGunSkinPack.skinGuid);//传入ID自动装备
+            if (CurrentChooseGunSkinPack == null || GameSkinManager.Instance == null)
+            {
+                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "请先选择枪械皮肤");
+                return;
+            }
+
+            bool isEquipped = GameSkinManager.Instance.EquipmentGunSkin(CurrentChooseGunSkinPack);//直接传入当前选中的皮肤对象，避免重复ID装备错对象
+            WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, isEquipped ? "已装备枪械皮肤" : "枪械皮肤装备失败");
         }
         else if (controlName == "ProblemButton")
         {
@@ -302,7 +307,7 @@ public class GunSkipPanel : BasePanel
     {
         if (DemoGun.Instance == null)
         {
-            Debug.LogWarning("[GunSkipPanel] 场景中未找到 DemoGun！");
+            /* Debug.LogWarning("[GunSkipPanel] 场景中未找到 DemoGun！"); */
             return;
         }
 
@@ -346,14 +351,14 @@ public class GunSkipPanel : BasePanel
 
         if (GameSkinManager.Instance == null)
         {
-            Debug.LogError("GameSkinManager 未初始化！");
+            /* Debug.LogError("GameSkinManager 未初始化！"); */
             return;
         }
 
         var hitList = GameSkinManager.Instance.CurrentGunHitDataList;
         if (hitList == null || hitList.Count == 0)
         {
-            Debug.LogWarning("当前无打击特效数据！");
+            /* Debug.LogWarning("当前无打击特效数据！"); */
             return;
         }
 
@@ -474,7 +479,7 @@ public class GunSkipPanel : BasePanel
             button.GetComponentInChildren<TextMeshProUGUI>().text = MilitaryManager.Instance.GetChineseGunTypeName(gunType);
             GunTypeButtonList.Add(button);
 
-            ButtonGroupManager.Instance.AddRadioButtonToGroup_Str("GunSkipPanelGunTypeButton", button.GetComponent<Button>(), OnGunTypeButtonClicked, CancelGunTypeButton);
+            ButtonGroupManager.Instance.AddRadioButtonToGroup_Str("GunSkipPanelGunTypeButton", button.GetComponent<Button>(), OnGunTypeButtonClicked);
         }
 
         if (GunTypeButtonList.Count > 0)
@@ -524,14 +529,14 @@ public class GunSkipPanel : BasePanel
 
         if (GameSkinManager.Instance == null)
         {
-            Debug.LogError("GameSkinManager 未初始化！");
+            /* Debug.LogError("GameSkinManager 未初始化！"); */
             return;
         }
 
         var bulletList = GameSkinManager.Instance.GetSpecialBulletBindPackList(Type);
         if (bulletList == null || bulletList.Count == 0)
         {
-            Debug.LogWarning("当前枪械无子弹配置数据！");
+            /* Debug.LogWarning("当前枪械无子弹配置数据！"); */
             return;
         }
 
@@ -710,14 +715,14 @@ public class GunSkipPanel : BasePanel
 
         if (GameSkinManager.Instance == null)
         {
-            Debug.LogError("GameSkinManager 未初始化！");
+            /* Debug.LogError("GameSkinManager 未初始化！"); */
             return;
         }
 
         var skinList = GameSkinManager.Instance.CurrentGunSkinPackList;
         if (skinList == null || skinList.Count == 0)
         {
-            Debug.LogWarning("当前无枪械皮肤数据！");
+            /* Debug.LogWarning("当前无枪械皮肤数据！"); */
             return;
         }
 
@@ -853,9 +858,6 @@ public class GunSkipPanel : BasePanel
         GunTypeButtonList.Clear();
     }
 
-    public void CancelGunTypeButton(string gunTypeName)
-    {
-    }
 
     public void IsActiveButtonGroup(bool IsTrigger)
     {

@@ -64,7 +64,7 @@ public class FPSDisplayPanel : SingleMonoAutoBehavior<FPSDisplayPanel>
         _frameCount = 0;
         _currentFPS = 0;
         _targetGUIColor = initColor;
-        Debug.Log("[FPSDisplay] GUI版FPS面板初始化完成，单例已就绪");
+        /* Debug.Log("[FPSDisplay] GUI版FPS面板初始化完成，单例已就绪"); */
     }
 
     protected void Start()
@@ -72,7 +72,7 @@ public class FPSDisplayPanel : SingleMonoAutoBehavior<FPSDisplayPanel>
         // 严格空值校验：CountDownManager不存在则禁用脚本
         if (CountDownManager.Instance == null)
         {
-            Debug.LogError("[FPSDisplay] 启动失败：CountDownManager.Instance 为Null！");
+            /* Debug.LogError("[FPSDisplay] 启动失败：CountDownManager.Instance 为Null！"); */
             enabled = false;
             return;
         }
@@ -80,7 +80,7 @@ public class FPSDisplayPanel : SingleMonoAutoBehavior<FPSDisplayPanel>
         // 创建永久定时器，执行FPS计算（毫秒转换）
         int delayMs = Mathf.RoundToInt(sampleInterval * 1000);
         _countDownTaskID = CountDownManager.Instance.CreateTimer_Permanent(true, delayMs, CalculateFPS);
-        Debug.Log($"[FPSDisplay] 定时器创建成功，采样间隔：{sampleInterval}s（{delayMs}ms），TaskID：{_countDownTaskID}");
+        /* Debug.Log($"[FPSDisplay] 定时器创建成功，采样间隔：{sampleInterval}s（{delayMs}ms），TaskID：{_countDownTaskID}"); */
     }
 
     protected void Update()
@@ -105,7 +105,7 @@ public class FPSDisplayPanel : SingleMonoAutoBehavior<FPSDisplayPanel>
         if (CountDownManager.Instance != null && _countDownTaskID != -1)
         {
             CountDownManager.Instance.RemoveTimer(_countDownTaskID);
-            Debug.Log($"[FPSDisplay] 定时器已移除，TaskID：{_countDownTaskID}");
+            /* Debug.Log($"[FPSDisplay] 定时器已移除，TaskID：{_countDownTaskID}"); */
         }
         _countDownTaskID = -1;
     }
@@ -169,7 +169,7 @@ public class FPSDisplayPanel : SingleMonoAutoBehavior<FPSDisplayPanel>
         ResetSampleData();
 
         // 调试日志（可选删除）
-        // Debug.Log($"[FPSDisplay] FPS计算完成：{_currentFPS}，目标颜色：{_targetGUIColor}");
+        // /* Debug.Log($"[FPSDisplay] FPS计算完成：{_currentFPS}，目标颜色：{_targetGUIColor}"); */
     }
 
     /// <summary>

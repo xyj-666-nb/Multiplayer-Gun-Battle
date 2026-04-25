@@ -33,7 +33,7 @@ public class GunValueSlider : MonoBehaviour
 
         if (!float.TryParse(maxValue, out float maxValueFloat) || maxValueFloat <= 0)
         {
-            Debug.LogWarning($"无效的最大值：{maxValue}，默认按最大值1处理");
+            /* Debug.LogWarning($"无效的最大值：{maxValue}，默认按最大值1处理"); */
             maxValueFloat = 1f;
         }
 

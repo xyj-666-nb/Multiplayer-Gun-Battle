@@ -91,7 +91,7 @@ public abstract class BaseBulletInteract_NetWork : NetworkBehaviour
     [Server]
     public void TakeDamage(float damage)
     {
-        Debug.Log("成功扣血");
+        /* Debug.Log("成功扣血"); */
         CurrentHealthValue = Mathf.Max(0, CurrentHealthValue - damage);
     }
 

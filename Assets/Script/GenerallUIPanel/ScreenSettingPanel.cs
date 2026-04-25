@@ -76,7 +76,7 @@ public class ScreenSettingPanel : BasePanel
         PlayerAndGameInfoManger.Instance.CurrentFPS = fpsType;
         PlayerAndGameInfoManger.Instance.ApplyGraphicsSettings(); // 立即应用
         PlayerAndGameInfoManger.Instance.SavePlayerData();       // 保存到本地
-        Debug.Log($"已记录帧率: {fpsType}");
+        /* Debug.Log($"已记录帧率: {fpsType}"); */
         RefreshFpsButtons(fpsType);
     }
 
@@ -85,7 +85,7 @@ public class ScreenSettingPanel : BasePanel
         PlayerAndGameInfoManger.Instance.CurrentScreen = screenType;
         PlayerAndGameInfoManger.Instance.ApplyGraphicsSettings(); // 立即应用
         PlayerAndGameInfoManger.Instance.SavePlayerData();       // 保存到本地
-        Debug.Log($"已记录画质: {screenType}");
+        /* Debug.Log($"已记录画质: {screenType}"); */
         RefreshScreenButtons(screenType);
     }
     #endregion
@@ -122,7 +122,7 @@ public class ScreenSettingPanel : BasePanel
     {
         if (controlDic == null || !controlDic.ContainsKey(key))
         {
-            Debug.LogWarning($"未在 controlDic 中找到按钮: {key}");
+            /* Debug.LogWarning($"未在 controlDic 中找到按钮: {key}"); */
             return null;
         }
         return controlDic[key] as Button;

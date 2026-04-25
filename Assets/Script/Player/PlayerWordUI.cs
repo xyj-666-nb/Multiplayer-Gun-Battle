@@ -57,7 +57,7 @@ public class PlayerWordUI : MonoBehaviour//玩家世界UI控制
     {
         if (MyPlayer == null || MyPlayer.myStats == null || HealthFillImage == null || PlayerName == null)
         {
-            Debug.LogWarning("血条更新失败：关键组件未初始化！", this);
+            /* Debug.LogWarning("血条更新失败：关键组件未初始化！", this); */
             return;
         }
 

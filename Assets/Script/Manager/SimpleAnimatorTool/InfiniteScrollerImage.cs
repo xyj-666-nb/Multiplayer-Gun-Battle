@@ -38,7 +38,7 @@ public class InfiniteScrollerImageManager:SingleBehavior<InfiniteScrollerImageMa
       }
       else
       {
-            Debug.LogWarning("没有在滚动图片列表中发现该滚动图片");
+            /* Debug.LogWarning("没有在滚动图片列表中发现该滚动图片"); */
             return;
       }    
     }

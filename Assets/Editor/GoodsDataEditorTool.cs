@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEditor;
-using System.IO;
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 
 public class GoodsDataEditorTool : EditorWindow
 {
@@ -56,7 +56,7 @@ public class GoodsDataEditorTool : EditorWindow
                 goods.goodsGuid = System.Guid.NewGuid().ToString();
                 EditorUtility.SetDirty(goods);
                 generatedCount++;
-                Debug.Log($"[GUID工具] 自动生成GUID：{goods.goodsName} -> {goods.goodsGuid}");
+                /* Debug.Log($"[GUID工具] 自动生成GUID：{goods.goodsName} -> {goods.goodsGuid}"); */
             }
         }
 
@@ -104,7 +104,7 @@ public class GoodsDataEditorTool : EditorWindow
         File.WriteAllText(filePath, encryptedString);
 
         AssetDatabase.Refresh();
-        Debug.Log($"[GUID工具] 加密GUID映射文件已更新：{filePath}");
+        /* Debug.Log($"[GUID工具] 加密GUID映射文件已更新：{filePath}"); */
     }
 
     // 运行时加载解密的 GUID 映射（给 GoodsManager 用）
@@ -113,7 +113,7 @@ public class GoodsDataEditorTool : EditorWindow
         string filePath = Path.Combine(Application.streamingAssetsPath, GOODS_GUID_FILE_NAME);
         if (!File.Exists(filePath))
         {
-            Debug.LogError("[GUID工具] 未找到加密GUID映射文件！请先在编辑器里生成！");
+            /* Debug.LogError("[GUID工具] 未找到加密GUID映射文件！请先在编辑器里生成！"); */
             return new Dictionary<string, string>();
         }
 

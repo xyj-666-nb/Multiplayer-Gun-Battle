@@ -30,7 +30,7 @@ public class AndroidNetworkPermissionManager : MonoBehaviour
     {
         if (Application.platform != RuntimePlatform.Android)
         {
-            Debug.LogWarning("[权限管理] 非Android平台，跳过权限处理");
+            /* Debug.LogWarning("[权限管理] 非Android平台，跳过权限处理"); */
             return;
         }
 
@@ -51,7 +51,7 @@ public class AndroidNetworkPermissionManager : MonoBehaviour
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"[权限管理] 初始化失败：{e.Message}");
+            /* Debug.LogError($"[权限管理] 初始化失败：{e.Message}"); */
         }
     }
     #endregion
@@ -71,13 +71,13 @@ public class AndroidNetworkPermissionManager : MonoBehaviour
     #region 网络权限检查
     private void CheckAllNetworkPermissions()
     {
-        Debug.Log("\n---------------- 核心网络权限检查 ----------------");
+        /* Debug.Log("\n---------------- 核心网络权限检查 ----------------"); */
         foreach (var perm in _networkPermissions)
         {
             bool isGranted = CheckSinglePermission(perm.Key);
-            Debug.Log($"【{perm.Value}】：{(isGranted ? " 已授予" : " 未授予/需手动开启")}");
+            /* Debug.Log($"【{perm.Value}】：{(isGranted ? " 已授予" : " 未授予/需手动开启")}"); */
         }
-        Debug.Log("---------------------------------------------\n");
+        /* Debug.Log("---------------------------------------------\n"); */
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ public class AndroidNetworkPermissionManager : MonoBehaviour
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"[权限管理] 检查权限 {permissionName} 失败：{e.Message}");
+            /* Debug.LogError($"[权限管理] 检查权限 {permissionName} 失败：{e.Message}"); */
             return false;
         }
     }
@@ -112,25 +112,25 @@ public class AndroidNetworkPermissionManager : MonoBehaviour
         if (!CheckSinglePermission("android.permission.INTERNET"))
         {
             hasCriticalProblem = true;
-            Debug.LogWarning("【严重】基础互联网权限缺失！请重新安装应用");
+            /* Debug.LogWarning("【严重】基础互联网权限缺失！请重新安装应用"); */
         }
 
         if (!CheckSinglePermission("android.permission.USE_BACKGROUND_NETWORK"))
         {
             hasCriticalProblem = true;
-            Debug.LogWarning("【重要】后台网络权限未开启！请手动设置：\n设置 → 应用 → 你的游戏 → 流量管理 → 开启「后台数据/无限制数据访问」");
+            /* Debug.LogWarning("【重要】后台网络权限未开启！请手动设置：\n设置 → 应用 → 你的游戏 → 流量管理 → 开启「后台数据/无限制数据访问」"); */
         }
 
         if (!CheckSinglePermission("android.permission.FOREGROUND_SERVICE"))
         {
-            Debug.LogWarning("【建议】前台服务权限未开启！请手动设置：\n设置 → 应用 → 你的游戏 → 权限 → 开启「前台服务」");
+            /* Debug.LogWarning("【建议】前台服务权限未开启！请手动设置：\n设置 → 应用 → 你的游戏 → 权限 → 开启「前台服务」"); */
         }
 
         if (!hasCriticalProblem)
         {
-            Debug.Log(" 核心网络权限均正常，Relay联机环境就绪");
+            /* Debug.Log(" 核心网络权限均正常，Relay联机环境就绪"); */
         }
-        Debug.Log("-------------------------------------------------\n");
+        /* Debug.Log("-------------------------------------------------\n"); */
     }
     #endregion
 
@@ -139,11 +139,11 @@ public class AndroidNetworkPermissionManager : MonoBehaviour
     {
 
         bool runInBackground = Application.runInBackground;
-        Debug.Log($"【Unity后台运行】：{(runInBackground ? " 开启（正常）" : " 关闭（必须开启）")}");
+        /* Debug.Log($"【Unity后台运行】：{(runInBackground ? " 开启（正常）" : " 关闭（必须开启）")}"); */
 
         CheckNetworkType();
 
-        Debug.Log("---------------------------------------------\n");
+        /* Debug.Log("---------------------------------------------\n"); */
     }
 
     /// <summary>
@@ -159,17 +159,17 @@ public class AndroidNetworkPermissionManager : MonoBehaviour
 
             if (networkInfo == null || !networkInfo.Call<bool>("isConnected"))
             {
-                Debug.LogWarning("【网络状态】 无可用网络！请检查网络连接");
+                /* Debug.LogWarning("【网络状态】 无可用网络！请检查网络连接"); */
                 return;
             }
 
             int type = networkInfo.Call<int>("getType");
             string typeName = type == 1 ? "WiFi（推荐）" : (type == 0 ? "移动数据（可能有NAT限制）" : "其他网络");
-            Debug.Log($"【网络状态】 当前连接：{typeName}");
+            /* Debug.Log($"【网络状态】 当前连接：{typeName}"); */
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"【网络状态】检查失败：{e.Message}");
+            /* Debug.LogError($"【网络状态】检查失败：{e.Message}"); */
         }
     }
     #endregion

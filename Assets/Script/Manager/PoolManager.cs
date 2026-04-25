@@ -111,7 +111,7 @@ public class PoolManage : SingleMonoAutoBehavior<PoolManage>
             return;
 
         objPoolDic.Remove(prefab.name);
-        Debug.Log($"[对象池] 清空 {prefab.name} 池");
+        /* Debug.Log($"[对象池] 清空 {prefab.name} 池"); */
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ public class PoolManage : SingleMonoAutoBehavior<PoolManage>
     {
         if (prefab == null || obj == null)
         {
-            Debug.LogError("PushObj：预制体或对象为空！");
+            /* Debug.LogError("PushObj：预制体或对象为空！"); */
             return;
         }
 

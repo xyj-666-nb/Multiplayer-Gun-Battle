@@ -17,7 +17,7 @@ public class MonoMange : SingleMonoAutoBehavior<MonoMange>
     /// <param name="OnStartAction"></param>
     public void AddLister_Start(UnityAction OnStartAction)
     {
-        Debug.Log("添加Update监听");
+        /* Debug.Log("添加Update监听"); */
         this.OnStartAction += OnStartAction;
     }
     /// <summary>
@@ -39,7 +39,7 @@ public class MonoMange : SingleMonoAutoBehavior<MonoMange>
     /// <param name="UpdateAction"></param>
     public void AddLister_Update(UnityAction UpdateAction)
     {
-        Debug.Log("添加Update监听");
+        /* Debug.Log("添加Update监听"); */
         this.UpdateAction += UpdateAction;
     }
 
@@ -140,7 +140,7 @@ public class MonoMange : SingleMonoAutoBehavior<MonoMange>
         GameObject prefab = Resources.Load<GameObject>(Name);
         if (prefab == null)
         {
-            Debug.LogError($"未找到预制体{Name}，请检查路径是否正确");
+            /* Debug.LogError($"未找到预制体{Name}，请检查路径是否正确"); */
             return null;
         }
         GameObject instance = Instantiate(prefab);

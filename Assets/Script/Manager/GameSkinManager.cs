@@ -6,6 +6,7 @@ using UnityEngine.Events;
 
 public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
 {
+    private const string BASE_SKIN_KEYWORD = "\u57FA\u7840\u76AE";
     [Header("开发者模式")]
     [Tooltip("开启后：自动解锁所有物品")]
     public bool IsDeveloperMode = false;
@@ -69,6 +70,7 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
     {
         public string gunName;
         public int? equippedSkinID;
+        public string equippedSkinAssetName;
     }
 
     [Serializable]
@@ -105,7 +107,8 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
             saveData.gunEquipmentSaveDatas.Add(new GunEquipmentSaveData
             {
                 gunName = config.GunName,
-                equippedSkinID = config.EquippedSkin?.skinGuid
+                equippedSkinID = config.EquippedSkin?.skinGuid,
+                equippedSkinAssetName = config.EquippedSkin != null ? config.EquippedSkin.name : string.Empty
             });
         }
 
@@ -144,7 +147,7 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
         var saveData = LoadPlayerData();
         if (saveData == null)
         {
-            Debug.Log("无存档装备数据，使用默认配置");
+            /* Debug.Log("无存档装备数据，使用默认配置"); */
             DataLoadCallBack?.Invoke();
             return;
         }
@@ -169,11 +172,12 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
         {
             foreach (var config in GunEquipmentConfigList)
             {
-                if (config.GunName == saveItem.gunName)
+                if (NormalizeGunName(config.GunName) == NormalizeGunName(saveItem.gunName))
                 {
-                    if (saveItem.equippedSkinID.HasValue && _gunSkinDict.TryGetValue(saveItem.equippedSkinID.Value, out var skinPack))
+                    if (saveItem.equippedSkinID.HasValue)
                     {
-                        if (CurrentGunSkinPackList.Contains(skinPack))
+                        var skinPack = FindSavedGunSkin(saveItem.equippedSkinID.Value, saveItem.equippedSkinAssetName);
+                        if (skinPack != null && CurrentGunSkinPackList.Contains(skinPack) && IsSkinMatchGun(skinPack, config.GunName))
                         {
                             config.EquippedSkin = skinPack;
                         }
@@ -203,7 +207,8 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
             }
         }
 
-        Debug.Log("装备数据还原完成");
+        AutoSetDefaultGunSkin();
+        /* Debug.Log("装备数据还原完成"); */
         DataLoadCallBack?.Invoke();
     }
     #endregion
@@ -257,10 +262,10 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
     {
         foreach (var gunConfig in GunEquipmentConfigList)
         {
-            if (gunConfig.EquippedSkin != null) continue;
+            if (IsSkinMatchGun(gunConfig.EquippedSkin, gunConfig.GunName))
+                continue;
 
-            // 从玩家默认拥有的皮肤中匹配对应枪械
-            var defaultSkin = CurrentGunSkinPackList.FirstOrDefault(skin => skin.GunRealName == gunConfig.GunName);
+            var defaultSkin = FindBestDefaultGunSkin(gunConfig.GunName);
             if (defaultSkin != null)
             {
                 gunConfig.EquippedSkin = defaultSkin;
@@ -269,38 +274,58 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
     }
 
     #region 枪械皮肤 - 装备
-    public void EquipmentGunSkin(int skinID)
+    public bool EquipmentGunSkin(int skinID)
     {
-        if (!_gunSkinDict.ContainsKey(skinID))
-            return;
-        EquipmentGunSkin(_gunSkinDict[skinID]);
+        var ownedSkinPack = CurrentGunSkinPackList?.FirstOrDefault(skin => skin != null && skin.skinGuid == skinID);
+        if (ownedSkinPack != null)
+            return EquipmentGunSkin(ownedSkinPack);
+
+        if (_gunSkinDict == null || !_gunSkinDict.TryGetValue(skinID, out var skinPack))
+            return false;
+
+        return EquipmentGunSkin(skinPack);
     }
 
-    public void EquipmentGunSkin(GunSkinPack skinPack)
+    public bool EquipmentGunSkin(GunSkinPack skinPack)
     {
-        if (skinPack == null || !CurrentGunSkinPackList.Contains(skinPack)) return;
+        if (skinPack == null || CurrentGunSkinPackList == null || !CurrentGunSkinPackList.Contains(skinPack))
+            return false;
 
-        foreach (var config in GunEquipmentConfigList)
+        if (GunEquipmentConfigList == null)
+            GunEquipmentConfigList = new List<GunEquipmentConfig>();
+
+        var config = FindGunEquipmentConfig(skinPack.GunRealName);
+        if (config == null)
         {
-            if (config.GunName == skinPack.GunRealName)
+            config = new GunEquipmentConfig
             {
-                config.EquippedSkin = skinPack;
-                SavePlayerData();
-                Debug.Log($"装备枪械皮肤成功：{skinPack.name}");
-                return;
-            }
+                GunName = skinPack.GunRealName,
+                EquippedSkin = null
+            };
+            GunEquipmentConfigList.Add(config);
         }
+
+        config.EquippedSkin = skinPack;
+        SavePlayerData();
+        return true;
     }
     #endregion
-
     #region 枪械皮肤 - 查询
     public GunSkinPack GetCurrentGunEquipmentSkinPack(string gunName)
     {
         if (string.IsNullOrEmpty(gunName)) return null;
         foreach (var config in GunEquipmentConfigList)
         {
-            if (config.GunName == gunName)
-                return config.EquippedSkin;
+            if (NormalizeGunName(config.GunName) == NormalizeGunName(gunName))
+            {
+                if (IsSkinMatchGun(config.EquippedSkin, gunName))
+                    return config.EquippedSkin;
+
+                var defaultSkin = FindBestDefaultGunSkin(gunName);
+                if (defaultSkin != null)
+                    config.EquippedSkin = defaultSkin;
+                return defaultSkin;
+            }
         }
         return null;
     }
@@ -321,6 +346,99 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
         }
 
         return null;
+    }
+
+    public GunSkinPack GetGunSkinPack(int ID, string assetName)
+    {
+        if (!string.IsNullOrEmpty(assetName))
+        {
+            var exactOwnedSkin = CurrentGunSkinPackList?.FirstOrDefault(skin =>
+                skin != null && skin.skinGuid == ID && skin.name == assetName);
+            if (exactOwnedSkin != null)
+                return exactOwnedSkin;
+
+            var exactAllSkin = AllGunSkinPackList?.FirstOrDefault(skin =>
+                skin != null && skin.skinGuid == ID && skin.name == assetName);
+            if (exactAllSkin != null)
+                return exactAllSkin;
+        }
+
+        return GetGunSkinPack(ID);
+    }
+
+    private GunSkinPack FindBestDefaultGunSkin(string gunName)
+    {
+        if (string.IsNullOrEmpty(gunName))
+            return null;
+
+        var baseSkin = CurrentGunSkinPackList.FirstOrDefault(skin =>
+            skin != null &&
+            NormalizeGunName(skin.GunRealName) == NormalizeGunName(gunName) &&
+            IsBaseGunSkin(skin));
+
+        if (baseSkin != null)
+            return baseSkin;
+
+        return CurrentGunSkinPackList.FirstOrDefault(skin =>
+            skin != null &&
+            NormalizeGunName(skin.GunRealName) == NormalizeGunName(gunName));
+    }
+
+
+    private GunSkinPack FindSavedGunSkin(int skinID, string assetName)
+    {
+        if (!string.IsNullOrEmpty(assetName))
+        {
+            var exactOwnedSkin = CurrentGunSkinPackList?.FirstOrDefault(skin =>
+                skin != null && skin.skinGuid == skinID && skin.name == assetName);
+            if (exactOwnedSkin != null)
+                return exactOwnedSkin;
+
+            var exactAllSkin = AllGunSkinPackList?.FirstOrDefault(skin =>
+                skin != null && skin.skinGuid == skinID && skin.name == assetName);
+            if (exactAllSkin != null)
+                return exactAllSkin;
+        }
+
+        var ownedSkin = CurrentGunSkinPackList?.FirstOrDefault(skin => skin != null && skin.skinGuid == skinID);
+        if (ownedSkin != null)
+            return ownedSkin;
+
+        return _gunSkinDict != null && _gunSkinDict.TryGetValue(skinID, out var skinPack) ? skinPack : null;
+    }
+
+    private GunEquipmentConfig FindGunEquipmentConfig(string gunName)
+    {
+        if (GunEquipmentConfigList == null || string.IsNullOrEmpty(gunName))
+            return null;
+
+        string targetName = NormalizeGunName(gunName);
+        return GunEquipmentConfigList.FirstOrDefault(config =>
+            config != null && NormalizeGunName(config.GunName) == targetName);
+    }
+
+    private bool IsSkinMatchGun(GunSkinPack skinPack, string gunName)
+    {
+        return skinPack != null &&
+               !string.IsNullOrEmpty(gunName) &&
+               NormalizeGunName(skinPack.GunRealName) == NormalizeGunName(gunName);
+    }
+
+    private string NormalizeGunName(string gunName)
+    {
+        return string.IsNullOrEmpty(gunName)
+            ? string.Empty
+            : gunName.Trim().Replace("_", "-").ToUpperInvariant();
+    }
+
+    private bool IsBaseGunSkin(GunSkinPack skinPack)
+    {
+        if (skinPack == null)
+            return false;
+
+        string runtimeName = skinPack.skinName ?? string.Empty;
+        string assetName = skinPack.name ?? string.Empty;
+        return runtimeName.Contains(BASE_SKIN_KEYWORD) || assetName.Contains(BASE_SKIN_KEYWORD);
     }
     #endregion
 
@@ -394,7 +512,7 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
     public void ClearAllSkinData()
     {
         if (!Application.isPlaying)
-        { Debug.LogWarning("请在运行时使用"); return; }
+        { /* Debug.LogWarning("请在运行时使用"); */ return; }
 
         //仅清空玩家拥有的皮肤列表，完全不碰GunSkinConfigList和GunEquipmentConfigList
         PlayerOwnerSkinPackList.Clear();
@@ -412,7 +530,7 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
         DataEncryptionManger.Instance.DeleteEncryptedComplexData(_oldSkinEquipSaveFileName);
         DataEncryptionManger.Instance.DeleteEncryptedComplexData(_skinEquipSaveFileName);
 
-        Debug.Log("已清空所有皮肤运行时数据+历史本地存档，枪械配置与装备列表已完整保留");
+        /* Debug.Log("已清空所有皮肤运行时数据+历史本地存档，枪械配置与装备列表已完整保留"); */
     }
     #endregion
 
@@ -567,13 +685,13 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
     #endregion
 
     #region GM工具
-    [ContextMenu("GM_清空所有皮肤数据+历史存档")]
+    // [ContextMenu("GM_清空所有皮肤数据+历史存档")]
     private void GM_ClearAllSkinData()
     {
         ClearAllSkinData();
     }
 
-    [ContextMenu("GM_解锁所有枪械皮肤")]
+    // [ContextMenu("GM_解锁所有枪械皮肤")]
     private void GM_UnlockAllGunSkins()
     {
         if (!Application.isPlaying) return;

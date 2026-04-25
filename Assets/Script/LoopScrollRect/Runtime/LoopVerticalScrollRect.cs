@@ -48,7 +48,7 @@ namespace UnityEngine.UI
                 GridLayoutGroup layout = m_Content.GetComponent<GridLayoutGroup>();
                 if (layout != null && layout.constraint != GridLayoutGroup.Constraint.FixedColumnCount)
                 {
-                    Debug.LogError("[LoopScrollRect] unsupported GridLayoutGroup constraint");
+                    /* Debug.LogError("[LoopScrollRect] unsupported GridLayoutGroup constraint"); */
                 }
             }
         }

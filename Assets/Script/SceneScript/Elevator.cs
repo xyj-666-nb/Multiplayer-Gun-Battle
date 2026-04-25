@@ -32,7 +32,7 @@ public class Elevator : NetworkBehaviour
     public void Init()
     {
         gameObject.SetActive(true);
-        Debug.Log("【Elevator】服务端初始化电梯");
+        /* Debug.Log("【Elevator】服务端初始化电梯"); */
         // 确保电梯初始位置正确
         transform.localPosition = new Vector2(transform.localPosition.x, firstFloorLocalY);
         // 开始电梯循环
@@ -70,7 +70,7 @@ public class Elevator : NetworkBehaviour
         if (playerIdentity != null && playerIdentity.isLocalPlayer)
         {
             collision.transform.SetParent(transform);
-            Debug.Log("玩家已登上电梯");
+            /* Debug.Log("玩家已登上电梯"); */
         }
     }
 
@@ -83,7 +83,7 @@ public class Elevator : NetworkBehaviour
         if (playerIdentity != null && playerIdentity.isLocalPlayer)
         {
             collision.transform.SetParent(null);
-            Debug.Log("玩家已离开电梯");
+            /* Debug.Log("玩家已离开电梯"); */
         }
     }
 

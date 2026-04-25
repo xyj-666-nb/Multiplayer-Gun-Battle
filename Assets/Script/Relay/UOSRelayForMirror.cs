@@ -72,7 +72,7 @@ public class UOSRelaySimple : MonoBehaviour
             relayTransport.SetPlayerData(playerUuid, playerName);
         else
         {
-            Debug.LogError("【UOS】relayTransport 为 null");
+            /* Debug.LogError("【UOS】relayTransport 为 null"); */
             OnRelayFailed?.Invoke("Relay 组件未找到");
         }
     }
@@ -284,7 +284,7 @@ public class UOSRelaySimple : MonoBehaviour
         else
         {
             string err = $"创建房间失败：{resp.Code}";
-            Debug.LogError(err);
+            /* Debug.LogError(err); */
             OnRelayFailed?.Invoke(err);
         }
     }

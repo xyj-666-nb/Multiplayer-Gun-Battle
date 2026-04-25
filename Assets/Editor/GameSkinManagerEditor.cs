@@ -161,7 +161,7 @@ public class GameSkinManagerEditor : Editor
         _targetManager.PlayerOwnerSkinPackList = new List<PlayerSkinPack>(_targetManager.AllPlayerSkinPackList);
         EditorUtility.SetDirty(_targetManager);
         serializedObject.ApplyModifiedProperties();
-        Debug.Log($"<color=green>【快捷赋值成功】</color> 已将所有角色皮肤赋值给玩家拥有列表，数量：{_targetManager.PlayerOwnerSkinPackList.Count}");
+        /* Debug.Log($"<color=green>【快捷赋值成功】</color> 已将所有角色皮肤赋值给玩家拥有列表，数量：{_targetManager.PlayerOwnerSkinPackList.Count}"); */
     }
 
     private void AutoSetAllGunSkinToOwned()
@@ -170,7 +170,7 @@ public class GameSkinManagerEditor : Editor
         _targetManager.CurrentGunSkinPackList = new List<GunSkinPack>(_targetManager.AllGunSkinPackList);
         EditorUtility.SetDirty(_targetManager);
         serializedObject.ApplyModifiedProperties();
-        Debug.Log($"<color=green>【快捷赋值成功】</color> 已将所有枪械皮肤赋值给玩家拥有列表，数量：{_targetManager.CurrentGunSkinPackList.Count}");
+        /* Debug.Log($"<color=green>【快捷赋值成功】</color> 已将所有枪械皮肤赋值给玩家拥有列表，数量：{_targetManager.CurrentGunSkinPackList.Count}"); */
     }
     #endregion
 }

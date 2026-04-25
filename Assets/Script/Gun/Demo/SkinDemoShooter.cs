@@ -40,7 +40,7 @@ public static class SkinDemoShooter
     {
         if (firePoint == null)
         {
-            Debug.LogError("[SkinDemoShooter] 发射点firePoint不能为空！");
+            /* Debug.LogError("[SkinDemoShooter] 发射点firePoint不能为空！"); */
             return;
         }
 
@@ -227,7 +227,7 @@ public static class SkinDemoShooter
         lr.enabled = false;
 
         _bulletSegmentTemplate.AddComponent<DemoBulletFly>();
-        Debug.Log("[SkinDemoShooter] 创建子弹演示模板");
+        /* Debug.Log("[SkinDemoShooter] 创建子弹演示模板"); */
         return _bulletSegmentTemplate;
     }
     #endregion
@@ -293,7 +293,7 @@ public static class SkinDemoShooter
         GameObject effectPrefab = customEffect != null ? customEffect : defaultEffect;
         if (effectPrefab == null)
         {
-            Debug.LogError("[SkinDemoShooter] 打击特效预制体为空！");
+            /* Debug.LogError("[SkinDemoShooter] 打击特效预制体为空！"); */
             return;
         }
 
@@ -332,7 +332,7 @@ public static class SkinDemoShooter
             _bulletSegmentTemplate = null;
         }
         _defaultHitWallEffect = null;
-        Debug.Log("[SkinDemoShooter] 已清理所有缓存");
+        /* Debug.Log("[SkinDemoShooter] 已清理所有缓存"); */
     }
     #endregion
 }

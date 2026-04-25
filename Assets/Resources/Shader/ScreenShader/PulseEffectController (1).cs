@@ -12,6 +12,8 @@ public class ScreenPulseController : MonoBehaviour
     public Color pulseColor_Wound;//受伤颜色
     public Color pulseColor_Heal;//恢复颜色
     public Color pulseColor_Yellow;//恢复颜色
+    public Color pulseColor_Red = ColorManager.BrickRed;//红色针剂颜色
+    public Color pulseColor_Purple = ColorManager.Violet;//紫色针剂颜色
     [Range(0.01f, 3f)] public float pulseSpeed = 0.8f;
     [Range(0.01f, 2f)] public float pulseWidth = 0.15f;
     [Range(0.1f, 7f)] public float pulseIntensity = 2f;
@@ -24,6 +26,11 @@ public class ScreenPulseController : MonoBehaviour
     void Awake()
     {
         Instance= this;
+        if (pulseColor_Red.a <= 0f)
+            pulseColor_Red = ColorManager.BrickRed;
+        if (pulseColor_Purple.a <= 0f)
+            pulseColor_Purple = ColorManager.Violet;
+
         // 获取Image
         _pulseImage = GetComponent<Image>();
 
@@ -81,6 +88,22 @@ public class ScreenPulseController : MonoBehaviour
         if (_isPulsing)
             return;
         pulseColor = pulseColor_Yellow;
+        StartPulse();
+    }
+
+    public void Trigger_Red()//触发红色针剂
+    {
+        if (_isPulsing)
+            return;
+        pulseColor = pulseColor_Red;
+        StartPulse();
+    }
+
+    public void Trigger_Purple()//触发紫色针剂
+    {
+        if (_isPulsing)
+            return;
+        pulseColor = pulseColor_Purple;
         StartPulse();
     }
 

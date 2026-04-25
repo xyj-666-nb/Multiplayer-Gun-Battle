@@ -136,7 +136,7 @@ public class CustomAtlasGenerator : EditorWindow
         }
         catch (Exception ex)
         {
-            Debug.LogError("GUI´íÎó: " + ex);
+            /* Debug.LogError("GUI´íÎó: " + ex); */
         }
     }
 

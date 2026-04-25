@@ -8,20 +8,20 @@ using UnityEngine.UI;
 
 public class CreateRoomPanel : BasePanel
 {
-    [SerializeField] private TMP_InputField InputField;           // 房间名输入框
-    public static string CurrentRoomName;                         // 当前的房间名
+    [SerializeField] private TMP_InputField InputField;           // ???????????
+    public static string CurrentRoomName;                         // ??????????
 
-    [SerializeField] private LanRoomHost Host;// 房主组件引用(也是广播器)
-    [SerializeField] private TMP_InputField InputField_PlayerName;// 房主名输入框
-    public static string CurrentPlayerName;                       // 当前的房主名
+    [SerializeField] private LanRoomHost Host;// ???????????(??????)
+    [SerializeField] private TMP_InputField InputField_PlayerName;// ???????????
+    public static string CurrentPlayerName;                       // ??????????
 
-    private GameMode currentGameMode = GameMode.Team_Battle;     // 当前的游戏模式
+    private GameMode currentGameMode = GameMode.Team_Battle;     // ??????????
 
-    [Header("房间设置的数据")]
-    public int GameTime;//游戏时间 (5/10/15)
-    public int GameGoalScore;//游戏目标分数 (10/15/30)
+    [Header("?????????????")]
+    public int GameTime;//?????? (5/10/15)
+    public int GameGoalScore;//????????? (10/15/30)
 
-    // 内部标记
+    // ??????
     private bool _isButtonGroupRegistered = false;
     private string ScoreChooseName = "CreateButton";
     private string TimeChooseName = "ExitButton";
@@ -30,12 +30,13 @@ public class CreateRoomPanel : BasePanel
     public override void Awake()
     {
         base.Awake();
-        //注册一下按钮动画
+        //?????°??????
         List<Button> ButtonGroup = new List<Button>();
-        // 根据你ClickButton里的按钮名，自动添加到组里
+        // ??????ClickButton????????????????????
         ButtonGroup.Add(controlDic["CreateButton"] as Button);
         ButtonGroup.Add(controlDic["ExitButton"] as Button);
-        SimpleEffectButtonGroup.Instance.RegisterGroup("CreateRoomPanel", ButtonGroup);//注册组
+        ButtonGroup.Add(controlDic["Button_TeamCompetition"] as Button);
+        SimpleEffectButtonGroup.Instance.RegisterGroup("CreateRoomPanel", ButtonGroup);//?????
     }
 
     public override void Start()
@@ -44,33 +45,45 @@ public class CreateRoomPanel : BasePanel
 
         // 实时记录输入
         if (InputField != null)
-            InputField.onValueChanged.AddListener(str => CurrentRoomName = str);
+            InputField.onValueChanged.AddListener(HandleRoomNameChanged);
         if (InputField_PlayerName != null)
-            InputField_PlayerName.onValueChanged.AddListener(
-                str => UOSRelaySimple.Instance.GetPlayerName(str));//获取姓名
+            InputField_PlayerName.onValueChanged.AddListener(HandlePlayerNameChanged);//获取姓名
         // 安全注册按钮组
         SafeRegisterButtonGroups();
     }
 
-    #region 核心新增：档位映射逻辑
+    private void HandleRoomNameChanged(string roomName)
+    {
+        CurrentRoomName = roomName;
+    }
+
+    private void HandlePlayerNameChanged(string playerName)
+    {
+        if (UOSRelaySimple.Instance != null)
+        {
+            UOSRelaySimple.Instance.GetPlayerName(playerName);
+        }
+    }
+
+    #region ????????????λ??????
     /// <summary>
-    /// 将 GameTime 转换为档位索引
-    /// 5分钟 -> 0 (5分钟档) | 10分钟 -> 1 | 15分钟 -> 2
+    /// ?? GameTime ??????λ????
+    /// 5???? -> 0 (5?????) | 10???? -> 1 | 15???? -> 2
     /// </summary>
     private int GetTimeLevelIndex()
     {
         switch (GameTime)
         {
-            case 5: return 0;  // 5分钟档
-            case 10: return 1; // 10分钟档
-            case 15: return 2; // 15分钟档
+            case 5: return 0;  // 5?????
+            case 10: return 1; // 10?????
+            case 15: return 2; // 15?????
             default: return 0;
         }
     }
 
     /// <summary>
-    /// 将 GameGoalScore 转换为档位索引
-    /// 10分 -> 0 | 15分 -> 1 | 30分 -> 2
+    /// ?? GameGoalScore ??????λ????
+    /// 10?? -> 0 | 15?? -> 1 | 30?? -> 2
     /// </summary>
     private int GetScoreLimitLevelIndex()
     {
@@ -84,7 +97,7 @@ public class CreateRoomPanel : BasePanel
     }
 
     /// <summary>
-    /// 统一初始化游戏数据+档位设置
+    /// ??????????????+??λ????
     /// </summary>
     private void SafeInitGameDataAndLevel()
     {
@@ -92,29 +105,29 @@ public class CreateRoomPanel : BasePanel
         {
             if (PlayerRespawnManager.Instance != null)
             {
-                // 1. 初始化基础数据
+                // 1. ?????????????
                 PlayerRespawnManager.Instance.InitGoalScoreCount(GameGoalScore, GameTime);
 
-                // 2. 设置时长档位
+                // 2. ?????????λ
                 int timeLevel = GetTimeLevelIndex();
                 PlayerRespawnManager.Instance.CmdSetTimeLevel(timeLevel);
 
-                // 3. 设置比分上限档位
+                // 3. ???????????λ
                 int scoreLevel = GetScoreLimitLevelIndex();
                 PlayerRespawnManager.Instance.CmdSetScoreLimitLevel(scoreLevel);
 
-                Debug.Log($"[房间设置] 数据初始化完成！时长:{GameTime}分(档位{timeLevel}) 比分上限:{GameGoalScore}分(档位{scoreLevel})");
+                /* Debug.Log($"[????????] ???????????????:{GameTime}??(??λ{timeLevel}) ???????:{GameGoalScore}??(??λ{scoreLevel})"); */
             }
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[房间设置] 初始化数据时跳过: {e.Message}");
+            /* Debug.LogWarning($"[????????] ??????????????: {e.Message}"); */
         }
     }
     #endregion
 
     /// <summary>
-    /// 安全注册按钮组
+    /// ?????????
     /// </summary>
     private void SafeRegisterButtonGroups()
     {
@@ -125,17 +138,17 @@ public class CreateRoomPanel : BasePanel
         {
             if (ButtonGroupManager.Instance != null && controlDic != null)
             {
-                TryAddRadio(ScoreChooseName, "Button_10Score", () => { GameGoalScore = 10; MusicManager.Instance.PlayEffect("Music/update415/ui选择"); });
-                TryAddRadio(ScoreChooseName, "Button_15Score", () => { GameGoalScore = 15; MusicManager.Instance.PlayEffect("Music/update415/ui选择"); });
-                TryAddRadio(ScoreChooseName, "Button_30Score", () => { GameGoalScore = 30; MusicManager.Instance.PlayEffect("Music/update415/ui选择"); });
+                TryAddRadio(ScoreChooseName, "Button_10Score", () => { GameGoalScore = 10; MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
+                TryAddRadio(ScoreChooseName, "Button_15Score", () => { GameGoalScore = 15; MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
+                TryAddRadio(ScoreChooseName, "Button_30Score", () => { GameGoalScore = 30; MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
                 SafeSelectFirst(ScoreChooseName);
             }
 
             if (ButtonGroupManager.Instance != null && controlDic != null)
             {
-                TryAddRadio(TimeChooseName, "Button_5minute", () => { GameTime = 5; MusicManager.Instance.PlayEffect("Music/update415/ui选择"); });
-                TryAddRadio(TimeChooseName, "Button_10minute", () => { GameTime = 10; MusicManager.Instance.PlayEffect("Music/update415/ui选择"); });
-                TryAddRadio(TimeChooseName, "Button_15minute", () => { GameTime = 15; MusicManager.Instance.PlayEffect("Music/update415/ui选择"); });
+                TryAddRadio(TimeChooseName, "Button_5minute", () => { GameTime = 5; MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
+                TryAddRadio(TimeChooseName, "Button_10minute", () => { GameTime = 10; MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
+                TryAddRadio(TimeChooseName, "Button_15minute", () => { GameTime = 15; MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
                 SafeSelectFirst(TimeChooseName);
             }
 
@@ -143,12 +156,12 @@ public class CreateRoomPanel : BasePanel
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[CreateRoomPanel] 注册按钮组时跳过: {e.Message}");
+            /* Debug.LogWarning($"[CreateRoomPanel] ???????????: {e.Message}"); */
         }
     }
 
     /// <summary>
-    /// 安全添加单选按钮
+    /// ???????????
     /// </summary>
     private void TryAddRadio(string groupName, string controlName, UnityAction call)
     {
@@ -162,7 +175,7 @@ public class CreateRoomPanel : BasePanel
     }
 
     /// <summary>
-    /// 安全选择第一个
+    /// ??????????
     /// </summary>
     private void SafeSelectFirst(string groupName)
     {
@@ -183,8 +196,8 @@ public class CreateRoomPanel : BasePanel
         switch (controlName)
         {
             case "CreateButton":
-                // UI选择音效
-                MusicManager.Instance.PlayEffect("Music/update415/ui选择");
+                // UI?????Ч
+                MusicManager.Instance.PlayEffect("Music/update415/ui???");
 
                 if (Main.Instance.CurrentMode == NetworkMode.LAN)
                 {
@@ -193,7 +206,7 @@ public class CreateRoomPanel : BasePanel
                         CustomNetworkManager.Instance.SwitchToLanMode();
                     }
                     StartCoroutine(CreateLanRoomAfterFrame());
-                    MusicManager.Instance.StopBgm();//停止背景音乐
+                    MusicManager.Instance.StopBgm();//??????????
                 }
                 else if (Main.Instance.CurrentMode == NetworkMode.Match)
                 {
@@ -207,26 +220,26 @@ public class CreateRoomPanel : BasePanel
 
                     SafeInitGameDataAndLevel();
 
-                    // 展示等待面板
+                    // ????????
                     ServerOnlinePanel onlinePanel = UImanager.Instance?.ShowPanel<ServerOnlinePanel>();
-                    onlinePanel.TriggerRemoteCheck();
-                    onlinePanel.TriggerRemoteCheck();//触发远程检测动画
 
                     if (onlinePanel != null)
                     {
+                        onlinePanel.TriggerRemoteCheck();
                         void UnsubscribeAll()
                         {
                             UOSRelaySimple.OnRelaySuccess -= HandleSuccess;
                             UOSRelaySimple.OnRelayFailed -= HandleFailed;
+                            onlinePanel.OnCancelAction -= HandleCancel;
                         }
 
                         void HandleSuccess(string code)
                         {
-                            Debug.Log($"[匹配模式] 创建房间成功！Code: {code}");
+                            /* Debug.Log($"[?????] ????????????Code: {code}"); */
                             MusicManager.Instance.StopBgm();
                             UnsubscribeAll();
                             onlinePanel.HidePanel();
-                            // 【修改】成功后再次确保数据同步
+                            // ????????????????????????
                             SafeInitGameDataAndLevel();
 
                             if (ModeChooseSystem.instance != null)
@@ -235,16 +248,18 @@ public class CreateRoomPanel : BasePanel
 
                         void HandleFailed(string error)
                         {
-                            Debug.LogError($"[匹配模式] 创建房间失败: {error}");
+                            /* Debug.LogError($"[?????] ???????????: {error}"); */
                             UnsubscribeAll();
                             onlinePanel.HidePanel();
+                            UImanager.Instance.ShowPanel<CreateRoomPanel>();
                         }
 
                         void HandleCancel()
                         {
-                            Debug.Log("[匹配模式] 用户点击了取消");
+                            /* Debug.Log("[?????] ???????????"); */
                             UOSRelaySimple.Instance.StopRelay();
                             UnsubscribeAll();
+                            UImanager.Instance.ShowPanel<CreateRoomPanel>();
                         }
 
                         UOSRelaySimple.OnRelaySuccess += HandleSuccess;
@@ -256,7 +271,7 @@ public class CreateRoomPanel : BasePanel
                 }
                 else
                 {
-                    // 远程手动模式：独立创建公开房间
+                    // ??????????????????????????
                     if (CustomNetworkManager.Instance != null)
                     {
                         CustomNetworkManager.Instance.SwitchToRelayMode();
@@ -274,12 +289,13 @@ public class CreateRoomPanel : BasePanel
                         {
                             UOSRelaySimple.OnRelaySuccess -= HandleSuccess;
                             UOSRelaySimple.OnRelayFailed -= HandleFailed;
+                            onlinePanel.OnCancelAction -= HandleCancel;
                         }
-                        onlinePanel.TriggerRemoteCheck();//触发远程检测动画
+                        onlinePanel.TriggerRemoteCheck();//???????????
 
                         void HandleSuccess(string code)
                         {
-                            Debug.Log($"[远程模式] 创建房间成功！Code: {code}");
+                            /* Debug.Log($"[?????] ????????????Code: {code}"); */
                             MusicManager.Instance.StopBgm();
                             UnsubscribeAll();
                             onlinePanel.HidePanel();
@@ -291,16 +307,18 @@ public class CreateRoomPanel : BasePanel
 
                         void HandleFailed(string error)
                         {
-                            Debug.LogError($"[远程模式] 创建房间失败: {error}");
+                            /* Debug.LogError($"[?????] ???????????: {error}"); */
                             UnsubscribeAll();
                             onlinePanel.HidePanel();
+                            UImanager.Instance.ShowPanel<CreateRoomPanel>();
                         }
 
                         void HandleCancel()
                         {
-                            Debug.Log("[远程模式] 用户点击了取消");
+                            /* Debug.Log("[?????] ???????????"); */
                             UOSRelaySimple.Instance.StopRelay();
                             UnsubscribeAll();
+                            UImanager.Instance.ShowPanel<CreateRoomPanel>();
                         }
 
                         UOSRelaySimple.OnRelaySuccess += HandleSuccess;
@@ -312,8 +330,8 @@ public class CreateRoomPanel : BasePanel
                 }
                 break;
             case "ExitButton":
-                // UI返回音效
-                MusicManager.Instance.PlayEffect("Music/update415/ui返回");
+                // UI??????Ч
+                MusicManager.Instance.PlayEffect("Music/update415/ui????");
                 if (UImanager.Instance != null)
                 {
                     UImanager.Instance.ShowPanel<RoomPanel>();
@@ -372,6 +390,11 @@ public class CreateRoomPanel : BasePanel
             ButtonGroupManager.Instance.DestroyRadioGroup(TimeChooseName);
         }
         catch { }
+
+        if (InputField != null)
+            InputField.onValueChanged.RemoveListener(HandleRoomNameChanged);
+        if (InputField_PlayerName != null)
+            InputField_PlayerName.onValueChanged.RemoveListener(HandlePlayerNameChanged);
 
         //销毁注册
         SimpleEffectButtonGroup.Instance.UnRegisterGroup("CreateRoomPanel");

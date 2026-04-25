@@ -154,8 +154,19 @@ public class PlayerSkipPanel : BasePanel
         }
         else if(controlName == "EquipmentButton")
         {
+            if (playerSkinPack == null || GameSkinManager.Instance == null)
+            {
+                WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "请先选择角色皮肤");
+                return;
+            }
+
+            GameSkinManager.Instance.SetPlayerSkinPack(playerSkinPack);
+            if (Player.LocalPlayer != null)
+            {
+                Player.LocalPlayer.LoadingPlayerSkip(playerSkinPack);
+                Player.LocalPlayer.CmdLoadingPlayerSkip(playerSkinPack.PlayerSkinID);
+            }
             WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "装备成功！");
-            Player.LocalPlayer.CmdLoadingPlayerSkip(playerSkinPack.PlayerSkinID);
         }
 
     }
@@ -455,7 +466,7 @@ public void CreatePlayerOwnerSkin()
         if (button != null)
         {
             SkinButtonToDataMap[button] = skinPack;
-            ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ButtonGroupName, button, TriggerPlayerSkinButton, ReturnButtonColor);
+            ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(ButtonGroupName, button, TriggerPlayerSkinButton);
         }
     });
 

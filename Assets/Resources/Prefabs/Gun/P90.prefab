@@ -41,6 +41,7 @@ Transform:
   - {fileID: 6212988390250407245}
   - {fileID: 2078284002812104819}
   - {fileID: 2630562202045224502}
+  - {fileID: 3201023608547369802}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &8936564598177538734
@@ -280,6 +281,135 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!1 &1326166331519245047
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 7
+  m_Component:
+  - component: {fileID: 3201023608547369802}
+  - component: {fileID: 629966650843835030}
+  m_Layer: 0
+  m_HasEditorInfo: 1
+  m_Name: Audio Source
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3201023608547369802
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1326166331519245047}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.03400001, y: -0.0017000008, z: 0}
+  m_LocalScale: {x: -0.5, y: 0.5, z: 0}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5302036673703567127}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &629966650843835030
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1326166331519245047}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1.6649874
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &2534531547921715580
 GameObject:
   m_ObjectHideFlags: 0
@@ -802,7 +932,7 @@ PlayableDirector:
   m_GameObject: {fileID: 6754921265609955576}
   m_Enabled: 1
   serializedVersion: 3
-  m_PlayableAsset: {fileID: 11400000, guid: 267585155bff62b439262f585766b17a, type: 2}
+  m_PlayableAsset: {fileID: 11400000, guid: e0eba2a718c20aa40bb33bfb30992cf9, type: 2}
   m_InitialState: 0
   m_WrapMode: 2
   m_DirectorUpdateMode: 1
@@ -820,6 +950,38 @@ PlayableDirector:
     value: {fileID: 4187955389735519025}
   - key: {fileID: 2016288881073445716, guid: 04428d6e715ccaa4e8ddebb0982a3cc3, type: 2}
     value: {fileID: 4187955389735519025}
+  - key: {fileID: -532364413492844098, guid: ebc2afd6fe7641a4a9e569213e3397b1, type: 2}
+    value: {fileID: 4187955389735519025}
+  - key: {fileID: 2016288881073445716, guid: ebc2afd6fe7641a4a9e569213e3397b1, type: 2}
+    value: {fileID: 4187955389735519025}
+  - key: {fileID: -532364413492844098, guid: 31d7ba334d062a54d9788f1fab9964c5, type: 2}
+    value: {fileID: 4187955389735519025}
+  - key: {fileID: 2016288881073445716, guid: 31d7ba334d062a54d9788f1fab9964c5, type: 2}
+    value: {fileID: 4187955389735519025}
+  - key: {fileID: -532364413492844098, guid: e0eba2a718c20aa40bb33bfb30992cf9, type: 2}
+    value: {fileID: 4187955389735519025}
+  - key: {fileID: 2016288881073445716, guid: e0eba2a718c20aa40bb33bfb30992cf9, type: 2}
+    value: {fileID: 4187955389735519025}
+  - key: {fileID: 8552062903729661952, guid: e0eba2a718c20aa40bb33bfb30992cf9, type: 2}
+    value: {fileID: 629966650843835030}
+  - key: {fileID: 250477732392370123, guid: e0eba2a718c20aa40bb33bfb30992cf9, type: 2}
+    value: {fileID: 629966650843835030}
+  - key: {fileID: 8552062903729661952, guid: ebc2afd6fe7641a4a9e569213e3397b1, type: 2}
+    value: {fileID: 629966650843835030}
+  - key: {fileID: 250477732392370123, guid: ebc2afd6fe7641a4a9e569213e3397b1, type: 2}
+    value: {fileID: 629966650843835030}
+  - key: {fileID: 8552062903729661952, guid: 31d7ba334d062a54d9788f1fab9964c5, type: 2}
+    value: {fileID: 629966650843835030}
+  - key: {fileID: 250477732392370123, guid: 31d7ba334d062a54d9788f1fab9964c5, type: 2}
+    value: {fileID: 629966650843835030}
+  - key: {fileID: 8552062903729661952, guid: 04428d6e715ccaa4e8ddebb0982a3cc3, type: 2}
+    value: {fileID: 629966650843835030}
+  - key: {fileID: 250477732392370123, guid: 04428d6e715ccaa4e8ddebb0982a3cc3, type: 2}
+    value: {fileID: 629966650843835030}
+  - key: {fileID: 8552062903729661952, guid: 3b876989d0f68764b9484434344f8141, type: 2}
+    value: {fileID: 629966650843835030}
+  - key: {fileID: 250477732392370123, guid: 3b876989d0f68764b9484434344f8141, type: 2}
+    value: {fileID: 629966650843835030}
   m_ExposedReferences:
     m_References: []
 --- !u!114 &5397718231789363332

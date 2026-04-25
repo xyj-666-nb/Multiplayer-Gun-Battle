@@ -15,7 +15,7 @@ public class ObjTrackMove : MonoBehaviour
         // 空引用检查，避免报错
         if (Up == null || Down == null)
         {
-            Debug.LogError("请为Up和Down赋值对应的Transform对象！");
+            /* Debug.LogError("请为Up和Down赋值对应的Transform对象！"); */
             return;
         }
 

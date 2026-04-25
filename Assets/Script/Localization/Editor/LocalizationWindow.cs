@@ -132,7 +132,7 @@ namespace Localization.Editor
         {
             if (text.UniqueId == 0)
             {
-                Debug.LogWarning($"Skipping text with ID 0 in: {source}");
+                /* Debug.LogWarning($"Skipping text with ID 0 in: {source}"); */
                 return;
             }
 
@@ -147,7 +147,7 @@ namespace Localization.Editor
             }
             else
             {
-                Debug.LogWarning($"Duplicate ID {text.UniqueId} found in {source}. It already exists in {dict[text.UniqueId].sourcePath}");
+                /* Debug.LogWarning($"Duplicate ID {text.UniqueId} found in {source}. It already exists in {dict[text.UniqueId].sourcePath}"); */
             }
         }
 
@@ -267,7 +267,7 @@ namespace Localization.Editor
                 {
                     string sourceText = chineseEntry.content.Trim();
                     EditorUtility.DisplayProgressBar("AI翻译中", $"正在翻译：{sourceText} ({translatedCount + 1}/{totalToTranslate})", (float)translatedCount / totalToTranslate);
-                    Debug.Log($"正在翻译 ({translatedCount + 1}/{totalToTranslate})：{sourceText}");
+                    /* Debug.Log($"正在翻译 ({translatedCount + 1}/{totalToTranslate})：{sourceText}"); */
 
                     var requestBody = new TranslationRequest
                     {
@@ -303,12 +303,12 @@ namespace Localization.Editor
                                 string translateResult = response.choices[0].message.content.Trim();
                                 englishEntry.content = translateResult;
                                 translatedCount++;
-                                Debug.Log($"翻译完成：{sourceText} -> {translateResult}");
+                                /* Debug.Log($"翻译完成：{sourceText} -> {translateResult}"); */
                             }
                         }
                         else
                         {
-                            Debug.LogError($"翻译失败！文本：{sourceText}，错误：{request.error}，响应：{request.downloadHandler.text}");
+                            /* Debug.LogError($"翻译失败！文本：{sourceText}，错误：{request.error}，响应：{request.downloadHandler.text}"); */
                             EditorUtility.ClearProgressBar();
                             EditorUtility.DisplayDialog("翻译失败", $"请求出错：{request.error}\n请查看Console日志详情", "OK");
                             yield break;

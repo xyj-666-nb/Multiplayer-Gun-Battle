@@ -29,25 +29,25 @@ public class FindScriptEverywhere : EditorWindow
         var type = _targetScript.GetClass();
         if (type == null)
         {
-            Debug.LogError("无法获取脚本类型！");
+            /* Debug.LogError("无法获取脚本类型！"); */
             return;
         }
 
-        Debug.Log($"========== 开始查找 [{type.Name}] ==========");
+        /* Debug.Log($"========== 开始查找 [{type.Name}] =========="); */
 
         // 1. 查找场景中的物体
         var sceneObjects = FindObjectsOfType(type, includeInactive: true);
         if (sceneObjects.Length > 0)
         {
-            Debug.Log($"【场景】找到 {sceneObjects.Length} 个物体：");
+            /* Debug.Log($"【场景】找到 {sceneObjects.Length} 个物体："); */
             foreach (var obj in sceneObjects)
             {
-                Debug.Log($"  - 场景物体：{obj.name}", obj);
+                /* Debug.Log($"  - 场景物体：{obj.name}", obj); */
             }
         }
         else
         {
-            Debug.Log("【场景】未找到");
+            /* Debug.Log("【场景】未找到"); */
         }
 
         // 2. 查找 Assets 里的预制体
@@ -66,17 +66,17 @@ public class FindScriptEverywhere : EditorWindow
 
         if (prefabResults.Count > 0)
         {
-            Debug.Log($"【Assets】找到 {prefabResults.Count} 个预制体：");
+            /* Debug.Log($"【Assets】找到 {prefabResults.Count} 个预制体："); */
             foreach (var prefab in prefabResults)
             {
-                Debug.Log($"  - 预制体：{prefab.name}", prefab);
+                /* Debug.Log($"  - 预制体：{prefab.name}", prefab); */
             }
         }
         else
         {
-            Debug.Log("【Assets】未找到预制体");
+            /* Debug.Log("【Assets】未找到预制体"); */
         }
 
-        Debug.Log($"========== 查找完成 ==========");
+        /* Debug.Log($"========== 查找完成 =========="); */
     }
 }

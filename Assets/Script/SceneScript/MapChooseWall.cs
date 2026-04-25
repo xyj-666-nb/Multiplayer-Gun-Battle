@@ -63,7 +63,7 @@ public class MapChooseWall : MonoBehaviour
         _cinemachineBrain = FindObjectOfType<CinemachineBrain>();
         if (_cinemachineBrain == null)
         {
-            Debug.LogError("场景中未找到Cinemachine Brain！");
+            /* Debug.LogError("场景中未找到Cinemachine Brain！"); */
         }
 
         InitPlayerCountText();
@@ -164,7 +164,7 @@ public class MapChooseWall : MonoBehaviour
 
     public void UpdatePlayerCount(int map1Count, int map2Count)
     {
-        Debug.Log($"[MapChooseWall] 更新人数显示: 地图1={map1Count}, 地图2={map2Count}");
+        /* Debug.Log($"[MapChooseWall] 更新人数显示: 地图1={map1Count}, 地图2={map2Count}"); */
         if (Map1ChoosePlayerCountText != null)
             Map1ChoosePlayerCountText.text = "当前选择人数：" + map1Count.ToString();
         if (Map2ChoosePlayerCountText != null)
@@ -206,7 +206,7 @@ public class MapChooseWall : MonoBehaviour
 
     private void OnConfirmMap1Clicked()
     {
-        Debug.Log("确认选择地图1");
+        /* Debug.Log("确认选择地图1"); */
         if (PlayerRespawnManager.Instance != null)
         {
             PlayerRespawnManager.Instance.CmdPlayerChooseMap(1);
@@ -215,7 +215,7 @@ public class MapChooseWall : MonoBehaviour
 
     private void OnConfirmMap2Clicked()
     {
-        Debug.Log("确认选择地图2");
+        /* Debug.Log("确认选择地图2"); */
         if (PlayerRespawnManager.Instance != null)
         {
             PlayerRespawnManager.Instance.CmdPlayerChooseMap(2);
@@ -231,7 +231,7 @@ public class MapChooseWall : MonoBehaviour
 
         CountDownCanvasGroup.alpha = 1;
         SetCinemachineBlendTime(defaultBlendTime);
-        Debug.Log("进入地图选择系统");
+        /* Debug.Log("进入地图选择系统"); */
         SwitchCamera(CameraView.MapSelect, mapSelectVC);
 
         UImanager.Instance.GetPanel<PlayerPanel>().SimpleHidePanel();
@@ -261,6 +261,25 @@ public class MapChooseWall : MonoBehaviour
         MainCanvasGroup.blocksRaycasts = false;
     }
 
+    public void TriggerPlayerTransmit()
+    {
+        /* Debug.Log("[MapChooseWall] 时间线触发玩家传送"); */
+
+        if (PlayerRespawnManager.Instance != null)
+        {
+            PlayerRespawnManager.Instance.TeleportAllPlayersToMap();
+        }
+        else
+        {
+            /* Debug.LogError("[MapChooseWall] 重生管理器单例为空，无法执行玩家传送"); */
+        }
+
+        if (UImanager.Instance != null)
+        {
+            UImanager.Instance.HidePanel<PlayerPreparaPanel>();
+        }
+    }
+
     private void SwitchToPlayerView()
     {
         SwitchCamera(CameraView.Player, playerVC);
@@ -277,13 +296,13 @@ public class MapChooseWall : MonoBehaviour
             SetCinemachineBlendTime(defaultBlendTime + 3f);
             if (PlayerRespawnManager.Instance.CurrentMapIndex == 0)
             {
-                Debug.Log("切换到地图1");
+                /* Debug.Log("切换到地图1"); */
                 AllMapManager.Instance.TriggerMap(MapType.map1, true);
                 SwitchCamera(CameraView.Helicopter, helicopterVC);
             }
             else
             {
-                Debug.Log("切换到地图2");
+                /* Debug.Log("切换到地图2"); */
                 AllMapManager.Instance.TriggerMap(MapType.map2, true);
                 SwitchCamera(CameraView.MapScene2, Map2SceneVC);
             }
@@ -297,7 +316,7 @@ public class MapChooseWall : MonoBehaviour
     {
         if (targetVC == null)
         {
-            Debug.LogError($"[{targetView}] 对应的虚拟相机未赋值！");
+            /* Debug.LogError($"[{targetView}] 对应的虚拟相机未赋值！"); */
             return;
         }
 
@@ -307,7 +326,7 @@ public class MapChooseWall : MonoBehaviour
         SetAllCameraInactive();
         targetVC.Priority = _activePriority;
 
-        Debug.Log($"视角切换：{_lastView} → {_currentView}");
+        /* Debug.Log($"视角切换：{_lastView} → {_currentView}"); */
     }
 
     private void SetAllCameraInactive()

@@ -1,18 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//Ç¹Ğµ¹ÜÀí
+public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//æªæ¢°ç®¡ç†
 {
-    #region Ç¹Ğµ¹ÜÀí
+    #region æªæ¢°ç®¡ç†
     public List<GameObject> GunsPrefabsList = new List<GameObject>();
-    private List<GunInfo> gunInfoList = new List<GunInfo>();//Ç¹ĞµµÄĞÅÏ¢ÁĞ±í
+    private List<GunInfo> gunInfoList = new List<GunInfo>();//æªæ¢°çš„ä¿¡æ¯åˆ—è¡¨
 
-    private Dictionary<string, GameObject> _gunPrefabDict; // Ç¹ĞµÃû³Æ¡úÔ¤ÖÆÌå
-    private Dictionary<string, GunInfo> _gunInfoDict;     // Ç¹ĞµÃû³Æ¡úGunInfo
-    private Dictionary<GunType, List<GunInfo>> _gunTypeDict; // Ç¹ĞµÀàĞÍ¡úGunInfoÁĞ±í
+    private Dictionary<string, GameObject> _gunPrefabDict; // æªæ¢°åç§°â†’é¢„åˆ¶ä½“
+    private Dictionary<string, GunInfo> _gunInfoDict;     // æªæ¢°åç§°â†’GunInfo
+    private Dictionary<GunType, List<GunInfo>> _gunTypeDict; // æªæ¢°ç±»å‹â†’GunInfoåˆ—è¡¨
     #endregion
 
-    [Header("×Óµ¯Í¼Æ¬ÅäÖÃ£¨°´Ç¹ĞµÀàĞÍ·Ö×é£©")]
+    [Header("å­å¼¹å›¾ç‰‡é…ç½®ï¼ˆæŒ‰æªæ¢°ç±»å‹åˆ†ç»„ï¼‰")]
     public Sprite ChargeBullet;
     public Sprite ChargeCartridgeCase;
     [Space(10)]
@@ -22,19 +22,22 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//Ç¹Ğµ¹ÜÀí
     public Sprite SnipeBullet;
     public Sprite SnipeCartridgeCase;
 
-    #region Õ½ÊõÉè±¸¹ÜÀí
-    public List<TacticInfo> TacticPrefabsList = new List<TacticInfo>();//Õ½ÊõÉè±¸ÁĞ±í£¨×¢ÉäÆ÷/Í¶ÖÀÎï£©
+    #region æˆ˜æœ¯è®¾å¤‡ç®¡ç†
+    public List<TacticInfo> TacticPrefabsList = new List<TacticInfo>();//æˆ˜æœ¯è®¾å¤‡åˆ—è¡¨ï¼ˆæ³¨å°„å™¨/æŠ•æ·ç‰©ï¼‰
 
-    private Dictionary<TacticType, TacticInfo> _tacticInfoDict; // Õ½ÊõÀàĞÍ¡úTacticInfo
+    private Dictionary<TacticType, TacticInfo> _tacticInfoDict; // æˆ˜æœ¯ç±»å‹â†’TacticInfo
     #endregion
 
-    #region »¤¼×¹ÜÀí
-    public List<ArmorInfoPack> ArmorInfoPackList;//»¤¼×¹ÜÀí°ü
+    #region æŠ¤ç”²ç®¡ç†
+    public List<ArmorInfoPack> ArmorInfoPackList;//æŠ¤ç”²ç®¡ç†åŒ…
 
-    private Dictionary<ArmorType, ArmorInfoPack> _armorInfoDict; // »¤¼×ÀàĞÍ¡úArmorInfoPack
+    private Dictionary<ArmorType, ArmorInfoPack> _armorInfoDict; // æŠ¤ç”²ç±»å‹â†’ArmorInfoPack
     #endregion
+    private bool _cacheInitialized;
+
     public GunType GetGunType(string GunName)
     {
+        EnsureCachesInitialized();
         foreach(var Info in gunInfoList)
         {
             if(Info.Name==GunName)
@@ -42,38 +45,68 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//Ç¹Ğµ¹ÜÀí
                 return Info.type;
             }
         }
-        Debug.LogError($"[MilitaryManager] GetGunType£ºÎ´ÕÒµ½ÃûÎª {GunName} µÄÇ¹ĞµĞÅÏ¢£¬ÎŞ·¨»ñÈ¡ÀàĞÍ");
-        return GunType.Rifle;//Ä¬ÈÏ·µ»Ø²½Ç¹ÀàĞÍ£¬Êµ¼ÊÊ¹ÓÃÖĞÇë¸ù¾İĞèÒªµ÷Õû
+        /* Debug.LogError($"[MilitaryManager] GetGunTypeï¼šæœªæ‰¾åˆ°åä¸º {GunName} çš„æªæ¢°ä¿¡æ¯ï¼Œæ— æ³•è·å–ç±»å‹"); */
+        return GunType.Rifle;//é»˜è®¤è¿”å›æ­¥æªç±»å‹ï¼Œå®é™…ä½¿ç”¨ä¸­è¯·æ ¹æ®éœ€è¦è°ƒæ•´
     }
 
 
     protected override void Awake()
     {
         base.Awake();
-
-        // ³õÊ¼»¯»º´æ×Öµä
-        _gunPrefabDict = new Dictionary<string, GameObject>();
-        _gunInfoDict = new Dictionary<string, GunInfo>();
-        _gunTypeDict = new Dictionary<GunType, List<GunInfo>>();
-        _tacticInfoDict = new Dictionary<TacticType, TacticInfo>();
-        _armorInfoDict = new Dictionary<ArmorType, ArmorInfoPack>();
-
-        InitGunCache();
-
-        InitTacticCache();
-
-        InitArmorCache();
+        EnsureCachesInitialized();
     }
 
-    #region ÄÚ²¿³õÊ¼»¯»º´æ·½·¨
+    private void EnsureCachesInitialized()
+    {
+        if (_cacheInitialized
+            && _gunPrefabDict != null
+            && _gunInfoDict != null
+            && _gunTypeDict != null
+            && _tacticInfoDict != null
+            && _armorInfoDict != null)
+        {
+            return;
+        }
+
+        if (gunInfoList == null)
+        {
+            gunInfoList = new List<GunInfo>();
+        }
+        else
+        {
+            gunInfoList.Clear();
+        }
+
+        if (_gunPrefabDict == null) _gunPrefabDict = new Dictionary<string, GameObject>();
+        else _gunPrefabDict.Clear();
+
+        if (_gunInfoDict == null) _gunInfoDict = new Dictionary<string, GunInfo>();
+        else _gunInfoDict.Clear();
+
+        if (_gunTypeDict == null) _gunTypeDict = new Dictionary<GunType, List<GunInfo>>();
+        else _gunTypeDict.Clear();
+
+        if (_tacticInfoDict == null) _tacticInfoDict = new Dictionary<TacticType, TacticInfo>();
+        else _tacticInfoDict.Clear();
+
+        if (_armorInfoDict == null) _armorInfoDict = new Dictionary<ArmorType, ArmorInfoPack>();
+        else _armorInfoDict.Clear();
+
+        InitGunCache();
+        InitTacticCache();
+        InitArmorCache();
+        _cacheInitialized = true;
+    }
+
+    #region å†…éƒ¨åˆå§‹åŒ–ç¼“å­˜æ–¹æ³•
     /// <summary>
-    /// ³õÊ¼»¯Ç¹Ğµ»º´æ
+    /// åˆå§‹åŒ–æªæ¢°ç¼“å­˜
     /// </summary>
     private void InitGunCache()
     {
         if (GunsPrefabsList == null || GunsPrefabsList.Count == 0)
         {
-            Debug.LogWarning("[MilitaryManager] Ç¹ĞµÔ¤ÖÆÌåÁĞ±íÎª¿Õ£¡");
+            /* Debug.LogWarning("[MilitaryManager] æªæ¢°é¢„åˆ¶ä½“åˆ—è¡¨ä¸ºç©ºï¼"); */
             return;
         }
 
@@ -109,43 +142,56 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//Ç¹Ğµ¹ÜÀí
             }
             else
             {
-                Debug.LogWarning($"[MilitaryManager] Ç¹ĞµÔ¤ÖÆÌå {Gun.name} È±ÉÙ BaseGun ×é¼ş»ò GunInfo", Gun);
+                /* Debug.LogWarning($"[MilitaryManager] æªæ¢°é¢„åˆ¶ä½“ {Gun.name} ç¼ºå°‘ BaseGun ç»„ä»¶æˆ– GunInfo", Gun); */
             }
         }
     }
 
     /// <summary>
-    /// ³õÊ¼»¯Õ½ÊõÉè±¸»º´æ
+    /// åˆå§‹åŒ–æˆ˜æœ¯è®¾å¤‡ç¼“å­˜
     /// </summary>
     private void InitTacticCache()
     {
         if (TacticPrefabsList == null)
         {
-            TacticPrefabsList = new List<TacticInfo>(); // ¿ÕÖµ³õÊ¼»¯£¬±ÜÃâºóĞø±éÀú¿ÕÒıÓÃ
-            Debug.LogWarning("[MilitaryManager] Õ½ÊõÉè±¸ÁĞ±íÎª¿Õ£¬ÒÑ³õÊ¼»¯¿ÕÁĞ±í£¡");
-            return;
+            TacticPrefabsList = new List<TacticInfo>(); // ç©ºå€¼åˆå§‹åŒ–ï¼Œé¿å…åç»­éå†ç©ºå¼•ç”¨
+            /* Debug.LogWarning("[MilitaryManager] æˆ˜æœ¯è®¾å¤‡åˆ—è¡¨ä¸ºç©ºï¼Œå·²åˆå§‹åŒ–ç©ºåˆ—è¡¨ï¼"); */
         }
 
         foreach (var Tactic in TacticPrefabsList)
         {
-            if (Tactic == null) continue;
+            RegisterTacticInfo(Tactic);
+        }
 
-            if (!_tacticInfoDict.ContainsKey(Tactic.tacticType))
-            {
-                _tacticInfoDict.Add(Tactic.tacticType, Tactic);
-            }
+        TacticInfo[] resourceTactics = Resources.LoadAll<TacticInfo>("GameInfo/TacticInfo");
+        foreach (var tactic in resourceTactics)
+        {
+            RegisterTacticInfo(tactic);
+            if (tactic != null && !TacticPrefabsList.Contains(tactic))
+                TacticPrefabsList.Add(tactic);
+        }
+    }
+
+    private void RegisterTacticInfo(TacticInfo tactic)
+    {
+        if (tactic == null)
+            return;
+
+        if (!_tacticInfoDict.ContainsKey(tactic.tacticType))
+        {
+            _tacticInfoDict.Add(tactic.tacticType, tactic);
         }
     }
 
     /// <summary>
-    /// ³õÊ¼»¯»¤¼×»º´æ£¨AwakeÖĞÖ»Ö´ĞĞÒ»´Î£©
+    /// åˆå§‹åŒ–æŠ¤ç”²ç¼“å­˜ï¼ˆAwakeä¸­åªæ‰§è¡Œä¸€æ¬¡ï¼‰
     /// </summary>
     private void InitArmorCache()
     {
         if (ArmorInfoPackList == null)
         {
-            ArmorInfoPackList = new List<ArmorInfoPack>(); // ¿ÕÖµ³õÊ¼»¯£¬±ÜÃâºóĞø±éÀú¿ÕÒıÓÃ
-            Debug.LogWarning("[MilitaryManager] »¤¼×ÁĞ±íÎª¿Õ£¬ÒÑ³õÊ¼»¯¿ÕÁĞ±í£¡");
+            ArmorInfoPackList = new List<ArmorInfoPack>(); // ç©ºå€¼åˆå§‹åŒ–ï¼Œé¿å…åç»­éå†ç©ºå¼•ç”¨
+            /* Debug.LogWarning("[MilitaryManager] æŠ¤ç”²åˆ—è¡¨ä¸ºç©ºï¼Œå·²åˆå§‹åŒ–ç©ºåˆ—è¡¨ï¼"); */
             return;
         }
 
@@ -161,33 +207,35 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//Ç¹Ğµ¹ÜÀí
     }
     #endregion
 
-    #region Ç¹Ğµ¹ÜÀí
+    #region æªæ¢°ç®¡ç†
     /// <summary>
-    /// »ñÈ¡Ç¹ĞµÊµÀı
+    /// è·å–æªæ¢°å®ä¾‹
     /// </summary>
     public GameObject GetGun(string gunName)
     {
+        EnsureCachesInitialized();
         if (string.IsNullOrEmpty(gunName))
         {
-            Debug.LogWarning("[MilitaryManager] GetGun£ºÇ¹ĞµÃû³ÆÎª¿Õ£¡");
+            /* Debug.LogWarning("[MilitaryManager] GetGunï¼šæªæ¢°åç§°ä¸ºç©ºï¼"); */
             return null;
         }
 
-        // ÓÅ»¯£º×ÖµäÖ±½Ó²éÑ¯£¬Ìæ´ú±éÀúÁĞ±í
+        // ä¼˜åŒ–ï¼šå­—å…¸ç›´æ¥æŸ¥è¯¢ï¼Œæ›¿ä»£éå†åˆ—è¡¨
         if (_gunPrefabDict.TryGetValue(gunName, out GameObject gunPrefab))
         {
             return gunPrefab;
         }
 
-        Debug.LogWarning($"[MilitaryManager] Î´ÕÒµ½ÃûÎª {gunName} µÄÇ¹ĞµÔ¤ÖÆÌå");
+        /* Debug.LogWarning($"[MilitaryManager] æœªæ‰¾åˆ°åä¸º {gunName} çš„æªæ¢°é¢„åˆ¶ä½“"); */
         return null;
     }
 
     public GunInfo GetInfo(string Name)
     {
+        EnsureCachesInitialized();
         if (string.IsNullOrEmpty(Name))
         {
-            Debug.LogWarning("[MilitaryManager] GetInfo£ºÇ¹ĞµÃû³ÆÎª¿Õ£¡");
+            /* Debug.LogWarning("[MilitaryManager] GetInfoï¼šæªæ¢°åç§°ä¸ºç©ºï¼"); */
             return null;
         }
 
@@ -196,91 +244,96 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//Ç¹Ğµ¹ÜÀí
             return gunInfo;
         }
 
-        Debug.LogWarning($"[MilitaryManager] Î´ÕÒµ½ÃûÎª {Name} µÄÇ¹ĞµĞÅÏ¢");
+        /* Debug.LogWarning($"[MilitaryManager] æœªæ‰¾åˆ°åä¸º {Name} çš„æªæ¢°ä¿¡æ¯"); */
         return null;
     }
 
     public List<GunInfo> GetGunTypeInfo(GunType Type)
     {
+        EnsureCachesInitialized();
 
         if (_gunTypeDict.TryGetValue(Type, out List<GunInfo> result))
         {
             if (result.Count == 0)
             {
-                Debug.LogWarning($"[MilitaryManager] Î´ÕÒµ½ÀàĞÍÎª {Type} µÄÇ¹ĞµĞÅÏ¢");
+                /* Debug.LogWarning($"[MilitaryManager] æœªæ‰¾åˆ°ç±»å‹ä¸º {Type} çš„æªæ¢°ä¿¡æ¯"); */
             }
             return result;
         }
 
-        Debug.LogWarning($"[MilitaryManager] Î´ÕÒµ½ÀàĞÍÎª {Type} µÄÇ¹ĞµĞÅÏ¢");
-        return new List<GunInfo>(); // ·µ»Ø¿ÕÁĞ±í£¬±ÜÃâÍâ²¿½ÓÊÕµ½null
+        /* Debug.LogWarning($"[MilitaryManager] æœªæ‰¾åˆ°ç±»å‹ä¸º {Type} çš„æªæ¢°ä¿¡æ¯"); */
+        return new List<GunInfo>(); // è¿”å›ç©ºåˆ—è¡¨ï¼Œé¿å…å¤–éƒ¨æ¥æ”¶åˆ°null
     }
 
-    public string GetChineseGunTypeName(GunType type)//»ñÈ¡ÖĞÎÄÇ¹ĞµÀàĞÍÃû³Æ
+    public string GetChineseGunTypeName(GunType type)//è·å–ä¸­æ–‡æªæ¢°ç±»å‹åç§°
     {
         switch (type)
         {
             case GunType.Rifle:
-                return "²½Ç¹";
+                return "æ­¥æª";
             case GunType.Charge:
-                return "³å·æÇ¹";
+                return "å†²é”‹æª";
             case GunType.Snipe:
-                return "Ë¨¶¯²½Ç¹";
+                return "æ “åŠ¨æ­¥æª";
             case GunType.LightMachineGun:
-                return "Çá»úÇ¹";
+                return "è½»æœºæª";
             case GunType.DMR:
-                return "ÉäÊÖ²½Ç¹";
+                return "å°„æ‰‹æ­¥æª";
             default:
-                return "Î´ÖªÀàĞÍ";
+                return "æœªçŸ¥ç±»å‹";
         }
     }
     #endregion
 
-    #region Õ½ÊõÉè±¸¹ÜÀí
+    #region æˆ˜æœ¯è®¾å¤‡ç®¡ç†
     /// <summary>
-    /// ¸ù¾İÕ½ÊõĞ¡ÀàĞÍ»ñÈ¡Ô¤ÖÆÌå
+    /// æ ¹æ®æˆ˜æœ¯å°ç±»å‹è·å–é¢„åˆ¶ä½“
     /// </summary>
     public GameObject GetTactic(TacticType Type)
     {
+        EnsureCachesInitialized();
         if (_tacticInfoDict.TryGetValue(Type, out TacticInfo tacticInfo))
         {
             return tacticInfo.TacticPrefab;
         }
 
-        Debug.LogWarning($"[MilitaryManager] Ã»ÓĞÕÒµ½ÀàĞÍÎª {Type} µÄÕ½ÊõÉè±¸Ô¤ÖÆÌå");
+        /* Debug.LogWarning($"[MilitaryManager] æ²¡æœ‰æ‰¾åˆ°ç±»å‹ä¸º {Type} çš„æˆ˜æœ¯è®¾å¤‡é¢„åˆ¶ä½“"); */
         return null;
     }
 
-    public TacticInfo GetTacticInfo(TacticType Type)//¸ù¾İÕ½ÊõĞ¡ÀàĞÍ»ñÈ¡Õ½ÊõÉè±¸ĞÅÏ¢
+    public TacticInfo GetTacticInfo(TacticType Type)//æ ¹æ®æˆ˜æœ¯å°ç±»å‹è·å–æˆ˜æœ¯è®¾å¤‡ä¿¡æ¯
     {
+        EnsureCachesInitialized();
         if (_tacticInfoDict.TryGetValue(Type, out TacticInfo tacticInfo))
         {
             return tacticInfo;
         }
 
-        Debug.LogWarning($"[MilitaryManager] Ã»ÓĞÕÒµ½ÀàĞÍÎª {Type} µÄÕ½ÊõÉè±¸ĞÅÏ¢");
+        /* Debug.LogWarning($"[MilitaryManager] æ²¡æœ‰æ‰¾åˆ°ç±»å‹ä¸º {Type} çš„æˆ˜æœ¯è®¾å¤‡ä¿¡æ¯"); */
         return null;
     }
 
     /// <summary>
-    /// ¸ù¾İÕ½ÊõĞ¡ÀàĞÍ»ñÈ¡UIÍ¼±ê£¨ÓÅ»¯£º×Öµä²éÑ¯£©
+    /// æ ¹æ®æˆ˜æœ¯å°ç±»å‹è·å–UIå›¾æ ‡ï¼ˆä¼˜åŒ–ï¼šå­—å…¸æŸ¥è¯¢ï¼‰
     /// </summary>
     public Sprite GetTacticUISprite(TacticType Type)
     {
+        EnsureCachesInitialized();
         if (_tacticInfoDict.TryGetValue(Type, out TacticInfo tacticInfo))
         {
             return tacticInfo.UISprite;
         }
 
-        Debug.LogWarning($"[MilitaryManager] Ã»ÓĞÕÒµ½ÀàĞÍÎª {Type} µÄÕ½ÊõÉè±¸UIÍ¼±ê");
+        /* Debug.LogWarning($"[MilitaryManager] æ²¡æœ‰æ‰¾åˆ°ç±»å‹ä¸º {Type} çš„æˆ˜æœ¯è®¾å¤‡UIå›¾æ ‡"); */
         return null;
     }
 
     /// <summary>
-    /// ¸ù¾İÕ½Êõ´óÀà»ñÈ¡¸ÃÀàÏÂËùÓĞµÄÕ½ÊõĞ¡ÀàĞÍ
+    /// æ ¹æ®æˆ˜æœ¯å¤§ç±»è·å–è¯¥ç±»ä¸‹æ‰€æœ‰çš„æˆ˜æœ¯å°ç±»å‹
     /// </summary>
     public List<TacticType> GetTacticTypesByBigType(TacticBigType bigType)
     {
+        EnsureCachesInitialized();
         List<TacticType> result = new List<TacticType>();
 
         switch (bigType)
@@ -288,6 +341,8 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//Ç¹Ğµ¹ÜÀí
             case TacticBigType.injection:
                 result.Add(TacticType.Green_injection);
                 result.Add(TacticType.Yellow_injection);
+                result.Add(TacticType.purple_injection);
+                result.Add(TacticType.Red_injection);
                 break;
 
             case TacticBigType.throwobj:
@@ -296,7 +351,7 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//Ç¹Ğµ¹ÜÀí
                 break;
 
             default:
-                Debug.LogWarning($"[MilitaryManager] Î´ÖªµÄÕ½Êõ´óÀà£º{bigType}");
+                /* Debug.LogWarning($"[MilitaryManager] æœªçŸ¥çš„æˆ˜æœ¯å¤§ç±»ï¼š{bigType}"); */
                 break;
         }
 
@@ -309,7 +364,7 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//Ç¹Ğµ¹ÜÀí
             }
             else
             {
-                Debug.LogWarning($"[MilitaryManager] Õ½Êõ´óÀà {bigType} ÏÂµÄ {tacticType} Ã»ÓĞ¶ÔÓ¦µÄÔ¤ÖÆÌåÅäÖÃ");
+                /* Debug.LogWarning($"[MilitaryManager] æˆ˜æœ¯å¤§ç±» {bigType} ä¸‹çš„ {tacticType} æ²¡æœ‰å¯¹åº”çš„é¢„åˆ¶ä½“é…ç½®"); */
             }
         }
 
@@ -321,11 +376,11 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//Ç¹Ğµ¹ÜÀí
         switch (bigType)
         {
             case TacticBigType.injection:
-                return "Õë¼Á";
+                return "é’ˆå‰‚";
             case TacticBigType.throwobj:
-                return "Í¶ÖÀÎï";
+                return "æŠ•æ·ç‰©";
             default:
-                return "Î´ÖªÕ½Êõ´óÀà";
+                return "æœªçŸ¥æˆ˜æœ¯å¤§ç±»";
         }
     }
 
@@ -334,15 +389,19 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//Ç¹Ğµ¹ÜÀí
         switch (type)
         {
             case TacticType.Green_injection:
-                return "ÂÌÉ«Õë¼Á";
+                return "ç»¿è‰²é’ˆå‰‚";
             case TacticType.Yellow_injection:
-                return "»ÆÉ«Õë¼Á";
+                return "é»„è‰²é’ˆå‰‚";
+            case TacticType.purple_injection:
+                return "ç´«è‰²é’ˆå‰‚";
+            case TacticType.Red_injection:
+                return "çº¢è‰²é’ˆå‰‚";
             case TacticType.Grenade:
-                return "ÊÖÀ×";
+                return "æ‰‹é›·";
             case TacticType.Smoke:
-                return "ÑÌÎíµ¯";
+                return "çƒŸé›¾å¼¹";
             default:
-                return "Î´ÖªÕ½ÊõĞ¡ÀàĞÍ";
+                return "æœªçŸ¥æˆ˜æœ¯å°ç±»å‹";
         }
     }
 
@@ -352,6 +411,8 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//Ç¹Ğµ¹ÜÀí
         {
             case TacticType.Green_injection:
             case TacticType.Yellow_injection:
+            case TacticType.purple_injection:
+            case TacticType.Red_injection:
                 return TacticBigType.injection;
 
             case TacticType.Grenade:
@@ -359,91 +420,94 @@ public class MilitaryManager : SingleMonoAutoBehavior<MilitaryManager>//Ç¹Ğµ¹ÜÀí
                 return TacticBigType.throwobj;
 
             default:
-                Debug.LogWarning($"[MilitaryManager] Î´ÖªµÄÕ½ÊõĞ¡ÀàĞÍ£º{tacticType}");
-                return TacticBigType.injection; // Ä¬ÈÏÖµ
+                /* Debug.LogWarning($"[MilitaryManager] æœªçŸ¥çš„æˆ˜æœ¯å°ç±»å‹ï¼š{tacticType}"); */
+                return TacticBigType.injection; // é»˜è®¤å€¼
         }
     }
     #endregion
 
-    #region »¤¼×¹ÜÀí
-    public ArmorInfoPack GetArmorInfoPack(ArmorType Type)//»ñÈ¡»¤¼×¹ÜÀí°ü
+    #region æŠ¤ç”²ç®¡ç†
+    public ArmorInfoPack GetArmorInfoPack(ArmorType Type)//è·å–æŠ¤ç”²ç®¡ç†åŒ…
     {
+        EnsureCachesInitialized();
         if (_armorInfoDict.TryGetValue(Type, out ArmorInfoPack armorInfo))
         {
             return armorInfo;
         }
 
-        Debug.Log("Î´ÕÒµ½ÃûÎª" + Type.ToString() + "µÄ»¤¼×°ü");
+        /* Debug.Log("æœªæ‰¾åˆ°åä¸º" + Type.ToString() + "çš„æŠ¤ç”²åŒ…"); */
         return null;
     }
     #endregion
 }
 
-#region Ã¶¾Ù¶¨Òå
+#region æšä¸¾å®šä¹‰
 [System.Serializable]
 public enum GunType
 {
-    Rifle,      // ²½Ç¹
-    Charge,     // ³å·æÇ¹
-    Snipe,      // Ë¨¶¯²½Ç¹
-    LightMachineGun,    // Çá»úÇ¹
-    DMR         // ÉäÊÖ²½Ç¹
+    Rifle,      // æ­¥æª
+    Charge,     // å†²é”‹æª
+    Snipe,      // æ “åŠ¨æ­¥æª
+    LightMachineGun,    // è½»æœºæª
+    DMR         // å°„æ‰‹æ­¥æª
 }
 
 /// <summary>
-/// Õ½ÊõĞ¡ÀàĞÍ£¨¾ßÌåµÄÕ½ÊõÉè±¸£©
+/// æˆ˜æœ¯å°ç±»å‹ï¼ˆå…·ä½“çš„æˆ˜æœ¯è®¾å¤‡ï¼‰
 /// </summary>
 [System.Serializable]
 public enum TacticType
 {
-    Green_injection,  // ÂÌÉ«Õë¼Á
-    Yellow_injection, // »ÆÉ«Õë¼Á
-    Grenade,          // ÊÖÀ×
-    Smoke             // ÑÌÎíµ¯
+    Green_injection,  // ç»¿è‰²é’ˆå‰‚
+    Yellow_injection, // é»„è‰²é’ˆå‰‚
+    purple_injection,//ç´«è‰²é’ˆå‰‚
+    Red_injection,//çº¢è‰²é’ˆå‰‚
+    Grenade,          // æ‰‹é›·
+    Smoke             // çƒŸé›¾å¼¹
 }
 
 /// <summary>
-/// Õ½Êõ´óÀà£¨ÓÃÓÚ·ÖÀà¹ÜÀí£©
+/// æˆ˜æœ¯å¤§ç±»ï¼ˆç”¨äºåˆ†ç±»ç®¡ç†ï¼‰
 /// </summary>
 [System.Serializable]
 public enum TacticBigType
 {
-    injection,  // Õë¼ÁÀà
-    throwobj    // Í¶ÖÀÎïÀà
+    injection,  // é’ˆå‰‚ç±»
+    throwobj    // æŠ•æ·ç‰©ç±»
 }
 
 [System.Serializable]
 public enum ArmorType
 {
-    Empty_handed,//¿ÕÊÖ
-    Army_Heavy,//Â½¾ü¡ª¡ªÖØĞÍ
-    Navy_Balanced,//º£¾ü¡ª¡ª¾ùºâ
-    AirForce_Light,//¿Õ¾ü¡ª¡ªÇáĞÍ
+    Empty_handed,//ç©ºæ‰‹
+    Army_Heavy,//é™†å†›â€”â€”é‡å‹
+    Navy_Balanced,//æµ·å†›â€”â€”å‡è¡¡
+    AirForce_Light,//ç©ºå†›â€”â€”è½»å‹
 }
 
 #endregion
 [System.Serializable]
 public class ArmorInfoPack
 {
-    //»¤¼×ĞÅÏ¢°ü
-    [Header("»¤¼×ÀàĞÍÒÔ¼°Ãû×Ö")]
+    //æŠ¤ç”²ä¿¡æ¯åŒ…
+    [Header("æŠ¤ç”²ç±»å‹ä»¥åŠåå­—")]
     public ArmorType armorType;
     public string armorName;
-    [Header("»¤¼×µÄÃèÊö")]
+    [Header("æŠ¤ç”²çš„æè¿°")]
     [TextArea(3, 8)]
     public string armorDescription;
-    [Header("»¤¼×Í¼Æ¬")]
-    public Sprite HelmetSprite;//Í·¿øÍ¼Æ¬
-    public Sprite ArmorSprite;//»¤¼×Í¼Æ¬
-    [Header("»¤¼×UIÍ¼Æ¬")]
-    public Sprite UISprite;//»¤¼×UIÍ¼Æ¬
-    [Header("ÊıÖµ¼Ó³É")]
-    public float HealthAdd;//ÉúÃüÁ¦¼Ó³É
-    public float SpeedAdd;//ËÙ¶È¼Ó³É
+    [Header("æŠ¤ç”²å›¾ç‰‡")]
+    public Sprite HelmetSprite;//å¤´ç›”å›¾ç‰‡
+    public Sprite ArmorSprite;//æŠ¤ç”²å›¾ç‰‡
+    [Header("æŠ¤ç”²UIå›¾ç‰‡")]
+    public Sprite UISprite;//æŠ¤ç”²UIå›¾ç‰‡
+    [Header("æ•°å€¼åŠ æˆ")]
+    public float HealthAdd;//ç”Ÿå‘½åŠ›åŠ æˆ
+    public float SpeedAdd;//é€Ÿåº¦åŠ æˆ
 }
 
 //public class GunBulletInfoPack
 //{
-//   public GunType GunType;//Ç¹ĞµÀàĞÍ
-//   public List<BulletInfo> BulletInfoList;//¸ÃÇ¹ĞµÀàĞÍ¶ÔÓ¦µÄ×Óµ¯ĞÅÏ¢ÁĞ±í
+//   public GunType GunType;//æªæ¢°ç±»å‹
+//   public List<BulletInfo> BulletInfoList;//è¯¥æªæ¢°ç±»å‹å¯¹åº”çš„å­å¼¹ä¿¡æ¯åˆ—è¡¨
 //}

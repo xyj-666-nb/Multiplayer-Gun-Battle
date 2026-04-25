@@ -7,7 +7,7 @@ public class TapTapLoginPanel : BasePanel
         base.ClickButton(controlName);
         if(controlName== "LoginButton")
         {
-            Debug.Log("按下登录按钮");
+            /* Debug.Log("按下登录按钮"); */
             //TapTapGameLogin.Instance.OnTapLoginClick();//暂时不使用
         }
     }

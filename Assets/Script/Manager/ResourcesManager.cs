@@ -30,7 +30,7 @@ public class ResInfo<T> : BaseResinfo
         if (refCount < 0)
         {
             refCount = 0;
-            Debug.LogError("引用计数小于零了，请检查引用与卸载是否配对");
+            /* Debug.LogError("引用计数小于零了，请检查引用与卸载是否配对"); */
         }
     }
 

@@ -36,8 +36,6 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         set
         {
             isUseJoyStickMove = value;
-           Debug.Log($"[PlayerAndGameInfoManger] 已设置 IsUseJoyStickMove = {isUseJoyStickMove}");
-            //如果Playerpanel存在就直接更新（否则就留给他自己读取）
             if (UImanager.Instance.GetPanel<PlayerPanel>())
             {
                 UImanager.Instance.GetPanel<PlayerPanel>().UpdateMoveButton();//提示更新一下
@@ -46,6 +44,9 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
     }
 
+    [Header("按钮区域触摸穿透")]
+    public bool IsUseShootButtonTouchPassThrough = true;
+    public bool IsUseAimButtonTouchPassThrough = true;
     [Header("自定义面板的数据")]
     public List<PlayerCustomUIInfo> playerCustomUIInfoList = new List<PlayerCustomUIInfo>();
     public List<GameObject> AllCustomUIPrefabsList = new List<GameObject>();
@@ -77,9 +78,6 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
             if (Info.UIType == Type)
                 return Info;
         }
-
-        if (IsNeedDebug)
-            Debug.LogError("未找到自定义UI的类型");
         return null;
     }
 
@@ -91,10 +89,7 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
             SlotCount = Index;
             CurrentSlotInfoPack = PlayerSlotInfoPacksList[listIndex];
         }
-        else
-        {
-            Debug.LogWarning($"槽位索引 {Index} 无效");
-        }
+
     }
 
     private bool _canEquip = true;
@@ -103,13 +98,11 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
     {
         if (!_canEquip)
         {
-            Debug.LogWarning("装备操作冷却中，请稍候再试！");
             return;
         }
 
         if (CurrentSlotInfoPack == null)
         {
-            Debug.LogWarning("当前槽位信息为空，无法装备！");
             return;
         }
 
@@ -185,7 +178,6 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         else if (Index == 2)
             return CurrentSlotInfoPack.CurrentTactic_2Info;
 
-        Debug.LogError("未知的战备索引（这里只能传1或者2）");
         return null;
     }
 
@@ -201,7 +193,6 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
     private void BackupDefaultData()
     {
         _defaultSlotInfoBackup = CloneSlotInfoPacks(PlayerSlotInfoPacksList);
-        Debug.Log($"[PlayerAndGameInfoManger] 已备份默认配置，共 {_defaultSlotInfoBackup.Count} 个槽位");
     }
 
     protected override void OnDestroy()
@@ -209,7 +200,7 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         base.OnDestroy();
     }
 
-    // ================= 数据保存与加载 (已深度更新) =================
+    // ================= 数据保存与加载 =================
 
     public void SavePlayerData()
     {
@@ -223,11 +214,14 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
             IsUseSinglePress_AimButton = this.IsUseSinglePress_AimButton,
             AimSensitivity = this.AimSensitivity,
-            IsUseJoyStickMove = this.IsUseJoyStickMove
+            IsUseJoyStickMove = this.IsUseJoyStickMove,
+            HasTouchPassThroughSetting = true,
+            IsUseShootButtonTouchPassThrough = this.IsUseShootButtonTouchPassThrough,
+            IsUseAimButtonTouchPassThrough = this.IsUseAimButtonTouchPassThrough
         };
 
         JsonManager.Instance.SaveData(saveData, SAVE_FILE_NAME, JsonType.JsonUtlity);
-        Debug.Log($"[PlayerAndGameInfoManger] 玩家数据已保存");
+        /* Debug.Log($"[PlayerAndGameInfoManger] 玩家数据已保存"); */
     }
 
     public void LoadPlayerData()
@@ -236,7 +230,6 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
         if (loadData == null)
         {
-            Debug.Log("[PlayerAndGameInfoManger] 未找到存档，使用默认配置");
             RestoreDefaultDataAndSave(); // 恢复并覆盖存档
             return;
         }
@@ -252,11 +245,9 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         if (hasValidSlotData)
         {
             this.PlayerSlotInfoPacksList = restoredSlotInfoPacks;
-            Debug.Log("[PlayerAndGameInfoManger] 已加载存档槽位数据 (数据完整性校验通过)");
         }
         else
         {
-            Debug.LogWarning("[PlayerAndGameInfoManger] 存档数据损坏或内容为空，回退到默认配置并覆盖旧存档");
             RestoreDefaultDataAndSave(); // 恢复并覆盖存档
         }
 
@@ -275,10 +266,20 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         this.CurrentFPS = (FpsType)loadData.CurrentFPS;
         this.CurrentScreen = (ScreenType)loadData.CurrentScreen;
 
-        // 新增：加载控制系统数据 (带默认值保护)
         this.IsUseSinglePress_AimButton = loadData.IsUseSinglePress_AimButton;
         this.AimSensitivity = loadData.AimSensitivity == 0 ? 1.0f : loadData.AimSensitivity;
         this.IsUseJoyStickMove = loadData.IsUseJoyStickMove;
+
+        if (loadData.HasTouchPassThroughSetting)
+        {
+            this.IsUseShootButtonTouchPassThrough = loadData.IsUseShootButtonTouchPassThrough;
+            this.IsUseAimButtonTouchPassThrough = loadData.IsUseAimButtonTouchPassThrough;
+        }
+        else
+        {
+            this.IsUseShootButtonTouchPassThrough = true;
+            this.IsUseAimButtonTouchPassThrough = true;
+        }
     }
 
     /// <summary>
@@ -293,7 +294,6 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
             // 只要有一个槽位的核心数据为空，就认为整个存档无效
             if (!IsSingleSlotValid(slot))
             {
-                Debug.LogWarning($"[数据校验] 发现无效槽位数据，触发回退机制");
                 return false;
             }
         }
@@ -309,19 +309,16 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
         if (slot.CurrentGunInfo == null)
         {
-            Debug.LogWarning("[数据校验] 槽位中的 CurrentGunInfo 为空");
             return false;
         }
 
         if (slot.CurrentTactic_1Info == null)
         {
-            Debug.LogWarning("[数据校验] 槽位中的 CurrentTactic_1Info 为空");
             return false;
         }
 
         if (slot.CurrentTactic_2Info == null)
         {
-            Debug.LogWarning("[数据校验] 槽位中的 CurrentTactic_2Info 为空");
             return false;
         }
 
@@ -346,11 +343,6 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         if (_defaultSlotInfoBackup != null)
         {
             PlayerSlotInfoPacksList.AddRange(CloneSlotInfoPacks(_defaultSlotInfoBackup));
-            Debug.Log($"[PlayerAndGameInfoManger] 已从备份恢复 {_defaultSlotInfoBackup.Count} 个槽位");
-        }
-        else
-        {
-            Debug.LogError("备份数据也丢失了！");
         }
     }
 
@@ -362,11 +354,9 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
         int targetFrameRate = GetTargetFrameRate(CurrentFPS);
         Application.targetFrameRate = targetFrameRate;
-        Debug.Log($"[PlayerAndGameInfoManger] 设置目标帧率: {targetFrameRate}");
 
         int qualityLevel = GetQualityLevel(CurrentScreen);
         QualitySettings.SetQualityLevel(qualityLevel, true);
-        Debug.Log($"[PlayerAndGameInfoManger] 设置画质级别: {qualityLevel} ({CurrentScreen})");
     }
 
     private int GetTargetFrameRate(FpsType fpsType)
@@ -384,7 +374,6 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
 
         if (refreshRate > 0 && target > refreshRate)
         {
-            Debug.LogWarning($"目标帧率 {target} 高于屏幕刷新率 {refreshRate}，已限制为 {refreshRate}");
             target = refreshRate;
         }
         return target;
@@ -395,7 +384,6 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         string[] qualityNames = QualitySettings.names;
         if (qualityNames == null || qualityNames.Length == 0)
         {
-            Debug.LogWarning("项目中未定义质量等级，返回当前级别");
             return QualitySettings.GetQualityLevel();
         }
 
@@ -413,7 +401,6 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
                 return i;
         }
 
-        Debug.LogWarning($"未找到匹配的画质名称 '{targetName}'，使用当前级别");
         return QualitySettings.GetQualityLevel();
     }
 
@@ -455,7 +442,6 @@ public class PlayerAndGameInfoManger : SingleMonoAutoBehavior<PlayerAndGameInfoM
         var militaryManager = MilitaryManager.Instance;
         if (militaryManager == null)
         {
-            Debug.LogWarning("[PlayerAndGameInfoManger] MilitaryManager 不存在，无法还原槽位数据");
             return restoredList;
         }
 
@@ -524,4 +510,7 @@ public class PlayerGameSaveData
     public bool IsUseSinglePress_AimButton;
     public float AimSensitivity;
     public bool IsUseJoyStickMove;
+    public bool HasTouchPassThroughSetting;
+    public bool IsUseShootButtonTouchPassThrough = true;
+    public bool IsUseAimButtonTouchPassThrough = true;
 }

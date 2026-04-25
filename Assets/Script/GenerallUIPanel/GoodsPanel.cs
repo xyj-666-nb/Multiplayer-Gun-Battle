@@ -8,6 +8,7 @@ using TMPro;
 
 public class GoodsPanel : BasePanel
 {
+    private const string SHOP_PAGE_ENTER_SOUND = "Music/\u6b63\u5f0f/\u9875\u9762\u8fdb\u5165";
     [Header("UI控件关联")]
     public RectTransform ScrollViewContent;
     public HorizontalLayoutGroup ContentLayoutGroup;
@@ -41,6 +42,9 @@ public class GoodsPanel : BasePanel
     [Header("金币疑问面板")]
     public CanvasGroup GoldIntroducePanel;
     private Sequence GoldIntroduceSequence;
+    private Tween GoldNumberTween;
+    private int _currentGoldNumber;
+    private bool _hasGoldNumberValue;
 
     #region 生命周期
     public override void Awake()
@@ -144,8 +148,6 @@ public class GoodsPanel : BasePanel
         //重新播放商品入场动画
         TriggerGoodsEnterAnima();
 
-        //刷新金币显示
-        PlayGoldNumberAnimation();
     }
     #endregion
 
@@ -153,7 +155,7 @@ public class GoodsPanel : BasePanel
     public override void ShowMe(bool isNeedDefaultAnimator = true)
     {
         base.ShowMe(isNeedDefaultAnimator);
-
+        RegisterGoldChangeEvent();
 
         if (goodsPageDict.Count > 0)
         {
@@ -162,6 +164,20 @@ public class GoodsPanel : BasePanel
         CreateGoodsPage();
         TriggerGoodsEnterAnima();
         TriggerUpAnima();
+    }
+
+    public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
+    {
+        UnregisterGoldChangeEvent();
+        GoldNumberTween?.Kill();
+        base.HideMe(callback, isNeedDefaultAnimator);
+    }
+
+    protected override void OnDestroy()
+    {
+        UnregisterGoldChangeEvent();
+        GoldNumberTween?.Kill();
+        base.OnDestroy();
     }
     #endregion
 
@@ -172,15 +188,71 @@ public class GoodsPanel : BasePanel
         SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(UpCanvasGroup, ref UpSequence, true, () => { });
         UpRect.DOAnchorPosY(0, 1).OnComplete(() => {
             TypingTask = SimpleAnimatorTool.Instance.AddTypingTask("每日限时商店", PanelTopic);
-            PlayGoldNumberAnimation();
+            PlayGoldNumberAnimation(true);
         });
     }
 
-    private void PlayGoldNumberAnimation()
+    private void RegisterGoldChangeEvent()
     {
-        int targetPrice = GoldSystem.Instance.GetGold();
-        GoldNumber.text = "0";
-        DOTween.To(() => 0, x => GoldNumber.text = x.ToString(), targetPrice, 2f).SetEase(Ease.OutQuad);
+        if (GoldSystem.Instance == null)
+            return;
+
+        GoldSystem.Instance.OnGoldChanged -= HandleGoldChanged;
+        GoldSystem.Instance.OnGoldChanged += HandleGoldChanged;
+    }
+
+    private void UnregisterGoldChangeEvent()
+    {
+        if (GoldSystem.Instance == null)
+            return;
+
+        GoldSystem.Instance.OnGoldChanged -= HandleGoldChanged;
+    }
+
+    private void HandleGoldChanged(int newGold)
+    {
+        PlayGoldNumberAnimation(false, newGold);
+    }
+
+    private void PlayGoldNumberAnimation(bool fromZero = false, int targetGold = -1)
+    {
+        if (GoldNumber == null)
+            return;
+
+        if (targetGold < 0)
+            targetGold = GoldSystem.Instance != null ? GoldSystem.Instance.GetGold() : 0;
+
+        int startGold = fromZero ? 0 : GetCurrentGoldNumber();
+        float duration = fromZero ? 2f : 0.35f;
+
+        GoldNumberTween?.Kill();
+        if (startGold == targetGold)
+        {
+            SetGoldNumberText(targetGold);
+            return;
+        }
+
+        SetGoldNumberText(startGold);
+        GoldNumberTween = DOTween.To(() => startGold, SetGoldNumberText, targetGold, duration).SetEase(Ease.OutQuad);
+    }
+
+    private int GetCurrentGoldNumber()
+    {
+        if (_hasGoldNumberValue)
+            return _currentGoldNumber;
+
+        if (GoldNumber != null && int.TryParse(GoldNumber.text, out int parsedGold))
+            return parsedGold;
+
+        return GoldSystem.Instance != null ? GoldSystem.Instance.GetGold() : 0;
+    }
+
+    private void SetGoldNumberText(int goldNumber)
+    {
+        _currentGoldNumber = goldNumber;
+        _hasGoldNumberValue = true;
+        if (GoldNumber != null)
+            GoldNumber.text = goldNumber.ToString();
     }
 
     public void CreateGoodsPage()
@@ -216,7 +288,7 @@ public class GoodsPanel : BasePanel
             {
                 page.InitBulletUI();
                 page.InitData(currentData);
-                page.SetDataInfo(); 
+                page.SetDataInfo();
             }
 
             goodsPageDict.Add(goods, currentData);
@@ -243,6 +315,24 @@ public class GoodsPanel : BasePanel
         if (ScrollViewContent == null) return;
         // 直接用精准计算，不搞复杂判断
         ScrollViewContent.sizeDelta = new Vector2(CalculateRealTotalWidth(LayoutGroupSpacing, LayoutGroupLeft), ScrollViewContent.sizeDelta.y);
+    }
+
+    public void CollapseOtherPages(GoodsPage currentPage)
+    {
+        if (goodsPageDict == null || goodsPageDict.Count == 0)
+            return;
+
+        foreach (var item in goodsPageDict.Keys)
+        {
+            if (item == null)
+                continue;
+
+            GoodsPage page = item.GetComponent<GoodsPage>();
+            if (page != null && page != currentPage)
+            {
+                page.HideExpendPage(false);
+            }
+        }
     }
 
     public void ClearAllGoodsPage()
@@ -301,6 +391,7 @@ public class GoodsPanel : BasePanel
                     GoodsPage page = children[index].GetComponent<GoodsPage>();
                     if (page != null)
                     {
+                        MusicManager.Instance?.PlayEffect(SHOP_PAGE_ENTER_SOUND);
                         page.ShowAnima();
                     }
                 }

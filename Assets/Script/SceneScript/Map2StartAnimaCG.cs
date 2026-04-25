@@ -49,7 +49,7 @@ public class Map2StartAnimaCG : MonoBehaviour
         }
         else
         {
-            Debug.LogError("请为 Map2StartAnimaCG 赋值 AnimaVC！");
+            /* Debug.LogError("请为 Map2StartAnimaCG 赋值 AnimaVC！"); */
         }
     }
 
@@ -77,7 +77,7 @@ public class Map2StartAnimaCG : MonoBehaviour
     {
         StartShakeInternal(bigShakeAmplitude);
         StartAutoStopTimer(shakeDuration); // 传入1秒
-        Debug.Log("AnimaVC: 剧烈震动启动 (1秒)");
+        /* Debug.Log("AnimaVC: 剧烈震动启动 (1秒)"); */
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public class Map2StartAnimaCG : MonoBehaviour
     {
         StartShakeInternal(normalShakeAmplitude);
         StartAutoStopTimer(shakeDuration); // 传入1秒
-        Debug.Log("AnimaVC: 正常震动启动 (1秒)");
+        /* Debug.Log("AnimaVC: 正常震动启动 (1秒)"); */
     }
 
     /// <summary>
@@ -97,7 +97,7 @@ public class Map2StartAnimaCG : MonoBehaviour
     {
         StartShakeInternal(GunShakeAmplitude); // 修复：这里改为使用枪声强度
         StartAutoStopTimer(gunShakeDuration); // 传入6秒
-        Debug.Log("AnimaVC: 枪声震动启动 (6秒)");
+        /* Debug.Log("AnimaVC: 枪声震动启动 (6秒)"); */
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class Map2StartAnimaCG : MonoBehaviour
         }
 
         _targetAmplitude = 0f;
-        Debug.Log("AnimaVC: 震动停止");
+        /* Debug.Log("AnimaVC: 震动停止"); */
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public class Map2StartAnimaCG : MonoBehaviour
     {
         if (AnimaVC == null || _animaNoise == null)
         {
-            Debug.LogWarning("AnimaVC 未初始化，无法震动！");
+            /* Debug.LogWarning("AnimaVC 未初始化，无法震动！"); */
             return;
         }
 

@@ -46,7 +46,7 @@ public class ModeChooseSystem : MonoBehaviour
         _cinemachineBrain = FindObjectOfType<CinemachineBrain>();
         if (_cinemachineBrain == null)
         {
-            Debug.LogError("场景中未找到Cinemachine Brain！");
+            /* Debug.LogError("场景中未找到Cinemachine Brain！"); */
         }
 
         InitStartView();
@@ -106,7 +106,7 @@ public class ModeChooseSystem : MonoBehaviour
             GameVc.Priority = _activePriority + 100;
             GameVc.ForceCameraPosition(GameVc.transform.position, GameVc.transform.rotation);
         }
-        Debug.Log("[ModeChooseSystem] 已瞬间退出并切换到游戏视角");
+        /* Debug.Log("[ModeChooseSystem] 已瞬间退出并切换到游戏视角"); */
     }
 
     public void IsTriggerPromptAnima(bool IsActive)
@@ -164,14 +164,14 @@ public class ModeChooseSystem : MonoBehaviour
 
         IsTriggerPromptAnima(true);
 
-        Debug.Log("[ModeChooseSystem] 回到主视角，按钮已激活");
+        /* Debug.Log("[ModeChooseSystem] 回到主视角，按钮已激活"); */
     }
 
     private void SwitchCamera(CinemachineVirtualCamera targetVC)
     {
         if (targetVC == null)
         {
-            Debug.LogError("目标虚拟相机未赋值！");
+            /* Debug.LogError("目标虚拟相机未赋值！"); */
             return;
         }
 
@@ -183,7 +183,7 @@ public class ModeChooseSystem : MonoBehaviour
             IsTriggerPromptAnima(false);
         }
 
-        Debug.Log($"视角切换至：{targetVC.name}");
+        /* Debug.Log($"视角切换至：{targetVC.name}"); */
     }
 
     private void SetAllCamerasInactive()
@@ -207,7 +207,7 @@ public class ModeChooseSystem : MonoBehaviour
     #region 确认逻辑
     private void ConfirmOnline()
     {
-        Debug.Log("确认进入多人模式");
+        /* Debug.Log("确认进入多人模式"); */
         UImanager.Instance.ShowPanel<RoomPanel>();
     }
 

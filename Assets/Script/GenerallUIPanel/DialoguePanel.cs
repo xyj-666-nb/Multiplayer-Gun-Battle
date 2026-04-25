@@ -136,7 +136,7 @@ public class DialoguePanel : BasePanel
     /// </summary>
     public void PlayNextText()
     {
-        Debug.Log("索引加加播放下一句");
+        /* Debug.Log("索引加加播放下一句"); */
         CurrentSentenceIsFinished = false;//重置句子完成状态
         IsLastSentence = false;
 
@@ -471,7 +471,7 @@ public class DialoguePanel : BasePanel
     {
         base.Update();
 
-        Debug.Log(IsInDialoguePlay && IsCanSkipDialogue && !IsSkippingComplete);
+        /* Debug.Log(IsInDialoguePlay && IsCanSkipDialogue && !IsSkippingComplete); */
 
         if (IsInDialoguePlay && IsCanSkipDialogue && !IsSkippingComplete)
         {

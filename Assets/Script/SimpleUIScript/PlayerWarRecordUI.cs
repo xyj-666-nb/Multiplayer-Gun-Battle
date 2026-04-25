@@ -11,7 +11,7 @@ public class PlayerWarRecordUI : MonoBehaviour
 
     public void InitInfo(string KillText, string DeathCount, string Name, Sprite GunSprite)
     {
-        UpdateInfo(KillText, Name, DeathCount, GunSprite);
+        UpdateInfo(KillText, DeathCount, Name, GunSprite);
     }
 
     public void UpdateInfo(string KillText,string DeathCount, string Name, Sprite GunSprite)

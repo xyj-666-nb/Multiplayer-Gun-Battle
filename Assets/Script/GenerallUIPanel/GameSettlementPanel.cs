@@ -1,4 +1,4 @@
-ï»¿using DG.Tweening;
+using DG.Tweening;
 using System;
 using System.Collections;
 using TMPro;
@@ -9,12 +9,12 @@ using UnityEngine.UI;
 
 public class GameSettlementPanel : BasePanel
 {
-    private const string UiSelectSound = "Music/update415/uié€‰æ‹©";
-    private const string UiBackSound = "Music/update415/uiè¿”å›";
-    private const string SuccessSound = "Music/æ­£å¼/äº¤äº’/ç»“æŸï¼ˆæˆåŠŸ";
-    private const string FailSound = "Music/æ­£å¼/äº¤äº’/ç»“æŸï¼ˆå¤±è´¥";
+    private const string UiSelectSound = "Music/update415/uiÑ¡Ôñ";
+    private const string UiBackSound = "Music/update415/ui·µ»Ø";
+    private const string SuccessSound = "Music/ÕıÊ½/½»»¥/½áÊø£¨³É¹¦";
+    private const string FailSound = "Music/ÕıÊ½/½»»¥/½áÊø£¨Ê§°Ü";
 
-    [Header("åŸºç¡€ç»“ç®—UI")]
+    [Header("»ù´¡½áËãUI")]
     public Image RedImage;
     public Image BlueImage;
     public TextMeshProUGUI WinText;
@@ -22,7 +22,7 @@ public class GameSettlementPanel : BasePanel
     public TextMeshProUGUI BlueScore;
     public PlayableDirector TimeLine;
 
-    [Header("é‡‘å¸æ˜¾ç¤º")]
+    [Header("½ğ±ÒÏÔÊ¾")]
     public TextMeshProUGUI GoldNumber;
     private int _currentBaseGold = 0;
     private bool _hasGivenReward = false;
@@ -35,19 +35,19 @@ public class GameSettlementPanel : BasePanel
     private const float MaxGoldScale = 1.3f;
     private const int GoldVisualCap = 300;
 
-    [Header("æ¿€åŠ±å¹¿å‘Šé¢æ¿")]
+    [Header("¼¤Àø¹ã¸æÃæ°å")]
     public CanvasGroup MotivatePanelCanvasGroup;
     private Sequence MotivatePanelSequence;
     private const int GoldMulti = 3;
     public TextMeshProUGUI goldMultiText;
-    [Header("å¹¿å‘Šå¼¹å‡ºé…ç½®")]
+    [Header("¹ã¸æµ¯³öÅäÖÃ")]
     [Range(0, 100)] public int AdPopupChance = 60;
 
     public Team WinTeam;
 
     private Button _exitButton;
 
-    #region æ ¸å¿ƒæ•°æ®è®¾ç½®
+    #region ºËĞÄÊı¾İÉèÖÃ
     public void SetGoldData(int baseGold)
     {
         _currentBaseGold = Mathf.Max(0, baseGold);
@@ -58,19 +58,19 @@ public class GameSettlementPanel : BasePanel
     }
     #endregion
 
-    #region Timelineäº‹ä»¶
+    #region TimelineÊÂ¼ş
     public void TimeLineTrigger()
     {
         RectTransform winRect;
         if (WinTeam == Team.Red)
         {
             winRect = RedImage.GetComponent<RectTransform>();
-            WinText.text = "çº¢æ–¹èƒœåˆ©";
+            WinText.text = "ºì·½Ê¤Àû";
         }
         else
         {
             winRect = BlueImage.GetComponent<RectTransform>();
-            WinText.text = "è“æ–¹èƒœåˆ©";
+            WinText.text = "À¶·½Ê¤Àû";
         }
 
         if (PlayerRespawnManager.Instance != null)
@@ -100,7 +100,7 @@ public class GameSettlementPanel : BasePanel
     }
     #endregion
 
-    #region ç»“ç®—æµç¨‹
+    #region ½áËãÁ÷³Ì
     private void OnWarRecordPanelClosed()
     {
         if (_isGoldRevealPlaying)
@@ -185,11 +185,11 @@ public class GameSettlementPanel : BasePanel
     }
     #endregion
 
-    #region å¹¿å‘Šé¢æ¿é€»è¾‘
+    #region ¹ã¸æÃæ°åÂß¼­
     private bool ShouldPopupAdPanel()
     {
         int randomValue = UnityEngine.Random.Range(0, 100);
-        Debug.Log($"[å¹¿å‘Šé€»è¾‘] éšæœºå€¼:{randomValue}, è§¦å‘æ¦‚ç‡:{AdPopupChance}%");
+        /* Debug.Log($"[¹ã¸æÂß¼­] Ëæ»úÖµ:{randomValue}, ´¥·¢¸ÅÂÊ:{AdPopupChance}%"); */
         return randomValue < AdPopupChance;
     }
 
@@ -206,7 +206,7 @@ public class GameSettlementPanel : BasePanel
     }
     #endregion
 
-    #region ç”Ÿå‘½å‘¨æœŸ
+    #region ÉúÃüÖÜÆÚ
     public override void Awake()
     {
         base.Awake();
@@ -241,7 +241,7 @@ public class GameSettlementPanel : BasePanel
     }
     #endregion
 
-    #region UIæŒ‰é’®ç‚¹å‡»
+    #region UI°´Å¥µã»÷
     public override void ClickButton(string controlName)
     {
         base.ClickButton(controlName);
@@ -258,7 +258,7 @@ public class GameSettlementPanel : BasePanel
             case "ConfirmButton":
                 MusicManager.Instance?.PlayEffect(UiSelectSound);
                 SetExitButtonState(false, true);
-                Debug.Log($"[å¹¿å‘Š] è¯·æ±‚è§‚çœ‹æ¿€åŠ±å¹¿å‘Šï¼Œé¢„æœŸå¥–åŠ±: {_currentBaseGold * GoldMulti}");
+                /* Debug.Log($"[¹ã¸æ] ÇëÇó¹Û¿´¼¤Àø¹ã¸æ£¬Ô¤ÆÚ½±Àø: {_currentBaseGold * GoldMulti}"); */
                 TapAdManager.Instance.ShowRewardAd(
                     onRewarded: OnAdRewarded,
                     onFailed: OnAdFailed
@@ -266,7 +266,7 @@ public class GameSettlementPanel : BasePanel
                 break;
             case "CancelButton":
                 MusicManager.Instance?.PlayEffect(UiBackSound);
-                Debug.Log($"[å¹¿å‘Š] å–æ¶ˆè§‚çœ‹æ¿€åŠ±å¹¿å‘Šï¼Œè·å¾—åŸºç¡€é‡‘å¸: {_currentBaseGold}");
+                /* Debug.Log($"[¹ã¸æ] È¡Ïû¹Û¿´¼¤Àø¹ã¸æ£¬»ñµÃ»ù´¡½ğ±Ò: {_currentBaseGold}"); */
                 TryGiveBaseGoldAndExit();
                 break;
         }
@@ -283,12 +283,12 @@ public class GameSettlementPanel : BasePanel
         _exitButton.interactable = isInteractable;
     }
 
-    #region å¥–åŠ±å‘æ”¾æ ¸å¿ƒé€»è¾‘
+    #region ½±Àø·¢·ÅºËĞÄÂß¼­
     private void TryGiveBaseGoldAndExit()
     {
         if (_hasGivenReward)
         {
-            Debug.LogWarning("[å¥–åŠ±] å¥–åŠ±å·²å‘æ”¾è¿‡ï¼Œè·³è¿‡é‡å¤æ“ä½œ");
+            /* Debug.LogWarning("[½±Àø] ½±ÀøÒÑ·¢·Å¹ı£¬Ìø¹ıÖØ¸´²Ù×÷"); */
             ExitGameSettlement();
             return;
         }
@@ -296,11 +296,11 @@ public class GameSettlementPanel : BasePanel
         if (GoldSystem.Instance != null)
         {
             GoldSystem.Instance.AddGold(_currentBaseGold);
-            Debug.Log($"[å¥–åŠ±] å‘æ”¾åŸºç¡€é‡‘å¸æˆåŠŸ: {_currentBaseGold}");
+            /* Debug.Log($"[½±Àø] ·¢·Å»ù´¡½ğ±Ò³É¹¦: {_currentBaseGold}"); */
         }
         else
         {
-            Debug.LogError("[å¥–åŠ±] GoldSystem ä¸å­˜åœ¨ï¼Œæ— æ³•å‘æ”¾é‡‘å¸ï¼");
+            /* Debug.LogError("[½±Àø] GoldSystem ²»´æÔÚ£¬ÎŞ·¨·¢·Å½ğ±Ò£¡"); */
         }
 
         _hasGivenReward = true;
@@ -312,7 +312,7 @@ public class GameSettlementPanel : BasePanel
     {
         if (_hasGivenReward)
         {
-            Debug.LogWarning("[å¥–åŠ±] å¥–åŠ±å·²å‘æ”¾è¿‡ï¼Œè·³è¿‡é‡å¤æ“ä½œ");
+            /* Debug.LogWarning("[½±Àø] ½±ÀøÒÑ·¢·Å¹ı£¬Ìø¹ıÖØ¸´²Ù×÷"); */
             ExitGameSettlement();
             return;
         }
@@ -322,11 +322,11 @@ public class GameSettlementPanel : BasePanel
         if (GoldSystem.Instance != null)
         {
             GoldSystem.Instance.AddGold(multiGold);
-            Debug.Log($"[å¥–åŠ±] æ¿€åŠ±å¹¿å‘Šè§‚çœ‹æˆåŠŸï¼Œå‘æ”¾3å€é‡‘å¸: {multiGold}");
+            /* Debug.Log($"[½±Àø] ¼¤Àø¹ã¸æ¹Û¿´³É¹¦£¬·¢·Å3±¶½ğ±Ò: {multiGold}"); */
         }
         else
         {
-            Debug.LogError("[å¥–åŠ±] GoldSystem ä¸å­˜åœ¨ï¼Œæ— æ³•å‘æ”¾é‡‘å¸ï¼");
+            /* Debug.LogError("[½±Àø] GoldSystem ²»´æÔÚ£¬ÎŞ·¨·¢·Å½ğ±Ò£¡"); */
         }
 
         _hasGivenReward = true;
@@ -336,14 +336,14 @@ public class GameSettlementPanel : BasePanel
 
     public void OnAdFailed()
     {
-        Debug.LogWarning("[å¹¿å‘Š] æ¿€åŠ±å¹¿å‘ŠåŠ è½½/è§‚çœ‹å¤±è´¥ï¼Œå‘æ”¾åŸºç¡€é‡‘å¸");
+        /* Debug.LogWarning("[¹ã¸æ] ¼¤Àø¹ã¸æ¼ÓÔØ/¹Û¿´Ê§°Ü£¬·¢·Å»ù´¡½ğ±Ò"); */
         TryGiveBaseGoldAndExit();
     }
     #endregion
 
     private void ExitGameSettlement()
     {
-        Debug.Log("é€€å‡ºå¯¹å±€ï¼Œè¿”å›ä¸»ç•Œé¢");
+        /* Debug.Log("ÍË³ö¶Ô¾Ö£¬·µ»ØÖ÷½çÃæ"); */
 
         AllMapManager.Instance?.TriggerMap(MapType.StartCG, true);
         ModeChooseSystem.instance?.EnterSystem_Quick();
@@ -372,7 +372,7 @@ public class GameSettlementPanel : BasePanel
     }
     #endregion
 
-    #region å†…å­˜å›æ”¶
+    #region ÄÚ´æ»ØÊÕ
     private void TriggerDelayedMemoryCleanup()
     {
         MonoMange.Instance.StartCoroutine(DelayedMemoryCleanupCoroutine());
@@ -384,12 +384,12 @@ public class GameSettlementPanel : BasePanel
         ResourcesManager.Instance.UnloadUnusedAssets(() =>
         {
             GC.Collect();
-            Debug.Log("[GameSettlementPanel] å·²å®Œæˆç»“ç®—ç¦»åœºåçš„å»¶è¿Ÿå†…å­˜å›æ”¶");
+            /* Debug.Log("[GameSettlementPanel] ÒÑÍê³É½áËãÀë³¡ºóµÄÑÓ³ÙÄÚ´æ»ØÊÕ"); */
         });
     }
     #endregion
 
-    #region é¢æ¿æ˜¾éš
+    #region Ãæ°åÏÔÒş
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
     {
         base.HideMe(callback, isNeedDefaultAnimator);

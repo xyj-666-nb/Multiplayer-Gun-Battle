@@ -92,7 +92,6 @@ public class SinglePlayerPanel : BasePanel
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[SinglePlayerPanel] 注册按钮组时跳过: {e.Message}");
         }
     }
 

@@ -8,7 +8,7 @@ public class SceneMange : SingleBehavior<SceneMange>
     //同步生成场景方法
     public void LoadScene(string sceneName, UnityAction CallBack = null)
     {
-        Debug.Log($"加载场景{sceneName}");
+        /* Debug.Log($"加载场景{sceneName}"); */
         SceneManager.LoadScene(sceneName);
         //调用回调函数
         CallBack?.Invoke();

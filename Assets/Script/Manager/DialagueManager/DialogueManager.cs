@@ -114,7 +114,7 @@ public class DialogueManager : SingleMonoAutoBehavior<DialogueManager>
     private void PlayDialogue(bool IsCanSkip)//内部方法,调用面板进行调用
     {
         //对当前选中的对话数据包进行播放
-        Debug.Log("开始播放对话");
+        /* Debug.Log("开始播放对话"); */
         UImanager.Instance.ShowPanel<DialoguePanel>().StartDialoguePack(CurrentPlayingDialogueDataPack, CurrenPlayType, IsCanSkip);//显示对话面板并开始播放对话
     }
     #endregion

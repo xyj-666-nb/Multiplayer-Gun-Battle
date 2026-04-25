@@ -106,12 +106,12 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
     {
         if (AllTime <= 0)
         {
-            Debug.LogError("计时器总时间必须大于0！");
+            /* Debug.LogError("计时器总时间必须大于0！"); */
             return -1;
         }
         if (OverCallback == null && Callback == null)
         {
-            Debug.LogWarning("计时器未设置任何回调，创建无意义！");
+            /* Debug.LogWarning("计时器未设置任何回调，创建无意义！"); */
         }
 
         int KeyID = COUNTDOWN_KEY++;
@@ -130,12 +130,12 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
     {
         if (intervalTime <= 0)
         {
-            Debug.LogError("永久间隔触发器的间隔时间必须大于0！");
+            /* Debug.LogError("永久间隔触发器的间隔时间必须大于0！"); */
             return -1;
         }
         if (Callback == null)
         {
-            Debug.LogWarning("永久间隔触发器未设置回调，创建无意义！");
+            /* Debug.LogWarning("永久间隔触发器未设置回调，创建无意义！"); */
             return -1;
         }
 

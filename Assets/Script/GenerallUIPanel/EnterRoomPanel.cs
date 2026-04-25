@@ -46,7 +46,11 @@ public class EnterRoomPanel : BasePanel
             disco.OnServerFound.AddListener(HandleServerFound);
         }
 
-        PlayerNameInputField.onValueChanged.AddListener((str) => { UOSRelaySimple.Instance.playerName = str; });
+        PlayerNameInputField.onValueChanged.AddListener((str) =>
+        {
+            if (UOSRelaySimple.Instance != null)
+                UOSRelaySimple.Instance.playerName = str;
+        });
     }
 
     #endregion
@@ -57,7 +61,7 @@ public class EnterRoomPanel : BasePanel
         base.ShowMe(IsNeedDefalutAnimator);
         ClearList();
 
-        Debug.Log("CLIENT: StartDiscovery()");
+        /* Debug.Log("CLIENT: StartDiscovery()"); */
         lanRoomClientBrowser.discovery.StartDiscovery();
     }
 
@@ -110,11 +114,11 @@ public class EnterRoomPanel : BasePanel
 
     private void HandleServerFound(ServerResponse info)
     {
-        Debug.Log($"[EnterRoomPanel] 收到房间广播：serverId={info.serverId}, roomName={info.roomName}, ip={info.ipAddress}, uri={info.uri}");
+        /* Debug.Log($"[EnterRoomPanel] 收到房间广播：serverId={info.serverId}, roomName={info.roomName}, ip={info.ipAddress}, uri={info.uri}"); */
 
         if (CurrentCreateRoomDic.TryGetValue(info.serverId, out var row))
         {
-            Debug.Log($"[EnterRoomPanel] 更新房间人数：serverId={info.serverId}, playerCount={info.playerCount}/{info.maxPlayers}");
+            /* Debug.Log($"[EnterRoomPanel] 更新房间人数：serverId={info.serverId}, playerCount={info.playerCount}/{info.maxPlayers}"); */
             row.UpdateCount(info.playerCount, info.maxPlayers);
             return;
         }
@@ -124,7 +128,7 @@ public class EnterRoomPanel : BasePanel
         var netRoom = go.GetComponent<NetRoom>();
         CurrentCreateRoomDic[info.serverId] = netRoom;
 
-        Debug.Log($"[EnterRoomPanel] 新增房间UI：serverId={info.serverId}, roomName={info.roomName}");
+        /* Debug.Log($"[EnterRoomPanel] 新增房间UI：serverId={info.serverId}, roomName={info.roomName}"); */
 
         netRoom.Bind(
             name: info.roomName,
@@ -138,7 +142,7 @@ public class EnterRoomPanel : BasePanel
             onJoin: (uri) => {
                 // 加入房间音效
                 MusicManager.Instance.PlayEffect("Music/update415/ui选择");
-                Debug.Log($"[EnterRoomPanel] 点击加入房间：serverId={info.serverId}, uri={uri}");
+                /* Debug.Log($"[EnterRoomPanel] 点击加入房间：serverId={info.serverId}, uri={uri}"); */
                 lanRoomClientBrowser.JoinByUri(uri);
             }
         );

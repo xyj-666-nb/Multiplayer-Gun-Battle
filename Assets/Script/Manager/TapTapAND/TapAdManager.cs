@@ -40,7 +40,7 @@ public class TapAdManager : SingleMonoAutoBehavior<TapAdManager>
     {
         if (DirichletAdSdk.IsInitialized)
         {
-            Debug.Log("[TapAd] SDK已初始化，跳过重复操作");
+            /* Debug.Log("[TapAd] SDK已初始化，跳过重复操作"); */
             PreloadRewardAd();
             return;
         }
@@ -52,18 +52,18 @@ public class TapAdManager : SingleMonoAutoBehavior<TapAdManager>
             .EnableDebug(EnableDebugLog)
             .Build();
 
-        Debug.Log($"[TapAd] 开始初始化SDK，MediaId: {MediaId}");
+        /* Debug.Log($"[TapAd] 开始初始化SDK，MediaId: {MediaId}"); */
 
         DirichletAdSdk.Init(config,
             result =>
             {
-                Debug.Log("[TapAd] SDK初始化成功");
+                /* Debug.Log("[TapAd] SDK初始化成功"); */
                 _adNative = DirichletAdManager.CreateAdNative();
                 PreloadRewardAd();
             },
             error =>
             {
-                Debug.LogError($"[TapAd] SDK初始化失败: {error}");
+                /* Debug.LogError($"[TapAd] SDK初始化失败: {error}"); */
             });
     }
     #endregion
@@ -76,7 +76,7 @@ public class TapAdManager : SingleMonoAutoBehavior<TapAdManager>
     {
         if (!DirichletAdSdk.IsInitialized || _adNative == null)
         {
-            Debug.LogWarning("[TapAd] SDK未初始化，无法预加载广告");
+            /* Debug.LogWarning("[TapAd] SDK未初始化，无法预加载广告"); */
             return;
         }
 
@@ -92,18 +92,18 @@ public class TapAdManager : SingleMonoAutoBehavior<TapAdManager>
             .WithRewardAmount(10)
             .Build();
 
-        Debug.Log("[TapAd] 开始预加载激励视频广告");
+        /* Debug.Log("[TapAd] 开始预加载激励视频广告"); */
 
         _adNative.LoadRewardVideoAd(request,
             ad =>
             {
                 _rewardAd = ad;
                 AttachRewardEvents(_rewardAd);
-                Debug.Log("[TapAd] 激励视频广告加载成功");
+                /* Debug.Log("[TapAd] 激励视频广告加载成功"); */
             },
             error =>
             {
-                Debug.LogError($"[TapAd] 激励视频广告加载失败: {error}");
+                /* Debug.LogError($"[TapAd] 激励视频广告加载失败: {error}"); */
             });
     }
 
@@ -116,13 +116,13 @@ public class TapAdManager : SingleMonoAutoBehavior<TapAdManager>
     {
         if (_isAdShowing)
         {
-            Debug.LogWarning("[TapAd] 广告正在展示中，跳过重复请求");
+            /* Debug.LogWarning("[TapAd] 广告正在展示中，跳过重复请求"); */
             return;
         }
 
         if (_rewardAd == null)
         {
-            Debug.LogWarning("[TapAd] 激励视频广告未加载，尝试重新预加载");
+            /* Debug.LogWarning("[TapAd] 激励视频广告未加载，尝试重新预加载"); */
             onFailed?.Invoke();
             PreloadRewardAd();
             return;
@@ -136,7 +136,7 @@ public class TapAdManager : SingleMonoAutoBehavior<TapAdManager>
         var shown = _rewardAd.Show();
         if (!shown)
         {
-            Debug.LogError("[TapAd] 激励视频广告展示调用失败");
+            /* Debug.LogError("[TapAd] 激励视频广告展示调用失败"); */
             _isAdShowing = false;
             _onFailedCallback?.Invoke();
             PreloadRewardAd();
@@ -152,19 +152,19 @@ public class TapAdManager : SingleMonoAutoBehavior<TapAdManager>
         // 广告展示
         ad.Shown += () =>
         {
-            Debug.Log("[TapAd] 激励视频广告展示");
+            /* Debug.Log("[TapAd] 激励视频广告展示"); */
         };
 
         // 广告点击
         ad.Clicked += () =>
         {
-            Debug.Log("[TapAd] 激励视频广告被点击");
+            /* Debug.Log("[TapAd] 激励视频广告被点击"); */
         };
 
         // 广告关闭
         ad.Closed += () =>
         {
-            Debug.Log("[TapAd] 激励视频广告关闭");
+            /* Debug.Log("[TapAd] 激励视频广告关闭"); */
             _isAdShowing = false;
             // 广告关闭后重新预加载下一条
             PreloadRewardAd();
@@ -173,7 +173,7 @@ public class TapAdManager : SingleMonoAutoBehavior<TapAdManager>
         // 广告跳过
         ad.Skipped += () =>
         {
-            Debug.Log("[TapAd] 激励视频广告被跳过");
+            /* Debug.Log("[TapAd] 激励视频广告被跳过"); */
         };
 
         // 核心：奖励验证回调
@@ -181,12 +181,12 @@ public class TapAdManager : SingleMonoAutoBehavior<TapAdManager>
         {
             if (args.IsVerified)
             {
-                Debug.Log($"[TapAd] 激励视频奖励验证通过！奖励: {args.RewardName} x{args.RewardAmount}");
+                /* Debug.Log($"[TapAd] 激励视频奖励验证通过！奖励: {args.RewardName} x{args.RewardAmount}"); */
                 _onRewardedCallback?.Invoke();
             }
             else
             {
-                Debug.LogWarning($"[TapAd] 激励视频奖励验证失败: {args.Message}");
+                /* Debug.LogWarning($"[TapAd] 激励视频奖励验证失败: {args.Message}"); */
                 _onFailedCallback?.Invoke();
             }
         };
@@ -204,7 +204,7 @@ public class TapAdManager : SingleMonoAutoBehavior<TapAdManager>
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[TapAd] 清理广告时异常: {e.Message}");
+                /* Debug.LogWarning($"[TapAd] 清理广告时异常: {e.Message}"); */
             }
             ad = null;
         }

@@ -146,7 +146,7 @@ public class EverDayMotivatePanel : BasePanel
         if (_isRolling) return;
         if (goldNumberList == null || goldNumberList.Count == 0)
         {
-            Debug.LogError("[抽奖] 金币列表为空！");
+            /* Debug.LogError("[抽奖] 金币列表为空！"); */
             return;
         }
 
@@ -154,7 +154,7 @@ public class EverDayMotivatePanel : BasePanel
 
         // 随机选择最终奖励
         _finalRewardGold = goldNumberList[Random.Range(0, goldNumberList.Count)];
-        Debug.Log($"[抽奖] 抽到最终奖励: {_finalRewardGold}");
+        /* Debug.Log($"[抽奖] 抽到最终奖励: {_finalRewardGold}"); */
 
         //  计算视觉参数
         float goldRatio = Mathf.InverseLerp(goldNumberList.Min(), goldNumberList.Max(), _finalRewardGold);
@@ -182,7 +182,7 @@ public class EverDayMotivatePanel : BasePanel
 
             // 激活按钮组
             IsTriggerButtonGroup(true);
-            Debug.Log("[抽奖] 动画完成，按钮组已激活");
+            /* Debug.Log("[抽奖] 动画完成，按钮组已激活"); */
         });
     }
 
@@ -212,12 +212,12 @@ public class EverDayMotivatePanel : BasePanel
     {
         if (_hasGivenReward)
         {
-            Debug.LogWarning("[奖励] 奖励已发放过，跳过重复操作");
+            /* Debug.LogWarning("[奖励] 奖励已发放过，跳过重复操作"); */
             TryClosePanel();
             return;
         }
 
-        Debug.Log("[广告] 请求观看激励广告，领取抽奖奖励（×2）");
+        /* Debug.Log("[广告] 请求观看激励广告，领取抽奖奖励（×2）"); */
         TapAdManager.Instance.ShowRewardAd(
             onRewarded: () =>
             {
@@ -227,7 +227,7 @@ public class EverDayMotivatePanel : BasePanel
             onFailed: () =>
             {
                 // 广告失败：发放基础奖励，保证体验
-                Debug.LogWarning("[广告] 激励广告加载/观看失败，发放基础奖励");
+                /* Debug.LogWarning("[广告] 激励广告加载/观看失败，发放基础奖励"); */
                 TryGiveRewardAndExit(false);
             }
         );
@@ -241,7 +241,7 @@ public class EverDayMotivatePanel : BasePanel
     {
         if (_hasGivenReward)
         {
-            Debug.LogWarning("[奖励] 奖励已发放过，跳过重复操作");
+            /* Debug.LogWarning("[奖励] 奖励已发放过，跳过重复操作"); */
             TryClosePanel();
             return;
         }
@@ -252,12 +252,12 @@ public class EverDayMotivatePanel : BasePanel
         if (GoldSystem.Instance != null)
         {
             //GoldSystem.Instance.AddGold(rewardToGive);
-            Debug.Log($"[奖励] 发放抽奖金币成功: {rewardToGive} (基础:{_finalRewardGold}, 看广告:{isAdWatched})");
+            /* Debug.Log($"[奖励] 发放抽奖金币成功: {rewardToGive} (基础:{_finalRewardGold}, 看广告:{isAdWatched})"); */
            GoodDataManager.Instance.MarkDailyRewardGiven();//标记今日奖励已领取
         }
         else
         {
-            Debug.LogError("[奖励] GoldSystem 不存在，无法发放金币！");
+            /* Debug.LogError("[奖励] GoldSystem 不存在，无法发放金币！"); */
         }
 
         _hasGivenReward = true;

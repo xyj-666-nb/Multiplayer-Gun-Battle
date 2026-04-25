@@ -28,12 +28,12 @@ public class BaseScrollCell : MonoBehaviour
             _parentLayoutGroup = transform.parent.GetComponent<LayoutGroup>();
             if (_parentLayoutGroup == null)
             {
-                Debug.LogWarning($"[{gameObject.name}] 父对象没有LayoutGroup组件，尺寸修改可能不生效！");
+                /* Debug.LogWarning($"[{gameObject.name}] 父对象没有LayoutGroup组件，尺寸修改可能不生效！"); */
             }
         }
         else
         {
-            Debug.LogWarning($"[{gameObject.name}] 父对象为空，无法获取LayoutGroup！");
+            /* Debug.LogWarning($"[{gameObject.name}] 父对象为空，无法获取LayoutGroup！"); */
         }
     }
 
@@ -45,7 +45,7 @@ public class BaseScrollCell : MonoBehaviour
         // 空值防护：核心组件为空直接返回
         if (_rt == null || _layoutElement == null)
         {
-            Debug.LogWarning($"[{gameObject.name}] 缺少 RectTransform 或 LayoutElement 组件，无法自动同步尺寸！");
+            /* Debug.LogWarning($"[{gameObject.name}] 缺少 RectTransform 或 LayoutElement 组件，无法自动同步尺寸！"); */
             return;
         }
 
@@ -63,7 +63,7 @@ public class BaseScrollCell : MonoBehaviour
         _layoutElement.preferredWidth = cellWidth;
         _layoutElement.preferredHeight = cellHeight;
 
-        Debug.Log($"[{gameObject.name}] 自动同步尺寸完成：宽={cellWidth:F1}，高={cellHeight:F1}");
+        /* Debug.Log($"[{gameObject.name}] 自动同步尺寸完成：宽={cellWidth:F1}，高={cellHeight:F1}"); */
     }
 
 
@@ -74,7 +74,7 @@ public class BaseScrollCell : MonoBehaviour
     {
         if (_parentLayoutGroup == null)
         {
-            Debug.LogWarning($"[{gameObject.name}] 父布局组为空，无法触发布局重建！");
+            /* Debug.LogWarning($"[{gameObject.name}] 父布局组为空，无法触发布局重建！"); */
             return;
         }
 
@@ -94,7 +94,7 @@ public class BaseScrollCell : MonoBehaviour
     {
         if (_scrollRect == null)
         {
-            Debug.LogWarning($"[{gameObject.name}] 未找到LoopScrollRect组件，无法刷新滚动视图！");
+            /* Debug.LogWarning($"[{gameObject.name}] 未找到LoopScrollRect组件，无法刷新滚动视图！"); */
             return;
         }
 
@@ -107,7 +107,7 @@ public class BaseScrollCell : MonoBehaviour
     {
         if (_rt == null || _layoutElement == null)
         {
-            Debug.LogWarning($"[{gameObject.name}] 组件不完整，无法修改尺寸！");
+            /* Debug.LogWarning($"[{gameObject.name}] 组件不完整，无法修改尺寸！"); */
             return;
         }
 

@@ -74,7 +74,7 @@ public class UIGunViewZoom : MonoBehaviour
         ViewSettings setting = viewSettingsList.Find(i => i.viewType == targetView);
         if (setting == null)
         {
-            Debug.LogError($"未配置 {targetView} 视角参数！");
+            /* Debug.LogError($"未配置 {targetView} 视角参数！"); */
             return;
         }
 

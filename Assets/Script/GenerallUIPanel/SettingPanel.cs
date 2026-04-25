@@ -5,17 +5,15 @@ using UnityEngine.UI;
 
 public class SettingPanel : BasePanel
 {
-    private const string UiSelectSound = "Music/update415/ui选择";
-    private const string UiBackSound = "Music/update415/ui返回";
-    #region 面板控件字段
+    private const string UiSelectSound = "Music/update415/ui\u9009\u62e9";
+    private const string UiBackSound = "Music/update415/ui\u8fd4\u56de";
+
     public RectTransform PanelParentObj;
 
     private TypingWritingTask _currentTypingWritingTask;
     private bool _isPanelInitialized = false;
     private readonly string _totalGroupName = "Setting_TotalGroup";
-    #endregion
 
-    #region 生命周期
     public override void Awake()
     {
         base.Awake();
@@ -30,93 +28,69 @@ public class SettingPanel : BasePanel
             _isPanelInitialized = true;
         }
     }
-    #endregion
 
-    #region 单选按钮注册
     private void RegisterAllButtonsToSingleGroup()
     {
         AddButtonToGroup(_totalGroupName, "Button_ChangeKey", ChooseButton_ChangeKey, CancelButton_ChangeKey);
         AddButtonToGroup(_totalGroupName, "Button_MusicSetting", ChooseButton_MusicSetting, CancelButton_MusicSetting);
         AddButtonToGroup(_totalGroupName, "Button_PictureSetting", ChooseButton_PictureSetting, CancelButton_PictureSetting);
         AddButtonToGroup(_totalGroupName, "Button_Language", ChooseButton_Language, CancelButton_Language);
-
+        AddButtonToGroup(_totalGroupName, "Button_Introduce", ChooseButton_Introduce, CancelButton_Introduce);
     }
 
     private void AddButtonToGroup(string groupName, string buttonName, UnityAction chooseEvent, UnityAction cancelEvent, float scale = 1.1f, float duration = 0.2f)
     {
         if (!controlDic.ContainsKey(buttonName))
         {
-            Debug.LogError($"设置面板控件字典中无按钮：{buttonName}");
             return;
         }
+
         if (controlDic[buttonName] == null)
         {
-            Debug.LogError($"设置面板中按钮 {buttonName} 为空");
             return;
         }
+
         if (controlDic[buttonName] is Button button)
         {
             ButtonGroupManager.Instance.AddRadioButtonToGroup(groupName, button, chooseEvent, cancelEvent, scale, duration);
         }
-        else
-        {
-            Debug.LogError($"设置面板中 {buttonName} 不是Button组件");
-        }
     }
-    #endregion
 
-    #region 按钮选中/取消事件
     public void ChooseButton_ChangeKey()
     {
-        if (PanelParentObj != null)
+        if (PanelParentObj == null)
+            return;
+
+        var changeKeyPanel = UImanager.Instance.ShowPanel<MoveSettingPanel>();
+        if (changeKeyPanel != null)
         {
-            var changeKeyPanel = UImanager.Instance.ShowPanel<MoveSettingPanel>();
-            if (changeKeyPanel != null)
-            {
-                changeKeyPanel.transform.SetParent(PanelParentObj);
-                // 重置面板的 Left 和 Top 偏移
-                ResetPanelOffset(changeKeyPanel.GetComponent<RectTransform>());
-            }
-            else
-            {
-                Debug.LogError("ChangeKeyPanel 面板为空或已销毁");
-            }
+            changeKeyPanel.transform.SetParent(PanelParentObj);
+            ResetPanelOffset(changeKeyPanel.GetComponent<RectTransform>());
         }
     }
 
     public void CancelButton_ChangeKey()
     {
-        if (_currentTypingWritingTask != null)
-        {
-            _currentTypingWritingTask.StopTyping();
-            _currentTypingWritingTask = null;
-        }
-
+        StopCurrentTypingTask();
         try
         {
             UImanager.Instance.HidePanel<MoveSettingPanel>();
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
-            Debug.LogWarning($"关闭ChangeKeyPanel失败：{e.Message}");
         }
     }
 
     public void ChooseButton_MusicSetting()
     {
-        if (PanelParentObj != null)
+        if (PanelParentObj == null)
+            return;
+
+        var musicPanel = UImanager.Instance.ShowPanel<MusicPanel>();
+        if (musicPanel != null)
         {
-            var musicPanel = UImanager.Instance.ShowPanel<MusicPanel>();
-            if (musicPanel != null)
-            {
-                musicPanel.transform.SetParent(PanelParentObj);
-                // 重置面板的 Left 和 Top 偏移
-                ResetPanelOffset(musicPanel.GetComponent<RectTransform>());
-            }
-            else
-            {
-                Debug.LogError("MusicPanel 面板为空或已销毁");
-            }
+            musicPanel.transform.SetParent(PanelParentObj);
+            ResetPanelOffset(musicPanel.GetComponent<RectTransform>());
         }
     }
 
@@ -126,109 +100,108 @@ public class SettingPanel : BasePanel
         {
             UImanager.Instance.HidePanel<MusicPanel>();
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
-            Debug.LogWarning($"关闭MusicPanel失败：{e.Message}");
         }
     }
 
     public void ChooseButton_PictureSetting()
     {
-        if (_currentTypingWritingTask != null)
+        StopCurrentTypingTask();
+
+        var screenPanel = UImanager.Instance.ShowPanel<ScreenSettingPanel>();
+        if (screenPanel != null && PanelParentObj != null)
         {
-            _currentTypingWritingTask.StopTyping();
-            _currentTypingWritingTask = null;
-        }
-        var musicPanel = UImanager.Instance.ShowPanel<ScreenSettingPanel>();
-        if (musicPanel != null)
-        {
-            musicPanel.transform.SetParent(PanelParentObj);
-            // 重置面板的 Left 和 Top 偏移
-            ResetPanelOffset(musicPanel.GetComponent<RectTransform>());
-        }
-        else
-        {
-            Debug.LogError("ScreenSettingPanel 面板为空或已销毁");
+            screenPanel.transform.SetParent(PanelParentObj);
+            ResetPanelOffset(screenPanel.GetComponent<RectTransform>());
         }
     }
 
     public void CancelButton_PictureSetting()
     {
-        if (_currentTypingWritingTask != null)
-        {
-            _currentTypingWritingTask.StopTyping();
-            _currentTypingWritingTask = null;
-        }
+        StopCurrentTypingTask();
         try
         {
             UImanager.Instance.HidePanel<ScreenSettingPanel>();
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
-            Debug.LogWarning($"关闭MusicPanel失败：{e.Message}");
         }
     }
 
     public void ChooseButton_Language()
     {
-        if (_currentTypingWritingTask != null)
+        StopCurrentTypingTask();
+
+        var languagePanel = UImanager.Instance.ShowPanel<LanguePanel>();
+        if (languagePanel != null && PanelParentObj != null)
         {
-            _currentTypingWritingTask.StopTyping();
-            _currentTypingWritingTask = null;
-        }
-        var musicPanel = UImanager.Instance.ShowPanel<LanguePanel>();
-        if (musicPanel != null)
-        {
-            musicPanel.transform.SetParent(PanelParentObj);
-            // 重置面板的 Left 和 Top 偏移
-            ResetPanelOffset(musicPanel.GetComponent<RectTransform>());
-        }
-        else
-        {
-            Debug.LogError("MusicPanel 面板为空或已销毁");
+            languagePanel.transform.SetParent(PanelParentObj);
+            ResetPanelOffset(languagePanel.GetComponent<RectTransform>());
         }
     }
 
     public void CancelButton_Language()
     {
-        if (_currentTypingWritingTask != null)
-        {
-            _currentTypingWritingTask.StopTyping();
-            _currentTypingWritingTask = null;
-        }
+        StopCurrentTypingTask();
         try
         {
             UImanager.Instance.HidePanel<LanguePanel>();
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
-            Debug.LogWarning($"关闭MusicPanel失败：{e.Message}");
         }
     }
-    #endregion
 
-    #region 工具方法
-    /// <summary>
-    /// 重置面板的 Left 和 Top 偏移为 0
-    /// </summary>
-    private void ResetPanelOffset(RectTransform panelRt)
+    public void ChooseButton_Introduce()
     {
-        if (panelRt == null) return;
+        StopCurrentTypingTask();
 
-        panelRt.offsetMin = new Vector2(0, panelRt.offsetMin.y);
-        panelRt.offsetMax = new Vector2(panelRt.offsetMax.x, 0);
+        if (PanelParentObj == null)
+            return;
+
+        var introducePanel = UImanager.Instance.ShowPanel<GameIntroducePanel>();
+        if (introducePanel != null)
+        {
+            introducePanel.transform.SetParent(PanelParentObj);
+            ResetPanelOffset(introducePanel.GetComponent<RectTransform>());
+        }
     }
-    #endregion
 
-    #region 生命周期修复
-    protected override void OnDestroy()
+    public void CancelButton_Introduce()
     {
-        base.OnDestroy();
+        StopCurrentTypingTask();
+        try
+        {
+            UImanager.Instance.HidePanel<GameIntroducePanel>();
+        }
+        catch (System.Exception)
+        {
+        }
+    }
+
+    private void StopCurrentTypingTask()
+    {
         if (_currentTypingWritingTask != null)
         {
             _currentTypingWritingTask.StopTyping();
             _currentTypingWritingTask = null;
         }
+    }
+
+    private void ResetPanelOffset(RectTransform panelRt)
+    {
+        if (panelRt == null)
+            return;
+
+        panelRt.offsetMin = new Vector2(0, panelRt.offsetMin.y);
+        panelRt.offsetMax = new Vector2(panelRt.offsetMax.x, 0);
+    }
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+        StopCurrentTypingTask();
         if (ButtonGroupManager.Instance != null)
         {
             ButtonGroupManager.Instance.DestroyRadioGroup(_totalGroupName);
@@ -254,11 +227,10 @@ public class SettingPanel : BasePanel
         CancelButton_MusicSetting();
         CancelButton_PictureSetting();
         CancelButton_Language();
+        CancelButton_Introduce();
         base.HideMe(callback, isNeedDefaultAnimator);
     }
-    #endregion
 
-    #region 按钮点击事件处理
     public override void ClickButton(string controlName)
     {
         base.ClickButton(controlName);
@@ -266,7 +238,8 @@ public class SettingPanel : BasePanel
         if (controlName == "Button_ChangeKey"
             || controlName == "Button_MusicSetting"
             || controlName == "Button_PictureSetting"
-            || controlName == "Button_Language")
+            || controlName == "Button_Language"
+            || controlName == "Button_Introduce")
         {
             MusicManager.Instance?.PlayEffect(UiSelectSound);
         }
@@ -276,16 +249,13 @@ public class SettingPanel : BasePanel
             MusicManager.Instance?.PlayEffect(UiBackSound);
             UImanager.Instance.HidePanel<SettingPanel>();
         }
+
         if (controlName == "Button_ExitGame")
         {
             MusicManager.Instance?.PlayEffect(UiBackSound);
             UImanager.Instance.HidePanel<SettingPanel>();
         }
     }
-
-    #endregion
-
-    #region 面板特殊动画
 
     protected override void SpecialAnimator_Hide()
     {
@@ -299,5 +269,4 @@ public class SettingPanel : BasePanel
     {
         base.Update();
     }
-    #endregion
 }

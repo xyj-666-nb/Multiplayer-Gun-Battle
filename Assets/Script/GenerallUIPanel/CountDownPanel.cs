@@ -14,7 +14,7 @@ public class CountDownPanel : BasePanel
     private UnityAction Callback;
     private float CurrentTime = 0;
     private bool _isCounting = false;
-    private int _lastCountdownSecond = -1;
+    private bool _hasPlayedCountdownSound = false;
 
     private Sequence _colorTweenSequence;
 
@@ -27,7 +27,7 @@ public class CountDownPanel : BasePanel
         CountDownText.color = Color.white;
         UpdateCountDownText();
         _isCounting = true;
-        _lastCountdownSecond = Mathf.CeilToInt(CurrentTime);
+        _hasPlayedCountdownSound = false;
 
         SetupColorTween(Duration);
         TryPlayCountdownTick();
@@ -94,15 +94,14 @@ public class CountDownPanel : BasePanel
 
     private void TryPlayCountdownTick()
     {
-        int currentSecond = Mathf.CeilToInt(CurrentTime);
-        if (currentSecond == _lastCountdownSecond)
+        if (_hasPlayedCountdownSound)
         {
             return;
         }
 
-        _lastCountdownSecond = currentSecond;
-        if (currentSecond > 0 && currentSecond <= 5)
+        if (CurrentTime <= 5f && CurrentTime > 0f)
         {
+            _hasPlayedCountdownSound = true;
             MusicManager.Instance?.PlayEffect(CountdownSound);
         }
     }

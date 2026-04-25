@@ -62,7 +62,7 @@ public class ExpressionSystemEditor : Editor
         // 检查文件夹是否存在
         if (!Directory.Exists(ExpressionDataFolderPath))
         {
-            Debug.LogError($"表情数据文件夹不存在：{ExpressionDataFolderPath}");
+            /* Debug.LogError($"表情数据文件夹不存在：{ExpressionDataFolderPath}"); */
             return;
         }
 
@@ -80,7 +80,7 @@ public class ExpressionSystemEditor : Editor
 
         if (allGuids.Length == 0)
         {
-            Debug.LogWarning($"在文件夹中未找到任何表情数据：{ExpressionDataFolderPath}");
+            /* Debug.LogWarning($"在文件夹中未找到任何表情数据：{ExpressionDataFolderPath}"); */
             return;
         }
 
@@ -99,7 +99,7 @@ public class ExpressionSystemEditor : Editor
             {
                 _targetSystem.ExpressionPackList.Add(pack);
                 addCount++;
-                Debug.Log($"添加表情：{pack.name} (ID: {pack.ExpressionID})");
+                /* Debug.Log($"添加表情：{pack.name} (ID: {pack.ExpressionID})"); */
             }
             else
             {
@@ -112,7 +112,7 @@ public class ExpressionSystemEditor : Editor
         serializedObject.ApplyModifiedProperties();
 
         // 反馈结果
-        Debug.Log($"========== 表情加载完成 ==========\n新增: {addCount} | 跳过(重复): {skipCount} | 总计: {_targetSystem.ExpressionPackList.Count}");
+        /* Debug.Log($"========== 表情加载完成 ==========\n新增: {addCount} | 跳过(重复): {skipCount} | 总计: {_targetSystem.ExpressionPackList.Count}"); */
     }
 
     /// <summary>
@@ -123,7 +123,7 @@ public class ExpressionSystemEditor : Editor
         // 空列表保护
         if (_targetSystem.ExpressionPackList == null || _targetSystem.ExpressionPackList.Count == 0)
         {
-            Debug.LogWarning("表情列表为空，无法生成ID，请先添加表情");
+            /* Debug.LogWarning("表情列表为空，无法生成ID，请先添加表情"); */
             return;
         }
 
@@ -147,7 +147,7 @@ public class ExpressionSystemEditor : Editor
         serializedObject.ApplyModifiedProperties();
 
         // 控制台反馈生成结果
-        Debug.Log($" 表情ID生成完成！共生成 {_targetSystem.ExpressionPackList.Count} 个ID（从1开始）");
+        /* Debug.Log($" 表情ID生成完成！共生成 {_targetSystem.ExpressionPackList.Count} 个ID（从1开始）"); */
     }
 
     /// <summary>
@@ -157,7 +157,7 @@ public class ExpressionSystemEditor : Editor
     {
         if (_targetSystem.ExpressionPackList == null || _targetSystem.ExpressionPackList.Count == 0)
         {
-            Debug.Log("表情列表已经是空的");
+            /* Debug.Log("表情列表已经是空的"); */
             return;
         }
 
@@ -170,6 +170,6 @@ public class ExpressionSystemEditor : Editor
         EditorUtility.SetDirty(_targetSystem);
         serializedObject.ApplyModifiedProperties();
 
-        Debug.Log("表情列表已清空");
+        /* Debug.Log("表情列表已清空"); */
     }
 }

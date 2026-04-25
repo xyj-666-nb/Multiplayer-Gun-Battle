@@ -99,14 +99,14 @@ public class RoomManager : NetworkBehaviour
     [ClientRpc]
     void RpcOnGameStarted()
     {
-        Debug.Log("游戏正式开始！");
+        /* Debug.Log("游戏正式开始！"); */
         // 这里可以播放UI动画、音效等
     }
 
     [ClientRpc]
     void RpcOnGameEnded(string winner)
     {
-        Debug.Log($"游戏结束！获胜者: {winner}");
+        /* Debug.Log($"游戏结束！获胜者: {winner}"); */
         // 这里可以显示结算面板
     }
 

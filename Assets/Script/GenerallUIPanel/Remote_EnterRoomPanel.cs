@@ -120,7 +120,6 @@ public class Remote_EnterRoomPanel : BasePanel
         void OnQueryRoomSuccess(string code)
         {
             UnsubscribeQuery();
-            Debug.Log($"【面板】查询成功，开始连接，房间码：{code}");
             StartConnectRelay(code);
 
         }
@@ -140,7 +139,7 @@ public class Remote_EnterRoomPanel : BasePanel
                 });
             }
             (controlDic["JoinButton"] as Button).interactable = true;
-            Debug.LogWarning($"【面板】{msg}");
+            /* Debug.LogWarning($"【面板】{msg}"); */
         }
 
         UOSRelaySimple.OnQuerySuccess += OnQueryRoomSuccess;
@@ -154,7 +153,6 @@ public class Remote_EnterRoomPanel : BasePanel
     /// </summary>
     private void StartConnectRelay(string roomCode)
     {
-        Debug.LogError("【面板】StartConnectRelay 开始执行");
 
         // 显示“正在连接”状态
         if (statusText != null)
@@ -173,7 +171,6 @@ public class Remote_EnterRoomPanel : BasePanel
 
         void OnJoinSuccess(string c)
         {
-            Debug.Log("连接成功！");
             UnsubscribeConnect();
             if (statusText != null)
             {
@@ -204,15 +201,9 @@ public class Remote_EnterRoomPanel : BasePanel
         UOSRelaySimple.OnRelaySuccess += OnJoinSuccess;
         UOSRelaySimple.OnRelayFailed += OnJoinFailed;
 
-        Debug.LogError("【面板】准备调用 UOSRelaySimple.Instance.StartRelayClient，Instance 是否为空：" + (UOSRelaySimple.Instance == null ? "是" : "否"));
         if (UOSRelaySimple.Instance != null)
         {
             UOSRelaySimple.Instance.StartRelayClient(roomCode);
-            Debug.LogError("【面板】StartRelayClient 调用完成");
-        }
-        else
-        {
-            Debug.LogError("【面板】UOSRelaySimple.Instance 为 null，无法调用 StartRelayClient");
         }
     }
 

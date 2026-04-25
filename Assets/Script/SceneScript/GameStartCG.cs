@@ -47,7 +47,7 @@ public class GameStartCG : MonoBehaviour
 
         });
         CountDownManager.Instance.CreateTimer(false, (int)(FirstStartTime * 1000), () => {
-            Debug.Log("开始随机动画");
+            /* Debug.Log("开始随机动画"); */
             AnimaId = CountDownManager.Instance.CreateTimer_Permanent(false, 6000, () =>
             {
 

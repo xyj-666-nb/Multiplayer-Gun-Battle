@@ -197,7 +197,8 @@ public class Match_EnterRoomPanel : BasePanel
         {
             UnsubscribeConnect();
             UImanager.Instance.HidePanel<ServerOnlinePanel>();
-            Debug.Log("【匹配模式】连接成功！");
+            UImanager.Instance.HidePanel<Match_EnterRoomPanel>();
+            /* Debug.Log("【匹配模式】连接成功！"); */
             SetAllButtonsInteractable(true);
             if (statusText != null)
             {

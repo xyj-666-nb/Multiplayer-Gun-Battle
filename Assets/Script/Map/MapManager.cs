@@ -53,7 +53,7 @@ public class MapManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("请为 MapManager 赋值 helicopterVC（直升机虚拟相机）！");
+            /* Debug.LogError("请为 MapManager 赋值 helicopterVC（直升机虚拟相机）！"); */
         }
     }
 
@@ -92,6 +92,7 @@ public class MapManager : MonoBehaviour
         StopShack();
         //打开队伍显示动画
         UImanager.Instance.ShowPanel<TeamStartAnimaPanel>();//打开面板
+        PlayerRespawnManager.Instance?.StartRealGameCountdown();
     }
 
     public void StopTimeLine()
@@ -104,14 +105,14 @@ public class MapManager : MonoBehaviour
     {
         if (helicopterVC == null || _helicopterNoise == null)
         {
-            Debug.LogWarning("直升机相机未初始化，无法启动震动！");
+            /* Debug.LogWarning("直升机相机未初始化，无法启动震动！"); */
             return;
         }
 
         _isShaking = true;
         _targetAmplitude = shakeAmplitude; // 设置目标震动强度
         _helicopterNoise.m_FrequencyGain = shakeFrequency; // 确保频率生效
-        Debug.Log("直升机相机震动已启动");
+        /* Debug.Log("直升机相机震动已启动"); */
     }
 
     // 停止直升机相机震动
@@ -122,7 +123,7 @@ public class MapManager : MonoBehaviour
 
         _isShaking = false;
         _targetAmplitude = 0f; // 目标强度置0，Update中会平滑过渡
-        Debug.Log("直升机相机震动已停止");
+        /* Debug.Log("直升机相机震动已停止"); */
     }
 
     public void SethelicopterActive()

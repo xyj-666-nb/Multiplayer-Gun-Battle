@@ -17,6 +17,10 @@ public class playerHandControl : NetworkBehaviour
     [Header("瞄准状态配置")]
     public float AimStateTransform_X;
     public float EnterAimDuration = 0.5f;
+    [Header("枪械机动性对开镜时间的影响")]
+    [Range(0f, 0.95f)]
+    public float MobilityAimDurationScale = 0.45f;
+    public float MinAimDuration = 0.1f;
     public AnimationCurve aimEaseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
     [Header("收枪与拿出枪配置")]
@@ -104,6 +108,9 @@ public class playerHandControl : NetworkBehaviour
         if (IsTrigger_tactic1 == true)
             return;
 
+        if (isOwned)
+            (_playerTacticControl ?? PlayerTacticControl.Instance)?.SetIsChooseButton(false);
+
         SimpleAnimatorTool.Instance.StopFloatLerpById(tactic1taskID);
         var AllTime = _playerGameInfoManager != null
             ? _playerGameInfoManager.GetCurrentTacticInfo(1).CoolTime
@@ -117,6 +124,9 @@ public class playerHandControl : NetworkBehaviour
     {
         if (IsTrigger_tactic2 == true)
             return;
+
+        if (isOwned)
+            (_playerTacticControl ?? PlayerTacticControl.Instance)?.SetIsChooseButton(false);
 
         SimpleAnimatorTool.Instance.StopFloatLerpById(tactic2taskID);
         IsTrigger_tactic2 = true;
@@ -134,12 +144,21 @@ public class playerHandControl : NetworkBehaviour
     [Command(requiresAuthority = true)]
     public void SetHolsterState(bool wantHolster)
     {
+        ServerSetHolsterState(wantHolster);
+    }
+
+    [Server]
+    public void ServerSetHolsterState(bool wantHolster)
+    {
         if (!isServer)
             return;
         if (ownerPlayer == null)
             return;
         if (ownerPlayer.currentGun != null && ownerPlayer.currentGun.IsInReload)
             return;
+
+        if (wantHolster)
+            _isEnterAim = false;
 
         IsHolsterGun = wantHolster;
     }
@@ -148,12 +167,6 @@ public class playerHandControl : NetworkBehaviour
     {
         if (!isClient) return;
 
-        if (isOwned)
-        {
-            if (HolsterPosition == Vector2.zero && _isDebug)
-                Debug.LogError("[收枪] HolsterPosition 未配置！", this);
-            if (HolsterDuration <= 0 && _isDebug) Debug.LogError("[收枪] HolsterDuration 不能为0！", this);
-        }
 
         if (isOwned)
             _isHolsterAnimaPlaying = true;
@@ -265,7 +278,7 @@ public class playerHandControl : NetworkBehaviour
         if (newValue)
             EnterAimState();
         else
-            ExitAimState();
+            ExitAimState(true);
     }
 
     private void OnIsHolsterGun(bool oldValue, bool newValue)
@@ -273,9 +286,14 @@ public class playerHandControl : NetworkBehaviour
         if (!isClient)
             return;
         if (newValue)
+        {
+            ExitAimState(true);
             HolsterGun();
+        }
         else
+        {
             UnholsterGun();
+        }
     }
     #endregion
 
@@ -360,7 +378,7 @@ public class playerHandControl : NetworkBehaviour
     {
         if (mainCamera == null || !mainCamera.orthographic)
         {
-            if (_isDebug) Debug.LogError("[错误] 主相机未赋值/非2D正交相机！", this);
+            if (_isDebug) /* Debug.LogError("[错误] 主相机未赋值/非2D正交相机！", this); */
             return;
         }
 
@@ -368,7 +386,7 @@ public class playerHandControl : NetworkBehaviour
         if(touchHandler == null)
         {
             if (_isDebug)
-                Debug.LogWarning("[错误] 场景中缺少 TouchInputHandler！", this);
+                /* Debug.LogWarning("[错误] 场景中缺少 TouchInputHandler！", this); */
             return;
         }
 
@@ -481,33 +499,63 @@ public class playerHandControl : NetworkBehaviour
     #region 瞄准状态与动画
     public void SetAimState(bool wantAim)
     {
-        if (IsHolsterGun) 
+        if (wantAim && IsHolsterGun)
             return;
+
+        if (!wantAim)
+            ExitAimState(true);
+
         if (isServer)
             _isEnterAim = wantAim;
-        else if 
-            (isClient && isOwned) 
+        else if
+            (isClient && isOwned)
             CmdSetAimState(wantAim);
     }
 
     [Command(requiresAuthority = true)]
     private void CmdSetAimState(bool wantAim)
     {
+        if (wantAim && IsHolsterGun)
+            return;
+
         _isEnterAim = wantAim;
     }
 
     public void EnterAimState()
     {
         if (IsHolsterGun || !isClient) return;
+        float currentAimDuration = GetCurrentAimDuration();
         _selfTransform.DOKill();
-        _selfTransform.DOLocalMoveX(AimStateTransform_X, EnterAimDuration).SetEase(aimEaseCurve).SetUpdate(false);
+        _selfTransform.DOLocalMoveX(AimStateTransform_X, currentAimDuration).SetEase(aimEaseCurve).SetUpdate(true);
     }
 
-    public void ExitAimState()
+    public void ExitAimState(bool snapOnComplete = false)
     {
         if (!isClient) return;
-        _selfTransform.DOKill();
-        _selfTransform.DOLocalMoveX(_originLocalPos.x, EnterAimDuration).SetEase(aimEaseCurve).SetUpdate(false);
+        float currentAimDuration = GetCurrentAimDuration();
+        _selfTransform.DOKill(false);
+        _selfTransform.DOLocalMoveX(_originLocalPos.x, currentAimDuration)
+            .SetEase(aimEaseCurve)
+            .SetUpdate(true)
+            .OnComplete(() =>
+            {
+                if (snapOnComplete && !IsHolsterGun)
+                {
+                    Vector3 pos = _selfTransform.localPosition;
+                    pos.x = _originLocalPos.x;
+                    _selfTransform.localPosition = pos;
+                }
+            });
+    }
+
+    private float GetCurrentAimDuration()
+    {
+        float baseAimDuration = Mathf.Max(0.01f, EnterAimDuration);
+        if (ownerPlayer == null || ownerPlayer.currentGun == null || ownerPlayer.currentGun.gunInfo == null)
+            return baseAimDuration;
+
+        float mobility = Mathf.Clamp(ownerPlayer.currentGun.gunInfo.Mobility, -1f, 1f);
+        return Mathf.Max(MinAimDuration, baseAimDuration * (1f - mobility * MobilityAimDurationScale));
     }
     #endregion
 
@@ -521,35 +569,44 @@ public class playerHandControl : NetworkBehaviour
     [Command(requiresAuthority = true)]
     public void CmdCreateInjection(TacticType Type)
     {
+        ServerSetHolsterState(true);
+
         var spawnedObj = CreateTactic(Type);
+        if (spawnedObj == null)
+        {
+            ServerSetHolsterState(false);
+            return;
+        }
+
         var injectionScript = spawnedObj.GetComponent<Injection>();
         if (injectionScript != null)
         {
             injectionScript.BindToPlayer(connectionToClient.identity);
-            injectionScript.CmdTriggerInjection();
+            CurrentInjection = spawnedObj;
+            injectionScript.ServerTriggerInjection();
         }
         else
         {
-            Debug.LogError("[CmdCreateInjection] 生成的注射器对象缺少 Injection 脚本", this);
+            /* Debug.LogError("[CmdCreateInjection] 生成的注射器对象缺少 Injection 脚本", this); */
             NetworkServer.Destroy(spawnedObj);
             CurrentInjection = null;
+            ServerSetHolsterState(false);
             return;
         }
-        CurrentInjection = spawnedObj;
     }
 
     [Command(requiresAuthority = true)]
     public void CmdCreateThrowObj(TacticType Type)
     {
-        Debug.Log($"[CmdCreateThrowObj] 服务器请求生成战术设备 → 类型：{Type}", this);
+        /* Debug.Log($"[CmdCreateThrowObj] 服务器请求生成战术设备 → 类型：{Type}", this); */
         var militaryManager = _militaryManager ?? MilitaryManager.Instance;
         if (militaryManager == null)
-        { Debug.LogError("[CmdCreateThrowObj] MilitaryManager.Instance 为 null！", this); return; }
+        { /* Debug.LogError("[CmdCreateThrowObj] MilitaryManager.Instance 为 null！", this); */ return; }
         var throwObjPrefab = militaryManager.GetTactic(Type);
         if (throwObjPrefab == null)
-        { Debug.LogError($"[CmdCreateThrowObj] GetTactic({Type}) 返回 null！", this); return; }
+        { /* Debug.LogError($"[CmdCreateThrowObj] GetTactic({Type}) 返回 null！", this); */ return; }
         if (throwObjPrefab.GetComponent<ThrowObj>() == null)
-        { Debug.LogError($"[CmdCreateThrowObj] 预制体缺少 ThrowObj 脚本！", this); return; }
+        { /* Debug.LogError($"[CmdCreateThrowObj] 预制体缺少 ThrowObj 脚本！", this); */ return; }
 
         GameObject spawnedThrowObj = Instantiate(throwObjPrefab);
         NetworkServer.Spawn(spawnedThrowObj, connectionToClient);
@@ -579,12 +636,12 @@ public class playerHandControl : NetworkBehaviour
 
     public GameObject CreateTactic(TacticType Type)
     {
-        if (!isServer) { Debug.LogError("[CreateTactic] 非服务器环境", this); return null; }
+        if (!isServer) { /* Debug.LogError("[CreateTactic] 非服务器环境", this); */ return null; }
 
         var militaryManager = _militaryManager ?? MilitaryManager.Instance;
-        if (militaryManager == null) { Debug.LogError("[CreateTactic] MilitaryManager 为 null", this); return null; }
+        if (militaryManager == null) { /* Debug.LogError("[CreateTactic] MilitaryManager 为 null", this); */ return null; }
         var Obj = militaryManager.GetTactic(Type);
-        if (Obj == null) { Debug.LogError($"[CreateTactic] GetTactic({Type}) 返回 null", this); return null; }
+        if (Obj == null) { /* Debug.LogError($"[CreateTactic] GetTactic({Type}) 返回 null", this); */ return null; }
 
         GameObject spawnedObj = Instantiate(Obj);
         NetworkServer.Spawn(spawnedObj, connectionToClient);
@@ -726,7 +783,7 @@ public class playerHandControl : NetworkBehaviour
         ThrowObj throwScript = CurrentThrowObj.GetComponent<ThrowObj>();
         if (throwScript == null)
         {
-            Debug.LogError("[发射] 缺少 ThrowObj 脚本！", CurrentThrowObj);
+            /* Debug.LogError("[发射] 缺少 ThrowObj 脚本！", CurrentThrowObj); */
             return;
         }
 

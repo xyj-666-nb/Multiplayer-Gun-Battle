@@ -1,5 +1,134 @@
 %YAML 1.1
 %TAG !u! tag:yousandi.cn,2023:
+--- !u!1 &299835191522223578
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 7
+  m_Component:
+  - component: {fileID: 7002287733790953691}
+  - component: {fileID: 6241905730173559308}
+  m_Layer: 0
+  m_HasEditorInfo: 1
+  m_Name: Audio Source
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7002287733790953691
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 299835191522223578}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.042500004, y: -0.0020419923, z: 0}
+  m_LocalScale: {x: -0.625, y: 0.60058594, z: 0}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7467003800825518748}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &6241905730173559308
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 299835191522223578}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1.6649874
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1458458464923497895
 GameObject:
   m_ObjectHideFlags: 0
@@ -42,6 +171,7 @@ Transform:
   - {fileID: 7974265743561314777}
   - {fileID: 6640727321388171641}
   - {fileID: 5930515614980630206}
+  - {fileID: 7002287733790953691}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &7138488744811282553
@@ -199,6 +329,7 @@ MonoBehaviour:
   DamageFloatObj: {fileID: 2756252371298464814, guid: 3e7323927bac5b346a9ad9150c883b53, type: 3}
   originalWorldScale: {x: 0, y: 0, z: 0}
   GunInfoManager: {fileID: 0}
+  gunSkinID: 0
   Duration: 0.5
   _localRecoil: 0
   _localAccuracy: 0
@@ -1145,7 +1276,7 @@ PlayableDirector:
   m_GameObject: {fileID: 7635722480655525456}
   m_Enabled: 1
   serializedVersion: 3
-  m_PlayableAsset: {fileID: 11400000, guid: f9d4998cff17d9545806e5faf7dc5c01, type: 2}
+  m_PlayableAsset: {fileID: 11400000, guid: 1fd5605fd2c936143888c30ca8c378b3, type: 2}
   m_InitialState: 0
   m_WrapMode: 2
   m_DirectorUpdateMode: 1
@@ -1163,6 +1294,12 @@ PlayableDirector:
     value: {fileID: 1249746131006100430}
   - key: {fileID: 5657189028869853873, guid: 1fd5605fd2c936143888c30ca8c378b3, type: 2}
     value: {fileID: 1249746131006100430}
+  - key: {fileID: -5803806934341246921, guid: f9d4998cff17d9545806e5faf7dc5c01, type: 2}
+    value: {fileID: 6241905730173559308}
+  - key: {fileID: -5803806934341246921, guid: 83e44c8eca02ad14fa090ed8073c0fdb, type: 2}
+    value: {fileID: 6241905730173559308}
+  - key: {fileID: -5803806934341246921, guid: 1fd5605fd2c936143888c30ca8c378b3, type: 2}
+    value: {fileID: 6241905730173559308}
   m_ExposedReferences:
     m_References: []
 --- !u!114 &5006711358604930843

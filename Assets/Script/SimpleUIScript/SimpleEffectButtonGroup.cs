@@ -6,34 +6,33 @@ using UnityEngine.EventSystems;
 using DG.Tweening;
 
 /// <summary>
-/// °´Å¥Ğ§¹û¹ÜÀíÆ÷£¨¹ÒÔØÔÚ³¡¾°ÖĞ£©
+/// æŒ‰é’®æ•ˆæœç®¡ç†å™¨ï¼ˆæŒ‚è½½åœ¨åœºæ™¯ä¸­ï¼‰
 /// </summary>
 public class SimpleEffectButtonGroup : SingleMonoAutoBehavior<SimpleEffectButtonGroup>
 {
-    [Header("¹ÜÀíµÄËùÓĞ°´Å¥×é")]
+    [Header("ç®¡ç†çš„æ‰€æœ‰æŒ‰é’®ç»„")]
     public List<SimpleEffectButtonGroupPack> AllButtonGroups = new List<SimpleEffectButtonGroupPack>();
 
-    #region ×¢²áÓë´´½¨×é
+    #region æ³¨å†Œä¸åˆ›å»ºç»„
 
     /// <summary>
-    /// ×¢²á°´Å¥×é
+    /// æ³¨å†ŒæŒ‰é’®ç»„
     /// </summary>
-    /// <param name="groupName">×éÃû</param>
-    /// <param name="buttons">°´Å¥ÁĞ±í</param>
-    /// <param name="isNeedColorChange">ÊÇ·ñĞèÒªÑÕÉ«±ä»¯£¨Ä¬ÈÏtrue£©</param>
-    /// <param name="defaultScale">³£¹æ×´Ì¬µÄËõ·Å£¨Ä¬ÈÏ1£©</param>
-    /// <param name="pressScale">°´ÏÂÊ±µÄËõ·Å£¨Ä¬ÈÏ0.85£©</param>
-    /// <param name="stayScale">ĞüÍ£Ê±µÄËõ·Å£¨Ä¬ÈÏ0.95£©</param>
+    /// <param name="groupName">ç»„å</param>
+    /// <param name="buttons">æŒ‰é’®åˆ—è¡¨</param>
+    /// <param name="isNeedColorChange">æ˜¯å¦éœ€è¦é¢œè‰²å˜åŒ–ï¼ˆé»˜è®¤trueï¼‰</param>
+    /// <param name="defaultScale">å¸¸è§„çŠ¶æ€çš„ç¼©æ”¾ï¼ˆé»˜è®¤1ï¼‰</param>
+    /// <param name="pressScale">æŒ‰ä¸‹æ—¶çš„ç¼©æ”¾ï¼ˆé»˜è®¤0.85ï¼‰</param>
+    /// <param name="stayScale">æ‚¬åœæ—¶çš„ç¼©æ”¾ï¼ˆé»˜è®¤0.95ï¼‰</param>
     public SimpleEffectButtonGroupPack RegisterGroup(string groupName, List<Button> buttons, bool isNeedColorChange = true, float defaultScale = 1f, float pressScale = 0.85f, float stayScale = 0.95f)
     {
         if (GetGroupByName(groupName) != null)
         {
-            Debug.LogWarning($"×¢²áÊ§°Ü£º×éÃû [{groupName}] ÒÑ´æÔÚ£¡");
             return null;
         }
 
         SimpleEffectButtonGroupPack newGroup = new SimpleEffectButtonGroupPack(groupName, buttons);
-        // Ó¦ÓÃ×Ô¶¨ÒåÅäÖÃ
+        // åº”ç”¨è‡ªå®šä¹‰é…ç½®
         newGroup.IsNeedColorChange = isNeedColorChange;
         newGroup.CustomDefaultScale = defaultScale;
         newGroup.CustomPressScale = pressScale;
@@ -49,7 +48,6 @@ public class SimpleEffectButtonGroup : SingleMonoAutoBehavior<SimpleEffectButton
         if (group == null) return null;
         if (!string.IsNullOrEmpty(group.GroupName) && GetGroupByName(group.GroupName) != null)
         {
-            Debug.LogWarning($"×¢²áÊ§°Ü£º×éÃû [{group.GroupName}] ÒÑ´æÔÚ£¡");
             return null;
         }
 
@@ -60,19 +58,19 @@ public class SimpleEffectButtonGroup : SingleMonoAutoBehavior<SimpleEffectButton
 
     #endregion
 
-    #region ¶¯Ì¬Ìí¼Ó/ÒÆ³ıµ¥¸ö°´Å¥
+    #region åŠ¨æ€æ·»åŠ /ç§»é™¤å•ä¸ªæŒ‰é’®
 
     public bool AddButtonToGroup(string groupName, Button button)
     {
         var group = GetGroupByName(groupName);
-        if (group == null) { Debug.LogError($"Î´ÕÒµ½×é [{groupName}]"); return false; }
+        if (group == null) {  return false; }
         return group.AddSingleButton(button);
     }
 
     public bool RemoveButtonFromGroup(string groupName, Button button)
     {
         var group = GetGroupByName(groupName);
-        if (group == null) { Debug.LogError($"Î´ÕÒµ½×é [{groupName}]"); return false; }
+        if (group == null) {return false; }
         return group.RemoveSingleButton(button);
     }
 
@@ -83,7 +81,7 @@ public class SimpleEffectButtonGroup : SingleMonoAutoBehavior<SimpleEffectButton
 
     #endregion
 
-    #region ¸¨Öú£º²éÕÒÓëÒÆ³ı×é
+    #region è¾…åŠ©ï¼šæŸ¥æ‰¾ä¸ç§»é™¤ç»„
 
     public SimpleEffectButtonGroupPack GetGroupByName(string groupName) => AllButtonGroups.FirstOrDefault(g => g.GroupName == groupName);
 
@@ -112,31 +110,31 @@ public class SimpleEffectButtonGroup : SingleMonoAutoBehavior<SimpleEffectButton
 
 }
 
-#region °´Å¥×éÊı¾İ°ü
+#region æŒ‰é’®ç»„æ•°æ®åŒ…
 
 [System.Serializable]
 public class SimpleEffectButtonGroupPack
 {
-    [Header("»ù´¡ĞÅÏ¢")]
+    [Header("åŸºç¡€ä¿¡æ¯")]
     public string GroupName;
     public List<Button> ButtonGroup;
 
-    [Header("×´Ì¬ÉèÖÃ")]
+    [Header("çŠ¶æ€è®¾ç½®")]
     public ButtonState DefaultState;
-    public ButtonState StayState;   // ĞüÍ£
-    public ButtonState PressState;  // °´ÏÂ
-    public ButtonState BallState;   // »Øµ¯ 
+    public ButtonState StayState;   // æ‚¬åœ
+    public ButtonState PressState;  // æŒ‰ä¸‹
+    public ButtonState BallState;   // å›å¼¹ 
 
-    [Header("×Ô¶¨ÒåÅäÖÃ")]
-    public bool IsNeedColorChange = false; // ÊÇ·ñĞèÒªÑÕÉ«±ä»¯
-    public float CustomDefaultScale = 1f;  // ×Ô¶¨Òå³£¹æËõ·Å
-    public float CustomPressScale = 0.85f; // ×Ô¶¨Òå°´ÏÂËõ·Å
-    public float CustomStayScale = 0.95f;  // ×Ô¶¨ÒåĞüÍ£Ëõ·Å
+    [Header("è‡ªå®šä¹‰é…ç½®")]
+    public bool IsNeedColorChange = false; // æ˜¯å¦éœ€è¦é¢œè‰²å˜åŒ–
+    public float CustomDefaultScale = 1f;  // è‡ªå®šä¹‰å¸¸è§„ç¼©æ”¾
+    public float CustomPressScale = 0.85f; // è‡ªå®šä¹‰æŒ‰ä¸‹ç¼©æ”¾
+    public float CustomStayScale = 0.95f;  // è‡ªå®šä¹‰æ‚¬åœç¼©æ”¾
 
-    // ÄÚ²¿´æ´¢£º¼ÇÂ¼Ã¿¸ö°´Å¥µÄ½»»¥×´Ì¬
+    // å†…éƒ¨å­˜å‚¨ï¼šè®°å½•æ¯ä¸ªæŒ‰é’®çš„äº¤äº’çŠ¶æ€
     private Dictionary<Button, ButtonInteractionInfo> _btnInfoDict = new Dictionary<Button, ButtonInteractionInfo>();
 
-    #region ¹¹Ôìº¯Êı
+    #region æ„é€ å‡½æ•°
 
     public SimpleEffectButtonGroupPack() => InitDefaultStates();
 
@@ -157,7 +155,7 @@ public class SimpleEffectButtonGroupPack
 
     #endregion
 
-    #region ³õÊ¼»¯ÓëÇåÀí
+    #region åˆå§‹åŒ–ä¸æ¸…ç†
 
     public void Init()
     {
@@ -177,18 +175,18 @@ public class SimpleEffectButtonGroupPack
 
     public void ClearEvents()
     {
-        foreach (var kvp in _btnInfoDict) CleanUpButton(kvp.Key, kvp.Value.Listener);
+        foreach (var kvp in _btnInfoDict) CleanUpButton(kvp.Key, kvp.Value);
         _btnInfoDict.Clear();
     }
 
     #endregion
 
-    #region µ¥¸ö°´Å¥Ìí¼Ó/ÒÆ³ı
+    #region å•ä¸ªæŒ‰é’®æ·»åŠ /ç§»é™¤
 
     public bool AddSingleButton(Button btn)
     {
         if (btn == null) return false;
-        if (_btnInfoDict.ContainsKey(btn)) { Debug.LogWarning($"°´Å¥ [{btn.name}] ÒÑÔÚ×é [{GroupName}] ÖĞ"); return false; }
+        if (_btnInfoDict.ContainsKey(btn)) { /* Debug.LogWarning($"æŒ‰é’® [{btn.name}] å·²åœ¨ç»„ [{GroupName}] ä¸­"); */ return false; }
         if (!ButtonGroup.Contains(btn)) ButtonGroup.Add(btn);
         AddSingleButtonInternal(btn);
         return true;
@@ -200,7 +198,7 @@ public class SimpleEffectButtonGroupPack
         ButtonGroup.Remove(btn);
         if (_btnInfoDict.TryGetValue(btn, out var info))
         {
-            CleanUpButton(btn, info.Listener);
+            CleanUpButton(btn, info);
             _btnInfoDict.Remove(btn);
             return true;
         }
@@ -212,53 +210,61 @@ public class SimpleEffectButtonGroupPack
         if (btn == null) return;
 
         Graphic graphic = btn.GetComponent<Graphic>();
-        if (graphic == null) Debug.LogWarning($"°´Å¥ {btn.name} Ã»ÓĞ Graphic ×é¼ş£¡", btn);
 
         SimpleEffectButtonListener listener = btn.gameObject.GetOrAddComponent<SimpleEffectButtonListener>();
 
-        // ´´½¨×´Ì¬ĞÅÏ¢
-        ButtonInteractionInfo info = new ButtonInteractionInfo { Listener = listener, IsPressed = false, IsHovered = false };
+        // åˆ›å»ºçŠ¶æ€ä¿¡æ¯
+        ButtonInteractionInfo info = new ButtonInteractionInfo
+        {
+            Listener = listener,
+            IsPressed = false,
+            IsHovered = false,
+            BaseColor = graphic != null ? graphic.color : Color.white,
+            BaseScale = btn.transform.localScale
+        };
 
-        // °ó¶¨ÊÂ¼ş (Ê¹ÓÃ±Õ°ü²¶»ñ info)
-        listener.OnPointerEnterEvent -= () => OnBtnEnter(btn, info);
-        listener.OnPointerExitEvent -= () => OnBtnExit(btn, info);
-        listener.OnPointerDownEvent -= () => OnBtnDown(btn, info);
-        listener.OnPointerUpEvent -= () => OnBtnUp(btn, info);
+        // ç»‘å®šäº‹ä»¶æ—¶ä¿å­˜å§”æ‰˜å¼•ç”¨ï¼Œé¿å…é‡å¤æ³¨å†Œæˆ–é”™è¯¯ç§»é™¤å¯¼è‡´çŠ¶æ€é”™ä¹±
+        info.PointerEnterAction = () => OnBtnEnter(btn, info);
+        info.PointerExitAction = () => OnBtnExit(btn, info);
+        info.PointerDownAction = () => OnBtnDown(btn, info);
+        info.PointerUpAction = () => OnBtnUp(btn, info);
 
-        listener.OnPointerEnterEvent += () => OnBtnEnter(btn, info);
-        listener.OnPointerExitEvent += () => OnBtnExit(btn, info);
-        listener.OnPointerDownEvent += () => OnBtnDown(btn, info);
-        listener.OnPointerUpEvent += () => OnBtnUp(btn, info);
+        listener.OnPointerEnterEvent += info.PointerEnterAction;
+        listener.OnPointerExitEvent += info.PointerExitAction;
+        listener.OnPointerDownEvent += info.PointerDownAction;
+        listener.OnPointerUpEvent += info.PointerUpAction;
 
         _btnInfoDict.Add(btn, info);
         SetStateImmediately(btn, DefaultState);
     }
 
-    private void CleanUpButton(Button btn, SimpleEffectButtonListener listener)
+    private void CleanUpButton(Button btn, ButtonInteractionInfo info)
     {
+        SimpleEffectButtonListener listener = info != null ? info.Listener : null;
         if (listener != null)
         {
-            listener.OnPointerEnterEvent = null;
-            listener.OnPointerExitEvent = null;
-            listener.OnPointerDownEvent = null;
-            listener.OnPointerUpEvent = null;
+            if (info.PointerEnterAction != null) listener.OnPointerEnterEvent -= info.PointerEnterAction;
+            if (info.PointerExitAction != null) listener.OnPointerExitEvent -= info.PointerExitAction;
+            if (info.PointerDownAction != null) listener.OnPointerDownEvent -= info.PointerDownAction;
+            if (info.PointerUpAction != null) listener.OnPointerUpEvent -= info.PointerUpAction;
         }
 
         if (btn != null)
         {
             btn.transform.DOKill();
+            btn.transform.localScale = info != null ? info.BaseScale : Vector3.one;
+
             if (btn.TryGetComponent(out Graphic graphic))
             {
                 graphic.DOKill();
-                graphic.color = Color.white;
+                graphic.color = info != null ? info.BaseColor : Color.white;
             }
-            btn.transform.localScale = Vector3.one;
         }
     }
 
     #endregion
 
-    #region ºËĞÄ£ºĞŞ¸´ºóµÄ½»»¥Âß¼­
+    #region æ ¸å¿ƒï¼šä¿®å¤åçš„äº¤äº’é€»è¾‘
 
     private void OnBtnEnter(Button btn, ButtonInteractionInfo info)
     {
@@ -270,6 +276,7 @@ public class SimpleEffectButtonGroupPack
     private void OnBtnExit(Button btn, ButtonInteractionInfo info)
     {
         info.IsHovered = false;
+        if (info.IsPressed) return;
         ConvertState(btn, DefaultState);
     }
 
@@ -298,10 +305,10 @@ public class SimpleEffectButtonGroupPack
 
     #endregion
 
-    #region ×´Ì¬×ª»»ºËĞÄÂß¼­ (Ö§³Ö×Ô¶¨ÒåÅäÖÃ)
+    #region çŠ¶æ€è½¬æ¢æ ¸å¿ƒé€»è¾‘ (æ”¯æŒè‡ªå®šä¹‰é…ç½®)
 
     /// <summary>
-    /// ¹ı¶Éµ½Ö¸¶¨×´Ì¬£¨Ö§³Ö×Ô¶¨ÒåËõ·ÅºÍÑÕÉ«¿ª¹Ø£©
+    /// è¿‡æ¸¡åˆ°æŒ‡å®šçŠ¶æ€ï¼ˆä»…å¤„ç†é¢œè‰²å˜åŒ–ï¼‰
     /// </summary>
     public void ConvertState(Button btn, ButtonState targetState, TweenCallback onComplete = null)
     {
@@ -309,36 +316,19 @@ public class SimpleEffectButtonGroupPack
 
         btn.transform.DOKill();
         if (btn.TryGetComponent(out Graphic graphic)) graphic.DOKill();
-        float targetScale = targetState.StateScale;
-        if (targetState.StateType == ButtonStateType.Default)
-        {
-            targetScale = CustomDefaultScale;
-        }
-        else if (targetState.StateType == ButtonStateType.Press)
-        {
-            targetScale = CustomPressScale;
-        }
-        else if (targetState.StateType == ButtonStateType.Stay)
-        {
-            targetScale = CustomStayScale;
-        }
 
-        // --- 2. ¶¯»­ÇúÏßÅäÖÃ ---
         float duration = 0.15f;
-        Ease scaleEase = Ease.OutQuad;
         Ease colorEase = Ease.OutQuad;
 
         switch (targetState.StateType)
         {
             case ButtonStateType.Press:
                 duration = 0.08f;
-                scaleEase = Ease.OutQuad;
                 colorEase = Ease.OutQuad;
                 break;
 
             case ButtonStateType.Ball:
                 duration = 0.25f;
-                scaleEase = Ease.OutBack;
                 colorEase = Ease.OutQuad;
                 break;
 
@@ -346,32 +336,40 @@ public class SimpleEffectButtonGroupPack
             case ButtonStateType.Default:
             default:
                 duration = 0.15f;
-                scaleEase = Ease.OutQuad;
                 colorEase = Ease.OutQuad;
                 break;
         }
 
-        // --- 3. Ö´ĞĞËõ·Å¶¯»­£¨Ê¼ÖÕÖ´ĞĞ£© ---
-        btn.transform.DOScale(targetScale, duration)
-            .SetEase(scaleEase)
+        Vector3 baseScale = _btnInfoDict.TryGetValue(btn, out var info)
+            ? info.BaseScale
+            : Vector3.one;
+        Vector3 targetScale = baseScale * targetState.StateScale;
+
+        Tween scaleTween = btn.transform.DOScale(targetScale, duration)
+            .SetEase(colorEase)
             .SetLink(btn.gameObject);
 
-        // --- 4. Ö´ĞĞÑÕÉ«¶¯»­£¨½öµ± IsNeedColorChange Îª true Ê±£© ---
         if (graphic != null && IsNeedColorChange)
         {
-            var tween = graphic.DOColor(targetState.StateColor, duration)
+            Tween colorTween = graphic.DOColor(targetState.StateColor, duration)
                 .SetEase(colorEase)
                 .SetLink(btn.gameObject);
-
             if (onComplete != null)
             {
-                tween.OnComplete(onComplete);
+                scaleTween.OnComplete(onComplete);
             }
+            return;
         }
-        else
+
+        if (graphic != null && !IsNeedColorChange)
         {
-            // ²»ĞèÒªÑÕÉ«±ä»¯Ê±£¬Ö±½Óµ÷ÓÃÍê³É»Øµ÷
-            onComplete?.Invoke();
+            graphic.color = info != null ? info.BaseColor : graphic.color;
+        }
+
+        if (onComplete != null)
+        {
+            scaleTween.OnComplete(onComplete);
+            return;
         }
     }
 
@@ -379,24 +377,11 @@ public class SimpleEffectButtonGroupPack
     {
         if (btn == null || state == null) return;
 
-        // ³õÊ¼Ëõ·ÅÒ²ÓÅÏÈ¿¼ÂÇ×Ô¶¨ÒåÅäÖÃ
-        float initialScale = state.StateScale;
-        if (state.StateType == ButtonStateType.Default)
+        if (_btnInfoDict.TryGetValue(btn, out var info))
         {
-            initialScale = CustomDefaultScale;
-        }
-        else if (state.StateType == ButtonStateType.Press)
-        {
-            initialScale = CustomPressScale;
-        }
-        else if (state.StateType == ButtonStateType.Stay)
-        {
-            initialScale = CustomStayScale;
+            btn.transform.localScale = info.BaseScale * state.StateScale;
         }
 
-        btn.transform.localScale = Vector3.one * initialScale;
-
-        // ³õÊ¼ÑÕÉ«½öÔÚĞèÒªÊ±ÉèÖÃ
         if (btn.TryGetComponent(out Graphic graphic) && IsNeedColorChange)
         {
             graphic.color = state.StateColor;
@@ -417,13 +402,19 @@ public class SimpleEffectButtonGroupPack
 
     #endregion
 
-    #region ÄÚ²¿¸¨ÖúÀà£º¼ÇÂ¼°´Å¥×´Ì¬
+    #region å†…éƒ¨è¾…åŠ©ç±»ï¼šè®°å½•æŒ‰é’®çŠ¶æ€
 
     private class ButtonInteractionInfo
     {
         public SimpleEffectButtonListener Listener;
         public bool IsPressed;
         public bool IsHovered;
+        public Color BaseColor;
+        public Vector3 BaseScale;
+        public System.Action PointerEnterAction;
+        public System.Action PointerExitAction;
+        public System.Action PointerDownAction;
+        public System.Action PointerUpAction;
     }
 
     #endregion
@@ -431,7 +422,7 @@ public class SimpleEffectButtonGroupPack
 
 #endregion
 
-#region ¸¨ÖúÀà£º×´Ì¬Êı¾İÓëÃ¶¾Ù
+#region è¾…åŠ©ç±»ï¼šçŠ¶æ€æ•°æ®ä¸æšä¸¾
 
 [System.Serializable]
 public class ButtonState
@@ -451,7 +442,7 @@ public enum ButtonStateType
 
 #endregion
 
-#region ÄÚ²¿¹¤¾ß£ºÊÂ¼ş¼àÌıÆ÷
+#region å†…éƒ¨å·¥å…·ï¼šäº‹ä»¶ç›‘å¬å™¨
 
 [DisallowMultipleComponent]
 public class SimpleEffectButtonListener : MonoBehaviour,

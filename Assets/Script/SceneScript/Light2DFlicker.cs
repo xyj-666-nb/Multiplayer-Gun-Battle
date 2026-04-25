@@ -54,7 +54,7 @@ public class Light2DFlicker : MonoBehaviour
         _light2D = GetComponent<Light2D>();
         if (_light2D == null)
         {
-            Debug.LogError("未找到Light2D组件！", this);
+            /* Debug.LogError("未找到Light2D组件！", this); */
             enabled = false;
             return;
         }
@@ -63,7 +63,7 @@ public class Light2DFlicker : MonoBehaviour
         if (minIntensity > maxIntensity)
         {
             (minIntensity, maxIntensity) = (maxIntensity, minIntensity);
-            Debug.LogWarning("修正最小强度大于最大强度的问题", this);
+            /* Debug.LogWarning("修正最小强度大于最大强度的问题", this); */
         }
 
         // 初始化基础随机间隔

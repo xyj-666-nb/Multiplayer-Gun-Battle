@@ -303,7 +303,7 @@ public abstract class BasePanel : MonoBehaviour
     {
         if (string.IsNullOrEmpty(name))
         {
-            Debug.LogError($"【BasePanel】控件名称不能为空！（面板：{gameObject.name}）");
+            /* Debug.LogError($"【BasePanel】控件名称不能为空！（面板：{gameObject.name}）"); */
             return null;
         }
 
@@ -313,11 +313,11 @@ public abstract class BasePanel : MonoBehaviour
             {
                 return targetControl;
             }
-            Debug.LogError($"【BasePanel】控件 {name} 类型不匹配！期望 {typeof(T).Name}，实际 {control.GetType().Name}（面板：{gameObject.name}）");
+            /* Debug.LogError($"【BasePanel】控件 {name} 类型不匹配！期望 {typeof(T).Name}，实际 {control.GetType().Name}（面板：{gameObject.name}）"); */
         }
         else
         {
-            Debug.LogError($"【BasePanel】未找到控件 {name}（面板：{gameObject.name}）");
+            /* Debug.LogError($"【BasePanel】未找到控件 {name}（面板：{gameObject.name}）"); */
         }
         return null;
     }

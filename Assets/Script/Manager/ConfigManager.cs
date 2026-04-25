@@ -37,7 +37,7 @@ public class ConfigManager : SingleMonoAutoBehavior<ConfigManager>
                 _muzzleDict.Add(config.MuzzleFlashID, config);
         }
 
-        Debug.Log($"配置加载完成：子弹{_bulletDict.Count}个 | 火光{_muzzleDict.Count}个");
+        /* Debug.Log($"配置加载完成：子弹{_bulletDict.Count}个 | 火光{_muzzleDict.Count}个"); */
     }
 
     #region 外部调用接口

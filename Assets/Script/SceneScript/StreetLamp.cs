@@ -103,7 +103,7 @@ public class StreetLamp : BaseBulletInteract_NetWork
     [ClientRpc]
     private void RpcPlayDestroyEffect()
     {
-        Debug.Log("路灯完全破坏！");
+        /* Debug.Log("路灯完全破坏！"); */
     }
     #endregion
 

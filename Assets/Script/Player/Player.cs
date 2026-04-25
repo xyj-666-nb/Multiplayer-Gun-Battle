@@ -44,10 +44,13 @@ public class Player : Base_Entity
     private  void OnPlayerSkipChange(int OldValue,int newValue )
     {
         //给玩家配置对应的角色数据
-        LoadingPlayerSkip(GameSkinManager.Instance.GetPlayerSkipPack(newValue)) ;
+        LoadingPlayerSkip(GameSkinManager.Instance != null ? GameSkinManager.Instance.GetPlayerSkipPack(newValue) : null);
     }
     public void LoadingPlayerSkip(PlayerSkinPack InfoPack )
     {
+        if (InfoPack == null || MyBodySpriteRenderer == null)
+            return;
+
         MyBodySpriteRenderer.sprite = InfoPack.IdleSprite;
         if(InfoPack.IsHaveAnima)
         {
@@ -64,7 +67,6 @@ public class Player : Base_Entity
     public void CmdLoadingPlayerSkip(int PlayerSkipID)
     {
         CurrentSkinID = PlayerSkipID;
-        GameSkinManager.Instance.SetPlayerSkinPack(PlayerSkipID);
     }
 
     public void TriggerExpression(int ExpressionID)
@@ -176,6 +178,8 @@ public class Player : Base_Entity
         _countDownManager = CountDownManager.Instance;
         _globalPictureFlipManager = GlobalPictureFlipManager.Instance;
 
+        if (reBornShield == null)
+            reBornShield = GetComponentInChildren<ReBornShield>(true);
 
         if (MyBody != null)
         {
@@ -184,7 +188,7 @@ public class Player : Base_Entity
         }
         else
         {
-            Debug.LogError($"[Player] {gameObject.name} 的MyBody未赋值！", this);
+            /* Debug.LogError($"[Player] {gameObject.name} 的MyBody未赋值！", this); */
             baseBodyScale = Vector2.one;
             currentYScale = 1f;
         }
@@ -207,7 +211,7 @@ public class Player : Base_Entity
 
         if (MyRigdboby == null)
         {
-            Debug.LogError($"[服务器] 玩家{gameObject.name}缺少Rigidbody2D组件！", this);
+            /* Debug.LogError($"[服务器] 玩家{gameObject.name}缺少Rigidbody2D组件！", this); */
             return;
         }
 
@@ -219,10 +223,10 @@ public class Player : Base_Entity
             _sb.Clear();
             _sb.Append("玩家").Append(connectionToClient.connectionId);
             PlayerName = _sb.ToString();
-            Debug.Log($"[服务器] 玩家{connectionToClient.connectionId}名称兜底：{PlayerName}");
+            /* Debug.Log($"[服务器] 玩家{connectionToClient.connectionId}名称兜底：{PlayerName}"); */
         }
 
-        reBornShield.ServerTriggerShield();
+        reBornShield?.ServerTriggerShield();
     }
 
 
@@ -230,14 +234,16 @@ public class Player : Base_Entity
     {
         base.OnStartLocalPlayer();
         LocalPlayer = this;
-        Debug.Log($"[本地客户端] 初始化本地玩家：{gameObject.name}");
+        /* Debug.Log($"[本地客户端] 初始化本地玩家：{gameObject.name}"); */
 
         if (myStats == null) myStats = GetComponent<playerStats>();
         if (myInputSystem == null) myInputSystem = GetComponent<MyPlayerInput>();
         if (MyHandControl == null && playerHandPos != null)
             MyHandControl = playerHandPos.GetComponent<playerHandControl>();
 
-        string localName = UOSRelaySimple.Instance.playerName;
+        ApplySavedPlayerSkin();
+
+        string localName = UOSRelaySimple.Instance != null ? UOSRelaySimple.Instance.playerName : null;
         if (string.IsNullOrEmpty(localName))
         {
             _sb.Clear();
@@ -257,7 +263,7 @@ public class Player : Base_Entity
         if (myInputSystem != null)
         {
             myInputSystem.Initialize(this, myStats);
-            Debug.Log("Player：本地玩家输入系统初始化完成！");
+            /* Debug.Log("Player：本地玩家输入系统初始化完成！"); */
         }
 
         if (MyHandControl != null)
@@ -290,6 +296,17 @@ public class Player : Base_Entity
 
     }
 
+
+    private void ApplySavedPlayerSkin()
+    {
+        var skinManager = GameSkinManager.Instance;
+        if (skinManager == null || skinManager.CurrentPlayerSkinPack == null)
+            return;
+
+        int playerSkinID = skinManager.CurrentPlayerSkinPack.PlayerSkinID;
+        LoadingPlayerSkip(skinManager.CurrentPlayerSkinPack);
+        CmdLoadingPlayerSkip(playerSkinID);
+    }
     public override void OnStopLocalPlayer()
     {
         base.OnStopLocalPlayer();
@@ -318,12 +335,12 @@ public class Player : Base_Entity
 
     private void OnChangeArmorState(ArmorType OldType, ArmorType NewType)
     {
-        if (myStats == null) 
+        if (myStats == null)
             myStats = GetComponent<playerStats>();
         if (myStats == null)
             return;
 
-     
+
         // 保留原逻辑
         if (OldType != ArmorType.Empty_handed)
         {
@@ -427,7 +444,7 @@ public class Player : Base_Entity
             newName = _sb.ToString();
         }
         PlayerName = newName;
-        Debug.Log($"[服务器] 同步玩家{connectionToClient.connectionId}名称：{newName}");
+        /* Debug.Log($"[服务器] 同步玩家{connectionToClient.connectionId}名称：{newName}"); */
     }
     #endregion
 
@@ -439,7 +456,7 @@ public class Player : Base_Entity
 
     public void PlayerMoveStretchAnima()
     {
-        if (MyRigdboby == null || MyBody == null) 
+        if (MyRigdboby == null || MyBody == null)
             return;
 
         _cachedXVel = MyRigdboby.velocity.x;
@@ -516,7 +533,7 @@ public class Player : Base_Entity
         if (newGun != null)
         {
             _playerPanel?.ShowGunBackGround();
-            Debug.Log($"[本地客户端] 玩家{gameObject.name}持有新枪械，调整视野");
+            /* Debug.Log($"[本地客户端] 玩家{gameObject.name}持有新枪械，调整视野"); */
             if (ViewTaskID != -1)
             {
                 _myCameraControl?.ResetZoomTask(ViewTaskID);
@@ -526,7 +543,7 @@ public class Player : Base_Entity
             ViewTaskID = _myCameraControl?.AddZoomTask_ByPercent_TemporaryManual(zoomPercent, ChangeSpeed_View, (value) => {
                 CameraSizeBaseValue=value;//复制基础值
             }) ?? -1;
-            Debug.Log($"[本地客户端] 枪械缩放任务ID：{ViewTaskID}，百分比：{zoomPercent}");        }
+            /* Debug.Log($"[本地客户端] 枪械缩放任务ID：{ViewTaskID}，百分比：{zoomPercent}"); */        }
         else
         {
             _playerPanel?.HideGunBackGround();
@@ -540,6 +557,26 @@ public class Player : Base_Entity
 
     public float CameraSizeBaseValue;//当前摄像机大小基础值
 
+    public void ResetLocalCameraViewOnDeath()
+    {
+        if (!isLocalPlayer)
+            return;
+
+        myInputSystem?.ForceResetAimViewOnDeath();
+
+        if (_myCameraControl == null)
+            _myCameraControl = MyCameraControl.Instance;
+
+        if (ViewTaskID != -1)
+        {
+            _myCameraControl?.ResetZoomTask(ViewTaskID);
+            ViewTaskID = -1;
+        }
+
+        _myCameraControl?.ResetAllManualZoomTasks();
+        _myCameraControl?.DirectSetValuePrecent(1f);
+        CameraSizeBaseValue = _myCameraControl != null ? _myCameraControl.GetCurrentCameraSize() : 0f;
+    }
     public void PickUpSceneGun()
     {
         if (!isLocalPlayer || CurrentTouchGun == null)
@@ -584,7 +621,7 @@ public class Player : Base_Entity
         ServerHandlePickUpGun(gunObj);
     }
 
-    public void SpawnAndPickGun(string gunName)
+    public void SpawnAndPickGun(string gunName, bool showTacticAfterPick = true)
     {
         if (!isLocalPlayer || _militaryManager == null)
             return;
@@ -600,13 +637,22 @@ public class Player : Base_Entity
         skinInfo.HitID = GameSkinManager.Instance.CurrentOwnerHitObj != null ? GameSkinManager.Instance.CurrentOwnerHitObj.HitID : 1;
         var skinPack = GameSkinManager.Instance.GetCurrentGunEquipmentSkinPack(gunName);
         skinInfo.GunSkinID = skinPack != null ? skinPack.skinGuid : 0;
+        skinInfo.GunSkinAssetName = skinPack != null ? skinPack.name : string.Empty;
 
         LocalPlayer.CmdSpawnAndPickGun(gunName, skinInfo);
 
         _countDownManager?.CreateTimer(false, 100, () => {
             if (currentGun != null)
                 currentGun.TriggerReload();
-            PlayerAndGameInfoManger.Instance.ShowTactic();
+
+            if (showTacticAfterPick)
+            {
+                PlayerAndGameInfoManger.Instance.ShowTactic();
+            }
+            else if (PlayerTacticControl.Instance != null)
+            {
+                PlayerTacticControl.Instance.SetTacticControl(false);
+            }
         });
     }
 
@@ -614,8 +660,9 @@ public class Player : Base_Entity
     {
         public int MuzzleFlashID;
         public int BulletID;//子弹ID
-        public int HitID;  
+        public int HitID;
         public int GunSkinID;
+        public string GunSkinAssetName;
     }
 
     [Command]
@@ -633,7 +680,7 @@ public class Player : Base_Entity
 
         BaseGun gun = gunObj.GetComponent<BaseGun>();
 
-        gun.SetGunConfig(skinInfo.MuzzleFlashID, skinInfo.BulletID, skinInfo.HitID, skinInfo.GunSkinID);
+        gun.SetGunConfig(skinInfo.MuzzleFlashID, skinInfo.BulletID, skinInfo.HitID, skinInfo.GunSkinID, skinInfo.GunSkinAssetName);
 
         ServerHandlePickUpGun(gunObj);
     }
@@ -678,7 +725,7 @@ public class Player : Base_Entity
     {
         // 等待当前帧结束，或者直接 yield return new WaitForSeconds(0.1f);
         yield return null;
-        currentGun = newGun; 
+        currentGun = newGun;
     }
 
     public void DropCurrentGun(bool IsDestroy = false)
@@ -790,11 +837,17 @@ public class Player : Base_Entity
     [Command]
     public void CmdRequestStartGame()
     {
-        if (_playerRespawnManager != null)
-        {
-            _playerRespawnManager.NoticePlayerGameStart();
-            _playerRespawnManager.InitGameData();
-        }
+        if (_playerRespawnManager == null)
+            return;
+
+        if (connectionToClient == null || connectionToClient.connectionId != 0)
+            return;
+
+        if (!_playerRespawnManager.IsStart || _playerRespawnManager.IsGameStart || _playerRespawnManager._isGameEnded)
+            return;
+
+        _playerRespawnManager.NoticePlayerGameStart();
+        _playerRespawnManager.InitGameData();
     }
 
     public void Transmit(Vector3 Pos)
@@ -808,7 +861,7 @@ public class Player : Base_Entity
     protected override void OnDestroy()
     {
         base.OnDestroy();
-        if (ArmorSprite != null) 
+        if (ArmorSprite != null)
             ArmorSprite.DOKill();
 
         CancelInvoke();
@@ -827,4 +880,3 @@ public class Player : Base_Entity
 
     #endregion
 }
-

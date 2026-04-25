@@ -20,7 +20,7 @@ public class Injection : NetworkBehaviour
         // 空引用防护
         if (TimeLine_Inject == null)
         {
-            Debug.LogWarning($"[Injection] {gameObject.name} 的TimeLine_Inject未赋值！", this);
+            /* Debug.LogWarning($"[Injection] {gameObject.name} 的TimeLine_Inject未赋值！", this); */
         }
     }
 
@@ -30,7 +30,7 @@ public class Injection : NetworkBehaviour
     {
         if (playerIdentity == null)
         {
-            Debug.LogError("[Injection] 绑定玩家失败：playerIdentity为空", this);
+            /* Debug.LogError("[Injection] 绑定玩家失败：playerIdentity为空", this); */
             return;
         }
         _ownerPlayerIdentity = playerIdentity;
@@ -56,23 +56,40 @@ public class Injection : NetworkBehaviour
     [Server]
     private void ServerDestroySelf()
     {
-        if (_isDestroyed) 
+        if (_isDestroyed)
             return;
-        _playerHand.SetHolsterState(false);//所有客户端的我都设置拿枪
 
-        RpcTriggerTHolsterStateFalse();
+        playerHandControl ownerHand = GetOwnerHandControl();
+        if (ownerHand != null)
+        {
+            ownerHand.ServerSetHolsterState(false);
+            if (ownerHand.CurrentInjection == gameObject)
+                ownerHand.CurrentInjection = null;
+        }
 
         DestroySelfImmediate();
+    }
+
+    [Server]
+    private playerHandControl GetOwnerHandControl()
+    {
+        if (_ownerPlayerIdentity == null)
+            return _playerHand;
+
+        Player ownerPlayer = _ownerPlayerIdentity.GetComponent<Player>();
+        if (ownerPlayer != null && ownerPlayer.MyHandControl != null)
+            return ownerPlayer.MyHandControl;
+
+        return _ownerPlayerIdentity.GetComponent<playerHandControl>() ??
+               _ownerPlayerIdentity.GetComponentInChildren<playerHandControl>() ??
+               _playerHand;
     }
 
     [ClientRpc]//都进行执行
     public void RpcTriggerTHolsterStateFalse()
     {
-
-        if (_playerHand != null)
-        {
-            _playerHand.SetHolsterState(false);//所有客户端的我都设置拿枪
-        }
+        if (_playerHand != null && _playerHand.isOwned)
+            _playerHand.SetHolsterState(false);
     }
 
     [Server]
@@ -106,7 +123,7 @@ public class Injection : NetworkBehaviour
     {
         if (_ownerPlayerIdentity == null)
         {
-            Debug.LogError("[Injection] 触发效果失败：未绑定所属玩家", this);
+            /* Debug.LogError("[Injection] 触发效果失败：未绑定所属玩家", this); */
             return;
         }
 
@@ -114,11 +131,12 @@ public class Injection : NetworkBehaviour
         var playerStats = _ownerPlayerIdentity.GetComponent<playerStats>();
         if (playerStats == null)
         {
-            Debug.LogError($"[Injection] 所属玩家 {_ownerPlayerIdentity.name} 缺少playerStats组件", this);
+            /* Debug.LogError($"[Injection] 所属玩家 {_ownerPlayerIdentity.name} 缺少playerStats组件", this); */
             return;
         }
 
         // 调用ClientRpc定向触发效果
+        playerStats.ServerApplyInjectionEffect(injectionType);
         playerStats.TriggerEffect_Injection(injectionType);
     }
 
@@ -146,6 +164,12 @@ public class Injection : NetworkBehaviour
     [Command(requiresAuthority = true)]
     public void CmdTriggerInjection()
     {
+        ServerTriggerInjection();
+    }
+
+    [Server]
+    public void ServerTriggerInjection()
+    {
         if (_isDestroyed || !isServer)
             return;
         RpcTriggerInjection();
@@ -164,7 +188,7 @@ public class Injection : NetworkBehaviour
         }
         else if (TimeLine_Inject == null && !_isDestroyed)
         {
-            Debug.LogWarning("[Injection] TimeLine_Inject为空，无法播放注射动画", this);
+            /* Debug.LogWarning("[Injection] TimeLine_Inject为空，无法播放注射动画", this); */
         }
     }
 }

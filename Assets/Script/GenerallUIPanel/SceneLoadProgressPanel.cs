@@ -167,11 +167,11 @@ public class SceneLoadProgressPanel : BasePanel
         // 【修复1：Awake中仅初始化，不创建滚动任务（避免提前绑定中文列表）】
         if (PromptText == null)
         {
-            Debug.LogError("PromptText组件未赋值！请在Inspector中拖入TextMeshProUGUI组件");
+            /* Debug.LogError("PromptText组件未赋值！请在Inspector中拖入TextMeshProUGUI组件"); */
             return;
         }
         // 移除Awake中的滚动任务创建代码，统一移到ShowMe中处理
-        Debug.Log("加载面板已初始化，滚动任务将在显示时创建");
+        /* Debug.Log("加载面板已初始化，滚动任务将在显示时创建"); */
 
         // 注册场景加载进度事件
         EventCenter.Instance.AddEventLister<float>(E_EventType.E_LoadSceneChange, UpdateInfo);
@@ -215,7 +215,7 @@ public class SceneLoadProgressPanel : BasePanel
         // 判空Main和PromptText，避免空引用
         if (Main.Instance == null || PromptText == null || SimpleAnimatorTool.Instance == null)
         {
-            Debug.LogError("滚动任务创建失败：Main单例/PromptText/SimpleAnimatorTool 未赋值");
+            /* Debug.LogError("滚动任务创建失败：Main单例/PromptText/SimpleAnimatorTool 未赋值"); */
             return;
         }
         // 根据当前语言，创建对应语言的滚动文本任务
@@ -228,7 +228,7 @@ public class SceneLoadProgressPanel : BasePanel
                 ScrollingType.Random,
                 2f // 每条文本停留2秒
             );
-            Debug.Log($"创建中文滚动提示任务，任务ID：{TaskID}，共{PromptTextList.Count}条提示");
+            /* Debug.Log($"创建中文滚动提示任务，任务ID：{TaskID}，共{PromptTextList.Count}条提示"); */
         }
         else
         {
@@ -239,12 +239,12 @@ public class SceneLoadProgressPanel : BasePanel
                 ScrollingType.Random,
                 2f // 每条文本停留2秒
             );
-            Debug.Log($"创建英文滚动提示任务，任务ID：{TaskID}，共{PromptTextList_English.Count}条提示");
+            /* Debug.Log($"创建英文滚动提示任务，任务ID：{TaskID}，共{PromptTextList_English.Count}条提示"); */
         }
         // 任务创建失败提示
         if (TaskID == -1)
         {
-            Debug.LogError("滚动文本任务创建失败！请检查提示文本列表是否为空或SimpleAnimatorTool是否正常");
+            /* Debug.LogError("滚动文本任务创建失败！请检查提示文本列表是否为空或SimpleAnimatorTool是否正常"); */
         }
     }
 

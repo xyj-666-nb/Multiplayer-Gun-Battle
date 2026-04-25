@@ -8,6 +8,7 @@ using UnityEngine;
 public class CustomNetworkManager : NetworkManager
 {
     public static CustomNetworkManager Instance;
+    private bool _hasHandledUnexpectedClientDisconnect = false;
 
     // 自定义事件
     public static event System.Action OnServerStartedEvent;
@@ -51,7 +52,7 @@ public class CustomNetworkManager : NetworkManager
         transport = kcp;
         Transport.active = kcp;
 
-        Debug.Log($"[CustomNetworkManager] 切换到LAN模式，Transport类型：{transport.GetType().Name}，KCP启用：{kcp.enabled}");
+        /* Debug.Log($"[CustomNetworkManager] 切换到LAN模式，Transport类型：{transport.GetType().Name}，KCP启用：{kcp.enabled}"); */
     }
 
     /// <summary>
@@ -176,7 +177,7 @@ public class CustomNetworkManager : NetworkManager
 
         if (playerPrefab == null)
         {
-            Debug.LogError("[CustomNetworkManager] 严重错误：Player Prefab未赋值！准备断开连接");
+            /* Debug.LogError("[CustomNetworkManager] 严重错误：Player Prefab未赋值！准备断开连接"); */
             conn.Disconnect();
             return;
         }
@@ -221,15 +222,39 @@ public class CustomNetworkManager : NetworkManager
     public override void OnClientConnect()
     {
         base.OnClientConnect();
+        _hasHandledUnexpectedClientDisconnect = false;
         OnClientConnectedSuccess?.Invoke();
 
         //处理其他信息
         UImanager.Instance.HidePanel<EnterRoomPanel>();
         ModeChooseSystem.instance.ExitSystem();//退出系统
         UImanager.Instance.HidePanel<Remote_EnterRoomPanel>();
+        UImanager.Instance.HidePanel<Match_EnterRoomPanel>();
         //打开训练地图
         AllMapManager.Instance.TriggerMap(MapType.Training, true);//回到最开始
         AllMapManager.Instance.TriggerMap(MapType.StartCG, false);//回到最开始
+    }
+
+    public override void OnClientDisconnect()
+    {
+        bool shouldHandleUnexpectedDisconnect = mode == NetworkManagerMode.ClientOnly;
+
+        base.OnClientDisconnect();
+
+        if (shouldHandleUnexpectedDisconnect)
+        {
+            HandleUnexpectedClientDisconnect();
+        }
+    }
+
+    public override void OnStopClient()
+    {
+        base.OnStopClient();
+
+        if (!_hasHandledUnexpectedClientDisconnect && !NetworkServer.active)
+        {
+            HandleUnexpectedClientDisconnect();
+        }
     }
     #endregion
 
@@ -295,7 +320,7 @@ public class CustomNetworkManager : NetworkManager
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"[CustomNetworkManager] 清理KCP套接字异常：{ex.Message}");
+            /* Debug.LogError($"[CustomNetworkManager] 清理KCP套接字异常：{ex.Message}"); */
         }
     }
 
@@ -349,7 +374,7 @@ public class CustomNetworkManager : NetworkManager
                 return port;
             }
         }
-        Debug.LogError("[CustomNetworkManager] 严重错误：无可用端口！");
+        /* Debug.LogError("[CustomNetworkManager] 严重错误：无可用端口！"); */
         return -1;
     }
 
@@ -383,5 +408,39 @@ public class CustomNetworkManager : NetworkManager
         }
     }
 
+    private void HandleUnexpectedClientDisconnect()
+    {
+        if (_hasHandledUnexpectedClientDisconnect)
+        {
+            return;
+        }
+
+        _hasHandledUnexpectedClientDisconnect = true;
+        /* Debug.LogWarning("[CustomNetworkManager] 检测到客户端断线，执行回大厅清理流程"); */
+
+        if (AllMapManager.Instance != null)
+        {
+            AllMapManager.Instance.TriggerMap(MapType.StartCG, true);
+            AllMapManager.Instance.CloseAllMap(MapType.StartCG);
+        }
+
+        if (UImanager.Instance != null)
+        {
+            UImanager.Instance.HidePanel<PlayerPanel>();
+            UImanager.Instance.HidePanel<PlayerPreparaPanel>();
+            UImanager.Instance.HidePanel<GamePausePanel>();
+            UImanager.Instance.HidePanel<GameScorePanel>();
+            UImanager.Instance.HidePanel<DeathPanel>();
+            UImanager.Instance.HidePanel<MapChoosePanel>();
+            UImanager.Instance.HidePanel<GameSettlementPanel>();
+            UImanager.Instance.HidePanel<WarRecordPanel>(false);
+            UImanager.Instance.ShowPanel<RoomPanel>();
+        }
+
+        if (ModeChooseSystem.instance != null)
+        {
+            ModeChooseSystem.instance.EnterSystem_Quick();
+        }
+    }
     public bool IsRelayModeActive() => _isRelayModeActive;
 }

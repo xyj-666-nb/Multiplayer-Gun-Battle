@@ -123,7 +123,7 @@ public class CustomNetworkDiscovery : NetworkDiscoveryBase<ServerRequest, Server
         response.ipAddress = realSenderIp;
         response.port = realSenderPort;
 
-        Debug.Log($"CLIENT: Received broadcast from {realSenderIp}:{endpoint.Port} | 房间端口：{realSenderPort}");
+        /* Debug.Log($"CLIENT: Received broadcast from {realSenderIp}:{endpoint.Port} | 房间端口：{realSenderPort}"); */
 
         // 安全触发事件
         OnServerFound?.Invoke(response);
@@ -132,21 +132,21 @@ public class CustomNetworkDiscovery : NetworkDiscoveryBase<ServerRequest, Server
     public new void StopDiscovery()
     {
         base.StopDiscovery();
-        Debug.Log("[CustomNetworkDiscovery] 已停止广播/发现");
+        /* Debug.Log("[CustomNetworkDiscovery] 已停止广播/发现"); */
     }
 
     public void SetPort(int port)
     {
         if (port is < 0 or > 65535)
         {
-            Debug.LogError($"[CustomNetworkDiscovery] 端口{port}超出范围（0-65535），使用默认端口7777");
+            /* Debug.LogError($"[CustomNetworkDiscovery] 端口{port}超出范围（0-65535），使用默认端口7777"); */
             this.port = 7777;
         }
         else
         {
             this.port = (ushort)port;
         }
-        Debug.Log($"[CustomNetworkDiscovery] 已设置房间端口：{this.port}");
+        /* Debug.Log($"[CustomNetworkDiscovery] 已设置房间端口：{this.port}"); */
     }
 
     private void OnDestroy()

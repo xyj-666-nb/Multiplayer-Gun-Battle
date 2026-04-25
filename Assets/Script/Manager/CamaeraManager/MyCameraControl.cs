@@ -235,14 +235,6 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
             // 记录初始基准尺寸
             _baseOrthographicSize = virtualCamera.m_Lens.OrthographicSize;
 
-            if (_noise == null)
-                Debug.LogWarning("虚拟相机缺少 CinemachineBasicMultiChannelPerlin 组件，无法实现震动");
-            if (_framingTransposer == null)
-                Debug.LogWarning("虚拟相机缺少 FramingTransposer 组件！请将VirtualCamera的Body类型改为FramingTransposer");
-        }
-        else
-        {
-            Debug.LogError("未找到 CinemachineVirtualCamera，相机控制功能失效");
         }
 
         EnsureMainCameraClearState();
@@ -381,7 +373,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         ZoomTask task = _zoomTaskList.Find(t => t.TaskID == taskID && !t.IsCompleted);
         if (task == null)
         {
-            Debug.LogWarning($"未找到ID为{taskID}的有效缩放任务");
+            /* Debug.LogWarning($"未找到ID为{taskID}的有效缩放任务"); */
             return;
         }
 
@@ -545,7 +537,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         if (float.IsNaN(strength) || float.IsInfinity(strength) ||
             float.IsNaN(duration) || float.IsInfinity(duration))
         {
-            Debug.LogWarning("震动参数非法（NaN/无穷大），已忽略");
+            /* Debug.LogWarning("震动参数非法（NaN/无穷大），已忽略"); */
             return;
         }
 
@@ -563,7 +555,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         if (float.IsNaN(strength) || float.IsInfinity(strength) ||
             float.IsNaN(duration) || float.IsInfinity(duration))
         {
-            Debug.LogWarning("震动参数非法（NaN/无穷大），已忽略");
+            /* Debug.LogWarning("震动参数非法（NaN/无穷大），已忽略"); */
             return;
         }
 
@@ -582,7 +574,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     {
         if (float.IsNaN(strength) || float.IsInfinity(strength))
         {
-            Debug.LogWarning("震动强度非法（NaN/无穷大），已忽略");
+            /* Debug.LogWarning("震动强度非法（NaN/无穷大），已忽略"); */
             return 0;
         }
         var ID = IdCounter++;
@@ -597,7 +589,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     {
         if (float.IsNaN(strength) || float.IsInfinity(strength))
         {
-            Debug.LogWarning("震动强度非法（NaN/无穷大），已忽略");
+            /* Debug.LogWarning("震动强度非法（NaN/无穷大），已忽略"); */
             return 0;
         }
         var ID = IdCounter++;
@@ -706,7 +698,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     {
         if (Target == null)
         {
-            Debug.LogError("跟随目标为空，无法设置完全跟随模式！");
+            /* Debug.LogError("跟随目标为空，无法设置完全跟随模式！"); */
             return;
         }
 
@@ -747,7 +739,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     {
         if (Target == null)
         {
-            Debug.LogError("跟随目标为空，无法设置X轴跟随模式！");
+            /* Debug.LogError("跟随目标为空，无法设置X轴跟随模式！"); */
             return;
         }
 
@@ -791,7 +783,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     {
         if (Target == null)
         {
-            Debug.LogError("跟随目标为空，无法设置Y轴跟随模式！");
+            /* Debug.LogError("跟随目标为空，无法设置Y轴跟随模式！"); */
             return;
         }
 
@@ -836,12 +828,12 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
     {
         if (Target == null)
         {
-            Debug.LogError("参考目标为空，无法设置区域锁定模式！");
+            /* Debug.LogError("参考目标为空，无法设置区域锁定模式！"); */
             return;
         }
         if (posPack == null || posPack.LeftUpPos == null || posPack.RightDownPos == null)
         {
-            Debug.LogError("区域锁定信息包不完整（缺少左上/右下位置），无法设置区域锁定模式！");
+            /* Debug.LogError("区域锁定信息包不完整（缺少左上/右下位置），无法设置区域锁定模式！"); */
             return;
         }
 
@@ -850,7 +842,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         // 校验区域合法性
         if (!ValidateAreaLockingRegion(posPack))
         {
-            Debug.LogError("区域锁定的方形区域参数不合法！请检查左上/右下位置的坐标关系");
+            /* Debug.LogError("区域锁定的方形区域参数不合法！请检查左上/右下位置的坐标关系"); */
             return;
         }
 
@@ -885,7 +877,7 @@ public class MyCameraControl : SingleMonoAutoBehavior<MyCameraControl>
         // 如果区域比相机视口小，提示
         if (IsRegionSmallerThanCamera(posPack))
         {
-            Debug.LogWarning("区域锁定的区域小于相机视口，Cinemachine会自动固定到区域内！");
+            /* Debug.LogWarning("区域锁定的区域小于相机视口，Cinemachine会自动固定到区域内！"); */
         }
     }
 

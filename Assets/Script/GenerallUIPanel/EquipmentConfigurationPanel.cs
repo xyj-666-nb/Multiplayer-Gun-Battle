@@ -134,22 +134,22 @@ public class EquipmentConfigurationPanel : BasePanel
         // 校验控件是否存在，避免空引用
         if (!controlDic.ContainsKey("Gun_Button") || controlDic["Gun_Button"] is not Button gunBtn)
         {
-            Debug.LogError("未找到Gun_Button控件！");
+            /* Debug.LogError("未找到Gun_Button控件！"); */
             return;
         }
         if (!controlDic.ContainsKey("Tactic1_Button") || controlDic["Tactic1_Button"] is not Button tac1Btn)
         {
-            Debug.LogError("未找到Tactic1_Button控件！");
+            /* Debug.LogError("未找到Tactic1_Button控件！"); */
             return;
         }
         if (!controlDic.ContainsKey("Tactic2_Button") || controlDic["Tactic2_Button"] is not Button tac2Btn)
         {
-            Debug.LogError("未找到Tactic2_Button控件！");
+            /* Debug.LogError("未找到Tactic2_Button控件！"); */
             return;
         }
         if (!controlDic.ContainsKey("Armor_Button") || controlDic["Armor_Button"] is not Button armorBtn)
         {
-            Debug.LogError("未找到Armor_Button控件！");
+            /* Debug.LogError("未找到Armor_Button控件！"); */
             return;
         }
 
@@ -184,11 +184,11 @@ public class EquipmentConfigurationPanel : BasePanel
         string numStr = ButtonName.Replace("Slot", "").Trim(); // Trim去除可能的空格
         if (int.TryParse(numStr, out slotNum))
         {
-            Debug.Log($"从按钮名称解析：{ButtonName} → {slotNum}");
+            /* Debug.Log($"从按钮名称解析：{ButtonName} → {slotNum}"); */
         }
         else
         {
-            Debug.Log($"尝试从按钮文本解析数字（名称解析失败）");
+            /* Debug.Log($"尝试从按钮文本解析数字（名称解析失败）"); */
             // 找到触发事件的按钮对象
             Button targetBtn = null;
             foreach (Transform child in SlotButtonParent)
@@ -205,17 +205,17 @@ public class EquipmentConfigurationPanel : BasePanel
                 var textComp = targetBtn.GetComponentInChildren<TextMeshProUGUI>();
                 if (textComp != null && int.TryParse(textComp.text, out slotNum))
                 {
-                    Debug.Log($"从按钮文本解析：{textComp.text} → {slotNum}");
+                    /* Debug.Log($"从按钮文本解析：{textComp.text} → {slotNum}"); */
                 }
                 else
                 {
-                    Debug.LogError($"按钮{ButtonName}名称和文本都无法解析为数字！文本内容：{textComp?.text ?? "无"}");
+                    /* Debug.LogError($"按钮{ButtonName}名称和文本都无法解析为数字！文本内容：{textComp?.text ?? "无"}"); */
                     return;
                 }
             }
             else
             {
-                Debug.LogError($"未找到名称为{ButtonName}的槽位按钮！");
+                /* Debug.LogError($"未找到名称为{ButtonName}的槽位按钮！"); */
                 return;
             }
         }
@@ -226,12 +226,12 @@ public class EquipmentConfigurationPanel : BasePanel
         var slotList = PlayerAndGameInfoManger.Instance.PlayerSlotInfoPacksList;
         if (slotList == null)
         {
-            Debug.LogError("PlayerSlotInfoPacksList 未初始化！");
+            /* Debug.LogError("PlayerSlotInfoPacksList 未初始化！"); */
             return;
         }
         if (slotIndex < 0 || slotIndex >= slotList.Count)
         {
-            Debug.LogError($"槽位索引{slotIndex}无效！当前最大槽位数量：{slotList.Count}，解析的数字：{slotNum}");
+            /* Debug.LogError($"槽位索引{slotIndex}无效！当前最大槽位数量：{slotList.Count}，解析的数字：{slotNum}"); */
             return;
         }
 
@@ -299,7 +299,7 @@ public class EquipmentConfigurationPanel : BasePanel
                 }
                 break;
             default:
-                Debug.LogWarning($"未知的装备按钮名称：{ButtonName}");
+                /* Debug.LogWarning($"未知的装备按钮名称：{ButtonName}"); */
                 break;
         }
     }
@@ -310,7 +310,7 @@ public class EquipmentConfigurationPanel : BasePanel
     {
         if (slotInfoPack == null)
         {
-            Debug.LogWarning("槽位信息包为空，跳过UI更新！");
+            /* Debug.LogWarning("槽位信息包为空，跳过UI更新！"); */
             return;
         }
 

@@ -81,7 +81,7 @@ public class GoodsData : ScriptableObject
         if (ValidateData(out string errorMessage))
             return;
 
-        Debug.LogWarning($"[GoodsData] {errorMessage}", this);
+        /* Debug.LogWarning($"[GoodsData] {errorMessage}", this); */
     }
 #endif
 }

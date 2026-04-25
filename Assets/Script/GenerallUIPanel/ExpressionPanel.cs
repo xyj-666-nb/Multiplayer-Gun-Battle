@@ -125,7 +125,7 @@ public class ExpressionPanel : BasePanel
         Button button = buttonObj.GetComponent<Button>();
         if (button != null)
         {
-            ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(buttonGroupName, button, clickCallback, OnButtonCancel);
+            ButtonGroupManager.Instance.AddRadioButtonToGroup_Str(buttonGroupName, button, clickCallback);
         }
     }
     #endregion
@@ -159,9 +159,7 @@ public class ExpressionPanel : BasePanel
         }
     }
 
-    private void OnButtonCancel(string buttonName)
-    {
-    }
+
 
     /// <summary>
     /// ∆’Õ®‘§¿¿£∫Ω•±‰«–ªªÕº∆¨

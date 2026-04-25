@@ -5,41 +5,41 @@ using UnityEngine.Events;
 
 public abstract class CharacterStats : NetworkBehaviour
 {
-    [Header("???????????")]
+    [Header("最大生命")]
     [Space(5)]
-    public float maxHealth = 100f;//????????
+    public float maxHealth = 100f;
 
-    [Header("?????????")]
+    [Header("当前枪械")]
     [Space(5)]
     [SyncVar(hook = nameof(OnCurrentHealthChanged))]
     public float CurrentHealth;
 
-    [Header("???????")]
+    [Header("是否死亡")]
     [HideInInspector]
     [SyncVar(hook = nameof(OnIsDeadChanged))]
     public bool IsDead = false;
 
-    [Header("???????")]
-    public UnityAction EntityWoundEvent;//?????????????
-    [Header("???????")]
-    public UnityAction EntityDeathEvent;//?????????????
+    [Header("受伤事件")]
+    public UnityAction EntityWoundEvent;
+    [Header("死亡事件")]
+    public UnityAction EntityDeathEvent;
 
-    [Header("?????????")]
-    public float MaxBllomSpeed = 2f;//?????????????
-    public float MinBllomSpeed = 4f;//?????????С???
-    public float BllomAmount = 20;//???????????
+    [Header("弹跳设置")]
+    public float MaxBllomSpeed = 2f;
+    public float MinBllomSpeed = 4f;
+    public float BllomAmount = 20;
 
-    [Header("???????")]
-    public float EnterBreatheHealTime = 5;//???????????????????
-    public float HealSpeed = 40;//????????/???
-    [SyncVar]//??????
-    [SerializeField] private float CurrentRemainTime = 5;//?????????
-    private int BreatheHealTaskId;//?????????????Id
+    [Header("呼吸回血数值")]
+    public float EnterBreatheHealTime = 5;
+    public float HealSpeed = 30;
+    [SyncVar]
+    [SerializeField] private float CurrentRemainTime = 5;
+    private int BreatheHealTaskId;
     private bool IsEnterBreather = false;
 
-    [Header("???????")]
+    [Header("护甲")]
     public Helmet MyHelmet;
-    [Header("??????")]
+    [Header("世界信息UI")]
     public PlayerWordUI MyWorldUI;
 
     #region ???泣??
@@ -53,39 +53,33 @@ public abstract class CharacterStats : NetworkBehaviour
     private const string LOG_RB_NULL = "[{0}] CharacterStats ??? Rigidbody2D ?????";
     private const string LOG_MANAGER_NULL = "[CharacterStats] PlayerRespawnManagerδ???????";
 
-    // ??????????????????new Vector2???????
     private readonly Vector2 ZERO_VECTOR = Vector2.zero;
     private readonly Vector2 BLOOD_RANDOM_OFFSET_MIN = new Vector2(-0.5f, 0.2f);
     private readonly Vector2 BLOOD_RANDOM_OFFSET_MAX = new Vector2(0.5f, 0.8f);
     private readonly Vector2 GRENADE_BLOOD_OFFSET = new Vector2(-0.4f, 0.4f);
 
-    // ???浥??????????????????.Instance????GC
     private BloodParticleGenerator _bloodGenerator;
     private SimpleAnimatorTool _animatorTool;
     private ScreenPulseController _screenPulse;
     private PlayerRespawnManager _respawnManager;
     #endregion
 
-    #region ?????????
+    #region
     private Rigidbody2D _rb2D;
     private bool _hasTriggeredDeath = false;
     private NetworkConnectionToClient _playerConn;
 
-    private string _killerName; // ?????????
-    private string _killerGunName; // ??????????е??
+    private string _killerName;
+    private string _killerGunName;
     #endregion
 
-    #region ????????
+    #region
     public virtual void Awake()
     {
         _rb2D = GetComponent<Rigidbody2D>();
-        if (_rb2D == null)
-            Debug.LogError(string.Format(LOG_RB_NULL, gameObject.name), this);
 
-        // ???????????е???
         CacheSingletonInstances();
 
-        // ???????????
         EntityDeathEvent += OnEntityDeath;
     }
 
@@ -123,7 +117,7 @@ public abstract class CharacterStats : NetworkBehaviour
     }
     #endregion
 
-    #region ???????????
+    #region
     private void OnCurrentHealthChanged(float oldValue, float newValue)
     {
         newValue = Mathf.Clamp(newValue, 0, maxHealth);
@@ -132,16 +126,14 @@ public abstract class CharacterStats : NetworkBehaviour
         if (isLocalPlayer)
         {
             HealthUI.Instance?.SetValue(newValue / Mathf.Max(maxHealth, 1f));
-            //?????????Ч
             if (oldValue >= newValue)
-                _screenPulse?.Trigger_Wound();//??????????Ч  
+                _screenPulse?.Trigger_Wound();
         }
 
         if (oldValue >= newValue)
         {
             EntityWoundEvent?.Invoke();
-            //??????????????
-            MyWorldUI?.ShowInfo();//???UI
+            MyWorldUI?.ShowInfo();
         }
     }
 
@@ -155,45 +147,54 @@ public abstract class CharacterStats : NetworkBehaviour
     }
     #endregion
 
-    #region ???????????
+    #region
     [Command]
     public virtual void CmdChangeHealth(float value, Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
     {
         if (IsDead)
             return;
 
-        if (value < 0 || !_respawnManager.IsGameRealStart)//???δ???????????????
-            return;
-
-        float newHealth = CurrentHealth + value;
-        newHealth = Mathf.Clamp(newHealth, 0, maxHealth);
+        EnsureRespawnManager();
 
         if (value < 0)
         {
-            Wound(Mathf.Abs(value), ColliderPoint, hitNormal, attacker);
+            if (_respawnManager != null && !_respawnManager.IsGameRealStart)
+                return;
+
+            float damage = ModifyIncomingDamage(Mathf.Abs(value));
+            if (damage <= 0f)
+                return;
+
+            Wound(damage, ColliderPoint, hitNormal, attacker);
         }
         else
         {
-            CurrentHealth = newHealth;
+            CurrentHealth = Mathf.Clamp(value, 0, maxHealth);
         }
     }
 
     [Server]
     public virtual void ServerApplyDamage(float damage, Vector2 hitPoint, Vector2 hitNormal, CharacterStats attacker)
     {
-        if (IsDead || !_respawnManager.IsGameRealStart)
+        EnsureRespawnManager();
+
+        if (IsDead || (_respawnManager != null && !_respawnManager.IsGameRealStart))
             return;
 
-        float healthBefore = CurrentHealth;
-        CurrentHealth = Mathf.Max(CurrentHealth - damage, 0);
-        Debug.Log($"[ServerApplyDamage] {gameObject.name} ?????{healthBefore} ?? {CurrentHealth}???????{damage}??");
-        ResetCoolTime();//???ú?????????
+        damage = ModifyIncomingDamage(damage);
+        if (damage <= 0f)
+            return;
+
         Wound(damage, hitPoint, hitNormal, attacker);
     }
 
     private void Update()
     {
-        if (isServer && _respawnManager != null && _respawnManager.IsGameRealStart)
+        if (!isServer || IsDead)
+            return;
+
+        EnsureRuntimeSingletons();
+        if (_respawnManager != null && _respawnManager.IsGameRealStart)
         {
             HandleBreatheHealTime();
         }
@@ -202,24 +203,24 @@ public abstract class CharacterStats : NetworkBehaviour
     [Server]
     public virtual void Wound(float finalDamage, Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
     {
-        if (IsDead)
+        if (IsDead || finalDamage <= 0f)
             return;
 
         float healthBefore = CurrentHealth;
         CurrentHealth = Mathf.Max(CurrentHealth - finalDamage, 0);
+        ResetCoolTime();
 
         if (CurrentHealth <= 0 && !_hasTriggeredDeath && attacker != null)
         {
             // ????????????
             if (attacker is playerStats attackerStats)
             {
-                // ????????????Main.PlayerName?????????????
-                _killerName = UOSRelaySimple.Instance.playerName ?? attacker.gameObject.name;
+                Player attackerPlayer = attackerStats.MyMonster;
+                _killerName = attackerPlayer != null ? attackerPlayer.GetDisplayName() : attacker.gameObject.name;
 
-                // ???????????????е??
-                if (attackerStats.MyMonster != null && attackerStats.MyMonster.currentGun != null)
+                if (attackerPlayer != null && attackerPlayer.currentGun != null && attackerPlayer.currentGun.gunInfo != null)
                 {
-                    _killerGunName = attackerStats.MyMonster.currentGun.gunInfo.name ?? STR_UNKNOWN_GUN;
+                    _killerGunName = attackerPlayer.currentGun.gunInfo.name ?? STR_UNKNOWN_GUN;
                 }
                 else
                 {
@@ -247,6 +248,8 @@ public abstract class CharacterStats : NetworkBehaviour
         if (IsDead || _hasTriggeredDeath)
             return;
 
+        EnsureRespawnManager();
+
         IsDead = true;
         _hasTriggeredDeath = true;
 
@@ -256,32 +259,44 @@ public abstract class CharacterStats : NetworkBehaviour
             _rb2D.isKinematic = true;
         }
 
-        Player Deather = gameObject.GetComponent<Player>();//??????????????Player???
+        Player Deather = gameObject.GetComponent<Player>();
         Player killerPlayer = killer != null ? killer.gameObject.GetComponent<Player>() : null;
+        bool isSuicide = killerPlayer != null && Deather != null && killerPlayer == Deather;
+        NetworkConnectionToClient deadConn = Deather != null ? Deather.connectionToClient : null;
 
-        if (_respawnManager != null && Deather != null && Deather.connectionToClient != null)
+        RPCActiveCurrentPlayer(false);
+
+        if (_respawnManager != null && deadConn != null)
         {
-            _respawnManager.AddPlayerDeath(Deather.connectionToClient);
-            TargetPlayDeathFeedback(Deather.connectionToClient);
+            _respawnManager.AddPlayerDeath(deadConn);
+            TargetPlayDeathFeedback(deadConn);
         }
 
-        if (_respawnManager != null && killerPlayer != null && killerPlayer.connectionToClient != null)
+        if (_respawnManager != null && killerPlayer != null && killerPlayer.connectionToClient != null && !isSuicide)
         {
             _respawnManager.AddPlayerKill(killerPlayer.connectionToClient);
-            _respawnManager.AddScore(killerPlayer.CurrentTeam);//??????
+            _respawnManager.AddScore(killerPlayer.CurrentTeam);
             TargetPlayKillFeedback(killerPlayer.connectionToClient);
+        }
+
+        if (_respawnManager != null && deadConn != null && _respawnManager.IsGameStart && !_respawnManager._isGameEnded)
+        {
+            string finalKillerName = string.IsNullOrEmpty(_killerName) ? STR_UNKNOWN : _killerName;
+            string finalKillerGunName = string.IsNullOrEmpty(_killerGunName) ? STR_UNKNOWN : _killerGunName;
+
+            _respawnManager.TargetShowDeathPanel(deadConn, _respawnManager.respawnDelay, finalKillerName, finalKillerGunName);
+            _respawnManager.RespawnPlayer(deadConn);
         }
     }
     #endregion
 
-    #region ??????Ч????
+    #region
     #endregion
 
-    #region ??????Ч????
+    #region
     [ClientRpc]
     public virtual void RpcPlayWoundEffect(Vector2 ColliderPoint, Vector2 hitNormal, CharacterStats attacker)
     {
-        // ?????Ч???
         if (_bloodGenerator != null)
         {
             _bloodGenerator.GenerateBloodOnBackground(ColliderPoint);
@@ -293,20 +308,22 @@ public abstract class CharacterStats : NetworkBehaviour
             }
         }
 
-        // ??????????+?????
-
         if (attacker != null && attacker.isLocalPlayer)
         {
             MusicManager.Instance?.PlayEffect(SOUND_PLAYER_HIT, 0.9f);
         }
+
         if (isLocalPlayer && attacker != null && _rb2D != null)
         {
             MusicManager.Instance?.PlayEffect(SOUND_PLAYER_WOUND, 1f);
-            var Attacker = attacker as playerStats;
+            var attackerStats = attacker as playerStats;
+            var attackerGunInfo = attackerStats?.MyMonster?.currentGun?.gunInfo;
+            if (attackerGunInfo == null)
+                return;
+
             float knockbackDir = Mathf.Sign(ColliderPoint.x - attacker.transform.position.x);
-            _rb2D.AddForce(new Vector2(knockbackDir * Attacker.MyMonster.currentGun.gunInfo.Recoil_Enemy, 0), ForceMode2D.Impulse);
-            MyCameraControl.Instance.AddTimeBasedShake(Attacker.MyMonster.currentGun.gunInfo.ShackStrength_Enemy, Attacker.MyMonster.currentGun.gunInfo.ShackTime_Enemy);
-            Debug.Log("?????????");
+            _rb2D.AddForce(new Vector2(knockbackDir * attackerGunInfo.Recoil_Enemy, 0), ForceMode2D.Impulse);
+            MyCameraControl.Instance?.AddTimeBasedShake(attackerGunInfo.ShackStrength_Enemy, attackerGunInfo.ShackTime_Enemy);
         }
     }
     #endregion
@@ -323,25 +340,18 @@ public abstract class CharacterStats : NetworkBehaviour
         MusicManager.Instance?.PlayEffect(SOUND_PLAYER_KILL, 1f);
     }
 
-    #region ????????????
+    #region
     protected virtual void ClientHandleDeathVisual()
     {
-        MyHelmet.TriggerHelmetDrop();//???????????
-        if (isLocalPlayer)
-        {
-            Debug.Log("[ClientHandleDeathVisual] ?????????????????????/?????");
-        }
+        MyHelmet.TriggerHelmetDrop();
+
     }
     #endregion
 
-    #region ???????
+    #region
     private void OnEntityDeath()
     {
-        if (isLocalPlayer)
-        {
-            CmdActiveCurrentPlayer(false);
-            CmdRequestRespawn();
-        }
+        // Respawn is scheduled on the server in Death().
     }
 
     [Command]
@@ -357,7 +367,7 @@ public abstract class CharacterStats : NetworkBehaviour
         }
         else
         {
-            Debug.LogError(LOG_MANAGER_NULL);
+            /* Debug.LogError(LOG_MANAGER_NULL); */
         }
     }
 
@@ -388,18 +398,25 @@ public abstract class CharacterStats : NetworkBehaviour
     }
     #endregion
 
-    #region ??????????????
+    #region
     [Server]
     public void ServerApplyGrenadeDamage(float damage, Vector2 explosionCenter, Vector2 knockbackForce, CharacterStats attacker)
     {
+        EnsureRespawnManager();
+
         if (IsDead)
             return;
 
+        damage = ModifyIncomingDamage(damage);
+        if (damage <= 0f)
+            return;
+
         float healthBefore = CurrentHealth;
-        if (_respawnManager.IsGameRealStart)
+        if (_respawnManager == null || _respawnManager.IsGameRealStart)
         {
             CurrentHealth = Mathf.Max(CurrentHealth - damage, 0);
-            Debug.Log($"[ServerApplyGrenadeDamage] {gameObject.name} ????????У????: {healthBefore} -> {CurrentHealth}, ???: {damage}");
+            ResetCoolTime();
+            /* Debug.Log($"[ServerApplyGrenadeDamage] {gameObject.name} ????????У????: {healthBefore} -> {CurrentHealth}, ???: {damage}"); */
         }
 
 
@@ -410,7 +427,8 @@ public abstract class CharacterStats : NetworkBehaviour
         {
             if (attacker is playerStats attackerStats)
             {
-                _killerName = UOSRelaySimple.Instance.playerName ?? attacker.gameObject.name;
+                Player attackerPlayer = attackerStats.MyMonster;
+                _killerName = attackerPlayer != null ? attackerPlayer.GetDisplayName() : attacker.gameObject.name;
                 _killerGunName = STR_GRENADE;
             }
             else
@@ -442,7 +460,6 @@ public abstract class CharacterStats : NetworkBehaviour
             }
         }
 
-
         if (attacker != null && attacker.isLocalPlayer)
         {
             MusicManager.Instance?.PlayEffect(SOUND_PLAYER_HIT, 0.9f);
@@ -458,7 +475,7 @@ public abstract class CharacterStats : NetworkBehaviour
             float grenadeShakeTime = 0.4f;
             MyCameraControl.Instance?.AddTimeBasedShake(grenadeShakeStrength, grenadeShakeTime);
 
-            Debug.Log($"????????????????????: {knockbackForce}");
+            /* Debug.Log($"????????????????????: {knockbackForce}"); */
         }
     }
     #endregion
@@ -466,46 +483,42 @@ public abstract class CharacterStats : NetworkBehaviour
     [Server]
     public void HandleBreatheHealTime()
     {
+        if (maxHealth <= 0)
+            return;
+
         if (CurrentHealth >= maxHealth)
         {
+            CurrentHealth = maxHealth;
             if (Mathf.Abs(CurrentRemainTime - EnterBreatheHealTime) > 0.01f)
                 CurrentRemainTime = EnterBreatheHealTime;
 
             if (IsEnterBreather)
             {
                 IsEnterBreather = false;
-                // ????????????
                 _animatorTool?.StopFloatLerpById(BreatheHealTaskId);
             }
             return;
         }
 
-        if (IsEnterBreather)
+        if (CurrentRemainTime > 0)
         {
+            CurrentRemainTime -= Time.deltaTime;
             return;
         }
 
-        CurrentRemainTime -= Time.deltaTime;
-
-        if (CurrentRemainTime <= 0)
+        if (!IsEnterBreather)
         {
             IsEnterBreather = true;
+            if (isLocalPlayer)
+                _screenPulse?.Trigger_Heal();
+        }
 
-            // ??????
-            float duration = (maxHealth - CurrentHealth) / HealSpeed;
-            //??????λ??????Ч
-            _screenPulse?.Trigger_Heal();
-            BreatheHealTaskId = _animatorTool.StartFloatLerp(
-                CurrentHealth,
-                maxHealth,
-                duration,
-                (Value) => {
-                    CurrentHealth = Value;
-                },
-                () => {
-                    ResetCoolTime();
-                }
-            );
+        float healPerSecond = Mathf.Max(0.1f, HealSpeed);
+        CurrentHealth = Mathf.Min(CurrentHealth + healPerSecond * Time.deltaTime, maxHealth);
+
+        if (CurrentHealth >= maxHealth)
+        {
+            ResetCoolTime();
         }
     }
 
@@ -515,5 +528,24 @@ public abstract class CharacterStats : NetworkBehaviour
         IsEnterBreather = false;
         //??????
         _animatorTool?.StopFloatLerpById(BreatheHealTaskId);//?????????
+    }
+
+    protected virtual float ModifyIncomingDamage(float damage)
+    {
+        return Mathf.Max(0f, damage);
+    }
+    private void EnsureRespawnManager()
+    {
+        if (_respawnManager == null)
+            _respawnManager = PlayerRespawnManager.Instance;
+    }
+
+    private void EnsureRuntimeSingletons()
+    {
+        EnsureRespawnManager();
+        if (_animatorTool == null)
+            _animatorTool = SimpleAnimatorTool.Instance;
+        if (_screenPulse == null)
+            _screenPulse = ScreenPulseController.Instance;
     }
 }

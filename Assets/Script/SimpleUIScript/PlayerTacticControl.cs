@@ -15,17 +15,17 @@ public class TacticPack
         {
             if (Player.LocalPlayer == null)
             {
-                Debug.LogWarning("[TacticPack] Player.LocalPlayer 为空！");
+                /* Debug.LogWarning("[TacticPack] Player.LocalPlayer 为空！"); */
                 return false;
             }
             if (Player.LocalPlayer.MyHandControl == null)
             {
-                Debug.LogWarning("[TacticPack] Player.LocalPlayer.MyHandControl 为空！");
+                /* Debug.LogWarning("[TacticPack] Player.LocalPlayer.MyHandControl 为空！"); */
                 return false;
             }
             if (Index != 1 && Index != 2)
             {
-                Debug.LogWarning($"[TacticPack] 无效的Index值：{Index}");
+                /* Debug.LogWarning($"[TacticPack] 无效的Index值：{Index}"); */
                 return false;
             }
 
@@ -39,12 +39,12 @@ public class TacticPack
         {
             if (Player.LocalPlayer == null || Player.LocalPlayer.MyHandControl == null)
             {
-                Debug.LogWarning("[TacticPack] Player或MyHandControl为空，冷却值返回0");
+                /* Debug.LogWarning("[TacticPack] Player或MyHandControl为空，冷却值返回0"); */
                 return 0f;
             }
             if (Index != 1 && Index != 2)
             {
-                Debug.LogWarning($"[TacticPack] 无效的Index值：{Index}");
+                /* Debug.LogWarning($"[TacticPack] 无效的Index值：{Index}"); */
                 return 0f;
             }
 
@@ -145,7 +145,7 @@ public class PlayerTacticControl : MonoBehaviour
         }
         else
         {
-            Debug.LogError("CurrentTacticButton 未赋值！", this);
+            /* Debug.LogError("CurrentTacticButton 未赋值！", this); */
             _isLogicEnabled = false; // 禁用逻辑，避免后续报错
             return;
         }
@@ -174,7 +174,7 @@ public class PlayerTacticControl : MonoBehaviour
         }
         else
         {
-            Debug.LogError("ExtraTacticButton 未赋值！", this);
+            /* Debug.LogError("ExtraTacticButton 未赋值！", this); */
         }
 
         if (SelectScale <= 0)
@@ -193,8 +193,7 @@ public class PlayerTacticControl : MonoBehaviour
             // 检查冷却图片是否为空
             if (CoolImage_Tactic1 != null)
                 CoolImage_Tactic1.fillAmount = CurrentTactPack.CoolPrecent;
-            else
-                Debug.LogWarning("[PlayerTacticControl] CoolImage_Tactic1 未赋值！", this);
+
         }
 
         if (ExtraTactPack != null && ExtraTactPack.IsPlaying)
@@ -202,8 +201,6 @@ public class PlayerTacticControl : MonoBehaviour
             // 检查冷却图片是否为空
             if (CoolImage_Tactic2 != null)
                 CoolImage_Tactic2.fillAmount = ExtraTactPack.CoolPrecent;
-            else
-                Debug.LogWarning("[PlayerTacticControl] CoolImage_Tactic2 未赋值！", this);
         }
     }
 
@@ -267,7 +264,7 @@ public class PlayerTacticControl : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("PlayerSlotInfoPacksList 为空，无法初始化战术道具信息", this);
+            /* Debug.LogWarning("PlayerSlotInfoPacksList 为空，无法初始化战术道具信息", this); */
             // 初始化失败时禁用逻辑
             _isLogicEnabled = false;
         }
@@ -289,13 +286,13 @@ public class PlayerTacticControl : MonoBehaviour
 
         if (JudgeCanUseTactic())
         {
-            Debug.Log("当前战术道具正在冷却中，无法使用");
+            /* Debug.Log("当前战术道具正在冷却中，无法使用"); */
             return;
         }
 
         if (CurrentTactPack?.tactInfo == null)
         {
-            Debug.LogWarning("当前战术道具信息为空，无法操作", this);
+            /* Debug.LogWarning("当前战术道具信息为空，无法操作", this); */
             return;
         }
 
@@ -307,7 +304,7 @@ public class PlayerTacticControl : MonoBehaviour
         {
             if (Player.LocalPlayer == null || Player.LocalPlayer.MyHandControl == null)
             {
-                Debug.LogWarning("玩家或手部控制组件为空，无法操作投掷物", this);
+                /* Debug.LogWarning("玩家或手部控制组件为空，无法操作投掷物", this); */
                 canOperate = false;
             }
             else
@@ -318,13 +315,11 @@ public class PlayerTacticControl : MonoBehaviour
                     ThrowObj throwObj = handControl.CurrentThrowObj.GetComponent<ThrowObj>();
                     if (throwObj == null)
                     {
-                        Debug.LogError("CurrentThrowObj 缺少 ThrowObj 组件！", handControl.CurrentThrowObj);
                         canOperate = false;
                     }
                     else
                     {
                         canOperate = !throwObj.IsInAnimation;
-                        if (!canOperate) Debug.Log("投掷物动画未完成，暂时无法操作", this);
                     }
                 }
             }
@@ -350,13 +345,13 @@ public class PlayerTacticControl : MonoBehaviour
 
         if (IsChooseButton)
         {
-            Debug.LogWarning("主战术道具按钮已选中，禁止交换道具！", this);
+            /* Debug.LogWarning("主战术道具按钮已选中，禁止交换道具！", this); */
             return;
         }
 
         if (CurrentTactPack?.tactInfo == null || ExtraTactPack?.tactInfo == null)
         {
-            Debug.LogWarning("主/额外战术道具数据为空，无法交换！", this);
+            /* Debug.LogWarning("主/额外战术道具数据为空，无法交换！", this); */
             return;
         }
 
@@ -366,7 +361,6 @@ public class PlayerTacticControl : MonoBehaviour
 
         UpdateTacticButtonIcons();
 
-        Debug.Log($"已交换战术道具：主道具→{CurrentTactPack.tactInfo.Name}，原始槽位: {CurrentTactPack.Index}");
         //对于冷却图片的还原
         CoolImage_Tactic1.fillAmount = 0;
         CoolImage_Tactic2.fillAmount = 0;
@@ -442,19 +436,19 @@ public class PlayerTacticControl : MonoBehaviour
 
         if (bigType == TacticBigType.injection)
         {
-            Debug.Log($"开始准备针剂道具：{CurrentTactPack.tactInfo.Name}");
+            /* Debug.Log($"开始准备针剂道具：{CurrentTactPack.tactInfo.Name}"); */
             IsPrepararingInjection = true;
         }
         else if (bigType == TacticBigType.throwobj)
         {
             if (Player.LocalPlayer?.MyHandControl != null)
             {
-                Debug.Log($"拿出投掷物：{CurrentTactPack.tactInfo.Name}");
+                /* Debug.Log($"拿出投掷物：{CurrentTactPack.tactInfo.Name}"); */
                 Player.LocalPlayer.MyHandControl.TriggerThrowObj(CurrentTactPack.tactInfo.tacticType);
             }
             else
             {
-                Debug.LogError("Player.LocalPlayer.MyHandControl 为空！", this);
+                /* Debug.LogError("Player.LocalPlayer.MyHandControl 为空！", this); */
             }
         }
     }
@@ -469,19 +463,19 @@ public class PlayerTacticControl : MonoBehaviour
 
         if (bigType == TacticBigType.injection)
         {
-            Debug.Log($"取消针剂道具：{CurrentTactPack.tactInfo.Name}");
+            /* Debug.Log($"取消针剂道具：{CurrentTactPack.tactInfo.Name}"); */
             IsPrepararingInjection = false;
         }
         else if (bigType == TacticBigType.throwobj)
         {
             if (Player.LocalPlayer?.MyHandControl != null)
             {
-                Debug.Log($"回收投掷物：{CurrentTactPack.tactInfo.Name}");
+                /* Debug.Log($"回收投掷物：{CurrentTactPack.tactInfo.Name}"); */
                 Player.LocalPlayer.MyHandControl.CmdRecycleThrowObj();
             }
             else
             {
-                Debug.LogError("Player.LocalPlayer.MyHandControl 为空！", this);
+                /* Debug.LogError("Player.LocalPlayer.MyHandControl 为空！", this); */
             }
         }
     }
@@ -503,7 +497,7 @@ public class PlayerTacticControl : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Player.LocalPlayer.MyHandControl 为空，无法触发针剂！", this);
+            /* Debug.LogError("Player.LocalPlayer.MyHandControl 为空，无法触发针剂！", this); */
         }
 
         IsChooseButton = false;
@@ -518,9 +512,14 @@ public class PlayerTacticControl : MonoBehaviour
     {
         if (!_isLogicEnabled) return; // 禁用逻辑时直接返回
 
+        if (IsChooseButton)
+            IsChooseButton = false;
+        if (IsPrepararingInjection)
+            IsPrepararingInjection = false;
+
         if (Player.LocalPlayer?.MyHandControl == null)
         {
-            Debug.LogError("[StartTacticCoolTime] Player.LocalPlayer.MyHandControl 为空！");
+            /* Debug.LogError("[StartTacticCoolTime] Player.LocalPlayer.MyHandControl 为空！"); */
             return;
         }
 
@@ -536,7 +535,7 @@ public class PlayerTacticControl : MonoBehaviour
 
         if (Player.LocalPlayer?.MyHandControl == null)
         {
-            Debug.LogError("[JudgeCanUseTactic] Player.LocalPlayer.MyHandControl 为空！");
+            /* Debug.LogError("[JudgeCanUseTactic] Player.LocalPlayer.MyHandControl 为空！"); */
             return true; // 返回true表示不可用
         }
 
@@ -549,7 +548,7 @@ public class PlayerTacticControl : MonoBehaviour
         {
             return Player.LocalPlayer.MyHandControl.IsTrigger_tactic2;
         }
-        Debug.LogError("接收到未知的索引");
+        /* Debug.LogError("接收到未知的索引"); */
         return false;
     }
 
@@ -559,7 +558,7 @@ public class PlayerTacticControl : MonoBehaviour
 
         if (Player.LocalPlayer?.MyHandControl == null)
         {
-            Debug.LogError("[LaunchCurrentThrowObj] Player.LocalPlayer.MyHandControl 为空！");
+            /* Debug.LogError("[LaunchCurrentThrowObj] Player.LocalPlayer.MyHandControl 为空！"); */
             return;
         }
 
@@ -618,7 +617,7 @@ public class PlayerTacticControl : MonoBehaviour
         if (MyCanvasGroupAnima != null)
             MyCanvasGroupAnima.Kill();
 
-        Debug.Log("[PlayerTacticControl] 退出房间清理完成，已禁用所有逻辑", this);
+        /* Debug.Log("[PlayerTacticControl] 退出房间清理完成，已禁用所有逻辑", this); */
     }
     #endregion
 }

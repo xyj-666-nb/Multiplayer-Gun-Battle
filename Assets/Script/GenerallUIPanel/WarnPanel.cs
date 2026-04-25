@@ -77,7 +77,7 @@ public class WarnPanel : BasePanel
     {
         if (group == null)
         {
-            Debug.LogError($"{groupName} 为空！");
+            /* Debug.LogError($"{groupName} 为空！"); */
             return false;
         }
         return true;
@@ -165,7 +165,7 @@ public class WarnPanel : BasePanel
         RectTransform rt = NoInteractionGroup.GetComponent<RectTransform>();
         if (rt == null)
         {
-            Debug.LogError("NoInteractionGroup 未找到 RectTransform 组件！");
+            /* Debug.LogError("NoInteractionGroup 未找到 RectTransform 组件！"); */
             CallBack?.Invoke();
             return;
         }
@@ -510,7 +510,7 @@ public class WarnPanel : BasePanel
         }
         else
         {
-            Debug.LogError("NoInteractionGroup 下未找到 TextMeshProUGUI 组件！");
+            /* Debug.LogError("NoInteractionGroup 下未找到 TextMeshProUGUI 组件！"); */
             callback?.Invoke();
             return;
         }
@@ -558,7 +558,7 @@ public class WarnPanel : BasePanel
         }
         else
         {
-            Debug.LogError("SingleInteractionGroup 下未找到 TopicText 组件！");
+            /* Debug.LogError("SingleInteractionGroup 下未找到 TopicText 组件！"); */
             return;
         }
 
@@ -570,7 +570,7 @@ public class WarnPanel : BasePanel
         }
         else
         {
-            Debug.LogError("SingleInteractionGroup 下未找到 WarnContent 组件！");
+            /* Debug.LogError("SingleInteractionGroup 下未找到 WarnContent 组件！"); */
             return;
         }
 
@@ -605,7 +605,7 @@ public class WarnPanel : BasePanel
         }
         else
         {
-            Debug.LogError("DoubleInteractionGroup 下未找到 TopicText 组件！");
+            /* Debug.LogError("DoubleInteractionGroup 下未找到 TopicText 组件！"); */
             return;
         }
 
@@ -616,7 +616,7 @@ public class WarnPanel : BasePanel
         }
         else
         {
-            Debug.LogError("DoubleInteractionGroup 下未找到 WarnContent 组件！");
+            /* Debug.LogError("DoubleInteractionGroup 下未找到 WarnContent 组件！"); */
             return;
         }
 
@@ -652,7 +652,7 @@ public class WarnPanel : BasePanel
         }
         else
         {
-            Debug.LogError("DoubleInteractionGroup2 下未找到 TopicText 组件！");
+            /* Debug.LogError("DoubleInteractionGroup2 下未找到 TopicText 组件！"); */
             return;
         }
 
@@ -688,7 +688,7 @@ public class WarnPanel : BasePanel
         }
         else
         {
-            Debug.LogError("DealInteractionGroup 下未找到 TopicText 组件！");
+            /* Debug.LogError("DealInteractionGroup 下未找到 TopicText 组件！"); */
             return;
         }
 
@@ -700,7 +700,7 @@ public class WarnPanel : BasePanel
         }
         else
         {
-            Debug.LogError("DealInteractionGroup 下未找到 WarnContent 组件！");
+            /* Debug.LogError("DealInteractionGroup 下未找到 WarnContent 组件！"); */
             return;
         }
 

@@ -49,7 +49,7 @@ public class MobileHorizontalLever : MonoBehaviour,
 
         if (bgRect == null)
         {
-            Debug.LogError("[MobileHorizontalLever] 请在Inspector赋值背景条BgRect！", this);
+            /* Debug.LogError("[MobileHorizontalLever] 请在Inspector赋值背景条BgRect！", this); */
             return;
         }
         CalculateMaxOffset();

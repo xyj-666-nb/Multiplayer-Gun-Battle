@@ -78,7 +78,7 @@ public class GoodsGeneratorWindow : EditorWindow
 
         // 2. 清理旧的枪械皮肤商品数据
         int deleteCount = ClearOldGoodsByType(SkinType.GunAppearance);
-        Debug.Log($"[枪械] 清理完成，删除了 {deleteCount} 个旧数据");
+        /* Debug.Log($"[枪械] 清理完成，删除了 {deleteCount} 个旧数据"); */
 
         // 3. 读取所有枪械皮肤
         List<GunSkinPack> allGunSkins = GetAllGunSkinPacks();
@@ -122,7 +122,7 @@ public class GoodsGeneratorWindow : EditorWindow
         // 简单校验
         if (string.IsNullOrEmpty(gunSkin.skinName))
         {
-            Debug.LogWarning($"[枪械] 跳过生成：{gunSkin.name} 未设置 skinName");
+            /* Debug.LogWarning($"[枪械] 跳过生成：{gunSkin.name} 未设置 skinName"); */
             return false;
         }
 
@@ -151,7 +151,7 @@ public class GoodsGeneratorWindow : EditorWindow
         AssetDatabase.CreateAsset(newGoods, savePath);
         EditorUtility.SetDirty(newGoods);
 
-        Debug.Log($"[枪械] 生成成功：{fileName}");
+        /* Debug.Log($"[枪械] 生成成功：{fileName}"); */
         return true;
     }
 
@@ -198,23 +198,19 @@ public class GoodsGeneratorWindow : EditorWindow
 
     private bool CreatePlayerSkinGoods(PlayerSkinPack skinPack)
     {
-        // 注意：这里假设你的PlayerSkinPack有这些字段，如果没有请自行适配
-        // 为了代码兼容性，这里做了简化，你可以把之前的详细逻辑补回来
-        if (string.IsNullOrEmpty(skinPack.name)) return false;
+        if (skinPack == null)
+            return false;
 
         GoodsData newGoods = ScriptableObject.CreateInstance<GoodsData>();
 
-        // 这里需要根据你实际的 PlayerSkinPack 字段结构来赋值
-        // 示例：
-        // newGoods.goodsName = skinPack.PlayerSkinName; 
-        // newGoods.goodsIcon = skinPack.IdleSprite;
-
-        newGoods.goodsName = skinPack.name; // 临时赋值
+        newGoods.goodsName = string.IsNullOrEmpty(skinPack.PlayerSkinName) ? skinPack.name : skinPack.PlayerSkinName;
+        newGoods.goodsDescription = skinPack.PlayerSkinDescription;
+        newGoods.goodsIcon = skinPack.IdleSprite;
         newGoods.skinType = SkinType.PlayerCharacter;
         newGoods.playerSkinPack = skinPack;
         newGoods.goodsGuid = System.Guid.NewGuid().ToString();
-        newGoods.quality = GoodsQuality.Normal;
-        newGoods.goodsPrice = PRICE_NORMAL;
+        newGoods.quality = skinPack.SkinQuality;
+        newGoods.goodsPrice = GetPriceByQuality(newGoods.quality);
 
         string fileName = $"PlayerSkinPack_{skinPack.name}";
         string savePath = Path.Combine(GOODS_OUTPUT_FOLDER_PATH, $"{fileName}.asset");
@@ -248,6 +244,19 @@ public class GoodsGeneratorWindow : EditorWindow
             }
         }
         return count;
+    }
+
+    private int GetPriceByQuality(GoodsQuality quality)
+    {
+        switch (quality)
+        {
+            case GoodsQuality.Rare:
+                return PRICE_RARE;
+            case GoodsQuality.Epic:
+                return PRICE_EPIC;
+            default:
+                return PRICE_NORMAL;
+        }
     }
 
     #endregion

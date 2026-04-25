@@ -54,6 +54,7 @@ public class ServerOnlinePanel : BasePanel
             "正在连接服务器..",
             "正在连接服务器..."
         };
+        StartTextLoop();
     }
 
     //触发匹配检查
@@ -67,6 +68,7 @@ public class ServerOnlinePanel : BasePanel
             "正在寻找公共房间..",
             "正在寻找公共房间..."
         };
+        StartTextLoop();
     }
 
 
@@ -78,7 +80,7 @@ public class ServerOnlinePanel : BasePanel
 
         if (_connectingTextList == null || _connectingTextList.Count == 0 || PromptText == null)
         {
-            Debug.LogWarning("文本列表未赋值或PromptText为空，无法开启动画");
+            /* Debug.LogWarning("文本列表未赋值或PromptText为空，无法开启动画"); */
             return;
         }
 

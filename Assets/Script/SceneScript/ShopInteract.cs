@@ -49,7 +49,7 @@ public class ShopInteract : BaseSceneInteract
         _cinemachineBrain = FindObjectOfType<CinemachineBrain>();
         if (_cinemachineBrain == null)
         {
-            Debug.LogError("场景中未找到Cinemachine Brain！");
+            /* Debug.LogError("场景中未找到Cinemachine Brain！"); */
         }
 
         // 绑定事件
@@ -82,7 +82,7 @@ public class ShopInteract : BaseSceneInteract
     private void EnterShopSystem()
     {
         isShopActive = true;
-        Debug.Log("进入商店系统");
+        /* Debug.Log("进入商店系统"); */
 
         UImanager.Instance.GetPanel<PlayerPanel>().SimpleHidePanel();
         UImanager.Instance.GetPanel<PlayerPreparaPanel>()?.SimpleHidePanel();//如果有准备面板的话也隐藏
@@ -105,7 +105,7 @@ public class ShopInteract : BaseSceneInteract
             return;
 
         isShopActive = false;
-        Debug.Log("退出商店系统");
+        /* Debug.Log("退出商店系统"); */
 
         if (cameraBlendCoroutine != null)
             StopCoroutine(cameraBlendCoroutine);
@@ -128,7 +128,7 @@ public class ShopInteract : BaseSceneInteract
 
         targetVC.Priority = _activePriority;
 
-        Debug.Log($"商店相机切换至: {targetVC.name}");
+        /* Debug.Log($"商店相机切换至: {targetVC.name}"); */
     }
 
     private void SetAllCameraInactive()
@@ -150,7 +150,7 @@ public class ShopInteract : BaseSceneInteract
             _cinemachineBrain.m_DefaultBlend.m_Time = blendTime;
             // 强制把混合模式设为 EaseInOut，防止是 Cut
             _cinemachineBrain.m_DefaultBlend.m_Style = CinemachineBlendDefinition.Style.EaseInOut;
-            Debug.Log($"Cinemachine混合时间已设置为：{blendTime}秒");
+            /* Debug.Log($"Cinemachine混合时间已设置为：{blendTime}秒"); */
         }
     }
 

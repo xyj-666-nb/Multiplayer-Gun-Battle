@@ -118,7 +118,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
 
         if (!string.IsNullOrEmpty(savedDate) && savedDate == todayString)
         {
-            Debug.Log($"[系统校验] 校验通过，读取今日({todayString})数据...");
+            /* Debug.Log($"[系统校验] 校验通过，读取今日({todayString})数据..."); */
             RestoreStateFromPrefs();
 
             if (ToDayRefreshGoodsList.Count == 0)
@@ -129,7 +129,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         }
         else
         {
-            Debug.Log($"[系统校验] 检测到新日期或无存档(旧:{savedDate} 新:{todayString})，强制重置所有每日状态！");
+            /* Debug.Log($"[系统校验] 检测到新日期或无存档(旧:{savedDate} 新:{todayString})，强制重置所有每日状态！"); */
 
             lastRefreshDate = todayString;
             todayUsedRefreshCount = 0;
@@ -179,7 +179,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
             }
         }
 
-        Debug.Log($"[读取完毕] 奖励状态：{(hasGivenDailyReward ? "已领取" : "未领取")}");
+        /* Debug.Log($"[读取完毕] 奖励状态：{(hasGivenDailyReward ? "已领取" : "未领取")}"); */
     }
 
     /// <summary>
@@ -219,13 +219,13 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     {
         if (hasGivenDailyReward)
         {
-            Debug.LogWarning("[每日奖励] 今日已领取过奖励，无法重复领取！");
+            /* Debug.LogWarning("[每日奖励] 今日已领取过奖励，无法重复领取！"); */
             return;
         }
 
         hasGivenDailyReward = true;
         SaveDailyStateToDisk(); // 标记为 true 后立即落盘
-        Debug.Log("[每日奖励] 奖励领取成功！状态已永久写入 PlayerPrefs。");
+        /* Debug.Log("[每日奖励] 奖励领取成功！状态已永久写入 PlayerPrefs。"); */
     }
     #endregion
 
@@ -247,7 +247,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     {
         if (IsReachUpperLimit())
         {
-            Debug.LogWarning("[商店] 今日刷新次数已用完！");
+            /* Debug.LogWarning("[商店] 今日刷新次数已用完！"); */
             return;
         }
 
@@ -255,7 +255,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         GenerateShopGoodsListAndDiscount();
         todayUsedRefreshCount++;
         SaveDailyStateToDisk();
-        Debug.Log($"[商店] 刷新成功！今日已用刷新次数: {todayUsedRefreshCount}/{maxDailyRefreshCount}");
+        /* Debug.Log($"[商店] 刷新成功！今日已用刷新次数: {todayUsedRefreshCount}/{maxDailyRefreshCount}"); */
     }
 
     /// <summary>
@@ -275,6 +275,9 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
 
         if (availableGoods.Count == 0) return;
 
+        TryAddGuaranteedShopGoods(SkinType.GunAppearance, availableGoods);
+        TryAddGuaranteedShopGoods(SkinType.PlayerCharacter, availableGoods);
+
         while (ToDayRefreshGoodsList.Count < EverydayRefreshGoodsAmount && availableGoods.Count > 0)
         {
             GoodsData selectedGoods = GetWeightedRandomGoods(availableGoods);
@@ -285,6 +288,27 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
                 GenerateDiscountForSingleGoods(selectedGoods.goodsGuid);
             }
         }
+    }
+
+    private void TryAddGuaranteedShopGoods(SkinType targetType, List<GoodsData> availableGoods)
+    {
+        if (ToDayRefreshGoodsList.Count >= EverydayRefreshGoodsAmount || availableGoods == null || availableGoods.Count == 0)
+            return;
+
+        List<GoodsData> targetPool = availableGoods
+            .Where(goods => goods.skinType == targetType)
+            .ToList();
+
+        if (targetPool.Count == 0)
+            return;
+
+        GoodsData selectedGoods = GetWeightedRandomGoods(targetPool);
+        if (selectedGoods == null)
+            return;
+
+        ToDayRefreshGoodsList.Add(selectedGoods);
+        availableGoods.Remove(selectedGoods);
+        GenerateDiscountForSingleGoods(selectedGoods.goodsGuid);
     }
 
     private void GenerateDiscountForSingleGoods(string guid)
@@ -377,7 +401,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
             }
             else
             {
-                Debug.LogWarning("金币不足！");
+                /* Debug.LogWarning("金币不足！"); */
             }
         }
     }
@@ -501,7 +525,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
 
         LoadPlayerGood();
         CheckAndInitDailyState(); // 清空后彻底重置每日状态
-        Debug.Log("玩家商品数据 & 商店数据已全部清空！");
+        /* Debug.Log("玩家商品数据 & 商店数据已全部清空！"); */
     }
     #endregion
 
@@ -520,7 +544,7 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
 
             if (_goodsByGuid.ContainsKey(goods.goodsGuid))
             {
-                Debug.LogWarning($"[GoodDataManager] 检测到重复商品 Guid: {goods.goodsGuid}", goods);
+                /* Debug.LogWarning($"[GoodDataManager] 检测到重复商品 Guid: {goods.goodsGuid}", goods); */
                 continue;
             }
 
@@ -589,36 +613,36 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
             if (goods.ValidateData(out string errorMessage))
                 continue;
 
-            Debug.LogWarning($"[GoodDataManager] 商品配置异常: {errorMessage}", goods);
+            /* Debug.LogWarning($"[GoodDataManager] 商品配置异常: {errorMessage}", goods); */
         }
     }
     #region GM 测试指令
-    [ContextMenu("GM_清空本地所有数据")]
+    // [ContextMenu("GM_清空本地所有数据")]
     private void GM_ClearLocalData() => ClearLocalData();
 
-    [ContextMenu("GM_手动刷新今日商店")]
+    // [ContextMenu("GM_手动刷新今日商店")]
     private void GM_RefreshDailyShop()
     {
         if (!Application.isPlaying) return;
         RefRefreshToDay();
     }
 
-    [ContextMenu("GM_重置今日刷新次数")]
+    // [ContextMenu("GM_重置今日刷新次数")]
     private void GM_ResetRefreshCount()
     {
         if (!Application.isPlaying) return;
         todayUsedRefreshCount = 0;
         SaveDailyStateToDisk();
-        Debug.Log("[GM] 今日刷新次数已重置为0");
+        /* Debug.Log("[GM] 今日刷新次数已重置为0"); */
     }
 
-    [ContextMenu("GM_重置每日奖励状态为未领取")]
+    // [ContextMenu("GM_重置每日奖励状态为未领取")]
     private void GM_ResetDailyReward()
     {
         if (!Application.isPlaying) return;
         hasGivenDailyReward = false;
         SaveDailyStateToDisk();
-        Debug.Log("[GM] 每日奖励状态已重置为可领取");
+        /* Debug.Log("[GM] 每日奖励状态已重置为可领取"); */
     }
     #endregion
 }

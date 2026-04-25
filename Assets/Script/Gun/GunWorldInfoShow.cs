@@ -162,7 +162,7 @@ public class GunWorldInfoShow : NetworkBehaviour
     private void OnIsGunActiveChanged(bool oldValue, bool newValue)
     {
         if (isDebug)
-            Debug.Log("[客户端] " + gameObject.name + " 交互状态：" + (newValue ? "开启" : "关闭"));
+            /* Debug.Log("[客户端] " + gameObject.name + " 交互状态：" + (newValue ? "开启" : "关闭")); */
 
         if (!newValue)
         {

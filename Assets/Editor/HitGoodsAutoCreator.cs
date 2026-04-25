@@ -56,7 +56,7 @@ public static class HitGoodsAutoCreator
             GunHitData hitData = AssetDatabase.LoadAssetAtPath<GunHitData>(hitAssetPath);
             if (hitData == null || string.IsNullOrEmpty(hitData.HitName))
             {
-                Debug.LogWarning($"跳过无效数据：{hitAssetPath}");
+                /* Debug.LogWarning($"跳过无效数据：{hitAssetPath}"); */
                 continue;
             }
 
@@ -104,7 +104,7 @@ public static class HitGoodsAutoCreator
             AssetDatabase.Refresh();
 
             createdCount++;
-            Debug.Log($" 成功创建商品：{goodsSavePath}");
+            /* Debug.Log($" 成功创建商品：{goodsSavePath}"); */
         }
 
         // 11. 完成提示

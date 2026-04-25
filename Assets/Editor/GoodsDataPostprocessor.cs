@@ -26,7 +26,7 @@ public class GoodsDataPostprocessor : AssetPostprocessor
                         goods.goodsGuid = System.Guid.NewGuid().ToString();
                         EditorUtility.SetDirty(goods);
                         AssetDatabase.SaveAssets();
-                        Debug.Log($"[GUID监听] 自动为新商品生成GUID：{goods.goodsName}");
+                        /* Debug.Log($"[GUID监听] 自动为新商品生成GUID：{goods.goodsName}"); */
                     }
                     needsUpdate = true;
                 }
@@ -40,7 +40,7 @@ public class GoodsDataPostprocessor : AssetPostprocessor
             {
                 // 只要删除了 .asset，就可能是商品，更新文件
                 needsUpdate = true;
-                Debug.Log($"[GUID监听] 检测到资源删除，更新GUID映射文件");
+                /* Debug.Log($"[GUID监听] 检测到资源删除，更新GUID映射文件"); */
             }
         }
 

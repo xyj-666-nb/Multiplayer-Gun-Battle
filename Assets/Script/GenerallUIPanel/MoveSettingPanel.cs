@@ -10,11 +10,14 @@ public class MoveSettingPanel : BasePanel
     public Slider SliderField;           // 瞄准灵敏度滑块 (0.5 ~ 2.0)
     public TextMeshProUGUI SliderNumber; // 灵敏度数值显示
     public TMP_Dropdown DropdownField_Move;  // 1=按钮移动，0=摇杆移动
+    public Toggle Toggle_Shoot;
+    public Toggle Toggle_Aim;
 
     #region 生命周期
     public override void Awake()
     {
         base.Awake();
+        ResolveToggleReferences();
         SetupSlider();
     }
 
@@ -55,6 +58,7 @@ public class MoveSettingPanel : BasePanel
     {
         base.ShowMe(isNeedDefaultAnimator);
         SetupSlider();
+        ResolveToggleReferences();
         LoadDataToUI();
         RegisterUIEvents();
     }
@@ -90,12 +94,38 @@ public class MoveSettingPanel : BasePanel
         SliderField.maxValue = 2.0f;
     }
 
+    private void ResolveToggleReferences()
+    {
+        if (Toggle_Shoot == null)
+        {
+            Toggle_Shoot = FindToggleByName("Toggle_Shoot");
+        }
+
+        if (Toggle_Aim == null)
+        {
+            Toggle_Aim = FindToggleByName("Toggle_Aim");
+        }
+    }
+
+    private Toggle FindToggleByName(string toggleName)
+    {
+        var toggles = GetComponentsInChildren<Toggle>(true);
+        foreach (var toggle in toggles)
+        {
+            if (toggle.name == toggleName)
+            {
+                return toggle;
+            }
+        }
+
+        return null;
+    }
     private void LoadDataToUI()
     {
         var manager = PlayerAndGameInfoManger.Instance;
         if (manager == null)
         {
-            Debug.LogError("未找到 PlayerAndGameInfoManger 实例！");
+            /* Debug.LogError("未找到 PlayerAndGameInfoManger 实例！"); */
             return;
         }
 
@@ -118,6 +148,16 @@ public class MoveSettingPanel : BasePanel
             DropdownField_Move.value = manager.IsUseJoyStickMove ? 0 : 1;
             DropdownField_Move.RefreshShownValue();
         }
+
+        if (Toggle_Shoot != null)
+        {
+            Toggle_Shoot.SetIsOnWithoutNotify(manager.IsUseShootButtonTouchPassThrough);
+        }
+
+        if (Toggle_Aim != null)
+        {
+            Toggle_Aim.SetIsOnWithoutNotify(manager.IsUseAimButtonTouchPassThrough);
+        }
     }
 
     private void RegisterUIEvents()
@@ -138,6 +178,16 @@ public class MoveSettingPanel : BasePanel
         {
             DropdownField_Move.onValueChanged.AddListener(OnMoveDropdownValueChanged);
         }
+
+        if (Toggle_Shoot != null)
+        {
+            Toggle_Shoot.onValueChanged.AddListener(OnShootPassThroughToggleChanged);
+        }
+
+        if (Toggle_Aim != null)
+        {
+            Toggle_Aim.onValueChanged.AddListener(OnAimPassThroughToggleChanged);
+        }
     }
 
     private void UnregisterUIEvents()
@@ -155,6 +205,16 @@ public class MoveSettingPanel : BasePanel
         if (DropdownField_Move != null)
         {
             DropdownField_Move.onValueChanged.RemoveListener(OnMoveDropdownValueChanged);
+        }
+
+        if (Toggle_Shoot != null)
+        {
+            Toggle_Shoot.onValueChanged.RemoveListener(OnShootPassThroughToggleChanged);
+        }
+
+        if (Toggle_Aim != null)
+        {
+            Toggle_Aim.onValueChanged.RemoveListener(OnAimPassThroughToggleChanged);
         }
     }
 
@@ -177,6 +237,23 @@ public class MoveSettingPanel : BasePanel
         manager.IsUseJoyStickMove = (value == 0);
     }
 
+    private void OnShootPassThroughToggleChanged(bool isOn)
+    {
+        var manager = PlayerAndGameInfoManger.Instance;
+        if (manager == null)
+            return;
+
+        manager.IsUseShootButtonTouchPassThrough = isOn;
+    }
+
+    private void OnAimPassThroughToggleChanged(bool isOn)
+    {
+        var manager = PlayerAndGameInfoManger.Instance;
+        if (manager == null)
+            return;
+
+        manager.IsUseAimButtonTouchPassThrough = isOn;
+    }
     // 灵敏度回调
     private void OnSliderValueChanged(float value)
     {

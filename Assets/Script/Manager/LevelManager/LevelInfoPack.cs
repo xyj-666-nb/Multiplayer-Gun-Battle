@@ -32,7 +32,7 @@ public class LevelInfoPack : MonoBehaviour
 
         // 4. 初始化关卡状态
         CurrentLevelState = LevelState.Playing;
-        Debug.Log($"关卡 {LevelIndex} 已注册到管理器！");
+        /* Debug.Log($"关卡 {LevelIndex} 已注册到管理器！"); */
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ public class LevelInfoPack : MonoBehaviour
     {
         if (PlayerPrefab == null || PlayerBornPos == null)
         {
-            Debug.LogError("玩家预制体或出生点未配置！");
+            /* Debug.LogError("玩家预制体或出生点未配置！"); */
             return;
         }
         // 销毁已有玩家
@@ -89,7 +89,7 @@ public class LevelInfoPack : MonoBehaviour
     private IEnumerator SettlementCoroutine(bool isWin)
     {
         CurrentLevelState = LevelState.Settlement;
-        Debug.Log($"关卡 {LevelIndex} 进入结算状态，胜利：{isWin}");
+        /* Debug.Log($"关卡 {LevelIndex} 进入结算状态，胜利：{isWin}"); */
 
         // 模拟结算等待（如显示结算UI 3秒）
         yield return new WaitForSeconds(3f);
@@ -114,7 +114,7 @@ public class LevelInfoPack : MonoBehaviour
     {
         if (!LevelManager.Instance.IsLevelOperable()) return;
 
-        Debug.Log($"重置关卡 {LevelIndex}！");
+        /* Debug.Log($"重置关卡 {LevelIndex}！"); */
         // 1. 销毁场景内动态生成的对象（玩家、敌人、道具）
         if (_playerInstance != null)
         {
@@ -131,7 +131,7 @@ public class LevelInfoPack : MonoBehaviour
     /// </summary>
     public void ExitLevel()
     {
-        Debug.Log($"退出关卡 {LevelIndex}！");
+        /* Debug.Log($"退出关卡 {LevelIndex}！"); */
         LevelManager.Instance.ExitLevelScene();
         // 可选：加载选关界面
         // SceneManager.LoadScene("LevelSelect");

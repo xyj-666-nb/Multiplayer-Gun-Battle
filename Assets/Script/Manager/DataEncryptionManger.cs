@@ -63,7 +63,7 @@ public class DataEncryptionManger : SingleMonoAutoBehavior<DataEncryptionManger>
                 return dataId;
             }
         }
-        Debug.LogWarning($"[数据加密] 尝试更新不存在的DataID {dataId}！自动创建新数据包。");
+        /* Debug.LogWarning($"[数据加密] 尝试更新不存在的DataID {dataId}！自动创建新数据包。"); */
         return EncryptData(newValue); // 如果ID不存在，创建新数据包
     }
 
@@ -79,7 +79,7 @@ public class DataEncryptionManger : SingleMonoAutoBehavior<DataEncryptionManger>
                 return;
             }
         }
-        Debug.LogWarning($"[数据加密] 尝试移除不存在的DataID {dataId}！");
+        /* Debug.LogWarning($"[数据加密] 尝试移除不存在的DataID {dataId}！"); */
     }
 
     /// <summary>
@@ -100,14 +100,14 @@ public class DataEncryptionManger : SingleMonoAutoBehavior<DataEncryptionManger>
                 int magic = BitConverter.ToInt32(decryptedCombined, 0);
                 if (magic != MEMORY_MAGIC)
                 {
-                    Debug.LogError($"[数据加密] 数据ID {dataId} 魔数校验失败！数据可能被篡改！");
+                    /* Debug.LogError($"[数据加密] 数据ID {dataId} 魔数校验失败！数据可能被篡改！"); */
                     return default(T);
                 }
                 // 验证校验和
                 int checkSum = CalculateChecksum(decryptedCombined);
                 if (checkSum != pack.CheckSum)
                 {
-                    Debug.LogError($"[数据加密] 数据ID {dataId} 校验和失败！数据可能被篡改！");
+                    /* Debug.LogError($"[数据加密] 数据ID {dataId} 校验和失败！数据可能被篡改！"); */
                     return default(T);
                 }
                 // 提取原始数据（跳过魔数的4个字节）
@@ -118,7 +118,7 @@ public class DataEncryptionManger : SingleMonoAutoBehavior<DataEncryptionManger>
             }
         }
 
-        Debug.LogError($"[数据加密] 未找到ID为 {dataId} 的数据包！");
+        /* Debug.LogError($"[数据加密] 未找到ID为 {dataId} 的数据包！"); */
         return default(T);
     }
 
@@ -165,7 +165,7 @@ public class DataEncryptionManger : SingleMonoAutoBehavior<DataEncryptionManger>
 
         if (splitData.Length != 2)
         {
-            Debug.LogError($"[存档加密] 存档格式错误！Key: {key}");
+            /* Debug.LogError($"[存档加密] 存档格式错误！Key: {key}"); */
             return defaultValue;
         }
 
@@ -176,7 +176,7 @@ public class DataEncryptionManger : SingleMonoAutoBehavior<DataEncryptionManger>
         string calculatedHash = CalculateMD5Hash(jsonData + saveSecretKey);
         if (savedHash != calculatedHash)
         {
-            Debug.LogError($"[存档加密] 存档哈希校验失败！存档可能被篡改！Key: {key}");
+            /* Debug.LogError($"[存档加密] 存档哈希校验失败！存档可能被篡改！Key: {key}"); */
             return defaultValue;
         }
 
@@ -189,7 +189,7 @@ public class DataEncryptionManger : SingleMonoAutoBehavior<DataEncryptionManger>
         }
         catch (Exception e)
         {
-            Debug.LogError($"[存档加密] 反序列化失败！Key: {key}, Error: {e.Message}");
+            /* Debug.LogError($"[存档加密] 反序列化失败！Key: {key}, Error: {e.Message}"); */
             return defaultValue;
         }
     }
@@ -236,7 +236,7 @@ public class DataEncryptionManger : SingleMonoAutoBehavior<DataEncryptionManger>
         }
         catch (Exception e)
         {
-            Debug.LogError($"[存档加密] 保存复杂数据失败! Error: {e.Message}");
+            /* Debug.LogError($"[存档加密] 保存复杂数据失败! Error: {e.Message}"); */
         }
     }
 
@@ -268,7 +268,7 @@ public class DataEncryptionManger : SingleMonoAutoBehavior<DataEncryptionManger>
 
             if (splitData.Length != 2)
             {
-                Debug.LogError($"[存档加密] 存档格式错误（非加密格式）! File: {fileName}");
+                /* Debug.LogError($"[存档加密] 存档格式错误（非加密格式）! File: {fileName}"); */
                 return new T();
             }
 
@@ -279,7 +279,7 @@ public class DataEncryptionManger : SingleMonoAutoBehavior<DataEncryptionManger>
             string calculatedHash = CalculateMD5Hash(jsonData + saveSecretKey);
             if (savedHash != calculatedHash)
             {
-                Debug.LogError($"[存档加密] 存档哈希校验失败！数据可能被篡改！File: {fileName}");
+                /* Debug.LogError($"[存档加密] 存档哈希校验失败！数据可能被篡改！File: {fileName}"); */
                 return new T();
             }
 
@@ -299,7 +299,7 @@ public class DataEncryptionManger : SingleMonoAutoBehavior<DataEncryptionManger>
         }
         catch (Exception e)
         {
-            Debug.LogError($"[存档加密] 读取复杂数据失败! File: {fileName}, Error: {e.Message}");
+            /* Debug.LogError($"[存档加密] 读取复杂数据失败! File: {fileName}, Error: {e.Message}"); */
             return new T();
         }
     }
@@ -323,7 +323,7 @@ public class DataEncryptionManger : SingleMonoAutoBehavior<DataEncryptionManger>
             {
                 File.Delete(persistentPath);
                 hasDeleted = true;
-                Debug.Log($"[存档加密] 已删除本地加密存档: {persistentPath}");
+                /* Debug.Log($"[存档加密] 已删除本地加密存档: {persistentPath}"); */
             }
 
             // 注意：StreamingAssets 目录在移动端是只读的，无法通过代码删除文件
@@ -333,18 +333,18 @@ public class DataEncryptionManger : SingleMonoAutoBehavior<DataEncryptionManger>
             {
                 File.Delete(streamingPath);
                 hasDeleted = true;
-                Debug.Log($"[存档加密] 已删除 StreamingAssets 下的文件: {streamingPath}");
+                /* Debug.Log($"[存档加密] 已删除 StreamingAssets 下的文件: {streamingPath}"); */
             }
 #endif
 
             if (!hasDeleted)
             {
-                Debug.LogWarning($"[存档加密] 未找到需要删除的存档文件: {fileName}");
+                /* Debug.LogWarning($"[存档加密] 未找到需要删除的存档文件: {fileName}"); */
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"[存档加密] 删除存档文件失败! File: {fileName}, Error: {e.Message}");
+            /* Debug.LogError($"[存档加密] 删除存档文件失败! File: {fileName}, Error: {e.Message}"); */
         }
     }
 

@@ -176,6 +176,10 @@ public class PlayerPanel : BasePanel
         {
             GunImage.rectTransform.anchoredPosition = new Vector3(-10, -20, 0);
         }
+        else if (CurrentGun.gunInfo.Name == "XM50")
+        {
+            GunImage.rectTransform.anchoredPosition = new Vector3(0, -15, 0);
+        }
         else
         {
             GunImage.rectTransform.localScale = new Vector3(-1f, 1f, 1f);
@@ -200,15 +204,56 @@ public class PlayerPanel : BasePanel
         base.Awake();
 
         //注册一下射击按钮单选按钮
-        ButtonGroupManager.Instance.AddToggleButtonToGroup(AimButtonButtonGroupName, controlDic[AimButtonButtonGroupName] as Button, isManualTrigger: true);
+        ButtonGroupManager.Instance.AddToggleButtonToGroup(
+            AimButtonButtonGroupName,
+            controlDic[AimButtonButtonGroupName] as Button,
+            chooseScale: 1.1f,
+            changeDuration: 0.2f,
+            chooseColor: ColorManager.LightGreen,
+            isManualTrigger: true);
+        RegisterTouchInputPassThroughButtons();
         SetActiveInteractButton(false);//关闭交互
         IsTriggerPickUpGunButton(false);//开始隐藏
         UpdateMoveButton();
     }
 
+    private void RegisterTouchInputPassThroughButtons()
+    {
+        RegisterTouchInputPassThrough("ShootButton", TouchInputPassThroughTarget.ShootButton);
+        RegisterTouchInputPassThrough(AimButtonButtonGroupName, TouchInputPassThroughTarget.AimButton);
+        RegisterTouchInputPassThrough(shootButton != null ? shootButton.GetComponentInParent<Button>() : null, TouchInputPassThroughTarget.ShootButton);
+    }
+
+    private void RegisterTouchInputPassThrough(string buttonName, TouchInputPassThroughTarget targetType)
+    {
+        if (string.IsNullOrEmpty(buttonName) || controlDic == null)
+            return;
+
+        if (!controlDic.TryGetValue(buttonName, out var control))
+            return;
+
+        RegisterTouchInputPassThrough(control as Button, targetType);
+    }
+
+    private void RegisterTouchInputPassThrough(Button button, TouchInputPassThroughTarget targetType)
+    {
+        if (button == null)
+            return;
+
+        var passThrough = button.GetComponent<TouchInputPassThrough>();
+        if (passThrough == null)
+        {
+            passThrough = button.gameObject.AddComponent<TouchInputPassThrough>();
+        }
+
+        passThrough.TargetType = targetType;
+        passThrough.EnablePassThrough = true;
+    }
+
     public override void Start()
     {
         base.Start();
+        RefreshCustomUILayout();
     }
 
     protected override void Update()
@@ -248,6 +293,7 @@ public class PlayerPanel : BasePanel
     public override void ShowMe(bool isNeedDefaultAnimator = true)
     {
         base.ShowMe(isNeedDefaultAnimator);
+        RefreshCustomUILayout();
     }
     protected override void SpecialAnimator_Hide()
     {
@@ -301,5 +347,10 @@ public class PlayerPanel : BasePanel
         {
             UI.ApplicationInfo();//更新一下信息
         }
+    }
+
+    private void RefreshCustomUILayout()
+    {
+        UpdateAllCustomUIInfo();
     }
 }

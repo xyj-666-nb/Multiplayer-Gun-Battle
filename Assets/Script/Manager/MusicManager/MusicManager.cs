@@ -3,56 +3,73 @@ using UnityEngine;
 using UnityEngine.Events;
 
 /// <summary>
-/// ÒôĞ§/±³¾°ÒôÀÖ¹ÜÀíÆ÷
-/// ¹¦ÄÜ£ºÍ³Ò»¹ÜÀí±³¾°ÒôÀÖ²¥·Å¡¢ÒôĞ§²¥·Å£¨2D/3D£©¡¢ÒôÁ¿¿ØÖÆ¡¢¶ÔÏó³Ø»ØÊÕ
-/// Ö§³ÖÒôĞ§ÒôÁ¿·Å´ó£¨ÌØÊâÒôÁ¿¿É>1£©£¬¿ÉÅäÖÃ×î´ó·Å´ó±¶Êı·ÀÖ¹Ê§Õæ
+/// éŸ³æ•ˆ/èƒŒæ™¯éŸ³ä¹ç®¡ç†å™¨
+/// åŠŸèƒ½ï¼šç»Ÿä¸€ç®¡ç†èƒŒæ™¯éŸ³ä¹æ’­æ”¾ã€éŸ³æ•ˆæ’­æ”¾ï¼ˆ2D/3Dï¼‰ã€éŸ³é‡æ§åˆ¶ã€å¯¹è±¡æ± å›æ”¶
+/// æ”¯æŒéŸ³æ•ˆéŸ³é‡æ”¾å¤§ï¼ˆç‰¹æ®ŠéŸ³é‡å¯>1ï¼‰ï¼Œå¯é…ç½®æœ€å¤§æ”¾å¤§å€æ•°é˜²æ­¢å¤±çœŸ
 /// </summary>
 public class MusicManager : SingleMonoAutoBehavior<MusicManager>
 {
-    #region ĞÂÔö£ºÒôĞ§·Å´óÅäÖÃ£¨¿ÉÔÚInspectorÃæ°åµ÷Õû£©
-    [Header("ÒôĞ§·Å´óÉèÖÃ")]
-    [Tooltip("ÌØÊâÒôÁ¿×î´ó·Å´ó±¶Êı£¨Ä¬ÈÏ2±¶£¬½¨Òé²»³¬¹ı3±¶±ÜÃâÑÏÖØÊ§Õæ£©")]
+    #region æ–°å¢ï¼šéŸ³æ•ˆæ”¾å¤§é…ç½®ï¼ˆå¯åœ¨Inspectoré¢æ¿è°ƒæ•´ï¼‰
+    [Header("éŸ³æ•ˆæ”¾å¤§è®¾ç½®")]
+    [Tooltip("ç‰¹æ®ŠéŸ³é‡æœ€å¤§æ”¾å¤§å€æ•°ï¼ˆé»˜è®¤2å€ï¼Œå»ºè®®ä¸è¶…è¿‡3å€é¿å…ä¸¥é‡å¤±çœŸï¼‰")]
     [SerializeField] private float MaxEffectAmplification = 4f;
     #endregion
 
-    #region ±³¾°ÒôÀÖ¹ÜÀí
-    #region ±³¾°ÒôÀÖÏà¹Ø±äÁ¿
-    private AudioSource backgroundAudioSource; // ±³¾°ÒôÀÖAudioSource
-    private string currentBgmPath; // µ±Ç°²¥·ÅµÄ±³¾°ÒôÀÖÂ·¾¶
-    private float bgmGlobalVolume = 0.5f; // ±³¾°ÒôÀÖÈ«¾ÖÒôÁ¿
-    private readonly Dictionary<string, float> specificBgmVolumes = new Dictionary<string, float>(); // ÌØ¶¨BGMµÄÒôÁ¿ÅäÖÃ
-    private GameObject backgroundMusicObj; // ±³¾°ÒôÀÖÔØÌåÎïÌå
+    #region èƒŒæ™¯éŸ³ä¹ç®¡ç†
+    #region èƒŒæ™¯éŸ³ä¹ç›¸å…³å˜é‡
+    private AudioSource backgroundAudioSource; // èƒŒæ™¯éŸ³ä¹AudioSource
+    private string currentBgmPath; // å½“å‰æ’­æ”¾çš„èƒŒæ™¯éŸ³ä¹è·¯å¾„
+    private float bgmGlobalVolume = 0.5f; // èƒŒæ™¯éŸ³ä¹å…¨å±€éŸ³é‡
+    private readonly Dictionary<string, float> specificBgmVolumes = new Dictionary<string, float>(); // ç‰¹å®šBGMçš„éŸ³é‡é…ç½®
+    private GameObject backgroundMusicObj; // èƒŒæ™¯éŸ³ä¹è½½ä½“ç‰©ä½“
     #endregion
 
-    #region ³õÊ¼»¯±³¾°ÒôÀÖ²¥·ÅÆ÷
+    #region åˆå§‹åŒ–èƒŒæ™¯éŸ³ä¹æ’­æ”¾å™¨
     /// <summary>
-    /// ³õÊ¼»¯±³¾°ÒôÀÖÏµÍ³
+    /// åˆå§‹åŒ–èƒŒæ™¯éŸ³ä¹ç³»ç»Ÿ
     /// </summary>
     private void InitializeBackgroundMusic()
     {
         if (backgroundMusicObj == null)
         {
             backgroundMusicObj = new GameObject("BackgroundMusic");
-            backgroundMusicObj.transform.SetParent(transform);
-            backgroundAudioSource = backgroundMusicObj.AddComponent<AudioSource>();
+            backgroundMusicObj.transform.SetParent(transform, false);
+        }
+
+        if (backgroundAudioSource == null)
+        {
+            backgroundAudioSource = backgroundMusicObj.GetComponent<AudioSource>();
+            if (backgroundAudioSource == null)
+            {
+                backgroundAudioSource = backgroundMusicObj.AddComponent<AudioSource>();
+            }
+        }
+
+        if (backgroundAudioSource != null)
+        {
             backgroundAudioSource.loop = true;
             backgroundAudioSource.volume = bgmGlobalVolume;
-            // ±³¾°ÒôÀÖÄ¬ÈÏ2D²¥·Å£¨È«¾ÖÎŞË¥¼õ£©
+            // èƒŒæ™¯éŸ³ä¹é»˜è®¤2Dæ’­æ”¾ï¼ˆå…¨å±€æ— è¡°å‡ï¼‰
             backgroundAudioSource.spatialBlend = 0f;
         }
     }
     #endregion
 
-    #region ¶Ôµ±Ç°±³¾°ÒôÀÖ½øĞĞ²¥·Å£¬ÔİÍ££¬Í£Ö¹µÈ²Ù×÷
+    #region å¯¹å½“å‰èƒŒæ™¯éŸ³ä¹è¿›è¡Œæ’­æ”¾ï¼Œæš‚åœï¼Œåœæ­¢ç­‰æ“ä½œ
     /// <summary>
-    /// ²¥·Å±³¾°ÒôÀÖ
+    /// æ’­æ”¾èƒŒæ™¯éŸ³ä¹
     /// </summary>
-    /// <param name="audioPath">±³¾°ÒôÀÖ×ÊÔ´Â·¾¶</param>
+    /// <param name="audioPath">èƒŒæ™¯éŸ³ä¹èµ„æºè·¯å¾„</param>
     public void PlayBgm(string audioPath = null)
     {
+        InitializeBackgroundMusic();
         SetBgmGlobalVolume(1f);
-        Debug.Log("²¥·ÅÒôÀÖ");
-        // ¿ÕÂ·¾¶£º¼ÌĞø²¥·Åµ±Ç°ÒôÀÖ
+        if (backgroundAudioSource == null)
+        {
+            return;
+        }
+        /* Debug.Log("æ’­æ”¾éŸ³ä¹"); */
+        // ç©ºè·¯å¾„ï¼šç»§ç»­æ’­æ”¾å½“å‰éŸ³ä¹
         if (string.IsNullOrEmpty(audioPath))
         {
             if (backgroundAudioSource.clip != null && !backgroundAudioSource.isPlaying)
@@ -61,12 +78,12 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
             }
             else if (backgroundAudioSource.clip == null)
             {
-                Debug.LogWarning("Ã»ÓĞ¿É²¥·ÅµÄ±³¾°ÒôÀÖ¼ô¼­£¡");
+                /* Debug.LogWarning("æ²¡æœ‰å¯æ’­æ”¾çš„èƒŒæ™¯éŸ³ä¹å‰ªè¾‘ï¼"); */
             }
             return;
         }
 
-        // Í¬Ò»Ê×ÒôÀÖÕıÔÚ²¥·Å£ºÖ±½Ó·µ»Ø
+        // åŒä¸€é¦–éŸ³ä¹æ­£åœ¨æ’­æ”¾ï¼šç›´æ¥è¿”å›
         if (audioPath == currentBgmPath && backgroundAudioSource.isPlaying)
             return;
 
@@ -75,12 +92,12 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         {
             if (audioClip == null || backgroundAudioSource == null)
             {
-                Debug.LogError($"¼ÓÔØ±³¾°ÒôÀÖÊ§°Ü: {audioPath}");
+                /* Debug.LogError($"åŠ è½½èƒŒæ™¯éŸ³ä¹å¤±è´¥: {audioPath}"); */
                 return;
             }
 
             backgroundAudioSource.clip = audioClip;
-            // ¼ÆËã×îÖÕÒôÁ¿£ºÌØ¶¨ÒôÁ¿£¨ÓĞÔòÓÃ£© * È«¾ÖÒôÁ¿
+            // è®¡ç®—æœ€ç»ˆéŸ³é‡ï¼šç‰¹å®šéŸ³é‡ï¼ˆæœ‰åˆ™ç”¨ï¼‰ * å…¨å±€éŸ³é‡
             float finalVolume = specificBgmVolumes.TryGetValue(audioPath, out float specificVol)
                 ? specificVol * bgmGlobalVolume
                 : bgmGlobalVolume;
@@ -90,14 +107,15 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
 
     /// <summary>
-    /// ÔİÍ£/¼ÌĞø²¥·Å±³¾°ÒôÀÖ
+    /// æš‚åœ/ç»§ç»­æ’­æ”¾èƒŒæ™¯éŸ³ä¹
     /// </summary>
-    /// <param name="isPause">true=ÔİÍ££¬false=¼ÌĞø</param>
+    /// <param name="isPause">true=æš‚åœï¼Œfalse=ç»§ç»­</param>
     public void PauseOrResumeBgm(bool isPause)
     {
+        InitializeBackgroundMusic();
         if (backgroundAudioSource == null)
         {
-            Debug.LogWarning("±³¾°ÒôÀÖ×é¼şÎ´³õÊ¼»¯£¡");
+            /* Debug.LogWarning("èƒŒæ™¯éŸ³ä¹ç»„ä»¶æœªåˆå§‹åŒ–ï¼"); */
             return;
         }
 
@@ -108,7 +126,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
 
     /// <summary>
-    /// Í£Ö¹²¥·Å±³¾°ÒôÀÖ²¢Çå¿Õ×ÊÔ´
+    /// åœæ­¢æ’­æ”¾èƒŒæ™¯éŸ³ä¹å¹¶æ¸…ç©ºèµ„æº
     /// </summary>
     public void StopBgm()
     {
@@ -121,22 +139,23 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
     #endregion
 
-    #region ±³¾°ÒôÀÖÒôÁ¿¿ØÖÆ
+    #region èƒŒæ™¯éŸ³ä¹éŸ³é‡æ§åˆ¶
     /// <summary>
-    /// ĞŞ¸Ä±³¾°ÒôÀÖÈ«¾ÖÒôÁ¿
+    /// ä¿®æ”¹èƒŒæ™¯éŸ³ä¹å…¨å±€éŸ³é‡
     /// </summary>
-    /// <param name="value">0-1µÄÒôÁ¿Öµ</param>
+    /// <param name="value">0-1çš„éŸ³é‡å€¼</param>
     public void SetBgmGlobalVolume(float value)
     {
         bgmGlobalVolume = Mathf.Clamp01(value);
+        InitializeBackgroundMusic();
 
         if (backgroundAudioSource == null || string.IsNullOrEmpty(currentBgmPath))
         {
-            Debug.LogWarning("±³¾°ÒôÀÖÎ´²¥·Å£¬ÎŞ·¨ĞŞ¸ÄÈ«¾ÖÒôÁ¿£¡");
+            /* Debug.LogWarning("èƒŒæ™¯éŸ³ä¹æœªæ’­æ”¾ï¼Œæ— æ³•ä¿®æ”¹å…¨å±€éŸ³é‡ï¼"); */
             return;
         }
 
-        // ÖØĞÂ¼ÆËã×îÖÕÒôÁ¿
+        // é‡æ–°è®¡ç®—æœ€ç»ˆéŸ³é‡
         float finalVolume = specificBgmVolumes.TryGetValue(currentBgmPath, out float specificVol)
             ? specificVol * bgmGlobalVolume
             : bgmGlobalVolume;
@@ -149,15 +168,15 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
 
     /// <summary>
-    /// ÉèÖÃÖ¸¶¨±³¾°ÒôÀÖµÄ¶ÀÁ¢ÒôÁ¿
+    /// è®¾ç½®æŒ‡å®šèƒŒæ™¯éŸ³ä¹çš„ç‹¬ç«‹éŸ³é‡
     /// </summary>
-    /// <param name="bgmName">±³¾°ÒôÀÖÂ·¾¶/Ãû³Æ</param>
-    /// <param name="volume">0-1µÄÒôÁ¿Öµ</param>
+    /// <param name="bgmName">èƒŒæ™¯éŸ³ä¹è·¯å¾„/åç§°</param>
+    /// <param name="volume">0-1çš„éŸ³é‡å€¼</param>
     public void SetSpecificBgmVolume(string bgmName, float volume)
     {
         if (string.IsNullOrEmpty(bgmName))
         {
-            Debug.LogWarning("BGMÃû³Æ²»ÄÜÎª¿Õ£¡");
+            /* Debug.LogWarning("BGMåç§°ä¸èƒ½ä¸ºç©ºï¼"); */
             return;
         }
 
@@ -173,34 +192,34 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     #endregion
     #endregion
 
-    #region ÒôĞ§¹ÜÀí
-    #region ÒôĞ§Ïà¹Ø±äÁ¿ÒÔ¼°ÅäÖÃ
-    [Header("ÒôĞ§ÅäÖÃ")]
-    [SerializeField] private List<AudioSource> activeEffectSources = new List<AudioSource>(); // »îÔ¾ÒôĞ§ÁĞ±í
-    [SerializeField] private GameObject effectPrefab; // ÒôĞ§Ô¤ÖÆÌå£¨Ğè¹ÒÔØAudioSource»ò¶¯Ì¬Ìí¼Ó£©
+    #region éŸ³æ•ˆç®¡ç†
+    #region éŸ³æ•ˆç›¸å…³å˜é‡ä»¥åŠé…ç½®
+    [Header("éŸ³æ•ˆé…ç½®")]
+    [SerializeField] private List<AudioSource> activeEffectSources = new List<AudioSource>(); // æ´»è·ƒéŸ³æ•ˆåˆ—è¡¨
+    [SerializeField] private GameObject effectPrefab; // éŸ³æ•ˆé¢„åˆ¶ä½“ï¼ˆéœ€æŒ‚è½½AudioSourceæˆ–åŠ¨æ€æ·»åŠ ï¼‰
 
-    private float effectGlobalVolume = 0.8f; // ÒôĞ§È«¾ÖÒôÁ¿£¨0-1£©
-    private readonly Dictionary<string, float> specificEffectVolumes = new Dictionary<string, float>(); // ÌØ¶¨ÒôĞ§µÄÒôÁ¿ÅäÖÃ
-    private const float DefaultMin3dDistance = 1f; // 3DÒôĞ§Ä¬ÈÏ×îĞ¡ÎŞË¥¼õ¾àÀë
-    private const float DefaultMax3dDistance = 10f; // 3DÒôĞ§Ä¬ÈÏ×î´óË¥¼õ¾àÀë
-    private GameObject _dynamicEffectRoot; // ¶¯Ì¬´´½¨µÄÒôĞ§¸ùÎïÌå£¨ÎŞÔ¤ÖÆÌåÊ±Ê¹ÓÃ£©
+    private float effectGlobalVolume = 0.8f; // éŸ³æ•ˆå…¨å±€éŸ³é‡ï¼ˆ0-1ï¼‰
+    private readonly Dictionary<string, float> specificEffectVolumes = new Dictionary<string, float>(); // ç‰¹å®šéŸ³æ•ˆçš„éŸ³é‡é…ç½®
+    private const float DefaultMin3dDistance = 1f; // 3DéŸ³æ•ˆé»˜è®¤æœ€å°æ— è¡°å‡è·ç¦»
+    private const float DefaultMax3dDistance = 10f; // 3DéŸ³æ•ˆé»˜è®¤æœ€å¤§è¡°å‡è·ç¦»
+    private GameObject _dynamicEffectRoot; // åŠ¨æ€åˆ›å»ºçš„éŸ³æ•ˆæ ¹ç‰©ä½“ï¼ˆæ— é¢„åˆ¶ä½“æ—¶ä½¿ç”¨ï¼‰
     #endregion
 
-    #region ³õÊ¼»¯ÒôĞ§ÏµÍ³
+    #region åˆå§‹åŒ–éŸ³æ•ˆç³»ç»Ÿ
     /// <summary>
-    /// ³õÊ¼»¯ÒôĞ§ÏµÍ³
+    /// åˆå§‹åŒ–éŸ³æ•ˆç³»ç»Ÿ
     /// </summary>
     private void InitializeEffectSystem()
     {
         if (effectPrefab == null)
         {
-            Debug.LogWarning("ÒôĞ§Ô¤ÖÆÌåÎ´¸³Öµ£¡½«Ê¹ÓÃ¶¯Ì¬´´½¨µÄÒôĞ§ÎïÌå£¨ÎŞ¶ÔÏó³ØÓÅ»¯£©£¬½¨ÒéÔÚInspectorÃæ°å¸³ÖµeffectPrefab", this);
-            // ´´½¨¶¯Ì¬ÒôĞ§¸ùÎïÌå£¬Í³Ò»¹ÜÀí¶¯Ì¬´´½¨µÄÒôĞ§
+            /* Debug.LogWarning("éŸ³æ•ˆé¢„åˆ¶ä½“æœªèµ‹å€¼ï¼å°†ä½¿ç”¨åŠ¨æ€åˆ›å»ºçš„éŸ³æ•ˆç‰©ä½“ï¼ˆæ— å¯¹è±¡æ± ä¼˜åŒ–ï¼‰ï¼Œå»ºè®®åœ¨Inspectoré¢æ¿èµ‹å€¼effectPrefab", this); */
+            // åˆ›å»ºåŠ¨æ€éŸ³æ•ˆæ ¹ç‰©ä½“ï¼Œç»Ÿä¸€ç®¡ç†åŠ¨æ€åˆ›å»ºçš„éŸ³æ•ˆ
             _dynamicEffectRoot = new GameObject("DynamicEffectRoot");
             _dynamicEffectRoot.transform.SetParent(transform);
         }
 
-        // ×¢²áÖ¡¸üĞÂ»Øµ÷£ºÇåÀíÒÑ²¥·ÅÍê³ÉµÄÒôĞ§£¨ÎŞÂÛÊÇ·ñÓĞÔ¤ÖÆÌå¶¼×¢²á£©
+        // æ³¨å†Œå¸§æ›´æ–°å›è°ƒï¼šæ¸…ç†å·²æ’­æ”¾å®Œæˆçš„éŸ³æ•ˆï¼ˆæ— è®ºæ˜¯å¦æœ‰é¢„åˆ¶ä½“éƒ½æ³¨å†Œï¼‰
         if (MonoMange.Instance != null)
         {
             MonoMange.Instance.AddLister_Update(CleanupFinishedEffects);
@@ -208,24 +227,24 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         }
         else
         {
-            Debug.LogWarning("MonoMange.InstanceÎª¿Õ£¬ÎŞ·¨×¢²áÒôĞ§ÇåÀí»Øµ÷£¡", this);
+            /* Debug.LogWarning("MonoMange.Instanceä¸ºç©ºï¼Œæ— æ³•æ³¨å†ŒéŸ³æ•ˆæ¸…ç†å›è°ƒï¼", this); */
         }
     }
     #endregion
 
-    #region Ë½ÓĞµÄ(3D)ÒôĞ§²¥·ÅºËĞÄÂß¼­
+    #region ç§æœ‰çš„(3D)éŸ³æ•ˆæ’­æ”¾æ ¸å¿ƒé€»è¾‘
     /// <summary>
-    /// ÒôĞ§²¥·ÅºËĞÄÂß¼­£¨Ö§³ÖÒôÁ¿·Å´ó£©
+    /// éŸ³æ•ˆæ’­æ”¾æ ¸å¿ƒé€»è¾‘ï¼ˆæ”¯æŒéŸ³é‡æ”¾å¤§ï¼‰
     /// </summary>
-    /// <param name="clip">Òª²¥·ÅµÄÒôÆµ¼ô¼­</param>
-    /// <param name="is3d">ÊÇ·ñÆôÓÃ3DÒôĞ§</param>
-    /// <param name="SpecialVolume">ÌØÊâÒôÁ¿£¨¿É>1·Å´ó£¬ÊÜMaxEffectAmplificationÏŞÖÆ£©</param>
-    /// <param name="max3dDistance">3DÒôĞ§×î´óË¥¼õ¾àÀë</param>
-    /// <param name="min3dDistance">3DÒôĞ§×îĞ¡ÎŞË¥¼õ¾àÀë</param>
-    /// <param name="owner">ÒôĞ§¸úËæµÄ¸¸ÎïÌå</param>
-    /// <param name="isLoop">ÊÇ·ñÑ­»·²¥·Å</param>
-    /// <param name="callback">²¥·ÅÍê³É»Øµ÷</param>
-    /// <param name="isDetach">ÊÇ·ñ·ÖÀë²¥·Å£¨Ä¬ÈÏtrue£º½ö¸³ÖµÎ»ÖÃ£¬²»¸úËæÎïÌåÔË¶¯£©</param>
+    /// <param name="clip">è¦æ’­æ”¾çš„éŸ³é¢‘å‰ªè¾‘</param>
+    /// <param name="is3d">æ˜¯å¦å¯ç”¨3DéŸ³æ•ˆ</param>
+    /// <param name="SpecialVolume">ç‰¹æ®ŠéŸ³é‡ï¼ˆå¯>1æ”¾å¤§ï¼Œå—MaxEffectAmplificationé™åˆ¶ï¼‰</param>
+    /// <param name="max3dDistance">3DéŸ³æ•ˆæœ€å¤§è¡°å‡è·ç¦»</param>
+    /// <param name="min3dDistance">3DéŸ³æ•ˆæœ€å°æ— è¡°å‡è·ç¦»</param>
+    /// <param name="owner">éŸ³æ•ˆè·Ÿéšçš„çˆ¶ç‰©ä½“</param>
+    /// <param name="isLoop">æ˜¯å¦å¾ªç¯æ’­æ”¾</param>
+    /// <param name="callback">æ’­æ”¾å®Œæˆå›è°ƒ</param>
+    /// <param name="isDetach">æ˜¯å¦åˆ†ç¦»æ’­æ”¾ï¼ˆé»˜è®¤trueï¼šä»…èµ‹å€¼ä½ç½®ï¼Œä¸è·Ÿéšç‰©ä½“è¿åŠ¨ï¼‰</param>
     private void PlayEffectCore(
         AudioClip clip,
         bool is3d,
@@ -235,11 +254,11 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         Transform owner = null,
         bool isLoop = false,
         UnityAction<AudioSource> callback = null,
-        bool isDetach = true) // ĞÂÔö£ºÊÇ·ñ·ÖÀë²¥·Å²ÎÊı
+        bool isDetach = true) // æ–°å¢ï¼šæ˜¯å¦åˆ†ç¦»æ’­æ”¾å‚æ•°
     {
         if (clip == null)
         {
-            Debug.LogError("AudioClipÎª¿Õ£¬ÎŞ·¨²¥·ÅÒôĞ§£¡");
+            /* Debug.LogError("AudioClipä¸ºç©ºï¼Œæ— æ³•æ’­æ”¾éŸ³æ•ˆï¼"); */
             callback?.Invoke(null);
             return;
         }
@@ -247,23 +266,23 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         float clampedVolume = Mathf.Clamp(SpecialVolume, 0f, MaxEffectAmplification);
         if (SpecialVolume > MaxEffectAmplification)
         {
-            Debug.LogWarning($"ÌØÊâÒôÁ¿{SpecialVolume}³¬¹ı×î´ó·Å´ó±¶Êı{MaxEffectAmplification}£¬ÒÑ×Ô¶¯ÏŞÖÆ");
+            /* Debug.LogWarning($"ç‰¹æ®ŠéŸ³é‡{SpecialVolume}è¶…è¿‡æœ€å¤§æ”¾å¤§å€æ•°{MaxEffectAmplification}ï¼Œå·²è‡ªåŠ¨é™åˆ¶"); */
         }
         else if (SpecialVolume > 1f)
         {
-            Debug.Log($"ÎªÒôĞ§¡¾{clip.name}¡¿ÉèÖÃ·Å´óÒôÁ¿£º{clampedVolume}±¶");
+            /* Debug.Log($"ä¸ºéŸ³æ•ˆã€{clip.name}ã€‘è®¾ç½®æ”¾å¤§éŸ³é‡ï¼š{clampedVolume}å€"); */
         }
         SetSpecificEffectVolume(clip.name, clampedVolume);
 
         GameObject effectObj = null;
-        bool isDynamicObj = false; // ÊÇ·ñÊÇ¶¯Ì¬´´½¨µÄÎïÌå£¨ÎŞÔ¤ÖÆÌå£©
+        bool isDynamicObj = false; // æ˜¯å¦æ˜¯åŠ¨æ€åˆ›å»ºçš„ç‰©ä½“ï¼ˆæ— é¢„åˆ¶ä½“ï¼‰
 
         if (effectPrefab != null)
         {
             effectObj = PoolManage.Instance?.GetObj(effectPrefab);
             if (effectObj == null)
             {
-                Debug.LogWarning($"¶ÔÏó³Ø»ñÈ¡ÒôĞ§ÎïÌåÊ§°Ü£¬½«¶¯Ì¬´´½¨£º{clip.name}", this);
+                /* Debug.LogWarning($"å¯¹è±¡æ± è·å–éŸ³æ•ˆç‰©ä½“å¤±è´¥ï¼Œå°†åŠ¨æ€åˆ›å»ºï¼š{clip.name}", this); */
                 isDynamicObj = true;
             }
         }
@@ -275,12 +294,12 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         if (isDynamicObj)
         {
             effectObj = new GameObject($"DynamicEffect_{clip.name}");
-            // ¹ÒÔØµ½¶¯Ì¬¸ùÎïÌåÏÂÍ³Ò»¹ÜÀí
+            // æŒ‚è½½åˆ°åŠ¨æ€æ ¹ç‰©ä½“ä¸‹ç»Ÿä¸€ç®¡ç†
             if (_dynamicEffectRoot != null)
             {
                 effectObj.transform.SetParent(_dynamicEffectRoot.transform);
             }
-            // 2DÓÎÏ·ÊÊÅä£º¹Ì¶¨ZÖáÎª0
+            // 2Dæ¸¸æˆé€‚é…ï¼šå›ºå®šZè½´ä¸º0
             Vector3 pos = effectObj.transform.position;
             pos.z = 0f;
             effectObj.transform.position = pos;
@@ -288,7 +307,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
 
         if (effectObj == null)
         {
-            Debug.LogError($"ÎŞ·¨´´½¨/»ñÈ¡ÒôĞ§ÎïÌå£¬²¥·ÅÊ§°Ü£º{clip.name}", this);
+            /* Debug.LogError($"æ— æ³•åˆ›å»º/è·å–éŸ³æ•ˆç‰©ä½“ï¼Œæ’­æ”¾å¤±è´¥ï¼š{clip.name}", this); */
             callback?.Invoke(null);
             return;
         }
@@ -299,15 +318,15 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
             audioSource = effectObj.AddComponent<AudioSource>();
         }
 
-        // ÒôÁ¿¼ÆËã£ºÌØÊâÒôÁ¿(¿É>1) * È«¾ÖÒôÁ¿(0-1)
+        // éŸ³é‡è®¡ç®—ï¼šç‰¹æ®ŠéŸ³é‡(å¯>1) * å…¨å±€éŸ³é‡(0-1)
         float specificVol = specificEffectVolumes.TryGetValue(clip.name, out float vol) ? vol : 1f;
         float finalVolume = specificVol * effectGlobalVolume;
 
         if (is3d)
-            // ´«µİĞÂÔöµÄisDetach²ÎÊı
+            // ä¼ é€’æ–°å¢çš„isDetachå‚æ•°
             Configure3dEffect(effectObj, audioSource, max3dDistance, min3dDistance, owner, isDetach);
         else
-            audioSource.spatialBlend = 0f;//2DÒôĞ§£º¹Ø±Õ3D¿Õ¼ä»ìºÏ
+            audioSource.spatialBlend = 0f;//2DéŸ³æ•ˆï¼šå…³é—­3Dç©ºé—´æ··åˆ
 
         audioSource.clip = clip;
         audioSource.loop = isLoop;
@@ -328,16 +347,16 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
 
     /// <summary>
-    /// ÅäÖÃ3DÒôĞ§²ÎÊı
+    /// é…ç½®3DéŸ³æ•ˆå‚æ•°
     /// </summary>
     private void Configure3dEffect(GameObject effectObj, AudioSource audioSource, float maxDistance, float minDistance, Transform owner, bool isDetach)
     {
 
-        // 3DÒôĞ§ºËĞÄÅäÖÃ
-        audioSource.spatialBlend = 1f; // ´¿3DÒôĞ§
+        // 3DéŸ³æ•ˆæ ¸å¿ƒé…ç½®
+        audioSource.spatialBlend = 1f; // çº¯3DéŸ³æ•ˆ
         audioSource.minDistance = minDistance;
         audioSource.maxDistance = maxDistance;
-        audioSource.rolloffMode = AudioRolloffMode.Logarithmic; // ¶ÔÊıË¥¼õ£¨¸ü×ÔÈ»£©
+        audioSource.rolloffMode = AudioRolloffMode.Logarithmic; // å¯¹æ•°è¡°å‡ï¼ˆæ›´è‡ªç„¶ï¼‰
 
         if (owner != null)
         {
@@ -350,7 +369,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
             if (!isDetach)
             {
                 effectObj.transform.SetParent(owner);
-                // ÉèÎª×Ó¶ÔÏóºó£¬±¾µØÎ»ÖÃZÖáÒ²¹Ì¶¨0
+                // è®¾ä¸ºå­å¯¹è±¡åï¼Œæœ¬åœ°ä½ç½®Zè½´ä¹Ÿå›ºå®š0
                 Vector3 localPos = effectObj.transform.localPosition;
                 localPos.z = 0f;
                 effectObj.transform.localPosition = localPos;
@@ -362,7 +381,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         }
         else
         {
-            // ÎŞownerÊ±£¬¹Ì¶¨ZÖáÎª0
+            // æ— owneræ—¶ï¼Œå›ºå®šZè½´ä¸º0
             Vector3 pos = effectObj.transform.position;
             pos.z = 0f;
             effectObj.transform.position = pos;
@@ -370,19 +389,19 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
     #endregion
 
-    #region ÒôĞ§²¥·ÅÖØÔØ·½·¨
+    #region éŸ³æ•ˆæ’­æ”¾é‡è½½æ–¹æ³•
     /// <summary>
-    /// ²¥·Å2DÒôĞ§£¨´«×ÊÔ´Â·¾¶£©
+    /// æ’­æ”¾2DéŸ³æ•ˆï¼ˆä¼ èµ„æºè·¯å¾„ï¼‰
     /// </summary>
-    /// <param name="clipPath">ÒôĞ§×ÊÔ´Â·¾¶</param>
-    /// <param name="SpecialVolume">ÌØÊâÒôÁ¿£¨¿É>1·Å´ó£¬Ä¬ÈÏ1f£©</param>
-    /// <param name="isLoop">ÊÇ·ñÑ­»·²¥·Å</param>
-    /// <param name="callback">²¥·ÅÍê³É»Øµ÷</param>
+    /// <param name="clipPath">éŸ³æ•ˆèµ„æºè·¯å¾„</param>
+    /// <param name="SpecialVolume">ç‰¹æ®ŠéŸ³é‡ï¼ˆå¯>1æ”¾å¤§ï¼Œé»˜è®¤1fï¼‰</param>
+    /// <param name="isLoop">æ˜¯å¦å¾ªç¯æ’­æ”¾</param>
+    /// <param name="callback">æ’­æ”¾å®Œæˆå›è°ƒ</param>
     public void PlayEffect(string clipPath, float SpecialVolume = 1f, bool isLoop = false, UnityAction<AudioSource> callback = null)
     {
         if (string.IsNullOrEmpty(clipPath))
         {
-            Debug.LogWarning("ÒôĞ§Â·¾¶²»ÄÜÎª¿Õ£¡");
+            /* Debug.LogWarning("éŸ³æ•ˆè·¯å¾„ä¸èƒ½ä¸ºç©ºï¼"); */
             callback?.Invoke(null);
             return;
         }
@@ -394,16 +413,16 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
 
     /// <summary>
-    /// ²¥·Å3DÒôĞ§£¨´«×ÊÔ´Â·¾¶£©
+    /// æ’­æ”¾3DéŸ³æ•ˆï¼ˆä¼ èµ„æºè·¯å¾„ï¼‰
     /// </summary>
-    /// <param name="clipPath">ÒôĞ§×ÊÔ´Â·¾¶</param>
-    /// <param name="SpecialVolume">ÌØÊâÒôÁ¿£¨¿É>1·Å´ó£¬Ä¬ÈÏ1f£©</param>
-    /// <param name="maxDistance">3DÒôĞ§×î´óË¥¼õ¾àÀë</param>
-    /// <param name="minDistance">3DÒôĞ§×îĞ¡ÎŞË¥¼õ¾àÀë</param>
-    /// <param name="owner">ÒôĞ§¸úËæµÄ¸¸ÎïÌå</param>
-    /// <param name="isLoop">ÊÇ·ñÑ­»·²¥·Å</param>
-    /// <param name="callback">²¥·ÅÍê³É»Øµ÷</param>
-    /// <param name="isDetach">ÊÇ·ñ·ÖÀë²¥·Å£¨Ä¬ÈÏtrue£º½ö¸³ÖµÎ»ÖÃ£¬²»¸úËæÎïÌåÔË¶¯£©</param>
+    /// <param name="clipPath">éŸ³æ•ˆèµ„æºè·¯å¾„</param>
+    /// <param name="SpecialVolume">ç‰¹æ®ŠéŸ³é‡ï¼ˆå¯>1æ”¾å¤§ï¼Œé»˜è®¤1fï¼‰</param>
+    /// <param name="maxDistance">3DéŸ³æ•ˆæœ€å¤§è¡°å‡è·ç¦»</param>
+    /// <param name="minDistance">3DéŸ³æ•ˆæœ€å°æ— è¡°å‡è·ç¦»</param>
+    /// <param name="owner">éŸ³æ•ˆè·Ÿéšçš„çˆ¶ç‰©ä½“</param>
+    /// <param name="isLoop">æ˜¯å¦å¾ªç¯æ’­æ”¾</param>
+    /// <param name="callback">æ’­æ”¾å®Œæˆå›è°ƒ</param>
+    /// <param name="isDetach">æ˜¯å¦åˆ†ç¦»æ’­æ”¾ï¼ˆé»˜è®¤trueï¼šä»…èµ‹å€¼ä½ç½®ï¼Œä¸è·Ÿéšç‰©ä½“è¿åŠ¨ï¼‰</param>
     public void PlayEffect3D(
         string clipPath,
         float SpecialVolume = 1f,
@@ -416,41 +435,41 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     {
         if (string.IsNullOrEmpty(clipPath))
         {
-            Debug.LogWarning("ÒôĞ§Â·¾¶²»ÄÜÎª¿Õ£¡");
+            /* Debug.LogWarning("éŸ³æ•ˆè·¯å¾„ä¸èƒ½ä¸ºç©ºï¼"); */
             callback?.Invoke(null);
             return;
         }
 
         ResourcesManager.Instance.LoadAsync<AudioClip>(clipPath, (clip) =>
         {
-            // ´«µİisDetach²ÎÊı
+            // ä¼ é€’isDetachå‚æ•°
             PlayEffectCore(clip, true, SpecialVolume, maxDistance, minDistance, owner, isLoop, callback, isDetach);
         });
     }
 
     /// <summary>
-    /// ²¥·Å2DÒôĞ§£¨´«AudioClip£©
+    /// æ’­æ”¾2DéŸ³æ•ˆï¼ˆä¼ AudioClipï¼‰
     /// </summary>
-    /// <param name="clip">ÒôÆµ¼ô¼­</param>
-    /// <param name="SpecialVolume">ÌØÊâÒôÁ¿£¨¿É>1·Å´ó£¬Ä¬ÈÏ1f£©</param>
-    /// <param name="isLoop">ÊÇ·ñÑ­»·²¥·Å</param>
-    /// <param name="callback">²¥·ÅÍê³É»Øµ÷</param>
+    /// <param name="clip">éŸ³é¢‘å‰ªè¾‘</param>
+    /// <param name="SpecialVolume">ç‰¹æ®ŠéŸ³é‡ï¼ˆå¯>1æ”¾å¤§ï¼Œé»˜è®¤1fï¼‰</param>
+    /// <param name="isLoop">æ˜¯å¦å¾ªç¯æ’­æ”¾</param>
+    /// <param name="callback">æ’­æ”¾å®Œæˆå›è°ƒ</param>
     public void PlayEffect(AudioClip clip, float SpecialVolume = 1f, bool isLoop = false, UnityAction<AudioSource> callback = null)
     {
         PlayEffectCore(clip, false, SpecialVolume, 0, 0, null, isLoop, callback);
     }
 
     /// <summary>
-    /// ²¥·Å3DÒôĞ§£¨´«AudioClip£©
+    /// æ’­æ”¾3DéŸ³æ•ˆï¼ˆä¼ AudioClipï¼‰
     /// </summary>
-    /// <param name="clip">ÒôÆµ¼ô¼­</param>
-    /// <param name="SpecialVolume">ÌØÊâÒôÁ¿£¨¿É>1·Å´ó£¬Ä¬ÈÏ1f£©</param>
-    /// <param name="maxDistance">3DÒôĞ§×î´óË¥¼õ¾àÀë</param>
-    /// <param name="minDistance">3DÒôĞ§×îĞ¡ÎŞË¥¼õ¾àÀë</param>
-    /// <param name="owner">ÒôĞ§¸úËæµÄ¸¸ÎïÌå</param>
-    /// <param name="isLoop">ÊÇ·ñÑ­»·²¥·Å</param>
-    /// <param name="callback">²¥·ÅÍê³É»Øµ÷</param>
-    /// <param name="isDetach">ÊÇ·ñ·ÖÀë²¥·Å£¨Ä¬ÈÏtrue£º½ö¸³ÖµÎ»ÖÃ£¬²»¸úËæÎïÌåÔË¶¯£©</param>
+    /// <param name="clip">éŸ³é¢‘å‰ªè¾‘</param>
+    /// <param name="SpecialVolume">ç‰¹æ®ŠéŸ³é‡ï¼ˆå¯>1æ”¾å¤§ï¼Œé»˜è®¤1fï¼‰</param>
+    /// <param name="maxDistance">3DéŸ³æ•ˆæœ€å¤§è¡°å‡è·ç¦»</param>
+    /// <param name="minDistance">3DéŸ³æ•ˆæœ€å°æ— è¡°å‡è·ç¦»</param>
+    /// <param name="owner">éŸ³æ•ˆè·Ÿéšçš„çˆ¶ç‰©ä½“</param>
+    /// <param name="isLoop">æ˜¯å¦å¾ªç¯æ’­æ”¾</param>
+    /// <param name="callback">æ’­æ”¾å®Œæˆå›è°ƒ</param>
+    /// <param name="isDetach">æ˜¯å¦åˆ†ç¦»æ’­æ”¾ï¼ˆé»˜è®¤trueï¼šä»…èµ‹å€¼ä½ç½®ï¼Œä¸è·Ÿéšç‰©ä½“è¿åŠ¨ï¼‰</param>
     public void PlayEffect3D(
         AudioClip clip,
         float SpecialVolume = 1f,
@@ -459,23 +478,23 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         Transform owner = null,
         bool isLoop = false,
         UnityAction<AudioSource> callback = null,
-        bool isDetach = true) // ĞÂÔö£ºÊÇ·ñ·ÖÀë²¥·Å²ÎÊı
+        bool isDetach = true) // æ–°å¢ï¼šæ˜¯å¦åˆ†ç¦»æ’­æ”¾å‚æ•°
     {
         PlayEffectCore(clip, true, SpecialVolume, maxDistance, minDistance, owner, isLoop, callback, isDetach);
     }
 
     /// <summary>
-    /// ²¥·Å3DÒôĞ§
-    /// ÍêÈ«ÊÖ¶¯¼ÆËã¾àÀë¡úÒôÁ¿£¬²»ÓÃUnity×Ô´øµÄ3DË¥¼õ
+    /// æ’­æ”¾3DéŸ³æ•ˆ
+    /// å®Œå…¨æ‰‹åŠ¨è®¡ç®—è·ç¦»â†’éŸ³é‡ï¼Œä¸ç”¨Unityè‡ªå¸¦çš„3Dè¡°å‡
     /// </summary>
-    /// <param name="clipPath">ÒôĞ§×ÊÔ´Â·¾¶</param>
-    /// <param name="SpecialVolume">ÌØÊâÒôÁ¿£¨¿É>1·Å´ó£©</param>
-    /// <param name="soundSourcePos">ÒôÔ´Î»ÖÃ£¨°Ğ×Ó/Ç½µÄÎ»ÖÃ£©</param>
-    /// <param name="listenerPos">ÌıÕßÎ»ÖÃ£¨Äã×Ô¼ºµÄÎ»ÖÃ£©</param>
-    /// <param name="minDistance">×îĞ¡ÎŞË¥¼õ¾àÀë£¨´Ë¾àÀëÄÚÒôÁ¿=1£©</param>
-    /// <param name="maxDistance">×î´óË¥¼õ¾àÀë£¨´Ë¾àÀëÍâÒôÁ¿=0£©</param>
-    /// <param name="isLoop">ÊÇ·ñÑ­»·</param>
-    /// <param name="callback">²¥·ÅÍê³É»Øµ÷</param>
+    /// <param name="clipPath">éŸ³æ•ˆèµ„æºè·¯å¾„</param>
+    /// <param name="SpecialVolume">ç‰¹æ®ŠéŸ³é‡ï¼ˆå¯>1æ”¾å¤§ï¼‰</param>
+    /// <param name="soundSourcePos">éŸ³æºä½ç½®ï¼ˆé¶å­/å¢™çš„ä½ç½®ï¼‰</param>
+    /// <param name="listenerPos">å¬è€…ä½ç½®ï¼ˆä½ è‡ªå·±çš„ä½ç½®ï¼‰</param>
+    /// <param name="minDistance">æœ€å°æ— è¡°å‡è·ç¦»ï¼ˆæ­¤è·ç¦»å†…éŸ³é‡=1ï¼‰</param>
+    /// <param name="maxDistance">æœ€å¤§è¡°å‡è·ç¦»ï¼ˆæ­¤è·ç¦»å¤–éŸ³é‡=0ï¼‰</param>
+    /// <param name="isLoop">æ˜¯å¦å¾ªç¯</param>
+    /// <param name="callback">æ’­æ”¾å®Œæˆå›è°ƒ</param>
     public void PlayEffect3D_Custom(
         string clipPath,
         float SpecialVolume = 1f,
@@ -488,7 +507,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     {
         if (string.IsNullOrEmpty(clipPath))
         {
-            Debug.LogWarning("ÒôĞ§Â·¾¶²»ÄÜÎª¿Õ£¡");
+            /* Debug.LogWarning("éŸ³æ•ˆè·¯å¾„ä¸èƒ½ä¸ºç©ºï¼"); */
             callback?.Invoke(null);
             return;
         }
@@ -506,21 +525,21 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
 
             if (distance <= minDistance)
             {
-                // ¾àÀëĞ¡ÓÚ×îĞ¡¾àÀë£ºÂúÒôÁ¿
+                // è·ç¦»å°äºæœ€å°è·ç¦»ï¼šæ»¡éŸ³é‡
                 volumeFactor = 1f;
             }
             else if (distance >= maxDistance)
             {
-                // ¾àÀë´óÓÚ×î´ó¾àÀë£º¾²Òô
+                // è·ç¦»å¤§äºæœ€å¤§è·ç¦»ï¼šé™éŸ³
                 volumeFactor = 0f;
             }
             else
             {
-                // ÖĞ¼ä¾àÀë£ºÏßĞÔË¥¼õ£¨Äã¿ÉÒÔ¸Ä³ÉÆ½·½Ë¥¼õµÈÈÎºÎÇúÏß£©
+                // ä¸­é—´è·ç¦»ï¼šçº¿æ€§è¡°å‡ï¼ˆä½ å¯ä»¥æ”¹æˆå¹³æ–¹è¡°å‡ç­‰ä»»ä½•æ›²çº¿ï¼‰
                 volumeFactor = 1f - (distance - minDistance) / (maxDistance - minDistance);
             }
 
-            // ¼ÆËã×îÖÕÒôÁ¿£º×Ô¶¨ÒåË¥¼õÏµÊı * ÌØÊâÒôÁ¿ * È«¾ÖÒôÁ¿
+            // è®¡ç®—æœ€ç»ˆéŸ³é‡ï¼šè‡ªå®šä¹‰è¡°å‡ç³»æ•° * ç‰¹æ®ŠéŸ³é‡ * å…¨å±€éŸ³é‡
             float clampedSpecialVolume = Mathf.Clamp(SpecialVolume, 0f, MaxEffectAmplification);
             float finalVolume = volumeFactor * clampedSpecialVolume * effectGlobalVolume;
 
@@ -529,7 +548,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
 
     /// <summary>
-    /// ×Ô¶¨Òå²¥·ÅºËĞÄ
+    /// è‡ªå®šä¹‰æ’­æ”¾æ ¸å¿ƒ
     /// </summary>
     private void PlayEffectCore_Custom(
         AudioClip clip,
@@ -565,10 +584,10 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         if (audioSource == null)
             audioSource = effectObj.AddComponent<AudioSource>();
 
-        // ÉèÖÃÎ»ÖÃ£¨ËäÈ»ÊÇ2D£¬µ«Î»ÖÃÉèÎªÌıÕßÎ»ÖÃ£¬·½±ãµ÷ÊÔ£©
+        // è®¾ç½®ä½ç½®ï¼ˆè™½ç„¶æ˜¯2Dï¼Œä½†ä½ç½®è®¾ä¸ºå¬è€…ä½ç½®ï¼Œæ–¹ä¾¿è°ƒè¯•ï¼‰
         effectObj.transform.position = new Vector3(playPos.x, playPos.y, 0f);
 
-        // Ç¿ÖÆ2D²¥·Å£¬ÍêÈ«²»ÓÃUnityµÄ3DË¥¼õ
+        // å¼ºåˆ¶2Dæ’­æ”¾ï¼Œå®Œå…¨ä¸ç”¨Unityçš„3Dè¡°å‡
         audioSource.spatialBlend = 0f;
         audioSource.clip = clip;
         audioSource.loop = isLoop;
@@ -585,39 +604,39 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
 
     /// <summary>
-    /// Ê¹ÓÃÍâ²¿AudioSource²¥·ÅÒôĞ§£¨¸´ÓÃÒÑÓĞ×é¼ş£¬Ö§³ÖÒôÁ¿·Å´ó£©
+    /// ä½¿ç”¨å¤–éƒ¨AudioSourceæ’­æ”¾éŸ³æ•ˆï¼ˆå¤ç”¨å·²æœ‰ç»„ä»¶ï¼Œæ”¯æŒéŸ³é‡æ”¾å¤§ï¼‰
     /// </summary>
-    /// <param name="externalSource">Íâ²¿AudioSource×é¼ş</param>
-    /// <param name="SpecialVolume">ÌØÊâÒôÁ¿£¨¿É>1·Å´ó£¬Ä¬ÈÏ1f£©</param>
-    /// <param name="isLoop">ÊÇ·ñÑ­»·²¥·Å</param>
-    /// <param name="callback">²¥·ÅÍê³É»Øµ÷</param>
+    /// <param name="externalSource">å¤–éƒ¨AudioSourceç»„ä»¶</param>
+    /// <param name="SpecialVolume">ç‰¹æ®ŠéŸ³é‡ï¼ˆå¯>1æ”¾å¤§ï¼Œé»˜è®¤1fï¼‰</param>
+    /// <param name="isLoop">æ˜¯å¦å¾ªç¯æ’­æ”¾</param>
+    /// <param name="callback">æ’­æ”¾å®Œæˆå›è°ƒ</param>
     public void PlayEffect(AudioSource externalSource, float SpecialVolume = 1f, bool isLoop = false, UnityAction<AudioSource> callback = null)
     {
         if (externalSource == null)
         {
-            Debug.LogError("Íâ²¿AudioSourceÎª¿Õ£¡");
+            /* Debug.LogError("å¤–éƒ¨AudioSourceä¸ºç©ºï¼"); */
             callback?.Invoke(null);
             return;
         }
 
         if (externalSource.clip == null)
         {
-            Debug.LogError($"Íâ²¿AudioSource¡¾{externalSource.gameObject.name}¡¿Î´¸³ÖµAudioClip£¡");
+            /* Debug.LogError($"å¤–éƒ¨AudioSourceã€{externalSource.gameObject.name}ã€‘æœªèµ‹å€¼AudioClipï¼"); */
             callback?.Invoke(externalSource);
             return;
         }
 
-        // Ö§³Ö·Å´óÒôÁ¿²¢ÏŞÖÆ×î´óÖµ
+        // æ”¯æŒæ”¾å¤§éŸ³é‡å¹¶é™åˆ¶æœ€å¤§å€¼
         float clampedVolume = Mathf.Clamp(SpecialVolume, 0f, MaxEffectAmplification);
         SetSpecificEffectVolume(externalSource.clip.name, clampedVolume);
 
-        // ÒôÁ¿¼ÆËã£ºÌØÊâÒôÁ¿(¿É>1) * È«¾ÖÒôÁ¿(0-1)
+        // éŸ³é‡è®¡ç®—ï¼šç‰¹æ®ŠéŸ³é‡(å¯>1) * å…¨å±€éŸ³é‡(0-1)
         float specificVol = specificEffectVolumes.TryGetValue(externalSource.clip.name, out float vol) ? vol : 1f;
         externalSource.volume = specificVol * effectGlobalVolume;
         externalSource.loop = isLoop;
         externalSource.Play();
 
-        // ¼ÓÈë¹ÜÀíÁĞ±í
+        // åŠ å…¥ç®¡ç†åˆ—è¡¨
         if (!activeEffectSources.Contains(externalSource))
         {
             activeEffectSources.Add(externalSource);
@@ -627,9 +646,9 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
     #endregion
 
-    #region ¶ÔÒôĞ§µÄ¹ÜÀí²Ù×÷
+    #region å¯¹éŸ³æ•ˆçš„ç®¡ç†æ“ä½œ
     /// <summary>
-    /// ÇåÀíÒÑ²¥·ÅÍê³ÉµÄ·ÇÑ­»·ÒôĞ§
+    /// æ¸…ç†å·²æ’­æ”¾å®Œæˆçš„éå¾ªç¯éŸ³æ•ˆ
     /// </summary>
     private void CleanupFinishedEffects()
     {
@@ -642,7 +661,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
                 continue;
             }
 
-            // ·ÇÑ­»·+Î´²¥·Å£º¹é»¹/Ïú»ÙÎïÌå
+            // éå¾ªç¯+æœªæ’­æ”¾ï¼šå½’è¿˜/é”€æ¯ç‰©ä½“
             if (!source.isPlaying && !source.loop)
             {
                 ReturnEffectToPool(source);
@@ -652,14 +671,14 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
 
     /// <summary>
-    /// Í£Ö¹Ö¸¶¨ÒôĞ§²¢¹é»¹/Ïú»ÙÎïÌå
+    /// åœæ­¢æŒ‡å®šéŸ³æ•ˆå¹¶å½’è¿˜/é”€æ¯ç‰©ä½“
     /// </summary>
-    /// <param name="source">ÒªÍ£Ö¹µÄÒôĞ§AudioSource</param>
+    /// <param name="source">è¦åœæ­¢çš„éŸ³æ•ˆAudioSource</param>
     public void StopEffect(AudioSource source)
     {
         if (source == null || !activeEffectSources.Contains(source))
         {
-            Debug.LogWarning("ÒôĞ§Î´ÔÚ»îÔ¾ÁĞ±íÖĞ£¬ÎŞĞèÍ£Ö¹£¡");
+            /* Debug.LogWarning("éŸ³æ•ˆæœªåœ¨æ´»è·ƒåˆ—è¡¨ä¸­ï¼Œæ— éœ€åœæ­¢ï¼"); */
             return;
         }
 
@@ -669,9 +688,9 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
 
     /// <summary>
-    /// ÔİÍ£/¼ÌĞøËùÓĞ»îÔ¾ÒôĞ§
+    /// æš‚åœ/ç»§ç»­æ‰€æœ‰æ´»è·ƒéŸ³æ•ˆ
     /// </summary>
-    /// <param name="isPause">true=ÔİÍ££¬false=¼ÌĞø</param>
+    /// <param name="isPause">true=æš‚åœï¼Œfalse=ç»§ç»­</param>
     public void PauseOrResumeAllEffects(bool isPause)
     {
         foreach (var source in activeEffectSources)
@@ -686,54 +705,54 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
     #endregion
 
-    #region ÒôĞ§µÄÒôÁ¿È«¾ÖÒÔ¼°ÌØÊâ¿ØÖÆ£¨Ö§³Ö·Å´ó£©
+    #region éŸ³æ•ˆçš„éŸ³é‡å…¨å±€ä»¥åŠç‰¹æ®Šæ§åˆ¶ï¼ˆæ”¯æŒæ”¾å¤§ï¼‰
     /// <summary>
-    /// ÉèÖÃÒôĞ§È«¾ÖÒôÁ¿
+    /// è®¾ç½®éŸ³æ•ˆå…¨å±€éŸ³é‡
     /// </summary>
-    /// <param name="value">0-1µÄÒôÁ¿Öµ£¨Í³Ò»¿ØÖÆËùÓĞÒôĞ§µÄ»ù´¡ÒôÁ¿£©</param>
+    /// <param name="value">0-1çš„éŸ³é‡å€¼ï¼ˆç»Ÿä¸€æ§åˆ¶æ‰€æœ‰éŸ³æ•ˆçš„åŸºç¡€éŸ³é‡ï¼‰</param>
     public void SetEffectGlobalVolume(float value)
     {
         effectGlobalVolume = Mathf.Clamp01(value);
-        Debug.Log($"ÒôĞ§È«¾ÖÒôÁ¿ÒÑÉèÖÃÎª£º{effectGlobalVolume}£¬»îÔ¾ÒôĞ§Êı£º{activeEffectSources.Count}");
+        /* Debug.Log($"éŸ³æ•ˆå…¨å±€éŸ³é‡å·²è®¾ç½®ä¸ºï¼š{effectGlobalVolume}ï¼Œæ´»è·ƒéŸ³æ•ˆæ•°ï¼š{activeEffectSources.Count}"); */
 
-        // ÅúÁ¿¸üĞÂËùÓĞ»îÔ¾ÒôĞ§ÒôÁ¿£¨±£Áô·Å´óĞ§¹û£©
+        // æ‰¹é‡æ›´æ–°æ‰€æœ‰æ´»è·ƒéŸ³æ•ˆéŸ³é‡ï¼ˆä¿ç•™æ”¾å¤§æ•ˆæœï¼‰
         foreach (var source in activeEffectSources)
         {
             if (source == null || source.clip == null) continue;
 
             float specificVol = specificEffectVolumes.TryGetValue(source.clip.name, out float vol) ? vol : 1f;
             source.volume = specificVol * effectGlobalVolume;
-            Debug.Log($"¸üĞÂÒôĞ§¡¾{source.clip.name}¡¿ÒôÁ¿Îª£º{source.volume}");
+            /* Debug.Log($"æ›´æ–°éŸ³æ•ˆã€{source.clip.name}ã€‘éŸ³é‡ä¸ºï¼š{source.volume}"); */
         }
     }
 
     /// <summary>
-    /// »ñÈ¡ÒôĞ§È«¾ÖÒôÁ¿
+    /// è·å–éŸ³æ•ˆå…¨å±€éŸ³é‡
     /// </summary>
-    /// <returns>0-1µÄÒôÁ¿Öµ</returns>
+    /// <returns>0-1çš„éŸ³é‡å€¼</returns>
     public float GetEffectGlobalVolume()
     {
         return effectGlobalVolume;
     }
 
     /// <summary>
-    /// ÉèÖÃÖ¸¶¨ÒôĞ§µÄ¶ÀÁ¢ÒôÁ¿
+    /// è®¾ç½®æŒ‡å®šéŸ³æ•ˆçš„ç‹¬ç«‹éŸ³é‡
     /// </summary>
-    /// <param name="effectName">ÒôĞ§Ãû³Æ£¨¶ÔÓ¦AudioClip.name£©</param>
-    /// <param name="volume">ÒôÁ¿Öµ£¨0~MaxEffectAmplification£©</param>
+    /// <param name="effectName">éŸ³æ•ˆåç§°ï¼ˆå¯¹åº”AudioClip.nameï¼‰</param>
+    /// <param name="volume">éŸ³é‡å€¼ï¼ˆ0~MaxEffectAmplificationï¼‰</param>
     public void SetSpecificEffectVolume(string effectName, float volume)
     {
         if (string.IsNullOrEmpty(effectName))
         {
-            Debug.LogWarning("ÒôĞ§Ãû³Æ²»ÄÜÎª¿Õ£¡");
+            /* Debug.LogWarning("éŸ³æ•ˆåç§°ä¸èƒ½ä¸ºç©ºï¼"); */
             return;
         }
 
-        // ÏŞÖÆÒôÁ¿·¶Î§£º0 ~ ×î´ó·Å´ó±¶Êı
+        // é™åˆ¶éŸ³é‡èŒƒå›´ï¼š0 ~ æœ€å¤§æ”¾å¤§å€æ•°
         float clampedVolume = Mathf.Clamp(volume, 0f, MaxEffectAmplification);
         if (volume != clampedVolume)
         {
-            Debug.Log($"ÒôĞ§¡¾{effectName}¡¿ÒôÁ¿{volume}ÒÑÏŞÖÆÔÚ0~{MaxEffectAmplification}");
+            /* Debug.Log($"éŸ³æ•ˆã€{effectName}ã€‘éŸ³é‡{volume}å·²é™åˆ¶åœ¨0~{MaxEffectAmplification}"); */
         }
 
         if (specificEffectVolumes.ContainsKey(effectName))
@@ -741,7 +760,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
         else
             specificEffectVolumes.Add(effectName, clampedVolume);
 
-        // ÊµÊ±¸üĞÂ»îÔ¾µÄ¸ÃÒôĞ§ÒôÁ¿
+        // å®æ—¶æ›´æ–°æ´»è·ƒçš„è¯¥éŸ³æ•ˆéŸ³é‡
         foreach (var source in activeEffectSources)
         {
             if (source != null && source.clip != null && source.clip.name == effectName)
@@ -752,9 +771,9 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
 
     /// <summary>
-    /// ÅúÁ¿ÉèÖÃËùÓĞ»îÔ¾ÒôĞ§µÄÒôÁ¿£¨¿ìËÙµ÷½Ú£©
+    /// æ‰¹é‡è®¾ç½®æ‰€æœ‰æ´»è·ƒéŸ³æ•ˆçš„éŸ³é‡ï¼ˆå¿«é€Ÿè°ƒèŠ‚ï¼‰
     /// </summary>
-    /// <param name="volume">ÒôÁ¿Öµ£¨0~MaxEffectAmplification£©</param>
+    /// <param name="volume">éŸ³é‡å€¼ï¼ˆ0~MaxEffectAmplificationï¼‰</param>
     public void AddAllSpecificEffectVolume(float volume)
     {
         float clampedVolume = Mathf.Clamp(volume, 0f, MaxEffectAmplification);
@@ -765,9 +784,9 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
     #endregion
 
-    #region ¹é»¹/Ïú»ÙÒôĞ§ÎïÌå
+    #region å½’è¿˜/é”€æ¯éŸ³æ•ˆç‰©ä½“
     /// <summary>
-    /// Çå¿ÕËùÓĞ»îÔ¾ÒôĞ§²¢¹é»¹/Ïú»ÙÎïÌå
+    /// æ¸…ç©ºæ‰€æœ‰æ´»è·ƒéŸ³æ•ˆå¹¶å½’è¿˜/é”€æ¯ç‰©ä½“
     /// </summary>
     public void ClearAllEffects()
     {
@@ -779,47 +798,47 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
 
     /// <summary>
-    /// ½«ÒôĞ§ÎïÌå¹é»¹¶ÔÏó³Ø£¨Ô¤ÖÆÌå£©»òÏú»Ù£¨¶¯Ì¬´´½¨£©
+    /// å°†éŸ³æ•ˆç‰©ä½“å½’è¿˜å¯¹è±¡æ± ï¼ˆé¢„åˆ¶ä½“ï¼‰æˆ–é”€æ¯ï¼ˆåŠ¨æ€åˆ›å»ºï¼‰
     /// </summary>
-    /// <param name="audioSource">ÒôĞ§µÄAudioSource×é¼ş</param>
+    /// <param name="audioSource">éŸ³æ•ˆçš„AudioSourceç»„ä»¶</param>
     private void ReturnEffectToPool(AudioSource audioSource)
     {
         if (audioSource == null) return;
 
         GameObject effectObj = audioSource.gameObject;
-        // ÇåÀíÒôĞ§×é¼ş×´Ì¬
+        // æ¸…ç†éŸ³æ•ˆç»„ä»¶çŠ¶æ€
         audioSource.Stop();
         audioSource.clip = null;
         audioSource.loop = false;
 
-        // ÅĞ¶ÏÊÇ·ñÊÇ¶¯Ì¬´´½¨µÄÎïÌå
+        // åˆ¤æ–­æ˜¯å¦æ˜¯åŠ¨æ€åˆ›å»ºçš„ç‰©ä½“
         if (effectObj.GetComponent<DynamicEffectMarker>() != null)
         {
-            // ¶¯Ì¬ÎïÌåÖ±½ÓÏú»Ù
+            // åŠ¨æ€ç‰©ä½“ç›´æ¥é”€æ¯
             Destroy(effectObj);
             return;
         }
 
-        // Ô¤ÖÆÌåÎïÌå£º¹é»¹¶ÔÏó³Ø
+        // é¢„åˆ¶ä½“ç‰©ä½“ï¼šå½’è¿˜å¯¹è±¡æ± 
         if (effectPrefab != null && PoolManage.Instance != null)
         {
-            // ¹é»¹Ç°½â³ı¸¸ÎïÌåÒıÓÃ
+            // å½’è¿˜å‰è§£é™¤çˆ¶ç‰©ä½“å¼•ç”¨
             effectObj.transform.SetParent(null);
             PoolManage.Instance.PushObj(effectPrefab, effectObj);
         }
         else if (effectPrefab == null)
         {
-            // ÎŞÔ¤ÖÆÌåµ«²»ÊÇ¶¯Ì¬ÎïÌå£ºÖ±½ÓÏú»Ù
+            // æ— é¢„åˆ¶ä½“ä½†ä¸æ˜¯åŠ¨æ€ç‰©ä½“ï¼šç›´æ¥é”€æ¯
             Destroy(effectObj);
         }
     }
 
-    // ±ê¼Ç¶¯Ì¬´´½¨µÄÒôĞ§ÎïÌå
+    // æ ‡è®°åŠ¨æ€åˆ›å»ºçš„éŸ³æ•ˆç‰©ä½“
     private class DynamicEffectMarker : MonoBehaviour { }
     #endregion
     #endregion
 
-    #region ÉúÃüÖÜÆÚ
+    #region ç”Ÿå‘½å‘¨æœŸ
     protected override void Awake()
     {
         base.Awake();
@@ -830,7 +849,7 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     protected override void OnDestroy()
     {
         base.OnDestroy();
-        // Ïú»Ù¶¯Ì¬ÒôĞ§¸ùÎïÌå
+        // é”€æ¯åŠ¨æ€éŸ³æ•ˆæ ¹ç‰©ä½“
         if (_dynamicEffectRoot != null)
         {
             Destroy(_dynamicEffectRoot);
@@ -838,24 +857,24 @@ public class MusicManager : SingleMonoAutoBehavior<MusicManager>
     }
     #endregion
 
-    #region Ö»¶ÁÊôĞÔ
+    #region åªè¯»å±æ€§
     /// <summary>
-    /// ±³¾°ÒôÀÖÊÇ·ñÕıÔÚ²¥·Å
+    /// èƒŒæ™¯éŸ³ä¹æ˜¯å¦æ­£åœ¨æ’­æ”¾
     /// </summary>
     public bool IsBgmPlaying => backgroundAudioSource != null && backgroundAudioSource.isPlaying;
 
     /// <summary>
-    /// µ±Ç°±³¾°ÒôÀÖÈ«¾ÖÒôÁ¿
+    /// å½“å‰èƒŒæ™¯éŸ³ä¹å…¨å±€éŸ³é‡
     /// </summary>
     public float CurrentBgmGlobalVolume => bgmGlobalVolume;
 
     /// <summary>
-    /// µ±Ç°ÒôĞ§È«¾ÖÒôÁ¿
+    /// å½“å‰éŸ³æ•ˆå…¨å±€éŸ³é‡
     /// </summary>
     public float CurrentEffectGlobalVolume => effectGlobalVolume;
 
     /// <summary>
-    /// »îÔ¾ÒôĞ§ÊıÁ¿
+    /// æ´»è·ƒéŸ³æ•ˆæ•°é‡
     /// </summary>
     public int ActiveEffectCount => activeEffectSources.Count;
     #endregion

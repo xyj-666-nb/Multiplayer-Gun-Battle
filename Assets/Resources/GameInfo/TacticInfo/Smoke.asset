@@ -1,5 +1,5 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21,4 +21,5 @@ MonoBehaviour:
   UISprite: {fileID: 21300000, guid: 82e7a8b4a30443347a7682cfb8a3fb03, type: 3}
   GameBodySprite: {fileID: 21300000, guid: a08c292ef48e520498956e96c001df01, type: 3}
   TacticPrefab: {fileID: 3187886323673767674, guid: ce350126f71d9ce4da1e7575f290b4cd, type: 3}
-  tacticType: 3
+  tacticType: 5
+  CoolTime: 5

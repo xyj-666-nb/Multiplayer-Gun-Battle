@@ -113,7 +113,7 @@ public class UImanager : SingleBehavior<UImanager>
             sortedPanels[i].transform.SetSiblingIndex(i);
         }
 
-        Debug.Log($"UI面板优先级排序完成，共排序{sortedPanels.Count}个主Canvas面板");
+        /* Debug.Log($"UI面板优先级排序完成，共排序{sortedPanels.Count}个主Canvas面板"); */
     }
     #endregion
 

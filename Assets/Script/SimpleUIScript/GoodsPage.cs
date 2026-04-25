@@ -7,6 +7,9 @@ using System.Collections.Generic;
 
 public class GoodsPage : MonoBehaviour
 {
+    private const string SHOP_EXPAND_SOUND = "Music/\u6b63\u5f0f/\u5c55\u5f00";
+    private const string SHOP_COLLAPSE_SOUND = "Music/\u6b63\u5f0f/\u5408\u4e0a";
+    private const string SHOP_PURCHASE_SUCCESS_SOUND = "Music/\u6b63\u5f0f/\u8d2d\u4e70\u6210\u529f";
     [Header("组件关联")]
     public RectTransform DiscountRect;
     public TextMeshProUGUI DiscountText;//打折文本
@@ -337,6 +340,7 @@ public class GoodsPage : MonoBehaviour
                 SetAlreadyPurchase();
                 MerchantPeople.instance.MerchantPeopleSpeak("谢谢惠顾！赚大发了！");
                 GoodDataManager.Instance.PurchaseGoodToUser(goodsData);
+                MusicManager.Instance?.PlayEffect(SHOP_PURCHASE_SUCCESS_SOUND);
             });
         }
         else
@@ -357,9 +361,16 @@ public class GoodsPage : MonoBehaviour
     // 展开页面
     public void ShowExpandPage()
     {
+        if (isExpanded)
+            return;
+
+        var panel = UImanager.Instance.GetPanel<GoodsPanel>();
+        panel?.CollapseOtherPages(this);
+
         isExpanded = true;
         currentExpandSeq?.Kill();
         StopTyping();
+        MusicManager.Instance?.PlayEffect(SHOP_EXPAND_SOUND);
 
         MyRect.sizeDelta = new Vector2(IdleWight, MyRect.sizeDelta.y);
         IntroduceCanvasGroup.alpha = 0;
@@ -380,7 +391,7 @@ public class GoodsPage : MonoBehaviour
             if (MerchantPeople.instance != null)
                 MerchantPeople.instance.MerchantPeopleSpeak("眼光不错！");
 
-            var panel = UImanager.Instance.GetPanel<GoodsPanel>();
+            panel = UImanager.Instance.GetPanel<GoodsPanel>();
             panel?.UpdateContentWidth();
         });
     }
@@ -388,9 +399,21 @@ public class GoodsPage : MonoBehaviour
     // 收起页面
     public void HideExpendPage()
     {
+        HideExpendPage(true);
+    }
+
+    public void HideExpendPage(bool playSound)
+    {
+        if (!isExpanded && (MyRect == null || Mathf.Approximately(MyRect.sizeDelta.x, IdleWight)))
+            return;
+
         isExpanded = false;
         currentExpandSeq?.Kill();
         StopTyping();
+        if (playSound)
+        {
+            MusicManager.Instance?.PlayEffect(SHOP_COLLAPSE_SOUND);
+        }
 
         currentExpandSeq = DOTween.Sequence();
         IntroduceCanvasGroup.blocksRaycasts = false;
@@ -433,11 +456,23 @@ public class GoodsPage : MonoBehaviour
 
     public void TriggerIntroduceText()
     {
-        if (goodsData != null && !string.IsNullOrEmpty(goodsData.goodsDescription))
+        string introduceText = ResolveIntroduceText();
+        if (!string.IsNullOrEmpty(introduceText))
         {
             StopTyping();
-            typingCoroutine = StartCoroutine(TypeTextCoroutine(goodsData.goodsDescription));
+            typingCoroutine = StartCoroutine(TypeTextCoroutine(introduceText));
         }
+    }
+
+    private string ResolveIntroduceText()
+    {
+        if (goodsData == null)
+            return string.Empty;
+
+        if (goodsData.skinType == SkinType.GunAppearance && goodsData.gunSkinPack != null && !string.IsNullOrEmpty(goodsData.gunSkinPack.description))
+            return goodsData.gunSkinPack.description;
+
+        return goodsData.goodsDescription;
     }
 
     public void InitData(GoodsData Data)
@@ -534,7 +569,7 @@ public class GoodsPage : MonoBehaviour
                 {
                     GunSkinImage.transform.localScale = new Vector3(0.8f, 0.8f, 1f);
                 }
-                else if (gunRealName == "AUG" || gunRealName == "XM50")
+                else if (gunRealName == "AUG" || gunRealName == "XM50"|| gunRealName == "M249")
                 {
                         GunSkinImage.transform.localScale = new Vector3(0.8f, 0.8f, 1f);
                 }

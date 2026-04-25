@@ -45,17 +45,14 @@ public class RawImageClickAutoMapper : MonoBehaviour, IPointerDownHandler, IPoin
         ProcessClick(eventData, ExecuteEvents.pointerUpHandler);
     }
 
-    // 【核心：适配你的场景的坐标转换逻辑】
     private void ProcessClick<T>(PointerEventData eventData, ExecuteEvents.EventFunction<T> eventFunction) where T : IEventSystemHandler
     {
-        // 1. 基础校验
+        // 基础校验
         if (_targetRawImage == null || RenderCamera == null || TargetRT == null)
         {
-            Debug.LogError("【映射失败】核心引用未赋值！请检查RenderCamera和TargetRT");
             return;
         }
 
-        // 2. 屏幕坐标 → RawImage局部坐标
         if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
             _rawImageRect,
             eventData.position,
@@ -63,11 +60,11 @@ public class RawImageClickAutoMapper : MonoBehaviour, IPointerDownHandler, IPoin
             out Vector2 localPoint
         ))
         {
-            if (ShowDebugLog) Debug.LogWarning("点击不在RawImage范围内");
+            if (ShowDebugLog) 
             return;
         }
 
-        // 3. 【关键修复】处理Fit In Parent的黑边，计算有效显示区域
+        // 处理Fit In Parent的黑边，计算有效显示区域
         Rect rect = _rawImageRect.rect;
         float rawImageWidth = rect.width;
         float rawImageHeight = rect.height;
@@ -104,7 +101,7 @@ public class RawImageClickAutoMapper : MonoBehaviour, IPointerDownHandler, IPoin
         // 点击在黑边里，直接不响应
         if (uvX < uvXMin || uvX > uvXMax || uvY < uvYMin || uvY > uvYMax)
         {
-            if (ShowDebugLog) Debug.LogWarning("点击在黑边区域，无响应");
+            if (ShowDebugLog) /* Debug.LogWarning("点击在黑边区域，无响应"); */
             return;
         }
 
@@ -112,19 +109,11 @@ public class RawImageClickAutoMapper : MonoBehaviour, IPointerDownHandler, IPoin
         uvX = Mathf.InverseLerp(uvXMin, uvXMax, uvX);
         uvY = Mathf.InverseLerp(uvYMin, uvYMax, uvY);
 
-        // 【修复水平翻转】你的RT是水平翻转的，反转X轴坐标
         if (HorizontalFlipRT)
         {
             uvX = 1f - uvX;
         }
 
-        // 调试日志，方便你看坐标转换是否正确
-        if (ShowDebugLog)
-        {
-            Debug.Log($"【坐标转换】屏幕点击坐标：{eventData.position}");
-            Debug.Log($"【坐标转换】RawImage局部坐标：{localPoint}");
-            Debug.Log($"【坐标转换】最终RT的UV坐标：({uvX:F4}, {uvY:F4})");
-        }
 
         // 4. UV坐标 → 摄像机射线检测
         Vector2 viewportPoint = new Vector2(uvX, uvY);
@@ -149,15 +138,10 @@ public class RawImageClickAutoMapper : MonoBehaviour, IPointerDownHandler, IPoin
             }
         }
 
-        // 5. 自动转发点击事件到按钮
         if (hitObject != null)
         {
             ExecuteEvents.Execute(hitObject, eventData, eventFunction);
-            if (ShowDebugLog) Debug.Log($"【点击成功】已转发到物体：{hitObject.name}");
-        }
-        else
-        {
-            if (ShowDebugLog) Debug.LogWarning("射线未检测到任何物体，请检查碰撞体、Layer设置");
+
         }
     }
 }

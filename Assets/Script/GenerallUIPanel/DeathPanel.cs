@@ -43,7 +43,7 @@ public class DeathPanel : BasePanel
             }
         }
 
-        if (PlayerRespawnManager.Instance._isGameEnded)
+        if (PlayerRespawnManager.Instance != null && PlayerRespawnManager.Instance._isGameEnded)
         {
             UImanager.Instance.HidePanel<DeathPanel>();
             TimeLine.Stop();//ֹͣ

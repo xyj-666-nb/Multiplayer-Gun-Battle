@@ -189,19 +189,19 @@ public class AnimatorSoundControllerEditor : Editor
         if (GUILayout.Button("批量暂停所有音效", _batchButtonStyle))
         {
             targetScript.PauseAllTrackSounds();
-            Debug.Log(" 已暂停所有音效轨道");
+            /* Debug.Log(" 已暂停所有音效轨道"); */
         }
         GUILayout.Space(10); // 按钮之间的间距
         if (GUILayout.Button("批量停止所有音效", _batchButtonStyle))
         {
             targetScript.StopAllTrackSounds();
-            Debug.Log(" 已停止所有音效轨道");
+            /* Debug.Log(" 已停止所有音效轨道"); */
         }
         GUILayout.Space(10); // 按钮之间的间距
         if (GUILayout.Button("恢复所有暂停音效", _batchButtonStyle))
         {
             targetScript.ResumeAllTrackSounds();
-            Debug.Log(" 已恢复所有暂停的音效");
+            /* Debug.Log(" 已恢复所有暂停的音效"); */
         }
         GUILayout.FlexibleSpace();
 
@@ -256,11 +256,11 @@ public class AnimatorSoundControllerEditor : Editor
                 target.GetType().GetMethod($"PlaySound{trackNum}", new Type[] { typeof(bool) })
                     ?.Invoke(target, new object[] { target.DefaultIsLoop });
             }
-            Debug.Log($" 已播放 轨道{trackNum} {(is3D ? "3D" : "2D")} 音效：{clip.name}");
+            /* Debug.Log($" 已播放 轨道{trackNum} {(is3D ? "3D" : "2D")} 音效：{clip.name}"); */
         }
         catch (Exception e)
         {
-            Debug.LogError($" 播放轨道{trackNum}音效失败：{e.Message}", target);
+            /* Debug.LogError($" 播放轨道{trackNum}音效失败：{e.Message}", target); */
         }
     }
 
@@ -275,11 +275,11 @@ public class AnimatorSoundControllerEditor : Editor
         try
         {
             target.GetType().GetMethod($"PauseSound{trackNum}")?.Invoke(target, null);
-            Debug.Log($" 已暂停 轨道{trackNum} 音效");
+            /* Debug.Log($" 已暂停 轨道{trackNum} 音效"); */
         }
         catch (Exception e)
         {
-            Debug.LogError($" 暂停轨道{trackNum}音效失败：{e.Message}", target);
+            /* Debug.LogError($" 暂停轨道{trackNum}音效失败：{e.Message}", target); */
         }
     }
 
@@ -294,11 +294,11 @@ public class AnimatorSoundControllerEditor : Editor
         try
         {
             target.GetType().GetMethod($"StopSound{trackNum}")?.Invoke(target, null);
-            Debug.Log($"已停止 轨道{trackNum} 音效");
+            /* Debug.Log($"已停止 轨道{trackNum} 音效"); */
         }
         catch (Exception e)
         {
-            Debug.LogError($" 停止轨道{trackNum}音效失败：{e.Message}", target);
+            /* Debug.LogError($" 停止轨道{trackNum}音效失败：{e.Message}", target); */
         }
     }
 

@@ -201,6 +201,6 @@ public class ExpressionPackGenerator : EditorWindow
     private void AddLog(string message)
     {
         _logText += $"[{System.DateTime.Now:HH:mm:ss}] {message}\n";
-        Debug.Log($"[表情生成器] {message}");
+        /* Debug.Log($"[表情生成器] {message}"); */
     }
 }

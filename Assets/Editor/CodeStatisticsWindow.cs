@@ -222,7 +222,7 @@ public class CodeStatisticsWindow : EditorWindow
         }
         catch (Exception e)
         {
-            Debug.LogError($"统计文件失败：{path}\n错误：{e.Message}");
+            /* Debug.LogError($"统计文件失败：{path}\n错误：{e.Message}"); */
         }
     }
 
@@ -252,13 +252,13 @@ public class CodeStatisticsWindow : EditorWindow
     /// </summary>
     private void PrintResultToConsole()
     {
-        Debug.LogWarning("===== 代码统计完成 =====");
-        Debug.Log($"模式：{_statMode} | 有效检测：{(_countValidCode ? "开启" : "关闭")}");
-        Debug.Log($"文件：{_totalFiles} 个 | 总行：{_totalLines} 行");
+        /* Debug.LogWarning("===== 代码统计完成 ====="); */
+        /* Debug.Log($"模式：{_statMode} | 有效检测：{(_countValidCode ? "开启" : "关闭")}"); */
+        /* Debug.Log($"文件：{_totalFiles} 个 | 总行：{_totalLines} 行"); */
 
         if (_countValidCode)
         {
-            Debug.Log($"有效：{_validLines} 行 | 注释：{_commentLines} 行 | 空行：{_emptyLines} 行");
+            /* Debug.Log($"有效：{_validLines} 行 | 注释：{_commentLines} 行 | 空行：{_emptyLines} 行"); */
         }
     }
 }

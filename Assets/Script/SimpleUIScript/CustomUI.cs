@@ -131,7 +131,7 @@ public class CustomUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             panel.UpdateCurrentControlPanel(CurrentPlayerCustomUIInfo);
         }
 
-        Debug.Log($"玩家选中UI: {needCustomUIType}");
+        /* Debug.Log($"玩家选中UI: {needCustomUIType}"); */
     }
 
     private void Deselect()
@@ -148,7 +148,7 @@ public class CustomUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             OutLineImage.DOColor(new Color(selectedOutlineColor.r, selectedOutlineColor.g, selectedOutlineColor.b, 0), fadeDuration).SetUpdate(true);
         }
 
-        Debug.Log($"玩家取消选中UI: {needCustomUIType}");
+        /* Debug.Log($"玩家取消选中UI: {needCustomUIType}"); */
     }
     #endregion
 
@@ -209,7 +209,7 @@ public class CustomUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     {
         if (CurrentPlayerCustomUIInfo == null)
         {
-            Debug.LogWarning($"ApplicationInfo: {needCustomUIType} 的数据为空！");
+            /* Debug.LogWarning($"ApplicationInfo: {needCustomUIType} 的数据为空！"); */
             return;
         }
 

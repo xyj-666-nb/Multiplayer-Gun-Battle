@@ -128,7 +128,7 @@ public class TimeManage : SingleBehavior<TimeManage>
         var Pack = GetTimeScalePack(ID);
         if (Pack == null)
         {
-            Debug.LogError($"移除时间包失败，未找到ID为{ID}的时间包");
+            /* Debug.LogError($"移除时间包失败，未找到ID为{ID}的时间包"); */
             return;
         }
         // 判断所属优先级列表并移除
@@ -184,7 +184,7 @@ public class TimeManage : SingleBehavior<TimeManage>
                 return pack;
             }
         }
-        Debug.LogError($"并未发现ID为{ID}的时间包");
+        /* Debug.LogError($"并未发现ID为{ID}的时间包"); */
         return null;
     }
     #endregion

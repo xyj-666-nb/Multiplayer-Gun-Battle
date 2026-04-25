@@ -37,7 +37,7 @@ public class NetworkTrafficMonitor : MonoBehaviour
         networkManager = FindObjectOfType<NetworkManager>();
         if (networkManager == null)
         {
-            Debug.LogError("[通信检测]  未找到NetworkManager！");
+            /* Debug.LogError("[通信检测]  未找到NetworkManager！"); */
             return;
         }
 
@@ -45,7 +45,7 @@ public class NetworkTrafficMonitor : MonoBehaviour
         NetworkClient.RegisterHandler<HeartbeatMsg>(OnHeartbeatClient);
         NetworkServer.RegisterHandler<HeartbeatMsg>(OnHeartbeatServer);
 
-        Debug.Log("[通信检测]  初始化完成（Mirror 4.x+ 推荐写法）");
+        /* Debug.Log("[通信检测]  初始化完成（Mirror 4.x+ 推荐写法）"); */
     }
 
     void Update()
@@ -81,7 +81,7 @@ public class NetworkTrafficMonitor : MonoBehaviour
                 {
                     conn.Send(msg);
                     totalSendBytes += msgBytes;
-                    Debug.Log($"[通信检测-服务端]  发送心跳到 ConnId:{conn.connectionId} | 字节：{msgBytes} | 累计发送：{totalSendBytes}");
+                    /* Debug.Log($"[通信检测-服务端]  发送心跳到 ConnId:{conn.connectionId} | 字节：{msgBytes} | 累计发送：{totalSendBytes}"); */
                 }
             }
         }
@@ -90,7 +90,7 @@ public class NetworkTrafficMonitor : MonoBehaviour
         {
             NetworkClient.Send(msg);
             totalSendBytes += msgBytes;
-            Debug.Log($"[通信检测-客户端]  发送心跳到 {networkManager.networkAddress} | 字节：{msgBytes} | 累计发送：{totalSendBytes}");
+            /* Debug.Log($"[通信检测-客户端]  发送心跳到 {networkManager.networkAddress} | 字节：{msgBytes} | 累计发送：{totalSendBytes}"); */
         }
     }
 
@@ -102,7 +102,7 @@ public class NetworkTrafficMonitor : MonoBehaviour
             heartbeatVerified = true;
             int size = msg.content.Length;
             totalReceiveBytes += size;
-            Debug.Log($"[通信检测-客户端]  收到心跳 | 字节：{size} | 累计接收：{totalReceiveBytes} | ? 验证成功");
+            /* Debug.Log($"[通信检测-客户端]  收到心跳 | 字节：{size} | 累计接收：{totalReceiveBytes} | ? 验证成功"); */
         }
     }
 
@@ -114,7 +114,7 @@ public class NetworkTrafficMonitor : MonoBehaviour
             heartbeatVerified = true;
             int size = msg.content.Length;
             totalReceiveBytes += size;
-            Debug.Log($"[通信检测-服务端]  收到心跳(ConnId:{conn.connectionId}) | 字节：{size} | 累计接收：{totalReceiveBytes} | ? 验证成功");
+            /* Debug.Log($"[通信检测-服务端]  收到心跳(ConnId:{conn.connectionId}) | 字节：{size} | 累计接收：{totalReceiveBytes} | ? 验证成功"); */
         }
     }
 
@@ -122,13 +122,13 @@ public class NetworkTrafficMonitor : MonoBehaviour
     public void LogSendData(string targetInfo, int byteCount)
     {
         totalSendBytes += byteCount;
-        Debug.Log($"[通信检测-业务]  发送到 {targetInfo} | 字节：{byteCount} | 累计发送：{totalSendBytes}");
+        /* Debug.Log($"[通信检测-业务]  发送到 {targetInfo} | 字节：{byteCount} | 累计发送：{totalSendBytes}"); */
     }
 
     public void LogReceiveData(string sourceInfo, int byteCount)
     {
         totalReceiveBytes += byteCount;
-        Debug.Log($"[通信检测-业务]  收到({sourceInfo}) | 字节：{byteCount} | 累计接收：{totalReceiveBytes}");
+        /* Debug.Log($"[通信检测-业务]  收到({sourceInfo}) | 字节：{byteCount} | 累计接收：{totalReceiveBytes}"); */
     }
 
     [ContextMenu(" 重置通信统计数据")]
@@ -138,6 +138,6 @@ public class NetworkTrafficMonitor : MonoBehaviour
         totalReceiveBytes = 0;
         heartbeatVerified = false;
         lastHeartbeatTime = 0f;
-        Debug.Log("[通信检测]  统计数据已重置");
+        /* Debug.Log("[通信检测]  统计数据已重置"); */
     }
 }

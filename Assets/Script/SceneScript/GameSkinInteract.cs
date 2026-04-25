@@ -53,7 +53,7 @@ public class GameSkinInteract : BaseSceneInteract
 
         //核心逻辑：显示皮肤界面
         UImanager.Instance.ShowPanel<CostumePanel>();
-        Debug.Log("[皮肤交互] 已打开衣柜界面");
+        /* Debug.Log("[皮肤交互] 已打开衣柜界面"); */
     }
 
     public override void triggerEnterRange()

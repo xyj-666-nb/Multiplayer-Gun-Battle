@@ -38,7 +38,7 @@ public class WarnTriggerManager : SingleBehavior<WarnTriggerManager>
     {
         if (_isBlockingPanelShowing)
         {
-            Debug.LogWarning("当前已有阻断式警告面板显示，无法触发新的单交互警告！");
+            /* Debug.LogWarning("当前已有阻断式警告面板显示，无法触发新的单交互警告！"); */
             return;
         }
 
@@ -78,7 +78,7 @@ public class WarnTriggerManager : SingleBehavior<WarnTriggerManager>
     {
         if (_isBlockingPanelShowing)
         {
-            Debug.LogWarning("当前已有阻断式警告面板显示，无法触发新的双交互警告！");
+            /* Debug.LogWarning("当前已有阻断式警告面板显示，无法触发新的双交互警告！"); */
             return;
         }
 
@@ -122,7 +122,7 @@ public class WarnTriggerManager : SingleBehavior<WarnTriggerManager>
     {
         if (_isBlockingPanelShowing)
         {
-            Debug.LogWarning("当前已有阻断式警告面板显示，无法触发新的无Content版双交互警告！");
+            /* Debug.LogWarning("当前已有阻断式警告面板显示，无法触发新的无Content版双交互警告！"); */
             return;
         }
 
@@ -172,7 +172,7 @@ public class WarnTriggerManager : SingleBehavior<WarnTriggerManager>
     {
         if (_isBlockingPanelShowing)
         {
-            Debug.LogWarning("当前已有阻断式警告面板显示，无法触发新的协议交互警告！");
+            /* Debug.LogWarning("当前已有阻断式警告面板显示，无法触发新的协议交互警告！"); */
             return;
         }
 

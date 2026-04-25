@@ -109,7 +109,7 @@ public class AmmunitionBox : BaseSceneInteract
         _isCooling = true;
         _currentRemainTime = CollTime;
         PromptImage.text = "正在冷却";
-        Debug.Log("弹药已补满！");
+        /* Debug.Log("弹药已补满！"); */
         //调用弹药补充
         Player.LocalPlayer.CmdBulletSupplement();//补充弹药
         MusicManager.Instance.PlayEffect("Music/正式/交互/补充子弹",1f);

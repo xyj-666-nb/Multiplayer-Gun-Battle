@@ -22,7 +22,7 @@ MonoBehaviour:
   AllBulletAmount: 120
   RateOfFires: 0
   Accuracy: 55
-  Damage: 27
+  Damage: 33
   Range: 280
   ReloadTime: 3.3
   BulletSpeed: 0
@@ -31,6 +31,7 @@ MonoBehaviour:
   ControlPower: 50
   MaxPower: 5
   ViewRange: 0
+  Mobility: 0
   GunBodySprite: {fileID: -853166479, guid: 98f2c18782c10594e988cff6870612d4, type: 3}
   ShootAudio: {fileID: 8300000, guid: 1739e37310e3f7a4680cc8fd31adf76e, type: 3}
   BulletFill: {fileID: 8300000, guid: f4f7722094c4f054ebc1004771210a8b, type: 3}

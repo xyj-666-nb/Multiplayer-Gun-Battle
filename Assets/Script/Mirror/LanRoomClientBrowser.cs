@@ -17,11 +17,11 @@ public class LanRoomClientBrowser : MonoBehaviour
         discovery = CustomNetworkDiscovery.Instance;
         if (discovery == null)
         {
-            Debug.LogError("[LanRoomClientBrowser] 未找到CustomNetworkDiscovery单例！");
+            /* Debug.LogError("[LanRoomClientBrowser] 未找到CustomNetworkDiscovery单例！"); */
         }
         else
         {
-            Debug.Log("[LanRoomClientBrowser] 成功获取CustomNetworkDiscovery单例");
+            /* Debug.Log("[LanRoomClientBrowser] 成功获取CustomNetworkDiscovery单例"); */
         }
     }
 
@@ -44,7 +44,7 @@ public class LanRoomClientBrowser : MonoBehaviour
         if (discovery == null) return;
 
         discovery.StopDiscovery();
-        Debug.Log("[LanRoomClientBrowser] 已停止扫描局域网房间");
+        /* Debug.Log("[LanRoomClientBrowser] 已停止扫描局域网房间"); */
     }
 
     /// <summary>
@@ -54,7 +54,7 @@ public class LanRoomClientBrowser : MonoBehaviour
     {
         if (roomUri == null)
         {
-            Debug.LogError("[LanRoomClientBrowser] 房间Uri为空，无法连接");
+            /* Debug.LogError("[LanRoomClientBrowser] 房间Uri为空，无法连接"); */
             return;
         }
 
@@ -63,7 +63,7 @@ public class LanRoomClientBrowser : MonoBehaviour
 
         if (string.IsNullOrEmpty(serverIp) || serverIp is "localhost" or "127.0.0.1")
         {
-            Debug.LogError("[LanRoomClientBrowser] 房间IP无效，无法连接");
+            /* Debug.LogError("[LanRoomClientBrowser] 房间IP无效，无法连接"); */
             return;
         }
 
@@ -83,15 +83,15 @@ public class LanRoomClientBrowser : MonoBehaviour
             customNetMgr.transport = kcp;
             Transport.active = kcp;
 
-            Debug.Log($"[LanRoomClientBrowser] 强制切换到KCP模式，Transport={customNetMgr.transport.GetType().Name}");
+            /* Debug.Log($"[LanRoomClientBrowser] 强制切换到KCP模式，Transport={customNetMgr.transport.GetType().Name}"); */
         }
         // ========== 修复结束 ==========
 
-        Debug.Log($"[LanRoomClientBrowser] 开始连接：IP={serverIp}, 端口={serverPort}, Uri={roomUri}");
+        /* Debug.Log($"[LanRoomClientBrowser] 开始连接：IP={serverIp}, 端口={serverPort}, Uri={roomUri}"); */
         NetworkManager netMgr = FindObjectOfType<NetworkManager>();
         if (netMgr == null)
         {
-            Debug.LogError("[LanRoomClientBrowser] 未找到NetworkManager！");
+            /* Debug.LogError("[LanRoomClientBrowser] 未找到NetworkManager！"); */
             return;
         }
 
@@ -100,17 +100,17 @@ public class LanRoomClientBrowser : MonoBehaviour
         if (kcpTransport != null)
         {
             kcpTransport.Port = (ushort)serverPort;
-            Debug.Log($"[LanRoomClientBrowser] 已设置KCP端口={serverPort}");
+            /* Debug.Log($"[LanRoomClientBrowser] 已设置KCP端口={serverPort}"); */
         }
 
         try
         {
             netMgr.StartClient();
-            Debug.Log("[LanRoomClientBrowser] StartClient()调用成功，等待连接回调");
+            /* Debug.Log("[LanRoomClientBrowser] StartClient()调用成功，等待连接回调"); */
         }
         catch (Exception e)
         {
-            Debug.LogError($"[LanRoomClientBrowser] 连接失败：{e.Message}\n{e.StackTrace}");
+            /* Debug.LogError($"[LanRoomClientBrowser] 连接失败：{e.Message}\n{e.StackTrace}"); */
         }
     }
 

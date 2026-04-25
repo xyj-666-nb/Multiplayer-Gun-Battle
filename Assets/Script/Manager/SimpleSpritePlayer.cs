@@ -118,8 +118,8 @@ public static class SimpleSpritePlayer
 
     private static bool CheckIsValid(object target, Sprite[] sprites)
     {
-        if (target == null) { Debug.LogError("播放目标为空！"); return false; }
-        if (sprites == null || sprites.Length == 0) { Debug.LogError("Sprite 数组为空！"); return false; }
+        if (target == null) { /* Debug.LogError("播放目标为空！"); */ return false; }
+        if (sprites == null || sprites.Length == 0) { /* Debug.LogError("Sprite 数组为空！"); */ return false; }
         return true;
     }
 
@@ -130,7 +130,7 @@ public static class SimpleSpritePlayer
         // 检查目标是否还存在，如果被销毁了，自动停止
         if (!IsTargetAlive(state.Target))
         {
-            Debug.LogWarning("播放目标已丢失，自动停止动画。");
+            /* Debug.LogWarning("播放目标已丢失，自动停止动画。"); */
             CleanupState(state);
             return;
         }

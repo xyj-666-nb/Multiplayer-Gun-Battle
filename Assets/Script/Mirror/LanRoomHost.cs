@@ -16,7 +16,7 @@ public class LanRoomHost : MonoBehaviour
             discovery = FindObjectOfType<CustomNetworkDiscovery>();
             if (discovery == null)
             {
-                Debug.LogError("[LanRoomHost] 未找到CustomNetworkDiscovery组件！");
+                /* Debug.LogError("[LanRoomHost] 未找到CustomNetworkDiscovery组件！"); */
                 return;
             }
         }
@@ -24,7 +24,7 @@ public class LanRoomHost : MonoBehaviour
 
     public void CreateRoom(string roomName, string playerName, int GameTime, int GoalScore, int maxPlayers = 8)
     {
-        Debug.Log("HOST: StartHost + AdvertiseServer()");
+        /* Debug.Log("HOST: StartHost + AdvertiseServer()"); */
 
         CustomNetworkManager nm = null;
         if (CustomNetworkManager.Instance != null)
@@ -45,7 +45,7 @@ public class LanRoomHost : MonoBehaviour
             int port = nm.PrepareForCreateRoom();
             if (port == -1)
             {
-                Debug.LogError("[LanRoomHost] 端口分配失败，无法创建房间！");
+                /* Debug.LogError("[LanRoomHost] 端口分配失败，无法创建房间！"); */
                 return;
             }
 
@@ -64,18 +64,18 @@ public class LanRoomHost : MonoBehaviour
 
             discovery.AdvertiseServer();
 
-            Debug.Log($"成功创建房间（端口：{port}），开始广播");
+            /* Debug.Log($"成功创建房间（端口：{port}），开始广播"); */
 
             if (CountDownManager.Instance == null)
             {
-                Debug.LogError("[LanRoomHost] CountDownManager.Instance 为空！");
+                /* Debug.LogError("[LanRoomHost] CountDownManager.Instance 为空！"); */
                 return;
             }
             CurrentTimerIndex = CountDownManager.Instance.CreateTimer_Permanent(false, 200, UpdateAdvertiseServer);
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"[LanRoomHost] 创建房间异常：{e.Message}\n{e.StackTrace}");
+            /* Debug.LogError($"[LanRoomHost] 创建房间异常：{e.Message}\n{e.StackTrace}"); */
         }
     }
 
@@ -83,7 +83,7 @@ public class LanRoomHost : MonoBehaviour
     {
         if (!NetworkServer.active || discovery == null)
         {
-            Debug.LogWarning("[LanRoomHost] 服务器未激活或discovery为空，跳过房间信息更新");
+            /* Debug.LogWarning("[LanRoomHost] 服务器未激活或discovery为空，跳过房间信息更新"); */
             return;
         }
 

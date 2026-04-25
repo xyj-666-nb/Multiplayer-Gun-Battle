@@ -103,7 +103,7 @@ public class MapChoosePanel : BasePanel
             return MapButton_1;
         else if (CurrentChooseMap == 2) 
             return MapButton_2;
-        Debug.Log("未找到对应的地图按钮信息");
+        /* Debug.Log("未找到对应的地图按钮信息"); */
         return null;
     }
 
@@ -136,7 +136,7 @@ public class MapChoosePanel : BasePanel
         {
             MapButton_1.UpdatePlayerCount(PlayerRespawnManager.Instance.Map1ChooseCount);
             MapButton_2.UpdatePlayerCount(PlayerRespawnManager.Instance.Map2ChooseCount);
-            Debug.Log($"[MapChoosePanel] 初始化UI数据: 地图1={PlayerRespawnManager.Instance.Map1ChooseCount}, 地图2={PlayerRespawnManager.Instance.Map2ChooseCount}");
+            /* Debug.Log($"[MapChoosePanel] 初始化UI数据: 地图1={PlayerRespawnManager.Instance.Map1ChooseCount}, 地图2={PlayerRespawnManager.Instance.Map2ChooseCount}"); */
         }
 
         ResetChooseButtonVisual();
@@ -198,7 +198,7 @@ public class MapChoosePanel : BasePanel
         }
         else
         {
-            Debug.LogError("[客户端] 重生管理器单例为空，无法发送传送请求！");
+            /* Debug.LogError("[客户端] 重生管理器单例为空，无法发送传送请求！"); */
         }
         UImanager.Instance.HidePanel<PlayerPreparaPanel>();//关闭准备面板
     }
@@ -223,7 +223,7 @@ public class MapChoosePanel : BasePanel
     {
         if (index == 1) return MapButton_1.CurrentMapInfo;
         else if (index == 2) return MapButton_2.CurrentMapInfo;
-        Debug.LogError("未找到当前地图");
+        /* Debug.LogError("未找到当前地图"); */
         return null;
     }
 

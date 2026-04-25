@@ -60,7 +60,7 @@ public class AnimatorSoundController : MonoBehaviour
         // 校验MusicManager（仅提示，不禁用组件）
         if (MusicManager.Instance == null)
         {
-            Debug.LogWarning("场景中未找到MusicManager单例！音效播放功能将不可用，但组件仍保留", this);
+            /* Debug.LogWarning("场景中未找到MusicManager单例！音效播放功能将不可用，但组件仍保留", this); */
             _isMusicManagerValid = false;
             return;
         }
@@ -86,12 +86,12 @@ public class AnimatorSoundController : MonoBehaviour
         // 基础校验（空值仅提示，不报错）
         if (!_isMusicManagerValid)
         {
-            Debug.LogWarning($"轨道{trackNumber}：MusicManager未初始化，无法播放音效", this);
+            /* Debug.LogWarning($"轨道{trackNumber}：MusicManager未初始化，无法播放音效", this); */
             return;
         }
         if (clip == null)
         {
-            Debug.LogWarning($"轨道{trackNumber}：音频文件未赋值，跳过播放", this);
+            /* Debug.LogWarning($"轨道{trackNumber}：音频文件未赋值，跳过播放", this); */
             return;
         }
 
@@ -99,7 +99,7 @@ public class AnimatorSoundController : MonoBehaviour
         int cacheIndex = trackNumber - 1;
         if (cacheIndex < 0 || cacheIndex >= 10)
         {
-            Debug.LogError($"轨道号错误！仅支持1-10，当前传入：{trackNumber}", this);
+            /* Debug.LogError($"轨道号错误！仅支持1-10，当前传入：{trackNumber}", this); */
             return;
         }
 
@@ -113,7 +113,7 @@ public class AnimatorSoundController : MonoBehaviour
         {
             if (source == null)
             {
-                Debug.LogWarning($"轨道{trackNumber}：音效播放回调返回空AudioSource", this);
+                /* Debug.LogWarning($"轨道{trackNumber}：音效播放回调返回空AudioSource", this); */
                 return;
             }
             _trackAudioSources[cacheIndex] = source;
@@ -128,19 +128,19 @@ public class AnimatorSoundController : MonoBehaviour
     {
         if (!_isMusicManagerValid)
         {
-            Debug.LogWarning($"轨道{trackNumber}：MusicManager未初始化，无法播放音效", this);
+            /* Debug.LogWarning($"轨道{trackNumber}：MusicManager未初始化，无法播放音效", this); */
             return;
         }
         if (clip == null)
         {
-            Debug.LogWarning($"轨道{trackNumber}：音频文件未赋值，跳过播放", this);
+            /* Debug.LogWarning($"轨道{trackNumber}：音频文件未赋值，跳过播放", this); */
             return;
         }
 
         int cacheIndex = trackNumber - 1;
         if (cacheIndex < 0 || cacheIndex >= 10)
         {
-            Debug.LogError($"轨道号错误！仅支持1-10，当前传入：{trackNumber}", this);
+            /* Debug.LogError($"轨道号错误！仅支持1-10，当前传入：{trackNumber}", this); */
             return;
         }
 
@@ -158,7 +158,7 @@ public class AnimatorSoundController : MonoBehaviour
         {
             if (source == null)
             {
-                Debug.LogWarning($"轨道{trackNumber}：3D音效播放回调返回空AudioSource", this);
+                /* Debug.LogWarning($"轨道{trackNumber}：3D音效播放回调返回空AudioSource", this); */
                 return;
             }
             _trackAudioSources[cacheIndex] = source;
@@ -177,7 +177,7 @@ public class AnimatorSoundController : MonoBehaviour
         int cacheIndex = trackNumber - 1;
         if (cacheIndex < 0 || cacheIndex >= 10)
         {
-            Debug.LogError($"轨道号错误！仅支持1-10，当前传入：{trackNumber}", this);
+            /* Debug.LogError($"轨道号错误！仅支持1-10，当前传入：{trackNumber}", this); */
             return;
         }
 
@@ -187,7 +187,7 @@ public class AnimatorSoundController : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"轨道{trackNumber}无正在播放的音效", this);
+            /* Debug.LogWarning($"轨道{trackNumber}无正在播放的音效", this); */
         }
     }
 

@@ -16,6 +16,7 @@ namespace Dirichlet.Ad.Editor
     public class DirichletGradlePostProcessor : IPostGenerateGradleAndroidProject
     {
         private const string TAG = "[DirichletAd]";
+        private static readonly UTF8Encoding Utf8NoBom = new UTF8Encoding(false);
         
         // Marker comments to identify our injected content
         private const string DIRICHLET_DEPS_START = "// Dirichlet Ad Dependencies Start";
@@ -79,7 +80,7 @@ namespace Dirichlet.Ad.Editor
             // Inject dependencies
             content = InjectDependencies(content);
 
-            File.WriteAllText(gradlePath, content);
+            WriteTextWithoutBom(gradlePath, content);
             Debug.Log($"{TAG} Updated build.gradle with Dirichlet Ad dependencies");
         }
 
@@ -96,7 +97,7 @@ namespace Dirichlet.Ad.Editor
             reposBlock.AppendLine("    google()");
             reposBlock.AppendLine("    mavenCentral()");
             reposBlock.AppendLine("    flatDir {");
-            reposBlock.AppendLine("        dirs 'DirichletAd/libs'");
+            reposBlock.AppendLine("        dirs 'libs'");
             reposBlock.AppendLine("    }");
             reposBlock.AppendLine($"    {DIRICHLET_REPOS_END}");
             
@@ -193,12 +194,19 @@ namespace Dirichlet.Ad.Editor
             // Remove any previously injected content
             content = RemoveInjectedContent(content, DIRICHLET_REPOS_START, DIRICHLET_REPOS_END);
             
+            string libraryModuleName = DetectUnityLibraryModuleName(content);
+            if (string.IsNullOrEmpty(libraryModuleName))
+            {
+                Debug.LogWarning($"{TAG} Could not detect Unity library module name in settings.gradle");
+                return;
+            }
+
             var reposBlock = new StringBuilder();
             reposBlock.AppendLine(DIRICHLET_REPOS_START);
             reposBlock.AppendLine("        google()");
             reposBlock.AppendLine("        mavenCentral()");
             reposBlock.AppendLine("        flatDir {");
-            reposBlock.AppendLine("            dirs \"${project(':unityLibrary').projectDir}/DirichletAd/libs\"");
+            reposBlock.AppendLine($"            dirs \"${{project(':{libraryModuleName}').projectDir}}/libs\"");
             reposBlock.AppendLine("        }");
             reposBlock.AppendLine($"        {DIRICHLET_REPOS_END}");
             
@@ -208,7 +216,7 @@ namespace Dirichlet.Ad.Editor
             {
                 content = reposPattern.Replace(content, m => 
                     m.Groups[1].Value + "\n        " + reposBlock.ToString(), 1);
-                File.WriteAllText(settingsPath, content);
+                WriteTextWithoutBom(settingsPath, content);
                 Debug.Log($"{TAG} Updated settings.gradle with Dirichlet Ad repositories");
             }
             else
@@ -221,6 +229,26 @@ namespace Dirichlet.Ad.Editor
         {
             var pattern = new Regex($@"\s*{Regex.Escape(startMarker)}[\s\S]*?{Regex.Escape(endMarker)}\s*");
             return pattern.Replace(content, "\n");
+        }
+
+        private void WriteTextWithoutBom(string path, string content)
+        {
+            File.WriteAllText(path, content, Utf8NoBom);
+        }
+
+        private string DetectUnityLibraryModuleName(string settingsContent)
+        {
+            if (settingsContent.Contains("':tuanjieLibrary'"))
+            {
+                return "tuanjieLibrary";
+            }
+
+            if (settingsContent.Contains("':unityLibrary'"))
+            {
+                return "unityLibrary";
+            }
+
+            return null;
         }
     }
 }

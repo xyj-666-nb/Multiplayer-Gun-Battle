@@ -19,7 +19,7 @@ public class BasicDrawBrush : MonoBehaviour
             mainCamera = Camera.main;
             if (mainCamera == null)
             {
-                Debug.LogError("BasicDrawBrush: 场景中没有找到带有MainCamera标签的相机，请手动指定相机！");
+                /* Debug.LogError("BasicDrawBrush: 场景中没有找到带有MainCamera标签的相机，请手动指定相机！"); */
                 enabled = false; // 禁用脚本，避免持续报错
                 return;
             }
@@ -32,7 +32,7 @@ public class BasicDrawBrush : MonoBehaviour
         // 增加空值检查：鼠标世界坐标无效时直接返回
         if (!mouseWorldPoint.HasValue)
         {
-            Debug.Log("未检测到鼠标世界坐标");
+            /* Debug.Log("未检测到鼠标世界坐标"); */
 
             return;
         }
@@ -62,7 +62,7 @@ public class BasicDrawBrush : MonoBehaviour
                         }
                         else
                         {
-                            Debug.LogError("BasicDrawBrush: FluidController.Instance 为null，请检查场景中是否有FluidController组件！");
+                            /* Debug.LogError("BasicDrawBrush: FluidController.Instance 为null，请检查场景中是否有FluidController组件！"); */
                         }
                     }
                 }
@@ -87,7 +87,7 @@ public class BasicDrawBrush : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogError("BasicDrawBrush: FluidController.Instance 为null，请检查场景中是否有FluidController组件！");
+                    /* Debug.LogError("BasicDrawBrush: FluidController.Instance 为null，请检查场景中是否有FluidController组件！"); */
                 }
             }
         }

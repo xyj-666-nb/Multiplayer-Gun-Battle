@@ -117,7 +117,7 @@ public class GamePausePanel : BasePanel
         ResourcesManager.Instance.UnloadUnusedAssets(() =>
         {
             GC.Collect();
-            Debug.Log("[GamePausePanel] 已完成退房后的延迟内存回收");
+            /* Debug.Log("[GamePausePanel] 已完成退房后的延迟内存回收"); */
         });
     }
 

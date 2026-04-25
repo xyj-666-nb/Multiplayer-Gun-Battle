@@ -131,6 +131,6 @@ public class UIBinding : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         InitTargetInputAction();
         // 刷新时重新自动赋值（适配改键后回调包变化）
         AutoAssignInputActionPack();
-        Debug.Log($"UIBinding: 「{m_InputAction}」已刷新绑定！");
+        /* Debug.Log($"UIBinding: 「{m_InputAction}」已刷新绑定！"); */
     }
 }

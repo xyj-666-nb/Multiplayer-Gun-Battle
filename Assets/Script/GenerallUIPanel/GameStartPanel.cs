@@ -8,6 +8,8 @@ using UnityEngine.Events;
 
 public class GameStartPanel : BasePanel
 {
+    private const int AdRewardGold = 100;
+
     public CanvasGroup IntroducePanel;
     private Sequence IntroducePanelAnima;
     public RectTransform LeftRect;
@@ -102,12 +104,18 @@ public class GameStartPanel : BasePanel
         ButtonGroup.Add(controlDic["GameExitButton"] as Button);
         ButtonGroup.Add(controlDic["DevelopmentTeamButton"] as Button);
         ButtonGroup.Add(controlDic["PanelExitButton"] as Button);
+        ButtonGroup.Add(controlDic["QButton"] as Button);
+        ButtonGroup.Add(controlDic["DButton"] as Button);
+        if (controlDic.ContainsKey("ADButton"))
+        {
+            ButtonGroup.Add(controlDic["ADButton"] as Button);
+        }
         ButtonGroup1.Add(controlDic["ReturnButton"] as Button);
         ButtonGroup1.Add(controlDic["OperateButton"] as Button);
         ButtonGroup1.Add(controlDic["GameSettingButton"] as Button);
         ButtonGroup.Add(controlDic["OptionButton "] as Button); // 还原末尾空格
-        SimpleEffectButtonGroup.Instance.RegisterGroup("GameStartGroup", ButtonGroup, false);//注册组
-        SimpleEffectButtonGroup.Instance.RegisterGroup("GameStartGroup1", ButtonGroup1, false, 1.4f, 1.35f, 1.45f);//注册组
+        SimpleEffectButtonGroup.Instance.RegisterGroup("GameStartGroup", ButtonGroup);//注册组
+        SimpleEffectButtonGroup.Instance.RegisterGroup("GameStartGroup1", ButtonGroup1, true, 1.4f, 1.35f, 1.45f);//注册组
 
         BindWheelRotateEvent(controlDic["ReturnButton"] as Button, Angle_Down);      // Return → 下 (-45)
         BindWheelRotateEvent(controlDic["OperateButton"] as Button, 0f);             // Operate → 中 (0)
@@ -191,9 +199,45 @@ public class GameStartPanel : BasePanel
                 CopyToClipboard(QQ_NUMBER_D);
                 WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, $"已复制QQ号：{QQ_NUMBER_D}");
                 break;
+            case "ADButton":
+                MusicManager.Instance?.PlayEffect("Music/update415/ui\u9009\u62e9");
+                WatchRewardAd();
+                break;
         }
     }
     #endregion
+
+    private void WatchRewardAd()
+    {
+        if (TapAdManager.Instance == null)
+        {
+            WarnTriggerManager.Instance?.TriggerNoInteractionWarn(1f, "\u5e7f\u544a\u529f\u80fd\u672a\u5c31\u7eea");
+            return;
+        }
+
+        TapAdManager.Instance.ShowRewardAd(
+            onRewarded: GiveAdRewardGold,
+            onFailed: OnRewardAdFailed
+        );
+    }
+
+    private void GiveAdRewardGold()
+    {
+        if (GoldSystem.Instance != null)
+        {
+            GoldSystem.Instance.AddGold(AdRewardGold, "\u4e3b\u754c\u9762\u5e7f\u544a\u5956\u52b1");
+            WarnTriggerManager.Instance?.TriggerNoInteractionWarn(1f, "\u5df2\u83b7\u5f97100\u91d1\u5e01");
+        }
+        else
+        {
+            WarnTriggerManager.Instance?.TriggerNoInteractionWarn(1f, "\u91d1\u5e01\u7cfb\u7edf\u672a\u5c31\u7eea");
+        }
+    }
+
+    private void OnRewardAdFailed()
+    {
+        WarnTriggerManager.Instance?.TriggerNoInteractionWarn(1f, "\u5e7f\u544a\u672a\u5b8c\u6210");
+    }
 
     #region 复制文本到剪贴板（安卓/PC全适配）
     /// <summary>

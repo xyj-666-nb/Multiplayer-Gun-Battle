@@ -75,7 +75,7 @@ public class BulletGeneratorWithFix : EditorWindow
     #region 核心功能：生成+修复
     private void GenerateAndFixAll()
     {
-        Debug.Log("========== 开始【生成缺失+修复已存在】 ==========");
+        /* Debug.Log("========== 开始【生成缺失+修复已存在】 =========="); */
         InitFolders();
 
         // 获取现有文件最大ID，用于新文件生成
@@ -95,7 +95,7 @@ public class BulletGeneratorWithFix : EditorWindow
             {
                 // 生成命名
                 var names = GetFileNames(color, gunName);
-                Debug.Log($"--- 处理：{color.Name} {gunName} ---");
+                /* Debug.Log($"--- 处理：{color.Name} {gunName} ---"); */
 
                 // ============== 1. 处理子弹视觉配置 ==============
                 BulletVisualConfig bulletConfig = null;
@@ -163,7 +163,7 @@ public class BulletGeneratorWithFix : EditorWindow
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         JumpToRootFolder();
 
-        Debug.Log($"========== 处理完成！新增文件：{newCount} 个，修复文件：{fixCount} 个 ==========");
+        /* Debug.Log($"========== 处理完成！新增文件：{newCount} 个，修复文件：{fixCount} 个 =========="); */
         EditorUtility.DisplayDialog("处理完成", $" 处理完成！\n新增文件：{newCount} 个\n修复文件：{fixCount} 个\n详细日志请查看Console窗口", "好的");
     }
     #endregion
@@ -171,7 +171,7 @@ public class BulletGeneratorWithFix : EditorWindow
     #region 仅修复已存在
     private void FixExistingOnly()
     {
-        Debug.Log("========== 开始【仅修复已存在文件】 ==========");
+        /* Debug.Log("========== 开始【仅修复已存在文件】 =========="); */
         InitFolders();
 
         int fixCount = 0;
@@ -182,7 +182,7 @@ public class BulletGeneratorWithFix : EditorWindow
             foreach (var color in Colors)
             {
                 var names = GetFileNames(color, gunName);
-                Debug.Log($"--- 检查：{color.Name} {gunName} ---");
+                /* Debug.Log($"--- 检查：{color.Name} {gunName} ---"); */
 
                 // 加载所有已存在的文件
                 var bulletConfig = AssetDatabase.LoadAssetAtPath<BulletVisualConfig>(names.bulletPath);
@@ -202,7 +202,7 @@ public class BulletGeneratorWithFix : EditorWindow
         AssetDatabase.Refresh();
         JumpToRootFolder();
 
-        Debug.Log($"========== 修复完成！共修复 {fixCount} 个文件 ==========");
+        /* Debug.Log($"========== 修复完成！共修复 {fixCount} 个文件 =========="); */
         EditorUtility.DisplayDialog("修复完成", $" 修复完成！\n共修复 {fixCount} 个文件\n详细日志请查看Console窗口", "好的");
     }
     #endregion
@@ -210,7 +210,7 @@ public class BulletGeneratorWithFix : EditorWindow
     #region 仅检查不修改
     private void CheckOnly()
     {
-        Debug.Log("========== 开始【仅检查文件】 ==========");
+        /* Debug.Log("========== 开始【仅检查文件】 =========="); */
         InitFolders();
 
         int missingCount = 0;
@@ -225,10 +225,10 @@ public class BulletGeneratorWithFix : EditorWindow
                 bool hasMissing = false;
 
                 // 检查文件是否存在
-                if (!File.Exists(names.bulletPath)) { Debug.LogWarning($" 缺失：{names.bulletPath}"); hasMissing = true; missingCount++; }
-                if (!File.Exists(names.flashPath)) { Debug.LogWarning($" 缺失：{names.flashPath}"); hasMissing = true; missingCount++; }
-                if (!File.Exists(names.bindPath)) { Debug.LogWarning($" 缺失：{names.bindPath}"); hasMissing = true; missingCount++; }
-                if (!File.Exists(names.goodsPath)) { Debug.LogWarning($" 缺失：{names.goodsPath}"); hasMissing = true; missingCount++; }
+                if (!File.Exists(names.bulletPath)) { /* Debug.LogWarning($" 缺失：{names.bulletPath}"); */ hasMissing = true; missingCount++; }
+                if (!File.Exists(names.flashPath)) { /* Debug.LogWarning($" 缺失：{names.flashPath}"); */ hasMissing = true; missingCount++; }
+                if (!File.Exists(names.bindPath)) { /* Debug.LogWarning($" 缺失：{names.bindPath}"); */ hasMissing = true; missingCount++; }
+                if (!File.Exists(names.goodsPath)) { /* Debug.LogWarning($" 缺失：{names.goodsPath}"); */ hasMissing = true; missingCount++; }
 
                 if (hasMissing) continue;
 
@@ -238,16 +238,16 @@ public class BulletGeneratorWithFix : EditorWindow
                 var bindPack = AssetDatabase.LoadAssetAtPath<SpecialBulletBindPack>(names.bindPath);
                 var goodsData = AssetDatabase.LoadAssetAtPath<GoodsData>(names.goodsPath);
 
-                if (bindPack.bulletVisualConfig != bulletConfig) { Debug.LogWarning($" 关联错误：{names.bindName} 子弹配置关联错误"); errorCount++; }
-                if (bindPack.muzzleFlashConfig != flashConfig) { Debug.LogWarning($" 关联错误：{names.bindName} 火光配置关联错误"); errorCount++; }
-                if (goodsData.bulletPack != bindPack) { Debug.LogWarning($" 关联错误：{names.goodsName} 捆绑包关联错误"); errorCount++; }
-                if (bulletConfig.gunType != gunType) { Debug.LogWarning($" 参数错误：{names.bulletName} GunType错误"); errorCount++; }
-                if (flashConfig.gunType != gunType) { Debug.LogWarning($" 参数错误：{names.flashName} GunType错误"); errorCount++; }
-                if (bindPack.gunType != gunType) { Debug.LogWarning($" 参数错误：{names.bindName} GunType错误"); errorCount++; }
+                if (bindPack.bulletVisualConfig != bulletConfig) { /* Debug.LogWarning($" 关联错误：{names.bindName} 子弹配置关联错误"); */ errorCount++; }
+                if (bindPack.muzzleFlashConfig != flashConfig) { /* Debug.LogWarning($" 关联错误：{names.bindName} 火光配置关联错误"); */ errorCount++; }
+                if (goodsData.bulletPack != bindPack) { /* Debug.LogWarning($" 关联错误：{names.goodsName} 捆绑包关联错误"); */ errorCount++; }
+                if (bulletConfig.gunType != gunType) { /* Debug.LogWarning($" 参数错误：{names.bulletName} GunType错误"); */ errorCount++; }
+                if (flashConfig.gunType != gunType) { /* Debug.LogWarning($" 参数错误：{names.flashName} GunType错误"); */ errorCount++; }
+                if (bindPack.gunType != gunType) { /* Debug.LogWarning($" 参数错误：{names.bindName} GunType错误"); */ errorCount++; }
             }
         }
 
-        Debug.Log($"========== 检查完成！缺失文件：{missingCount} 个，错误文件：{errorCount} 个 ==========");
+        /* Debug.Log($"========== 检查完成！缺失文件：{missingCount} 个，错误文件：{errorCount} 个 =========="); */
         EditorUtility.DisplayDialog("检查完成", $"检查完成！\n缺失文件：{missingCount} 个\n错误文件：{errorCount} 个\n详细日志请查看Console窗口", "好的");
     }
     #endregion
@@ -264,7 +264,7 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.gunType != gunType)
         {
             config.gunType = gunType;
-            Debug.Log($" 修复：{config.name} GunType修正为 {gunType}");
+            /* Debug.Log($" 修复：{config.name} GunType修正为 {gunType}"); */
             isChanged = true;
         }
 
@@ -272,7 +272,7 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.bulletColor != color.BulletColor)
         {
             config.bulletColor = color.BulletColor;
-            Debug.Log($" 修复：{config.name} 子弹颜色修正");
+            /* Debug.Log($" 修复：{config.name} 子弹颜色修正"); */
             isChanged = true;
         }
 
@@ -280,7 +280,7 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.cartridgeCaseColor != color.CaseColor)
         {
             config.cartridgeCaseColor = color.CaseColor;
-            Debug.Log($" 修复：{config.name} 弹壳颜色修正");
+            /* Debug.Log($" 修复：{config.name} 弹壳颜色修正"); */
             isChanged = true;
         }
 
@@ -306,7 +306,7 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.gunType != gunType)
         {
             config.gunType = gunType;
-            Debug.Log($" 修复：{config.name} GunType修正为 {gunType}");
+            /* Debug.Log($" 修复：{config.name} GunType修正为 {gunType}"); */
             isChanged = true;
         }
 
@@ -314,13 +314,13 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.lightStartColor != color.LightStart)
         {
             config.lightStartColor = color.LightStart;
-            Debug.Log($" 修复：{config.name} 火光起始颜色修正");
+            /* Debug.Log($" 修复：{config.name} 火光起始颜色修正"); */
             isChanged = true;
         }
         if (config.lightEndColor != color.LightEnd)
         {
             config.lightEndColor = color.LightEnd;
-            Debug.Log($" 修复：{config.name} 火光结束颜色修正");
+            /* Debug.Log($" 修复：{config.name} 火光结束颜色修正"); */
             isChanged = true;
         }
 
@@ -342,7 +342,7 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.gunType != gunType)
         {
             config.gunType = gunType;
-            Debug.Log($" 修复：{config.name} GunType修正为 {gunType}");
+            /* Debug.Log($" 修复：{config.name} GunType修正为 {gunType}"); */
             isChanged = true;
         }
 
@@ -350,7 +350,7 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.BulletBindName != config.name)
         {
             config.BulletBindName = config.name;
-            Debug.Log($" 修复：{config.name} 名称修正");
+            /* Debug.Log($" 修复：{config.name} 名称修正"); */
             isChanged = true;
         }
 
@@ -359,7 +359,7 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.description != targetDesc)
         {
             config.description = targetDesc;
-            Debug.Log($" 修复：{config.name} 描述修正");
+            /* Debug.Log($" 修复：{config.name} 描述修正"); */
             isChanged = true;
         }
 
@@ -367,13 +367,13 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.bulletVisualConfig != bulletConfig && bulletConfig != null)
         {
             config.bulletVisualConfig = bulletConfig;
-            Debug.Log($" 修复：{config.name} 子弹配置关联修复");
+            /* Debug.Log($" 修复：{config.name} 子弹配置关联修复"); */
             isChanged = true;
         }
         if (config.muzzleFlashConfig != flashConfig && flashConfig != null)
         {
             config.muzzleFlashConfig = flashConfig;
-            Debug.Log($" 修复：{config.name} 火光配置关联修复");
+            /* Debug.Log($" 修复：{config.name} 火光配置关联修复"); */
             isChanged = true;
         }
 
@@ -392,7 +392,7 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.skinType != SkinType.SpecialBullet)
         {
             config.skinType = SkinType.SpecialBullet;
-            Debug.Log($" 修复：{config.name} 皮肤类型修正");
+            /* Debug.Log($" 修复：{config.name} 皮肤类型修正"); */
             isChanged = true;
         }
 
@@ -401,7 +401,7 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.goodsName != targetName)
         {
             config.goodsName = targetName;
-            Debug.Log($" 修复：{config.name} 商品名称修正");
+            /* Debug.Log($" 修复：{config.name} 商品名称修正"); */
             isChanged = true;
         }
 
@@ -410,7 +410,7 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.goodsDescription != targetDesc)
         {
             config.goodsDescription = targetDesc;
-            Debug.Log($" 修复：{config.name} 商品描述修正");
+            /* Debug.Log($" 修复：{config.name} 商品描述修正"); */
             isChanged = true;
         }
 
@@ -418,13 +418,13 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.goodsPrice != color.Price)
         {
             config.goodsPrice = color.Price;
-            Debug.Log($" 修复：{config.name} 价格修正");
+            /* Debug.Log($" 修复：{config.name} 价格修正"); */
             isChanged = true;
         }
         if (config.quality != color.Quality)
         {
             config.quality = color.Quality;
-            Debug.Log($" 修复：{config.name} 品质修正");
+            /* Debug.Log($" 修复：{config.name} 品质修正"); */
             isChanged = true;
         }
 
@@ -432,7 +432,7 @@ public class BulletGeneratorWithFix : EditorWindow
         if (config.bulletPack != bindPack && bindPack != null)
         {
             config.bulletPack = bindPack;
-            Debug.Log($" 修复：{config.name} 捆绑包关联修复");
+            /* Debug.Log($" 修复：{config.name} 捆绑包关联修复"); */
             isChanged = true;
         }
 
@@ -440,7 +440,7 @@ public class BulletGeneratorWithFix : EditorWindow
         if (string.IsNullOrEmpty(config.goodsGuid))
         {
             config.goodsGuid = Guid.NewGuid().ToString();
-            Debug.Log($" 修复：{config.name} 生成GUID");
+            /* Debug.Log($" 修复：{config.name} 生成GUID"); */
             isChanged = true;
         }
 
@@ -471,7 +471,7 @@ public class BulletGeneratorWithFix : EditorWindow
         AssetDatabase.CreateAsset(config, path);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log($" 新建：{path}");
+        /* Debug.Log($" 新建：{path}"); */
 
         return AssetDatabase.LoadAssetAtPath<BulletVisualConfig>(path);
     }
@@ -489,7 +489,7 @@ public class BulletGeneratorWithFix : EditorWindow
         AssetDatabase.CreateAsset(config, path);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log($" 新建：{path}");
+        /* Debug.Log($" 新建：{path}"); */
 
         return AssetDatabase.LoadAssetAtPath<MuzzleFlashConfig>(path);
     }
@@ -507,7 +507,7 @@ public class BulletGeneratorWithFix : EditorWindow
         AssetDatabase.CreateAsset(config, path);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log($" 新建：{path}");
+        /* Debug.Log($" 新建：{path}"); */
 
         return AssetDatabase.LoadAssetAtPath<SpecialBulletBindPack>(path);
     }
@@ -526,7 +526,7 @@ public class BulletGeneratorWithFix : EditorWindow
         AssetDatabase.CreateAsset(config, path);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log($" 新建：{path}");
+        /* Debug.Log($" 新建：{path}"); */
     }
     #endregion
 
@@ -546,7 +546,7 @@ public class BulletGeneratorWithFix : EditorWindow
         {
             Directory.CreateDirectory(path);
             AssetDatabase.Refresh();
-            Debug.Log($"创建文件夹：{path}");
+            /* Debug.Log($"创建文件夹：{path}"); */
         }
     }
 

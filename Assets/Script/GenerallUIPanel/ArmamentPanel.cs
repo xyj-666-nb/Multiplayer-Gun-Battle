@@ -92,7 +92,7 @@ public class ArmamentPanel : BasePanel
         // 空值检查：关键组件必须赋值
         if (Gun_Button == null || ThrowObj_Button == null || Armor_Button == null)
         {
-            Debug.LogError("主分类按钮（枪械/投掷物/护甲）未赋值！");
+            /* Debug.LogError("主分类按钮（枪械/投掷物/护甲）未赋值！"); */
             return;
         }
 
@@ -117,7 +117,7 @@ public class ArmamentPanel : BasePanel
     {
         if (SlotButtonList == null || SlotButtonList.Count == 0)
         {
-            Debug.LogWarning("枪械槽位按钮列表为空！");
+            /* Debug.LogWarning("枪械槽位按钮列表为空！"); */
             return;
         }
 
@@ -126,14 +126,14 @@ public class ArmamentPanel : BasePanel
             int index = i; // 捕获当前索引
             if (SlotButtonList[i] == null)
             {
-                Debug.LogWarning($"第{index}个枪械槽位按钮为空！");
+                /* Debug.LogWarning($"第{index}个枪械槽位按钮为空！"); */
                 continue;
             }
 
             ButtonGroupManager.Instance?.AddRadioButtonToGroup_Str(ButtonGroupRegisterName_Slot, SlotButtonList[i], (str) =>
             {
                 CurrentChooseSlotIndex = ExtractNumberWithRegex(str);
-                Debug.Log($"选中枪械槽位：{CurrentChooseSlotIndex}");
+                /* Debug.Log($"选中枪械槽位：{CurrentChooseSlotIndex}"); */
                 // UI槽位选择音效
                 MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             });
@@ -147,29 +147,22 @@ public class ArmamentPanel : BasePanel
     {
         if (TacticSlotButtonList == null || TacticSlotButtonList.Count == 0)
         {
-            Debug.LogWarning("战术槽位按钮列表为空！");
             return;
         }
 
-        // 校验战术槽位数量（强制限制为2个）
-        if (TacticSlotButtonList.Count != 2)
-        {
-            Debug.LogWarning($"战术槽位按钮数量应为2个，当前为{TacticSlotButtonList.Count}个！");
-        }
 
         for (int i = 0; i < TacticSlotButtonList.Count; i++)
         {
             int index = i; // 捕获当前索引
             if (TacticSlotButtonList[i] == null)
             {
-                Debug.LogWarning($"第{index}个战术槽位按钮为空！");
+                /* Debug.LogWarning($"第{index}个战术槽位按钮为空！"); */
                 continue;
             }
 
             ButtonGroupManager.Instance?.AddRadioButtonToGroup_Str(ButtonGroupRegisterName_TacticSlot, TacticSlotButtonList[i], (str) =>
             {
                 CurrentChooseTacticSlotIndex = ExtractNumberWithRegex(str);
-                Debug.Log($"选中战术槽位：{CurrentChooseTacticSlotIndex}");
                 // UI槽位选择音效
                 MusicManager.Instance.PlayEffect("Music/update415/ui选择");
             });
@@ -186,7 +179,6 @@ public class ArmamentPanel : BasePanel
     {
         if (string.IsNullOrEmpty(inputStr))
         {
-            Debug.LogWarning("传入的字符串为空！");
             return -1;
         }
 
@@ -198,7 +190,6 @@ public class ArmamentPanel : BasePanel
         }
         else
         {
-            Debug.LogWarning($"字符串 {inputStr} 中未找到数字！");
             return -1;
         }
     }
@@ -263,7 +254,6 @@ public class ArmamentPanel : BasePanel
         // 空值检查：预制体和父对象必须赋值
         if (TypeButtonPrefab == null || TypeButtonParent == null)
         {
-            Debug.LogError("TypeButtonPrefab 或 TypeButtonParent 未赋值！");
             return;
         }
 
@@ -276,7 +266,6 @@ public class ArmamentPanel : BasePanel
         if (buttonText != null) buttonText.text = "单兵护甲";
         if (button == null)
         {
-            Debug.LogError("创建的护甲类型按钮缺少Button组件！");
             return;
         }
 
@@ -301,7 +290,6 @@ public class ArmamentPanel : BasePanel
         // 核心空值检查：MilitaryManager单例
         if (MilitaryManager.Instance == null)
         {
-            Debug.LogError("MilitaryManager.Instance 为空！");
             return;
         }
 
@@ -315,7 +303,6 @@ public class ArmamentPanel : BasePanel
             GameObject buttonObj = CreateSpecialArmamentButtonPrefab();
             if (buttonObj == null)
             {
-                Debug.LogError("创建护甲具体按钮失败！");
                 continue;
             }
 
@@ -323,7 +310,6 @@ public class ArmamentPanel : BasePanel
             var InfoPack = MilitaryManager.Instance.GetArmorInfoPack(Type);
             if (InfoPack == null)
             {
-                Debug.LogWarning($"护甲类型 {Type} 未找到配置信息！");
                 continue;
             }
 
@@ -334,7 +320,6 @@ public class ArmamentPanel : BasePanel
                 buttonText.text = InfoPack.armorName;
             if (button == null)
             {
-                Debug.LogError("护甲具体按钮缺少Button组件！");
                 continue;
             }
 
@@ -351,7 +336,6 @@ public class ArmamentPanel : BasePanel
                 }
                 else if (img != null)
                 {
-                    Debug.LogWarning($"护甲 {InfoPack.armorName} 缺少图标！");
                     img.sprite = null;
                 }
             }
@@ -396,7 +380,6 @@ public class ArmamentPanel : BasePanel
 
         if (MilitaryManager.Instance == null)
         {
-            Debug.LogError("MilitaryManager.Instance 为空！");
             return;
         }
 
@@ -424,7 +407,6 @@ public class ArmamentPanel : BasePanel
             {
                 // UI选择音效
                 MusicManager.Instance.PlayEffect("Music/update415/ui选择");
-                Debug.Log("Selected Gun Type: " + currentGunType);
                 CreateAndRegisterSpecialArmamentButton(currentGunType);
             });
         }
@@ -435,12 +417,16 @@ public class ArmamentPanel : BasePanel
         ControlDirectGetGunButton(true, (Btn) => {
             Btn.onClick.AddListener(() => {
                 //点击后直接获取对应的枪械
+                if (PlayerTacticControl.Instance != null)
+                {
+                    PlayerTacticControl.Instance.SetTacticControl(false);
+                }
                 if (Player.LocalPlayer.currentGun != null)
                 {
                     //直接丢弃枪械
                     Player.LocalPlayer.DropCurrentGun();//丢弃枪械
                 }
-                Player.LocalPlayer.SpawnAndPickGun(CurrentChooseGunInfo.Name);//传入名字
+                Player.LocalPlayer.SpawnAndPickGun(CurrentChooseGunInfo.Name, false);//传入名字
                 WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "获取成功");
             });
         }); //打开获取按钮
@@ -449,12 +435,11 @@ public class ArmamentPanel : BasePanel
     public void ControlDirectGetGunButton(bool IsShow, UnityAction<Button> CallBack = null)
     {
         var btn = controlDic["DirectgetGunButton"] as Button;
+        btn.onClick.RemoveAllListeners();
         btn.gameObject.SetActive(IsShow);
-        CallBack?.Invoke(btn);
-        if (!IsShow)
+        if (IsShow)
         {
-            //清理所有的监听事件
-            btn.onClick.RemoveAllListeners();
+            CallBack?.Invoke(btn);
         }
     }
 
@@ -473,12 +458,6 @@ public class ArmamentPanel : BasePanel
         ClearCreatedSpecialArmamentButtons();
         ClearValueSliders();
         SetTacticSlotAreaActive(true); // 显示战术槽位
-
-        if (MilitaryManager.Instance == null)
-        {
-            Debug.LogError("MilitaryManager.Instance 为空！");
-            return;
-        }
 
         TacticBigType[] allTacticTypes = (TacticBigType[])Enum.GetValues(typeof(TacticBigType));
         foreach (var TacticBig in allTacticTypes)
@@ -520,11 +499,6 @@ public class ArmamentPanel : BasePanel
     /// <param name="isActive">是否激活</param>
     private void SetTacticSlotAreaActive(bool isActive)
     {
-        if (TacticSlotButtonArea == null)
-        {
-            Debug.LogError("TacticSlotButtonArea 未赋值！");
-            return;
-        }
 
         // CanvasGroup 控制显隐和交互
         TacticSlotButtonArea.alpha = isActive ? 1f : 0f; // 透明度
@@ -593,7 +567,6 @@ public class ArmamentPanel : BasePanel
     {
         if (TypeButtonPrefab == null || TypeButtonParent == null)
         {
-            Debug.LogError("TypeButtonPrefab 或 TypeButtonParent 未赋值！");
             return null;
         }
 
@@ -606,7 +579,6 @@ public class ArmamentPanel : BasePanel
         {
             // 备用方案：对象池为空时直接实例化
             buttonObj = Instantiate(TypeButtonPrefab);
-            Debug.LogWarning("PoolManage.Instance 为空，直接实例化按钮预制体！");
         }
 
         if (buttonObj != null)
@@ -621,7 +593,7 @@ public class ArmamentPanel : BasePanel
     {
         if (SpecialArmamentButtonPrefab == null || ArmamentButtonParent == null)
         {
-            Debug.LogError("SpecialArmamentButtonPrefab 或 ArmamentButtonParent 未赋值！");
+            /* Debug.LogError("SpecialArmamentButtonPrefab 或 ArmamentButtonParent 未赋值！"); */
             return null;
         }
 
@@ -636,7 +608,6 @@ public class ArmamentPanel : BasePanel
             //对象池为空时直接实例化
             buttonObj = Instantiate(SpecialArmamentButtonPrefab);
             buttonObj.GetComponent<Image>().sprite = SpecialArmamentSpriteList[UnityEngine.Random.Range(0, SpecialArmamentSpriteList.Count)];
-            Debug.LogWarning("PoolManage.Instance 为空，直接实例化特殊装备按钮预制体！");
         }
 
         if (buttonObj != null)
@@ -699,17 +670,10 @@ public class ArmamentPanel : BasePanel
     {
         ClearCreatedSpecialArmamentButtons();
 
-        if (MilitaryManager.Instance == null)
-        {
-            Debug.LogError("MilitaryManager.Instance 为空！");
-            return;
-        }
-
         // 获取该类型下的所有枪械信息
         List<GunInfo> gunInfoList = MilitaryManager.Instance.GetGunTypeInfo(currentGunType);
         if (gunInfoList == null || gunInfoList.Count == 0)
         {
-            Debug.LogWarning($"枪械类型 {currentGunType} 下无配置信息！");
             return;
         }
 
@@ -737,7 +701,7 @@ public class ArmamentPanel : BasePanel
                 }
                 else if (img != null)
                 {
-                    Debug.LogWarning($"枪械 {gunInfo.Name} 缺少图标");
+                    /* Debug.LogWarning($"枪械 {gunInfo.Name} 缺少图标"); */
                     img.sprite = null;
                 }
             }
@@ -770,16 +734,9 @@ public class ArmamentPanel : BasePanel
     {
         ClearCreatedSpecialArmamentButtons();
 
-        if (MilitaryManager.Instance == null)
-        {
-            Debug.LogError("MilitaryManager.Instance 为空！");
-            return;
-        }
-
         List<TacticType> tacticTypesList = MilitaryManager.Instance.GetTacticTypesByBigType(Type);
         if (tacticTypesList == null || tacticTypesList.Count == 0)
         {
-            Debug.LogWarning($"战术大类 {Type} 下无配置信息！");
             return;
         }
 
@@ -809,7 +766,7 @@ public class ArmamentPanel : BasePanel
                     }
                     else
                     {
-                        Debug.LogWarning($"战术道具 {tacticType} 缺少UI图标");
+                        /* Debug.LogWarning($"战术道具 {tacticType} 缺少UI图标"); */
                         img.sprite = null;
                     }
                 }
@@ -845,7 +802,6 @@ public class ArmamentPanel : BasePanel
     {
         if (info == null)
         {
-            Debug.LogWarning("GunInfo 为空，无法更新界面");
             return;
         }
 
@@ -861,7 +817,6 @@ public class ArmamentPanel : BasePanel
             }
             else
             {
-                Debug.LogWarning($"枪械 {info.Name} 缺少主图标");
                 GunSprite.sprite = null;
             }
         }
@@ -905,10 +860,10 @@ public class ArmamentPanel : BasePanel
         CreateValueSlider(info.Accuracy, "精准度", "100");
         // 枪械震动（最大值5）
         CreateValueSlider(info.ShackStrength, "枪械震动", "2");
-        // 对敌打击力（最大值3）
-        CreateValueSlider(info.Recoil_Enemy, "对敌打击力", "3");
         // 单个弹夹弹药量（最大值50）
         CreateValueSlider(info.Bullet_capacity, "弹夹容量", "80");
+        // 机动性（最大值2）
+        CreateValueSlider(info.Mobility+1, "机动性", "2");
     }
 
     // 重置枪械图片Transform
@@ -925,7 +880,7 @@ public class ArmamentPanel : BasePanel
     {
         if (MilitaryManager.Instance == null)
         {
-            Debug.LogError("MilitaryManager.Instance 为空！");
+            /* Debug.LogError("MilitaryManager.Instance 为空！"); */
             return;
         }
 
@@ -933,7 +888,6 @@ public class ArmamentPanel : BasePanel
         TacticInfo info = MilitaryManager.Instance.GetTacticInfo(tacticType);
         if (info == null)
         {
-            Debug.LogWarning($"战术道具 {tacticType} 未找到配置信息");
             if (GunName != null) GunName.text = "未知道具";
             if (GunDescribe != null) GunDescribe.text = "暂无描述";
             if (GunSprite != null) GunSprite.sprite = null;
@@ -954,7 +908,6 @@ public class ArmamentPanel : BasePanel
             }
             else
             {
-                Debug.LogWarning($"战术道具 {info.Name} 缺少主图标");
                 GunSprite.sprite = null;
             }
         }
@@ -1012,7 +965,6 @@ public class ArmamentPanel : BasePanel
         // 空值检查：预制体和父对象
         if (ArmamentValueSliderPrefab == null || ArmamentValueSliderParent == null)
         {
-            Debug.LogError("ArmamentValueSliderPrefab 或 ArmamentValueSliderParent 未赋值！");
             return;
         }
 
@@ -1025,7 +977,6 @@ public class ArmamentPanel : BasePanel
         else
         {
             sliderObj = Instantiate(ArmamentValueSliderPrefab);
-            Debug.LogWarning("PoolManage.Instance 为空，直接实例化数值滑块！");
         }
 
         if (sliderObj == null) return;
@@ -1042,7 +993,7 @@ public class ArmamentPanel : BasePanel
         }
         else
         {
-            Debug.LogError("数值滑块预制体缺少 GunValueSlider 组件！");
+            /* Debug.LogError("数值滑块预制体缺少 GunValueSlider 组件！"); */
         }
     }
     #endregion
@@ -1068,10 +1019,6 @@ public class ArmamentPanel : BasePanel
                 {
                     PlayerAndGameInfoManger.Instance.PlayerSlotInfoPacksList[CurrentChooseSlotIndex - 1].CurrentGunInfo = CurrentChooseGunInfo;// 进行数据更新
                 }
-                else
-                {
-                    Debug.LogWarning($"枪械槽位索引 {CurrentChooseSlotIndex} 超出范围！");
-                }
             }
             else if (CurrentChooseTacticInfo != null && PlayerAndGameInfoManger.Instance != null)
             {
@@ -1082,10 +1029,7 @@ public class ArmamentPanel : BasePanel
                     else if (CurrentChooseTacticSlotIndex == 2)
                         PlayerAndGameInfoManger.Instance.PlayerSlotInfoPacksList[CurrentChooseSlotIndex - 1].CurrentTactic_2Info = CurrentChooseTacticInfo;// 进行数据更新
                 }
-                else
-                {
-                    Debug.LogWarning($"枪械槽位索引 {CurrentChooseSlotIndex} 超出范围！");
-                }
+
             }
             else if (CurrentChooseArmorInfoPack != null && PlayerAndGameInfoManger.Instance != null)
             {

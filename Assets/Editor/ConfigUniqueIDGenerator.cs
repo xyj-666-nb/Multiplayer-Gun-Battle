@@ -108,7 +108,7 @@ public class ConfigUniqueIDGenerator : EditorWindow
             Undo.RecordObject(bulletConfig, "分配BulletID");
             bulletConfig.BulletID = _currentBulletID++;
             EditorUtility.SetDirty(bulletConfig);
-            Debug.Log($" 分配子弹ID: {bulletConfig.name} = {bulletConfig.BulletID}", bulletConfig);
+            /* Debug.Log($" 分配子弹ID: {bulletConfig.name} = {bulletConfig.BulletID}", bulletConfig); */
         }
 
         // 枪口火光配置ID分配
@@ -117,7 +117,7 @@ public class ConfigUniqueIDGenerator : EditorWindow
             Undo.RecordObject(flashConfig, "分配MuzzleFlashID");
             flashConfig.MuzzleFlashID = _currentMuzzleID++;
             EditorUtility.SetDirty(flashConfig);
-            Debug.Log($" 分配火光ID: {flashConfig.name} = {flashConfig.MuzzleFlashID}", flashConfig);
+            /* Debug.Log($" 分配火光ID: {flashConfig.name} = {flashConfig.MuzzleFlashID}", flashConfig); */
         }
 
         // 命中特效配置ID分配
@@ -126,7 +126,7 @@ public class ConfigUniqueIDGenerator : EditorWindow
             Undo.RecordObject(hitData, "分配HitID");
             hitData.HitID = _currentHitID++;
             EditorUtility.SetDirty(hitData);
-            Debug.Log($" 分配命中特效ID: {hitData.name} = {hitData.HitID}", hitData);
+            /* Debug.Log($" 分配命中特效ID: {hitData.name} = {hitData.HitID}", hitData); */
         }
 
         // 角色皮肤配置ID分配
@@ -135,7 +135,7 @@ public class ConfigUniqueIDGenerator : EditorWindow
             Undo.RecordObject(skinPack, "分配PlayerSkinID");
             skinPack.PlayerSkinID = _currentSkinID++;
             EditorUtility.SetDirty(skinPack);
-            Debug.Log($" 分配角色皮肤ID: {skinPack.name} = {skinPack.PlayerSkinID}", skinPack);
+            /* Debug.Log($" 分配角色皮肤ID: {skinPack.name} = {skinPack.PlayerSkinID}", skinPack); */
         }
 
         // 表情配置ID分配
@@ -144,7 +144,7 @@ public class ConfigUniqueIDGenerator : EditorWindow
             Undo.RecordObject(expressionPack, "分配ExpressionID");
             expressionPack.ExpressionID = _currentExpressionID++;
             EditorUtility.SetDirty(expressionPack);
-            Debug.Log($" 分配表情ID: {expressionPack.name} = {expressionPack.ExpressionID}", expressionPack);
+            /* Debug.Log($" 分配表情ID: {expressionPack.name} = {expressionPack.ExpressionID}", expressionPack); */
         }
 
         // 子弹捆绑包配置ID分配
@@ -153,7 +153,7 @@ public class ConfigUniqueIDGenerator : EditorWindow
             Undo.RecordObject(bulletBindPack, "分配BulletBindID");
             bulletBindPack.BulletBindID = _currentBulletBindID++;
             EditorUtility.SetDirty(bulletBindPack);
-            Debug.Log($" 分配子弹捆绑包ID: {bulletBindPack.name} = {bulletBindPack.BulletBindID}", bulletBindPack);
+            /* Debug.Log($" 分配子弹捆绑包ID: {bulletBindPack.name} = {bulletBindPack.BulletBindID}", bulletBindPack); */
         }
 
         if (obj is GunSkinPack gunSkinPack)
@@ -161,7 +161,7 @@ public class ConfigUniqueIDGenerator : EditorWindow
             Undo.RecordObject(gunSkinPack, "分配GunSkinID");
             gunSkinPack.skinGuid = _currentGunSkinID++;
             EditorUtility.SetDirty(gunSkinPack);
-            Debug.Log($" 分配枪械皮肤ID: {gunSkinPack.name} = {gunSkinPack.skinGuid}", gunSkinPack);
+            /* Debug.Log($" 分配枪械皮肤ID: {gunSkinPack.name} = {gunSkinPack.skinGuid}", gunSkinPack); */
         }
     }
     #endregion

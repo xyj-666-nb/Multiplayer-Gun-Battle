@@ -36,13 +36,13 @@ public class SceneLoadProgressPanelEditor : Editor
 
         if (_promptTextListProp == null)
         {
-            Debug.LogError("未找到 PromptTextList 序列化属性！请检查字段名是否正确");
+            /* Debug.LogError("未找到 PromptTextList 序列化属性！请检查字段名是否正确"); */
             return;
         }
         // 新增：英文列表属性校验
         if (_promptTextEnglishListProp == null)
         {
-            Debug.LogError("未找到 PromptTextList_English 序列化属性！请检查字段名是否正确");
+            /* Debug.LogError("未找到 PromptTextList_English 序列化属性！请检查字段名是否正确"); */
             return;
         }
 

@@ -44,6 +44,7 @@ public class PlayerRespawnManager : NetworkBehaviour
 
     // 用于记录每个玩家选择了哪个地图
     private Dictionary<int, int> _playerChooseMapDict = new Dictionary<int, int>();
+    private bool _hasDecidedFinalMap = false;
     #endregion
 
     #region 对局档位配置（可直接在Inspector调试）
@@ -69,20 +70,20 @@ public class PlayerRespawnManager : NetworkBehaviour
         // Host 模式下仅允许房主(本地连接/0号连接)修改，避免其他客户端篡改房间档位
         if (sender != null && sender.connectionId != 0)
         {
-            Debug.LogWarning($"[档位设置] 拒绝非房主玩家{sender.connectionId}修改对局时长档位");
+            /* Debug.LogWarning($"[档位设置] 拒绝非房主玩家{sender.connectionId}修改对局时长档位"); */
             return;
         }
 
         if (IsGameStart)
         {
-            Debug.LogWarning("[档位设置] 对局已开始，忽略时长档位修改");
+            /* Debug.LogWarning("[档位设置] 对局已开始，忽略时长档位修改"); */
             return;
         }
 
         // 限制合法范围
         level = Mathf.Clamp(level, 0, TimeLevelCoefficient.Count - 1);
         CurrentTimeLevel = level;
-        Debug.Log($"[档位设置] 房主已设置对局时长档位：{level}，系数：{TimeLevelCoefficient[level]}");
+        /* Debug.Log($"[档位设置] 房主已设置对局时长档位：{level}，系数：{TimeLevelCoefficient[level]}"); */
     }
 
     /// <summary>
@@ -95,20 +96,20 @@ public class PlayerRespawnManager : NetworkBehaviour
         // Host 模式下仅允许房主(本地连接/0号连接)修改，避免其他客户端篡改房间档位
         if (sender != null && sender.connectionId != 0)
         {
-            Debug.LogWarning($"[档位设置] 拒绝非房主玩家{sender.connectionId}修改比分上限档位");
+            /* Debug.LogWarning($"[档位设置] 拒绝非房主玩家{sender.connectionId}修改比分上限档位"); */
             return;
         }
 
         if (IsGameStart)
         {
-            Debug.LogWarning("[档位设置] 对局已开始，忽略比分上限档位修改");
+            /* Debug.LogWarning("[档位设置] 对局已开始，忽略比分上限档位修改"); */
             return;
         }
 
         // 限制合法范围
         level = Mathf.Clamp(level, 0, ScoreLimitLevelCoefficient.Count - 1);
         CurrentScoreLimitLevel = level;
-        Debug.Log($"[档位设置] 房主已设置比分上限档位：{level}，系数：{ScoreLimitLevelCoefficient[level]}");
+        /* Debug.Log($"[档位设置] 房主已设置比分上限档位：{level}，系数：{ScoreLimitLevelCoefficient[level]}"); */
     }
     #endregion
 
@@ -122,7 +123,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     [Server]
     public void InitGameData()
     {
-        Debug.Log("[数据管理] 开始初始化游戏数据...");
+        /* Debug.Log("[数据管理] 开始初始化游戏数据..."); */
 
         _playerInfoList.Clear();
 
@@ -142,25 +143,17 @@ public class PlayerRespawnManager : NetworkBehaviour
                     DeathCount = 0
                 };
                 _playerInfoList.Add(newInfo);
-                Debug.Log($"[数据管理] 初始化玩家: ID={conn.connectionId}, 队伍={newInfo.Team}");
+                /* Debug.Log($"[数据管理] 初始化玩家: ID={conn.connectionId}, 队伍={newInfo.Team}"); */
             }
         }
 
-        if (CurrentMapIndex >= 0)
-        {
-            ServerInitMapInteractObjects(CurrentMapIndex + 1);
-            Debug.Log($"[交互物体] 游戏开始，初始化地图 {CurrentMapIndex + 1} 的物体");
-        }
-        else
-        {
-            Debug.LogWarning("[交互物体] 游戏开始但未选择地图，无法初始化物体！");
-        }
+
         RedTeamScoreCount = 0;
         BlueTeamScoreCount = 0;
         IsGameStart = true;
-
-        //启动协程进行倒计时
-        StartCoroutine(ServerGameCountdownCoroutine());
+        IsGameRealStart = false;
+        _isGameEnded = false;
+        RemainGameTime = GameTime * 60;
 
         // 初始化完成后同步一次空数据给客户端，确保UI干净
         SyncWarRecordToAllClients();
@@ -176,7 +169,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         // 初始化剩余时间 (GameTime 单位是分钟，转换为秒)
         RemainGameTime = GameTime * 60;
 
-        Debug.Log($"[倒计时] 游戏开始！总时长: {GameTime}分钟 ({RemainGameTime}秒)");
+        /* Debug.Log($"[倒计时] 游戏开始！总时长: {GameTime}分钟 ({RemainGameTime}秒)"); */
 
         // 循环：只要游戏没结束且时间大于0，就继续
         while (IsGameStart && !_isGameEnded && RemainGameTime > 0)
@@ -193,11 +186,27 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         if (IsGameStart && !_isGameEnded)
         {
-            Debug.Log("[倒计时] 时间耗尽！强制结算游戏。");
+            /* Debug.Log("[倒计时] 时间耗尽！强制结算游戏。"); */
             ForceEndGameByTime();
         }
     }
 
+    public void StartRealGameCountdown()
+    {
+        if (!isServer)
+            return;
+
+        if (!IsGameStart || _isGameEnded || IsGameRealStart)
+            return;
+
+        IsGameRealStart = true;
+        if (_gameCountdownCoroutine != null)
+        {
+            StopCoroutine(_gameCountdownCoroutine);
+        }
+
+        _gameCountdownCoroutine = StartCoroutine(ServerGameCountdownCoroutine());
+    }
     /// <summary>
     /// 时间耗尽时强制结算
     /// </summary>
@@ -212,24 +221,24 @@ public class PlayerRespawnManager : NetworkBehaviour
         if (CurrentMapIndex >= 0)//还原地图
         {
             ServerResetMapInteractObjects(CurrentMapIndex + 1);
-            Debug.Log($"[交互物体] 时间耗尽，重置地图 {CurrentMapIndex + 1} 的物体");
+            /* Debug.Log($"[交互物体] 时间耗尽，重置地图 {CurrentMapIndex + 1} 的物体"); */
         }
 
         // 比较比分
         if (RedTeamScoreCount > BlueTeamScoreCount)
         {
             winningTeam = Team.Red;
-            Debug.Log($"[游戏结束] 时间耗尽，红队 {RedTeamScoreCount}:{BlueTeamScoreCount} 获胜！");
+            /* Debug.Log($"[游戏结束] 时间耗尽，红队 {RedTeamScoreCount}:{BlueTeamScoreCount} 获胜！"); */
         }
         else if (BlueTeamScoreCount > RedTeamScoreCount)
         {
             winningTeam = Team.Blue;
-            Debug.Log($"[游戏结束] 时间耗尽，蓝队 {BlueTeamScoreCount}:{RedTeamScoreCount} 获胜！");
+            /* Debug.Log($"[游戏结束] 时间耗尽，蓝队 {BlueTeamScoreCount}:{RedTeamScoreCount} 获胜！"); */
         }
         else
         {
 
-            Debug.LogWarning($"[游戏结束] 时间耗尽且比分 {RedTeamScoreCount}:{BlueTeamScoreCount} 平！");
+            /* Debug.LogWarning($"[游戏结束] 时间耗尽且比分 {RedTeamScoreCount}:{BlueTeamScoreCount} 平！"); */
             winningTeam = Random.Range(0, 2) == 0 ? Team.Red : Team.Blue;
         }
 
@@ -269,7 +278,7 @@ public class PlayerRespawnManager : NetworkBehaviour
                 DeathCount = 0
             };
             _playerInfoList.Add(newInfo);
-            Debug.Log($"[数据管理] 新玩家数据已添加: ConnectionId={conn.connectionId}, 队伍={newInfo.Team}");
+            /* Debug.Log($"[数据管理] 新玩家数据已添加: ConnectionId={conn.connectionId}, 队伍={newInfo.Team}"); */
             return newInfo;
         }
         return null;
@@ -288,7 +297,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         if (info != null)
         {
             info.KillCount++;
-            Debug.Log($"[数据管理] 玩家 {killerConn.connectionId} 击杀数 +1, 当前: {info.KillCount}");
+            /* Debug.Log($"[数据管理] 玩家 {killerConn.connectionId} 击杀数 +1, 当前: {info.KillCount}"); */
 
             // 通知该玩家的客户端更新自己的小KD UI
             TargetUpdatePlayerKD(killerConn, info.KillCount, info.DeathCount);
@@ -310,7 +319,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         if (info != null)
         {
             info.DeathCount++;
-            Debug.Log($"[数据管理] 玩家 {deadConn.connectionId} 死亡数 +1, 当前: {info.DeathCount}");
+            /* Debug.Log($"[数据管理] 玩家 {deadConn.connectionId} 死亡数 +1, 当前: {info.DeathCount}"); */
 
             // 通知该玩家的客户端更新自己的小KD UI
             TargetUpdatePlayerKD(deadConn, info.KillCount, info.DeathCount);
@@ -355,7 +364,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         if (infoToRemove != null)
         {
             _playerInfoList.Remove(infoToRemove);
-            Debug.Log($"[数据管理] 玩家数据已移除: ConnectionId={conn.connectionId}");
+            /* Debug.Log($"[数据管理] 玩家数据已移除: ConnectionId={conn.connectionId}"); */
             // 玩家离开后也同步一下战绩面板
             SyncWarRecordToAllClients();
         }
@@ -417,7 +426,7 @@ public class PlayerRespawnManager : NetworkBehaviour
 
     private void OnMapIndexChanged(int oldVal, int newVal)
     {
-        Debug.Log($"[地图选择] 本地收到最终地图索引: {newVal}");
+        /* Debug.Log($"[地图选择] 本地收到最终地图索引: {newVal}"); */
     }
 
     private void OnMap1CountChanged(int oldVal, int newVal)
@@ -442,7 +451,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     {
         if (IsGameStart)
         {
-            Debug.Log("[Room] 游戏已开始，跳过准备状态检查");
+            /* Debug.Log("[Room] 游戏已开始，跳过准备状态检查"); */
             return;
         }
 
@@ -457,7 +466,7 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         if (isEvenCount && isTeamBalanced && hasEnoughPlayers && isAllPrepared)
         {
-            Debug.Log($"[Room] 满足开始条件！总人数:{CurrentPlayerCount} (红:{RedPlayerCount} vs 蓝:{BluePlayerCount}) | 准备人数:{CurrentpreparaCount}/{CurrentPlayerCount}");
+            /* Debug.Log($"[Room] 满足开始条件！总人数:{CurrentPlayerCount} (红:{RedPlayerCount} vs 蓝:{BluePlayerCount}) | 准备人数:{CurrentpreparaCount}/{CurrentPlayerCount}"); */
             // 新增空值检查
             if (UImanager.Instance != null)
             {
@@ -532,7 +541,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         // 核心修改：游戏已开始，跳过准备状态修改
         if (IsGameStart)
         {
-            Debug.Log($"[Room] 游戏已开始，忽略玩家{conn.connectionId}的准备状态变更请求");
+            /* Debug.Log($"[Room] 游戏已开始，忽略玩家{conn.connectionId}的准备状态变更请求"); */
             return;
         }
 
@@ -544,7 +553,7 @@ public class PlayerRespawnManager : NetworkBehaviour
             {
                 _preparedConnections.Add(conn);
                 CurrentpreparaCount = _preparedConnections.Count;
-                Debug.Log($"[Room] 玩家准备，当前准备人数: {CurrentpreparaCount}");
+                /* Debug.Log($"[Room] 玩家准备，当前准备人数: {CurrentpreparaCount}"); */
             }
         }
         else
@@ -553,7 +562,7 @@ public class PlayerRespawnManager : NetworkBehaviour
             {
                 _preparedConnections.Remove(conn);
                 CurrentpreparaCount = _preparedConnections.Count;
-                Debug.Log($"[Room] 玩家取消准备，当前准备人数: {CurrentpreparaCount}");
+                /* Debug.Log($"[Room] 玩家取消准备，当前准备人数: {CurrentpreparaCount}"); */
             }
         }
 
@@ -569,6 +578,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     public bool IsGameRealStart = false;//游戏是否真正启动
 
     public bool _isGameEnded = false;
+    private Coroutine _gameCountdownCoroutine;
 
     [SyncVar(hook = nameof(OnChangeScoreValue))]
     public int RedTeamScoreCount = 0;
@@ -583,6 +593,12 @@ public class PlayerRespawnManager : NetworkBehaviour
             if (panel != null)
             {
                 panel.UpdateScoreInfo();
+            }
+
+            WarRecordPanel warRecordPanel = UImanager.Instance.GetPanel<WarRecordPanel>();
+            if (warRecordPanel != null)
+            {
+                warRecordPanel.RefreshScoreText();
             }
         }
     }
@@ -673,7 +689,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         int finalGoldInt = Mathf.RoundToInt(finalGold);
         finalGoldInt = Mathf.Clamp(finalGoldInt, MinGoldReward, MaxGoldReward);
 
-        Debug.Log($"[金币计算] 时长档位:{CurrentTimeLevel} 比分档位:{CurrentScoreLimitLevel} 总倍率:{totalLevelCoeff:F2} 最终比分:{redScore}:{blueScore} 胶着度:{tightness:F2} 最终金币:{finalGoldInt}");
+        /* Debug.Log($"[金币计算] 时长档位:{CurrentTimeLevel} 比分档位:{CurrentScoreLimitLevel} 总倍率:{totalLevelCoeff:F2} 最终比分:{redScore}:{blueScore} 胶着度:{tightness:F2} 最终金币:{finalGoldInt}"); */
         return finalGoldInt;
     }
 
@@ -724,10 +740,10 @@ public class PlayerRespawnManager : NetworkBehaviour
             if (CurrentMapIndex >= 0)
             {
                 ServerResetMapInteractObjects(CurrentMapIndex + 1);
-                Debug.Log($"[交互物体] 比分达标，重置地图 {CurrentMapIndex + 1} 的物体");
+                /* Debug.Log($"[交互物体] 比分达标，重置地图 {CurrentMapIndex + 1} 的物体"); */
             }
 
-            Debug.Log($"[游戏结束] {winningTeam.Value} 获胜！全局金币奖励: {goldReward}");
+            /* Debug.Log($"[游戏结束] {winningTeam.Value} 获胜！全局金币奖励: {goldReward}"); */
             RpcGameSettlement(winningTeam.Value, goldReward);
         }
     }
@@ -764,12 +780,12 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         if (senderConnection == null)
         {
-            Debug.LogWarning("[地图选择] 无法获取发送者连接，投票失败！");
+            /* Debug.LogWarning("[地图选择] 无法获取发送者连接，投票失败！"); */
             return;
         }
 
         int connId = senderConnection.connectionId;
-        Debug.Log($"[地图选择] 收到玩家{connId}的投票，选择地图{mapIndex}");
+        /* Debug.Log($"[地图选择] 收到玩家{connId}的投票，选择地图{mapIndex}"); */
 
         if (_playerChooseMapDict == null)
         {
@@ -786,7 +802,7 @@ public class PlayerRespawnManager : NetworkBehaviour
             else if (oldMapIndex == 2)
                 Map2ChooseCount = Mathf.Max(0, Map2ChooseCount - 1);
 
-            Debug.Log($"[地图选择] 玩家{connId}更换投票，移除地图{oldMapIndex}的票数");
+            /* Debug.Log($"[地图选择] 玩家{connId}更换投票，移除地图{oldMapIndex}的票数"); */
         }
 
         _playerChooseMapDict[connId] = mapIndex;
@@ -795,23 +811,32 @@ public class PlayerRespawnManager : NetworkBehaviour
         else if (mapIndex == 2)
             Map2ChooseCount++;
 
-        Debug.Log($"[地图选择] [服务器] 投票完成! 地图1: {oldMap1Count}->{Map1ChooseCount}, 地图2: {oldMap2Count}->{Map2ChooseCount} | 投票玩家ID:{connId}");
+        /* Debug.Log($"[地图选择] [服务器] 投票完成! 地图1: {oldMap1Count}->{Map1ChooseCount}, 地图2: {oldMap2Count}->{Map2ChooseCount} | 投票玩家ID:{connId}"); */
     }
 
     [Command(requiresAuthority = false)]
-    public void CmdRequestDecideFinalMap()
+    public void CmdRequestDecideFinalMap(NetworkConnectionToClient senderConnection = null)
     {
+        if (senderConnection != null && senderConnection.connectionId != 0)
+            return;
+
+        if (_hasDecidedFinalMap)
+            return;
+
         DecideFinalMap();//返回胜利地图
     }
 
     [Server]
     public void DecideFinalMap()
     {
+        if (_hasDecidedFinalMap)
+            return;
+
         if (PlayerAndGameInfoManger.Instance == null ||
             PlayerAndGameInfoManger.Instance.AllMapInfoList == null ||
             PlayerAndGameInfoManger.Instance.AllMapInfoList.Count < 2)
         {
-            Debug.LogError("[地图判定] PlayerAndGameInfoManger 或地图列表未准备好！");
+            /* Debug.LogError("[地图判定] PlayerAndGameInfoManger 或地图列表未准备好！"); */
             return;
         }
 
@@ -820,20 +845,21 @@ public class PlayerRespawnManager : NetworkBehaviour
         if (Map1ChooseCount > Map2ChooseCount)
         {
             finalMapIndex = 0;
-            Debug.Log($"[地图判定] 地图1以 {Map1ChooseCount}:{Map2ChooseCount} 胜出！");
+            /* Debug.Log($"[地图判定] 地图1以 {Map1ChooseCount}:{Map2ChooseCount} 胜出！"); */
         }
         else if (Map2ChooseCount > Map1ChooseCount)
         {
             finalMapIndex = 1;
-            Debug.Log($"[地图判定] 地图2以 {Map2ChooseCount}:{Map1ChooseCount} 胜出！");
+            /* Debug.Log($"[地图判定] 地图2以 {Map2ChooseCount}:{Map1ChooseCount} 胜出！"); */
         }
         else
         {
             finalMapIndex = Random.Range(0, 2);
-            Debug.Log($"[地图判定] 平票 ({Map1ChooseCount}:{Map2ChooseCount})，随机选择地图{finalMapIndex + 1}");
+            /* Debug.Log($"[地图判定] 平票 ({Map1ChooseCount}:{Map2ChooseCount})，随机选择地图{finalMapIndex + 1}"); */
         }
 
         CurrentMapIndex = finalMapIndex;
+        _hasDecidedFinalMap = true;
     }
 
     [Server]
@@ -846,12 +872,12 @@ public class PlayerRespawnManager : NetworkBehaviour
             if (mapIndex == 1)
             {
                 Map1ChooseCount = Mathf.Max(0, Map1ChooseCount - 1);
-                Debug.Log($"[地图选择] 玩家{connId}断开，移除地图1票数");
+                /* Debug.Log($"[地图选择] 玩家{connId}断开，移除地图1票数"); */
             }
             else if (mapIndex == 2)
             {
                 Map2ChooseCount = Mathf.Max(0, Map2ChooseCount - 1);
-                Debug.Log($"[地图选择] 玩家{connId}断开，移除地图2票数");
+                /* Debug.Log($"[地图选择] 玩家{connId}断开，移除地图2票数"); */
             }
 
             _playerChooseMapDict.Remove(connId);
@@ -903,7 +929,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         RedPlayerCount = redCount;
         BluePlayerCount = blueCount;
 
-        Debug.Log($"[Room] 队伍统计更新 - 红队:{RedPlayerCount}, 蓝队:{BluePlayerCount}");
+        /* Debug.Log($"[Room] 队伍统计更新 - 红队:{RedPlayerCount}, 蓝队:{BluePlayerCount}"); */
 
         // 核心修改：仅游戏未开始时，才检查开始条件
         if (!IsGameStart)
@@ -934,7 +960,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         GameObject managerPrefab = Resources.Load<GameObject>("Prefabs/PlayerRespawnManager");
         if (managerPrefab == null)
         {
-            Debug.LogError("[RespawnManager] 未在Resources中找到PlayerRespawnManager预制体！");
+            /* Debug.LogError("[RespawnManager] 未在Resources中找到PlayerRespawnManager预制体！"); */
             return;
         }
 
@@ -942,7 +968,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         NetworkServer.Spawn(managerObj);
         _isManagerCreated = true;
 
-        Debug.Log("[RespawnManager] 服务端全局重生管理器生成成功！");
+        /* Debug.Log("[RespawnManager] 服务端全局重生管理器生成成功！"); */
     }
 
     [Server]
@@ -972,6 +998,13 @@ public class PlayerRespawnManager : NetworkBehaviour
         Map2ChooseCount = 0;
         CurrentMapIndex = -1;
         IsGameStart = false;
+        IsGameRealStart = false;
+        _isGameEnded = false;
+        _hasDecidedFinalMap = false;
+        CurrentpreparaCount = 0;
+        RedTeamScoreCount = 0;
+        BlueTeamScoreCount = 0;
+        _preparedConnections?.Clear();
 
         UpdatePlayerCount();
         ServerUpdateTeamInfo();
@@ -998,7 +1031,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     }
     private void OnClientDisconnected()
     {
-        Debug.LogWarning("[网络事件] 检测到与服务器断开连接（房主可能已离开），执行强制清理。");
+        /* Debug.LogWarning("[网络事件] 检测到与服务器断开连接（房主可能已离开），执行强制清理。"); */
         // 直接调用UI清理，不碰网络代码
         ForceCleanupUI();
     }
@@ -1019,7 +1052,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     {
         if (conn == null || !conn.isReady)
         {
-            Debug.LogError($"[RespawnManager] 玩家连接无效，无法重生！");
+            /* Debug.LogError($"[RespawnManager] 玩家连接无效，无法重生！"); */
             return;
         }
         StartCoroutine(ServerDelayedRespawnCoroutine(conn, respawnDelay));
@@ -1030,7 +1063,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     {
         if (spawnPoints.Count == 0)
         {
-            Debug.LogWarning($"[RespawnManager] 未配置出生点，使用NetworkManager默认出生点！");
+            /* Debug.LogWarning($"[RespawnManager] 未配置出生点，使用NetworkManager默认出生点！"); */
             return NetworkManager.singleton.GetStartPosition();
         }
         return spawnPoints[Random.Range(0, spawnPoints.Count)];
@@ -1046,7 +1079,7 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         if (UImanager.Instance == null)
         {
-            Debug.LogWarning("[RespawnManager] UImanager为空，无法显示死亡面板！");
+            /* Debug.LogWarning("[RespawnManager] UImanager为空，无法显示死亡面板！"); */
             return;
         }
 
@@ -1064,7 +1097,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         {
             UImanager.Instance.HidePanel<DeathPanel>();
         }
-        Debug.Log("[RespawnManager] 玩家重生完成，关闭死亡面板");
+        /* Debug.Log("[RespawnManager] 玩家重生完成，关闭死亡面板"); */
     }
     #endregion
 
@@ -1073,7 +1106,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     {
         if (string.IsNullOrEmpty(content) || duration <= 0)
         {
-            Debug.LogWarning($"[RespawnManager] 全局消息参数无效");
+            /* Debug.LogWarning($"[RespawnManager] 全局消息参数无效"); */
             return;
         }
 
@@ -1126,7 +1159,7 @@ public class PlayerRespawnManager : NetworkBehaviour
             {
                 _preparedConnections.Remove(conn);
                 CurrentpreparaCount = _preparedConnections.Count;
-                Debug.Log($"[Room] 退出玩家在准备列表中，已移除，当前准备人数: {CurrentpreparaCount}");
+                /* Debug.Log($"[Room] 退出玩家在准备列表中，已移除，当前准备人数: {CurrentpreparaCount}"); */
             }
         }
 
@@ -1151,12 +1184,12 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         if (RedPlayerCount <= 0 && BluePlayerCount > 0)
         {
-            Debug.Log("[游戏结束] 红队已无玩家，蓝队获胜！");
+            /* Debug.Log("[游戏结束] 红队已无玩家，蓝队获胜！"); */
             winningTeam = Team.Blue;
         }
         else if (BluePlayerCount <= 0 && RedPlayerCount > 0)
         {
-            Debug.Log("[游戏结束] 蓝队已无玩家，红队获胜！");
+            /* Debug.Log("[游戏结束] 蓝队已无玩家，红队获胜！"); */
             winningTeam = Team.Red;
         }
 
@@ -1175,17 +1208,35 @@ public class PlayerRespawnManager : NetworkBehaviour
     {
         if (isServer)
         {
-            Debug.Log("[Respawn] 服务器开始广播游戏开始通知...");
+            /* Debug.Log("[Respawn] 服务器开始广播游戏开始通知..."); */
+            ResetMapSelectionForNewGame();
             RpcNoticePlayerGameStart();
         }
     }
 
+    [Server]
+    private void ResetMapSelectionForNewGame()
+    {
+        if (_playerChooseMapDict == null)
+        {
+            _playerChooseMapDict = new Dictionary<int, int>();
+        }
+        else
+        {
+            _playerChooseMapDict.Clear();
+        }
+
+        Map1ChooseCount = 0;
+        Map2ChooseCount = 0;
+        CurrentMapIndex = -1;
+        _hasDecidedFinalMap = false;
+    }
     [ClientRpc]
     public void RpcNoticePlayerGameStart()
     {
         if (UImanager.Instance == null)
         {
-            Debug.LogError("[Respawn] UImanager 未找到！");
+            /* Debug.LogError("[Respawn] UImanager 未找到！"); */
             return;
         }
 
@@ -1201,8 +1252,52 @@ public class PlayerRespawnManager : NetworkBehaviour
 
     #region 地图传送与队伍出生点核心逻辑 
 
+    private Coroutine _delayedTeleportCoroutine;
+    private const float DelayedTeleportRetryInterval = 0.1f;
+    private const float DelayedTeleportMaxWaitTime = 3f;
+
+    private MapType? GetCurrentSelectedMapType()
+    {
+        if (CurrentMapIndex == 0)
+            return MapType.map1;
+
+        if (CurrentMapIndex == 1)
+            return MapType.map2;
+
+        return null;
+    }
+
     private MapManager GetCurrentMapManager()
     {
+        MapType? selectedType = GetCurrentSelectedMapType();
+        if (selectedType.HasValue && AllMapManager.Instance != null && AllMapManager.Instance.mapPacksList != null)
+        {
+            foreach (var pack in AllMapManager.Instance.mapPacksList)
+            {
+                if (pack == null || pack.Type != selectedType.Value)
+                    continue;
+
+                if (pack.Obj != null)
+                {
+                    MapManager mapManager = pack.Obj.GetComponent<MapManager>();
+                    if (mapManager == null)
+                        mapManager = pack.Obj.GetComponentInChildren<MapManager>(true);
+
+                    if (mapManager != null)
+                        return mapManager;
+                }
+
+                if (pack.ScreenObj != null)
+                {
+                    MapManager screenMapManager = pack.ScreenObj.GetComponent<MapManager>();
+                    if (screenMapManager == null)
+                        screenMapManager = pack.ScreenObj.GetComponentInChildren<MapManager>(true);
+
+                    if (screenMapManager != null)
+                        return screenMapManager;
+                }
+            }
+        }
 
         if (PlayerAndGameInfoManger.Instance == null)
         {
@@ -1216,19 +1311,18 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         return PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentMapIndex];
     }
-
     public Transform GetTeamSpawnPoint(Team playerTeam)
     {
         if (CurrentMapIndex < 0)
         {
-            Debug.LogWarning("[传送] 当前还没有确定地图，使用默认出生点！");
+            /* Debug.LogWarning("[传送] 当前还没有确定地图，使用默认出生点！"); */
             return GetRandomSpawnPoint();
         }
 
         MapManager mapManager = GetCurrentMapManager();
         if (mapManager == null)
         {
-            Debug.LogWarning("[传送] 未找到当前地图管理器，使用默认出生点！");
+            /* Debug.LogWarning("[传送] 未找到当前地图管理器，使用默认出生点！"); */
             return GetRandomSpawnPoint();
         }
 
@@ -1245,50 +1339,103 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         if (targetBornList == null || targetBornList.Count == 0)
         {
-            Debug.LogWarning($"[传送] {playerTeam}队在当前地图未配置出生点，使用默认出生点！");
+            /* Debug.LogWarning($"[传送] {playerTeam}队在当前地图未配置出生点，使用默认出生点！"); */
             return GetRandomSpawnPoint();
         }
 
         Transform spawnPoint = targetBornList[Random.Range(0, targetBornList.Count)];
-        Debug.Log($"[传送] {playerTeam}队使用地图出生点：{spawnPoint.name} -> {spawnPoint.position}");
+        /* Debug.Log($"[传送] {playerTeam}队使用地图出生点：{spawnPoint.name} -> {spawnPoint.position}"); */
         return spawnPoint;
     }
 
-    public void TeleportAllPlayersToMap()
+    private Player GetLocalPlayerForTeleport()
     {
-        if (CurrentMapIndex < 0)
-        {
-            Debug.LogError("[传送] 地图索引无效，无法传送！");
-            return;
-        }
-
         Player localPlayer = Player.LocalPlayer;
         if (localPlayer == null && NetworkClient.localPlayer != null)
         {
             localPlayer = NetworkClient.localPlayer.GetComponent<Player>();
         }
 
-        if (localPlayer != null)
-        {
-            Transform localSpawnPoint = GetTeamSpawnPoint(localPlayer.CurrentTeam);
-            if (localSpawnPoint != null)
-            {
-                localPlayer.transform.SetPositionAndRotation(localSpawnPoint.position, localSpawnPoint.rotation);
-                if (localPlayer.MyRigdboby != null)
-                {
-                    localPlayer.MyRigdboby.velocity = Vector2.zero;
-                    localPlayer.MyRigdboby.angularVelocity = 0f;
-                    localPlayer.MyRigdboby.position = localSpawnPoint.position;
-                    localPlayer.MyRigdboby.rotation = localSpawnPoint.eulerAngles.z;
-                }
+        return localPlayer;
+    }
 
-                Physics2D.SyncTransforms();
-                Debug.Log($"[传送] 本地玩家已传送到地图出生点：{localSpawnPoint.name} -> {localSpawnPoint.position}");
-            }
-        }
-        else
+    private bool TryTeleportLocalPlayerToSelectedMap(bool logIfFailed)
+    {
+        if (CurrentMapIndex < 0)
         {
-            Debug.LogWarning("[传送] 当前客户端未找到本地玩家，跳过本地传送");
+            if (logIfFailed)
+                /* Debug.LogWarning("[传送] 当前客户端还没有收到有效地图索引，稍后重试"); */
+            return false;
+        }
+
+        Player localPlayer = GetLocalPlayerForTeleport();
+        if (localPlayer == null)
+        {
+            if (logIfFailed)
+                /* Debug.LogWarning("[传送] 当前客户端未找到本地玩家，稍后重试"); */
+            return false;
+        }
+
+        Transform localSpawnPoint = GetTeamSpawnPoint(localPlayer.CurrentTeam);
+        if (localSpawnPoint == null)
+        {
+            if (logIfFailed)
+                /* Debug.LogWarning("[传送] 当前地图出生点尚未就绪，稍后重试"); */
+            return false;
+        }
+
+        localPlayer.transform.SetPositionAndRotation(localSpawnPoint.position, localSpawnPoint.rotation);
+        if (localPlayer.MyRigdboby != null)
+        {
+            localPlayer.MyRigdboby.velocity = Vector2.zero;
+            localPlayer.MyRigdboby.angularVelocity = 0f;
+            localPlayer.MyRigdboby.position = localSpawnPoint.position;
+            localPlayer.MyRigdboby.rotation = localSpawnPoint.eulerAngles.z;
+            localPlayer.MyRigdboby.Sleep();
+        }
+
+        Physics2D.SyncTransforms();
+        /* Debug.Log($"[传送] 本地玩家已传送到地图出生点：{localSpawnPoint.name} -> {localSpawnPoint.position}"); */
+        return true;
+    }
+
+    private void StartDelayedLocalTeleport()
+    {
+        if (!isClient)
+            return;
+
+        if (_delayedTeleportCoroutine != null)
+        {
+            StopCoroutine(_delayedTeleportCoroutine);
+        }
+
+        _delayedTeleportCoroutine = StartCoroutine(DelayedLocalTeleportCoroutine());
+    }
+
+    private IEnumerator DelayedLocalTeleportCoroutine()
+    {
+        float elapsed = 0f;
+        while (elapsed < DelayedTeleportMaxWaitTime)
+        {
+            if (TryTeleportLocalPlayerToSelectedMap(false))
+            {
+                _delayedTeleportCoroutine = null;
+                yield break;
+            }
+
+            yield return new WaitForSeconds(DelayedTeleportRetryInterval);
+            elapsed += DelayedTeleportRetryInterval;
+        }
+
+        _delayedTeleportCoroutine = null;
+        TryTeleportLocalPlayerToSelectedMap(true);
+    }
+
+    public void TeleportAllPlayersToMap()
+    {
+        if (!TryTeleportLocalPlayerToSelectedMap(false))
+        {
+            StartDelayedLocalTeleport();
         }
 
         if (UImanager.Instance != null)
@@ -1302,8 +1449,12 @@ public class PlayerRespawnManager : NetworkBehaviour
             return;
         }
 
-        Debug.Log("[传送] Host 端开始执行对局初始化流程");
-        IsGameRealStart = true;//启动游戏
+        /* Debug.Log("[传送] Host 端开始执行对局初始化流程"); */
+        // 真正的对局计时在入场动画结束后启动。
+        if (CurrentMapIndex >= 0)
+        {
+            ServerInitMapInteractObjects(CurrentMapIndex + 1);
+        }
 
         foreach (PlayerInfo playerInfoPack in _playerInfoList)
         {
@@ -1315,15 +1466,12 @@ public class PlayerRespawnManager : NetworkBehaviour
             playerInfoPack.Monster.CmdClearAllPlayerObj();
         }
 
-        if (PlayerAndGameInfoManger.Instance != null
-            && CurrentMapIndex >= 0
-            && CurrentMapIndex < PlayerAndGameInfoManger.Instance.AllMapManagerList.Count
-            && PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentMapIndex] != null)
+        MapManager currentMapManager = GetCurrentMapManager();
+        if (currentMapManager != null)
         {
-            PlayerAndGameInfoManger.Instance.AllMapManagerList[CurrentMapIndex].MapInit();//地图初始化
+            currentMapManager.MapInit();//地图初始化
         }
     }
-
     [TargetRpc]
     private void TargetTeleportPlayer(NetworkConnectionToClient target, Vector3 spawnPos, Quaternion spawnRot)
     {
@@ -1339,7 +1487,7 @@ public class PlayerRespawnManager : NetworkBehaviour
                 localPlayer.MyRigdboby.rotation = spawnRot.eulerAngles.z;
             }
             Physics2D.SyncTransforms();
-            Debug.Log($"[客户端] 本地传送完成，新位置：{spawnPos}");
+            /* Debug.Log($"[客户端] 本地传送完成，新位置：{spawnPos}"); */
             if (UImanager.Instance != null)
             {
                 var playerPanel = UImanager.Instance.GetPanel<PlayerPanel>();
@@ -1348,7 +1496,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         }
         else
         {
-            Debug.LogError("[客户端] 未找到自己的本地玩家对象，传送失败！");
+            /* Debug.LogError("[客户端] 未找到自己的本地玩家对象，传送失败！"); */
         }
     }
     #endregion
@@ -1367,7 +1515,7 @@ public class PlayerRespawnManager : NetworkBehaviour
             if (savedInfo != null)
             {
                 oldPlayerTeam = savedInfo.Team;
-                Debug.Log($"[RespawnManager] 从数据中恢复玩家队伍: {conn.connectionId} -> {oldPlayerTeam}");
+                /* Debug.Log($"[RespawnManager] 从数据中恢复玩家队伍: {conn.connectionId} -> {oldPlayerTeam}"); */
             }
             else
             {
@@ -1375,7 +1523,7 @@ public class PlayerRespawnManager : NetworkBehaviour
                 {
                     oldPlayerTeam = oldPlayer.CurrentTeam;
                 }
-                Debug.LogWarning($"[RespawnManager] 未找到玩家数据，使用旧物体队伍: {oldPlayerTeam}");
+                /* Debug.LogWarning($"[RespawnManager] 未找到玩家数据，使用旧物体队伍: {oldPlayerTeam}"); */
             }
 
             NetworkServer.DestroyPlayerForConnection(conn);
@@ -1387,7 +1535,7 @@ public class PlayerRespawnManager : NetworkBehaviour
             GameObject playerPrefab = NetworkManager.singleton.playerPrefab;
             if (playerPrefab == null)
             {
-                Debug.LogError($"[RespawnManager] NetworkManager未配置PlayerPrefab！");
+                /* Debug.LogError($"[RespawnManager] NetworkManager未配置PlayerPrefab！"); */
                 yield break;
             }
 
@@ -1396,11 +1544,11 @@ public class PlayerRespawnManager : NetworkBehaviour
             if (newPlayerScript != null)
             {
                 newPlayerScript.CurrentTeam = oldPlayerTeam;
-                Debug.Log($"[RespawnManager] 已直接赋值新玩家队伍: {oldPlayerTeam}");
+                /* Debug.Log($"[RespawnManager] 已直接赋值新玩家队伍: {oldPlayerTeam}"); */
             }
             if (!NetworkServer.AddPlayerForConnection(conn, newPlayer))
             {
-                Debug.LogError($"[RespawnManager] 重生失败：玩家{conn}已有绑定的玩家对象");
+                /* Debug.LogError($"[RespawnManager] 重生失败：玩家{conn}已有绑定的玩家对象"); */
                 NetworkServer.Destroy(newPlayer);
                 yield break;
             }
@@ -1411,7 +1559,7 @@ public class PlayerRespawnManager : NetworkBehaviour
             }
 
             TargetHideDeathPanel(conn);
-            Debug.Log($"[RespawnManager] 玩家{conn} ({oldPlayerTeam}队) 重生成功，新玩家生成于：{spawnPos}");
+            /* Debug.Log($"[RespawnManager] 玩家{conn} ({oldPlayerTeam}队) 重生成功，新玩家生成于：{spawnPos}"); */
         }
     }
     #endregion
@@ -1453,7 +1601,7 @@ public class PlayerRespawnManager : NetworkBehaviour
 
         if (!isNetworkActive)
         {
-            Debug.Log("[退出] 网络未激活，仅清理UI完成");
+            /* Debug.Log("[退出] 网络未激活，仅清理UI完成"); */
             return;
         }
 
@@ -1466,7 +1614,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         // 处理端口/Relay清理
         if (Main.Instance != null && Main.Instance.CurrentMode == NetworkMode.LAN)
         {
-            Debug.Log("[退出] 局域网模式，执行 KCP 端口清理...");
+            /* Debug.Log("[退出] 局域网模式，执行 KCP 端口清理..."); */
             if (CustomNetworkManager.Instance != null)
             {
                 CustomNetworkManager.Instance.ForceStopCurrentPort();
@@ -1474,7 +1622,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         }
         else
         {
-            Debug.Log("[退出] 远程模式，执行 UOS Relay 清理...");
+            /* Debug.Log("[退出] 远程模式，执行 UOS Relay 清理..."); */
             if (UOSRelaySimple.Instance != null)
             {
                 UOSRelaySimple.Instance.StopRelay();
@@ -1494,7 +1642,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     {
         yield return null; // 等一帧
         DestroyRespawnManager();
-        Debug.Log("[RespawnManager] 网络清理完成，自我销毁");
+        /* Debug.Log("[RespawnManager] 网络清理完成，自我销毁"); */
     }
 
     /// <summary>
@@ -1504,7 +1652,7 @@ public class PlayerRespawnManager : NetworkBehaviour
     {
         try
         {
-            Debug.Log("[UI清理] 强制关闭所有面板并返回房间...");
+            /* Debug.Log("[UI清理] 强制关闭所有面板并返回房间..."); */
             //手动清理所有可能出现的面板
             UImanager.Instance.HidePanel<PlayerPanel>();
             UImanager.Instance.HidePanel<PlayerPreparaPanel>();
@@ -1512,7 +1660,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"UI清理过程中发生异常: {e.Message}");
+            /* Debug.LogError($"UI清理过程中发生异常: {e.Message}"); */
         }
     }
 
@@ -1537,11 +1685,11 @@ public class PlayerRespawnManager : NetworkBehaviour
                 MapIndex = mapIndex
             };
             AllBaseBulletInteract_NetWorks.Add(info);
-            Debug.Log($"[交互物体] 注册成功：{script.gameObject.name} 地图{mapIndex}");
+            /* Debug.Log($"[交互物体] 注册成功：{script.gameObject.name} 地图{mapIndex}"); */
         }
         else
         {
-            Debug.LogError("传入的物体不具有BaseBulletInteract_NetWork脚本!");
+            /* Debug.LogError("传入的物体不具有BaseBulletInteract_NetWork脚本!"); */
         }
     }
 

@@ -76,13 +76,13 @@ public class RigidbodyGUITestManager : SingleMonoAutoBehavior<RigidbodyGUITestMa
         // 空值校验
         if (rig == null)
         {
-            Debug.LogError("[RigidbodyGUITestManager] 注册2D刚体失败：刚体对象为Null！");
+            /* Debug.LogError("[RigidbodyGUITestManager] 注册2D刚体失败：刚体对象为Null！"); */
             return;
         }
         // 重复注册校验
         if (_rig2DShowDic.ContainsKey(rig))
         {
-            Debug.LogWarning($"[RigidbodyGUITestManager] 2D刚体{rig.name}已注册，自定义名称：{_rig2DShowDic[rig].showName}，无需重复注册");
+            /* Debug.LogWarning($"[RigidbodyGUITestManager] 2D刚体{rig.name}已注册，自定义名称：{_rig2DShowDic[rig].showName}，无需重复注册"); */
             return;
         }
         // 添加到字典
@@ -91,7 +91,7 @@ public class RigidbodyGUITestManager : SingleMonoAutoBehavior<RigidbodyGUITestMa
             rig = rig,
             showName = string.IsNullOrEmpty(customName) ? $"2D刚体_{rig.name}" : customName
         });
-        Debug.Log($"[RigidbodyGUITestManager] 2D刚体注册成功，显示名称：{customName}");
+        /* Debug.Log($"[RigidbodyGUITestManager] 2D刚体注册成功，显示名称：{customName}"); */
     }
 
     /// <summary>
@@ -104,13 +104,13 @@ public class RigidbodyGUITestManager : SingleMonoAutoBehavior<RigidbodyGUITestMa
         // 空值校验
         if (rig == null)
         {
-            Debug.LogError("[RigidbodyGUITestManager] 注册3D刚体失败：刚体对象为Null！");
+            /* Debug.LogError("[RigidbodyGUITestManager] 注册3D刚体失败：刚体对象为Null！"); */
             return;
         }
         // 重复注册校验
         if (_rig3DShowDic.ContainsKey(rig))
         {
-            Debug.LogWarning($"[RigidbodyGUITestManager] 3D刚体{rig.name}已注册，自定义名称：{_rig3DShowDic[rig].showName}，无需重复注册");
+            /* Debug.LogWarning($"[RigidbodyGUITestManager] 3D刚体{rig.name}已注册，自定义名称：{_rig3DShowDic[rig].showName}，无需重复注册"); */
             return;
         }
         // 添加到字典
@@ -119,7 +119,7 @@ public class RigidbodyGUITestManager : SingleMonoAutoBehavior<RigidbodyGUITestMa
             rig = rig,
             showName = string.IsNullOrEmpty(customName) ? $"3D刚体_{rig.name}" : customName
         });
-        Debug.Log($"[RigidbodyGUITestManager] 3D刚体注册成功，显示名称：{customName}");
+        /* Debug.Log($"[RigidbodyGUITestManager] 3D刚体注册成功，显示名称：{customName}"); */
     }
 
     /// <summary>
@@ -130,18 +130,18 @@ public class RigidbodyGUITestManager : SingleMonoAutoBehavior<RigidbodyGUITestMa
     {
         if (rig == null)
         {
-            Debug.LogError("[RigidbodyGUITestManager] 注销2D刚体失败：刚体对象为Null！");
+            /* Debug.LogError("[RigidbodyGUITestManager] 注销2D刚体失败：刚体对象为Null！"); */
             return;
         }
         if (_rig2DShowDic.ContainsKey(rig))
         {
             string showName = _rig2DShowDic[rig].showName;
             _rig2DShowDic.Remove(rig);
-            Debug.Log($"[RigidbodyGUITestManager] 2D刚体注销成功，显示名称：{showName}");
+            /* Debug.Log($"[RigidbodyGUITestManager] 2D刚体注销成功，显示名称：{showName}"); */
         }
         else
         {
-            Debug.LogWarning($"[RigidbodyGUITestManager] 2D刚体{rig.name}未注册，无需注销");
+            /* Debug.LogWarning($"[RigidbodyGUITestManager] 2D刚体{rig.name}未注册，无需注销"); */
         }
     }
 
@@ -153,18 +153,18 @@ public class RigidbodyGUITestManager : SingleMonoAutoBehavior<RigidbodyGUITestMa
     {
         if (rig == null)
         {
-            Debug.LogError("[RigidbodyGUITestManager] 注销3D刚体失败：刚体对象为Null！");
+            /* Debug.LogError("[RigidbodyGUITestManager] 注销3D刚体失败：刚体对象为Null！"); */
             return;
         }
         if (_rig3DShowDic.ContainsKey(rig))
         {
             string showName = _rig3DShowDic[rig].showName;
             _rig3DShowDic.Remove(rig);
-            Debug.Log($"[RigidbodyGUITestManager] 3D刚体注销成功，显示名称：{showName}");
+            /* Debug.Log($"[RigidbodyGUITestManager] 3D刚体注销成功，显示名称：{showName}"); */
         }
         else
         {
-            Debug.LogWarning($"[RigidbodyGUITestManager] 3D刚体{rig.name}未注册，无需注销");
+            /* Debug.LogWarning($"[RigidbodyGUITestManager] 3D刚体{rig.name}未注册，无需注销"); */
         }
     }
 
@@ -175,7 +175,7 @@ public class RigidbodyGUITestManager : SingleMonoAutoBehavior<RigidbodyGUITestMa
     {
         _rig3DShowDic.Clear();
         _rig2DShowDic.Clear();
-        Debug.Log("[RigidbodyGUITestManager] 已清空所有注册的刚体显示信息");
+        /* Debug.Log("[RigidbodyGUITestManager] 已清空所有注册的刚体显示信息"); */
     }
     #endregion
 
@@ -186,7 +186,7 @@ public class RigidbodyGUITestManager : SingleMonoAutoBehavior<RigidbodyGUITestMa
         // 初始化字典（防止空引用）
         _rig3DShowDic = new Dictionary<Rigidbody, Rig3DShowInfo>();
         _rig2DShowDic = new Dictionary<Rigidbody2D, Rig2DShowInfo>();
-        Debug.Log("[RigidbodyGUITestManager] 单例初始化完成，刚体信息显示管理器已就绪");
+        /* Debug.Log("[RigidbodyGUITestManager] 单例初始化完成，刚体信息显示管理器已就绪"); */
     }
 
     protected override void OnDestroy()

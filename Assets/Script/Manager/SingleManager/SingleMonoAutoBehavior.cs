@@ -20,7 +20,7 @@ public class SingleMonoAutoBehavior<T> : MonoBehaviour where T : MonoBehaviour
             // 已销毁则直接返回null，避免重复创建
             if (_isDestroyed)
             {
-                Debug.LogWarning($"[{typeof(T).Name}] 单例已被销毁，无法获取实例！");
+                /* Debug.LogWarning($"[{typeof(T).Name}] 单例已被销毁，无法获取实例！"); */
                 return null;
             }
 
@@ -41,11 +41,11 @@ public class SingleMonoAutoBehavior<T> : MonoBehaviour where T : MonoBehaviour
                         // 销毁多余的场景实例，保证唯一性
                         for (int i = 1; i < sceneInstances.Length; i++)
                         {
-                            Debug.LogWarning($"[{typeof(T).Name}] 场景中存在多个实例，已销毁重复实例！");
+                            /* Debug.LogWarning($"[{typeof(T).Name}] 场景中存在多个实例，已销毁重复实例！"); */
                             Destroy(sceneInstances[i].gameObject);
                         }
 
-                        Debug.Log($"[{typeof(T).Name}] 已使用场景中预放的实例");
+                        /* Debug.Log($"[{typeof(T).Name}] 已使用场景中预放的实例"); */
                     }
                     else
                     {
@@ -53,7 +53,7 @@ public class SingleMonoAutoBehavior<T> : MonoBehaviour where T : MonoBehaviour
                         GameObject singletonObj = new GameObject(typeof(T).Name + " (Auto Singleton)");
                         _instance = singletonObj.AddComponent<T>();
                         DontDestroyOnLoad(singletonObj);
-                        Debug.Log($"[{typeof(T).Name}] 场景中无预放实例，已自动创建单例");
+                        /* Debug.Log($"[{typeof(T).Name}] 场景中无预放实例，已自动创建单例"); */
                     }
                 }
                 return _instance;
@@ -71,12 +71,12 @@ public class SingleMonoAutoBehavior<T> : MonoBehaviour where T : MonoBehaviour
         {
             _instance = this as T;
             DontDestroyOnLoad(gameObject);
-            Debug.Log($"[{typeof(T).Name}] 场景实例初始化完成，作为单例使用");
+            /* Debug.Log($"[{typeof(T).Name}] 场景实例初始化完成，作为单例使用"); */
         }
         // 若已有单例且不是当前实例，销毁当前实例
         else if (_instance != this)
         {
-            Debug.LogWarning($"[{typeof(T).Name}] 检测到重复实例，销毁当前场景实例");
+            /* Debug.LogWarning($"[{typeof(T).Name}] 检测到重复实例，销毁当前场景实例"); */
             Destroy(gameObject);
         }
     }
@@ -91,7 +91,7 @@ public class SingleMonoAutoBehavior<T> : MonoBehaviour where T : MonoBehaviour
         {
             _isDestroyed = true;
             _instance = null;
-            Debug.Log($"[{typeof(T).Name}] 单例已销毁");
+            /* Debug.Log($"[{typeof(T).Name}] 单例已销毁"); */
         }
     }
 
