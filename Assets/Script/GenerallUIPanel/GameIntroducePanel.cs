@@ -13,7 +13,8 @@ public class GameIntroducePanel : BasePanel
     {
         Train,
         Operate,
-        Online
+        Online,
+        ChooseMap
     }
 
     [System.Serializable]
@@ -47,6 +48,8 @@ public class GameIntroducePanel : BasePanel
     public CanvasGroup TrainPanelCanvasGroup;
     [Header("联机说明面板")]
     public CanvasGroup OnlinePanelCanvasGroup;
+    [Header("地图选择面板")]
+    public CanvasGroup MapPanelCanvasGroup;
 
     private TypingWritingTask _topicTypingTask;
     private TypingWritingTask _contentTypingTask;
@@ -55,6 +58,7 @@ public class GameIntroducePanel : BasePanel
     private Sequence _trainPanelSequence;
     private Sequence _operatePanelSequence;
     private Sequence _onlinePanelSequence;
+    private Sequence _mapPanelSequence;
     private int _currentPageIndex;
     private bool _hasRegisteredViewButtonGroup;
 
@@ -85,6 +89,7 @@ public class GameIntroducePanel : BasePanel
         _trainPanelSequence?.Kill();
         _operatePanelSequence?.Kill();
         _onlinePanelSequence?.Kill();
+        _mapPanelSequence?.Kill();
         if (ButtonGroupManager.Instance != null)
         {
             ButtonGroupManager.Instance.DestroyRadioGroup(ViewButtonGroup);
@@ -121,6 +126,10 @@ public class GameIntroducePanel : BasePanel
             MusicManager.Instance?.PlayEffect(UI_SELECT_SOUND);
         }
         else if (controlName == "OnlineButton")
+        {
+            MusicManager.Instance?.PlayEffect(UI_SELECT_SOUND);
+        }
+        else if (controlName == "ChooseMapButton")
         {
             MusicManager.Instance?.PlayEffect(UI_SELECT_SOUND);
         }
@@ -182,12 +191,17 @@ public class GameIntroducePanel : BasePanel
             ButtonGroupManager.Instance.AddRadioButtonToGroup(ViewButtonGroup, onlineButton, OnOnlineButtonSelected, OnOnlineButtonCanceled);
         }
 
+        if (controlDic.ContainsKey("ChooseMapButton") && controlDic["ChooseMapButton"] is Button chooseMapButton)
+        {
+            ButtonGroupManager.Instance.AddRadioButtonToGroup(ViewButtonGroup, chooseMapButton, OnChooseMapButtonSelected, OnChooseMapButtonCanceled);
+        }
+
         _hasRegisteredViewButtonGroup = true;
     }
 
     private void AutoBindOnlinePanel()
     {
-        if (OnlinePanelCanvasGroup != null)
+        if (OnlinePanelCanvasGroup != null && MapPanelCanvasGroup != null)
             return;
 
         CanvasGroup[] canvasGroups = GetComponentsInChildren<CanvasGroup>(true);
@@ -200,8 +214,15 @@ public class GameIntroducePanel : BasePanel
             if (panelName == "OnLinePanel" || panelName == "OnlinePanel")
             {
                 OnlinePanelCanvasGroup = canvasGroup;
-                return;
             }
+
+            if (panelName == "ChooseMapPanel" || panelName == "MapPanel" || panelName == "MapIntroducePanel")
+            {
+                MapPanelCanvasGroup = canvasGroup;
+            }
+
+            if (OnlinePanelCanvasGroup != null && MapPanelCanvasGroup != null)
+                return;
         }
     }
 
@@ -243,6 +264,16 @@ public class GameIntroducePanel : BasePanel
         SetCanvasGroupVisible(OnlinePanelCanvasGroup, ref _onlinePanelSequence, false, true);
     }
 
+    private void OnChooseMapButtonSelected()
+    {
+        SetActiveViewPanel(ViewPanelType.ChooseMap, true);
+    }
+
+    private void OnChooseMapButtonCanceled()
+    {
+        SetCanvasGroupVisible(MapPanelCanvasGroup, ref _mapPanelSequence, false, true);
+    }
+
     private void SetTrainPanelVisible(bool showTrainPanel, bool playFade)
     {
         SetActiveViewPanel(showTrainPanel ? ViewPanelType.Train : ViewPanelType.Operate, playFade);
@@ -253,6 +284,7 @@ public class GameIntroducePanel : BasePanel
         SetCanvasGroupVisible(TrainPanelCanvas, ref _trainPanelSequence, viewPanelType == ViewPanelType.Train, playFade);
         SetCanvasGroupVisible(TrainPanelCanvasGroup, ref _operatePanelSequence, viewPanelType == ViewPanelType.Operate, playFade);
         SetCanvasGroupVisible(OnlinePanelCanvasGroup, ref _onlinePanelSequence, viewPanelType == ViewPanelType.Online, playFade);
+        SetCanvasGroupVisible(MapPanelCanvasGroup, ref _mapPanelSequence, viewPanelType == ViewPanelType.ChooseMap, playFade);
     }
 
     private void SetCanvasGroupVisible(CanvasGroup canvasGroup, ref Sequence sequence, bool isShow, bool playFade)

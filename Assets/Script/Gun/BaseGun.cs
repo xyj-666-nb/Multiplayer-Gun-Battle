@@ -86,6 +86,13 @@ public class BaseGun : NetworkBehaviour
 
     #endregion
 
+    private bool _localShootLocked;
+    private bool _hasLocalPredictedMagazineBulletCount;
+    private float _localPredictedMagazineBulletCount;
+    private float _localPendingShootCount;
+    private float _lastTimelineShootVfxTime = -999f;
+    private const float SHOOT_VFX_RPC_SUPPRESS_TIME = 0.35f;
+
     #region ?????????????
     [Header("??????????")]
     [Tooltip("??????????§»??Player??Ground??")]
@@ -300,6 +307,21 @@ public class BaseGun : NetworkBehaviour
 
     private void OnCurrentMagazineBulletChanged(float oldValue, float newValue)
     {
+        if (IsLocalOwner())
+        {
+            if (newValue >= oldValue)
+            {
+                _localPendingShootCount = 0;
+            }
+            else
+            {
+                _localPendingShootCount = Mathf.Max(0, _localPendingShootCount - (oldValue - newValue));
+            }
+
+            _localPredictedMagazineBulletCount = Mathf.Max(0, newValue - _localPendingShootCount);
+            _hasLocalPredictedMagazineBulletCount = true;
+        }
+
         if (Player.LocalPlayer == null)
             return;
 
@@ -428,6 +450,9 @@ public class BaseGun : NetworkBehaviour
             Debug.LogError(LOG_SERVER_ERROR);
             return;
         }
+        if (!IsInShoot || gunInfo == null || _currentMagazineBulletCount <= 0)
+            return;
+
         _currentMagazineBulletCount = Mathf.Max(0, _currentMagazineBulletCount - 1);
 
         Vector2 bulletTargetPos = _zeroVector2;
@@ -522,7 +547,13 @@ public class BaseGun : NetworkBehaviour
 
     #region ClientRpc?????????????§á?????
     [ClientRpc]
-    private void RpcPlaySingleShootVFX() => PlaySingleShootVFX();
+    private void RpcPlaySingleShootVFX()
+    {
+        if (Time.time - _lastTimelineShootVfxTime <= SHOOT_VFX_RPC_SUPPRESS_TIME)
+            return;
+
+        PlaySingleShootVFX();
+    }
 
     [ClientRpc]
     private void RpcSpawnHitEffect(Vector2 hitPos, Vector2 hitNormal)
@@ -886,8 +917,9 @@ public class BaseGun : NetworkBehaviour
         if (!IsCanShoot())
             return;
         _pendingLocalShotSpreadAngle = CalculateShotSpreadAngle();
-        timelineDirector_Shoot.Play();
+        LockLocalShootGate();
         CmdStartShoot(_pendingLocalShotSpreadAngle);
+        timelineDirector_Shoot.Play();
     }
 
     public void TriggerReload()
@@ -898,10 +930,35 @@ public class BaseGun : NetworkBehaviour
     #endregion
 
     #region Timeline
-    public void OnShootFire_Timeline() => CmdExecuteShootLogic();
-    public void OnShootEnd_Timeline() => CmdFinishShoot();
-    public void OnReloadEnd_Timeline() => CmdFinishReloadLogic();
-    public void OnShootVFX_Timeline() => PlaySingleShootVFX();
+    public void OnShootFire_Timeline()
+    {
+        if (!CanLocalTimelineSendShootCommand())
+            return;
+
+        CmdExecuteShootLogic();
+    }
+
+    public void OnShootEnd_Timeline()
+    {
+        ReleaseLocalShootGate();
+
+        if (!CanLocalTimelineSendShootCommand())
+            return;
+
+        CmdFinishShoot();
+    }
+    public void OnReloadEnd_Timeline()
+    {
+        if (!CanLocalTimelineSendShootCommand())
+            return;
+
+        CmdFinishReloadLogic();
+    }
+    public void OnShootVFX_Timeline()
+    {
+        _lastTimelineShootVfxTime = Time.time;
+        PlaySingleShootVFX();
+    }
     #endregion
 
     #region
@@ -918,7 +975,46 @@ public class BaseGun : NetworkBehaviour
             Debug.LogError(LOG_GUNINFO_NULL);
             return false;
         }
+        if (ShouldUseLocalShootGate())
+            return !IsInReload && !_localShootLocked && GetLocalMagazineBulletCount() > 0;
+
         return !IsInReload && !IsInShoot && CanShoot && CurrentMagazineBulletCount > 0;
+    }
+
+    private bool IsLocalOwner()
+    {
+        return ownerPlayer != null && ownerPlayer.isLocalPlayer;
+    }
+
+    private bool ShouldUseLocalShootGate()
+    {
+        return isClient && !isServer && IsLocalOwner();
+    }
+
+    private bool CanLocalTimelineSendShootCommand()
+    {
+        return IsLocalOwner();
+    }
+
+    private float GetLocalMagazineBulletCount()
+    {
+        return _hasLocalPredictedMagazineBulletCount ? _localPredictedMagazineBulletCount : _currentMagazineBulletCount;
+    }
+
+    private void LockLocalShootGate()
+    {
+        if (!ShouldUseLocalShootGate())
+            return;
+
+        _localShootLocked = true;
+        _localPendingShootCount += 1;
+        _localPredictedMagazineBulletCount = Mathf.Max(0, GetLocalMagazineBulletCount() - 1);
+        _hasLocalPredictedMagazineBulletCount = true;
+    }
+
+    private void ReleaseLocalShootGate()
+    {
+        _localShootLocked = false;
     }
     #endregion
 
@@ -962,6 +1058,12 @@ public class BaseGun : NetworkBehaviour
         RemainingDestoryTime = DestoryTime;
     }
 
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+        ApplyGunRuntimeConfig();
+    }
+
     private GunSkinPack _currentSkinPack;
     private PlayableAsset _defaultReloadPlayableAsset;
 
@@ -977,6 +1079,14 @@ public class BaseGun : NetworkBehaviour
 
     private void OnChangeGunSkinAssetName(string oldValue, string newValue)
     {
+        ApplyGunSkinVisual();
+    }
+
+    private void ApplyGunRuntimeConfig()
+    {
+        OnChangeHitEffectConfigID(hitEffectConfigID, hitEffectConfigID);
+        OnChangeMuzzleFlashConfigID(muzzleFlashConfigID, muzzleFlashConfigID);
+        OnChangeBulletVisualConfigID(bulletVisualConfigID, bulletVisualConfigID);
         ApplyGunSkinVisual();
     }
 
@@ -1048,6 +1158,7 @@ public class BaseGun : NetworkBehaviour
 
         this.gunSkinAssetName = skinAssetName;
         this.gunSkinID = skinID;
+        ApplyGunRuntimeConfig();
     }
 
     #endregion

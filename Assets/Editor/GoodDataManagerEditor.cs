@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEditor;
 using System.IO;
 using System.Collections.Generic;
@@ -15,27 +15,26 @@ public class GoodDataManagerEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        // »æÖÆÄ¬ÈÏµÄ Inspector
         base.OnInspectorGUI();
 
         GUILayout.Space(15);
-        GUILayout.Label(" ±à¼­Æ÷¹¤¾ß", EditorStyles.boldLabel);
+        GUILayout.Label("ç¼–è¾‘å™¨å·¥å…·", EditorStyles.boldLabel);
         GUILayout.Space(5);
 
-        // ÊÖ¶¯Ë¢ĞÂ°´Å¥
-        if (GUILayout.Button(" ×Ô¶¯É¨Ãè²¢Ìî³äËùÓĞÉÌÆ·", GUILayout.Height(30)))
+        if (GUILayout.Button("è‡ªåŠ¨æ‰«æå¹¶å¡«å……æ‰€æœ‰å•†å“", GUILayout.Height(30)))
         {
             RefreshAllGoodsDataList();
         }
 
         GUILayout.Space(5);
-        EditorGUILayout.HelpBox("ÌáÊ¾£º\n1. µã»÷ÉÏ·½°´Å¥¿ÉÊÖ¶¯É¨ÃèËùÓĞ GoodsData ×ÊÔ´²¢ÌîÈëÁĞ±í¡£\n2. ÅäºÏÏÂ·½µÄ¡¸×ÊÔ´¼àÌı¡¹£¬´´½¨ĞÂÉÌÆ·Ê±»á×Ô¶¯Ìî³ä¡£", MessageType.Info);
+        EditorGUILayout.HelpBox("æç¤ºï¼š\n1. ç‚¹å‡»ä¸Šæ–¹æŒ‰é’®å¯æ‰‹åŠ¨æ‰«ææ‰€æœ‰ GoodsData èµ„æºå¹¶å¡«å…¥åˆ—è¡¨ã€‚\n2. æ‰«ææ—¶ä¼šåŒæ—¶ä¿®å¤ç©º GUID å’Œé‡å¤ GUIDã€‚", MessageType.Info);
     }
 
-    // ºËĞÄÂß¼­£ºÉ¨Ãè²¢Ìî³äÁĞ±í
     private void RefreshAllGoodsDataList()
     {
         if (_manager == null) return;
+
+        int fixedGuidCount = GoodsDataEditorTool.EnsureAllGoodsHaveUniqueGuids(false);
 
         string[] guids = AssetDatabase.FindAssets("t:GoodsData");
         List<GoodsData> foundGoods = new List<GoodsData>();
@@ -47,18 +46,10 @@ public class GoodDataManagerEditor : Editor
             if (goods != null)
             {
                 foundGoods.Add(goods);
-
-                // Ë³±ã¼ì²é²¢Éú³É GUID
-                if (string.IsNullOrEmpty(goods.goodsGuid))
-                {
-                    goods.goodsGuid = System.Guid.NewGuid().ToString();
-                    EditorUtility.SetDirty(goods);
-                }
             }
         }
 
         Undo.RecordObject(_manager, "Refresh Goods Data List");
-
         _manager.AllGoodsDataList = foundGoods;
 
         EditorUtility.SetDirty(_manager);
@@ -67,8 +58,10 @@ public class GoodDataManagerEditor : Editor
 
         GoodsDataEditorTool.RebuildEncryptedGuidFile();
 
-        /* Debug.Log($"[GoodDataManager] Ë¢ĞÂÍê³É£¡¹²ÕÒµ½ {foundGoods.Count} ¸öÉÌÆ·Êı¾İ£¬²¢¸üĞÂÁË¼ÓÃÜÎÄ¼ş¡£"); */
-        EditorUtility.DisplayDialog("³É¹¦", $"ÒÑ×Ô¶¯É¨Ãè²¢Ìî³ä {foundGoods.Count} ¸öÉÌÆ·Êı¾İ£¡\nGUID ¼ÓÃÜÎÄ¼şÒ²ÒÑÍ¬²½¸üĞÂ¡£", "È·¶¨");
+        EditorUtility.DisplayDialog(
+            "æˆåŠŸ",
+            $"å·²è‡ªåŠ¨æ‰«æå¹¶å¡«å…… {foundGoods.Count} ä¸ªå•†å“æ•°æ®ï¼\nå·²ä¿®å¤ {fixedGuidCount} ä¸ªç©º/é‡å¤å•†å“ GUIDã€‚\nGUID åŠ å¯†æ–‡ä»¶ä¹Ÿå·²åŒæ­¥æ›´æ–°ã€‚",
+            "ç¡®å®š");
     }
 }
 
@@ -78,12 +71,10 @@ public class GoodDataAssetProcessor : AssetPostprocessor
     {
         bool shouldRefresh = false;
 
-        // ¼ì²éÊÇ·ñÓĞ GoodsData Ïà¹ØµÄ×ÊÔ´±ä¶¯
         foreach (string path in importedAssets)
         {
             if (Path.GetExtension(path) == ".asset")
             {
-                // ³¢ÊÔ¼ÓÔØ¿´¿´ÊÇ²»ÊÇ GoodsData ÀàĞÍ
                 GoodsData goods = AssetDatabase.LoadAssetAtPath<GoodsData>(path);
                 if (goods != null)
                 {
@@ -93,7 +84,6 @@ public class GoodDataAssetProcessor : AssetPostprocessor
             }
         }
 
-        // Èç¹ûÓĞÉ¾³ı£¬Ò²Ë¢ĞÂÒ»ÏÂ£¨ËäÈ»ÕâÀï²»¼ì²é¾ßÌåÀàĞÍ£¬µ«ÎªÁË°²È«£©
         if (deletedAssets.Length > 0)
         {
             shouldRefresh = true;
@@ -101,24 +91,17 @@ public class GoodDataAssetProcessor : AssetPostprocessor
 
         if (shouldRefresh)
         {
-            // ÑÓ³ÙÒ»Ö¡Ö´ĞĞ£¬È·±£×ÊÔ´ÒÑ¾­µ¼ÈëÍê³É
             EditorApplication.delayCall += AutoRefreshManager;
         }
     }
 
     private static void AutoRefreshManager()
     {
-        // ÕÒµ½³¡¾°ÖĞµÄ GoodDataManager
         GoodDataManager manager = Object.FindObjectOfType<GoodDataManager>();
         if (manager != null)
         {
-            // ÕâÀïÎÒÃÇÖ±½Ó¸´ÓÃÉÏÃæµÄÂß¼­£¬ÎªÁË²»ÖØ¸´´úÂë£¬ÎÒÃÇ¿ÉÒÔÍ¨¹ı·´Éä»òÕßÖ±½ÓÔÙĞ´Ò»±é
-            // ÎªÁËÎÈ¶¨ĞÔ£¬ÕâÀïÎÒÃÇÖ»´òÓ¡ÈÕÖ¾£¬ÌáÊ¾ÓÃ»§¿ÉÒÔÊÖ¶¯µãÒ»ÏÂ°´Å¥
-            // Èç¹ûÄãÏëÒªÍêÈ«×Ô¶¯£¬¿ÉÒÔ°ÑÉÏÃæ RefreshAllGoodsDataList µÄÂß¼­¸´ÖÆÒ»·İµ½ÕâÀï
-            /* Debug.Log("[GoodDataManager] ¼ì²âµ½ÉÌÆ·×ÊÔ´±ä¶¯£¬Çëµã»÷ Inspector ÉÏµÄ¡¸×Ô¶¯É¨Ãè¡¹°´Å¥Ë¢ĞÂÁĞ±í¡£"); */
-
-            // Èç¹ûÄãÏëÒª¡¾ÍêÈ«È«×Ô¶¯¡¿£¬È¡ÏûÏÂÃæÕâĞĞµÄ×¢ÊÍ (ĞèÒª°ÑÉÏÃæ RefreshAllGoodsDataList ¸Ä³É¾²Ì¬·½·¨»ò·Åµ½ÕâÀï)£º
-             //ForceRefreshSilent();
+            GoodsDataEditorTool.EnsureAllGoodsHaveUniqueGuids();
+            GoodsDataEditorTool.RebuildEncryptedGuidFile();
         }
     }
 }

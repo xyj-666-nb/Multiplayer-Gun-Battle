@@ -91,9 +91,26 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     protected override void Awake()
     {
         base.Awake();
+        CompleteGoodsDataListFromResources();
         RebuildGoodsLookupCache();
         RebuildWeightCaches();
         ValidateAllGoodsData();
+    }
+
+    private void CompleteGoodsDataListFromResources()
+    {
+        GoodsData[] resourceGoods = Resources.LoadAll<GoodsData>("GameInfo/GoodInfo");
+        if (resourceGoods == null || resourceGoods.Length == 0)
+            return;
+
+        if (AllGoodsDataList == null)
+            AllGoodsDataList = new List<GoodsData>();
+
+        foreach (GoodsData goods in resourceGoods)
+        {
+            if (goods != null && !AllGoodsDataList.Contains(goods))
+                AllGoodsDataList.Add(goods);
+        }
     }
 
     private void Start()

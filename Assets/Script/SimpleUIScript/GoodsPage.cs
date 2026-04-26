@@ -596,8 +596,12 @@ public class GoodsPage : MonoBehaviour
         // ========== 2. 表情系统（新增） ==========
         if (goodsData.skinType == SkinType.Expression && goodsData.expressionPacks != null && goodsData.expressionPacks.Count > 0)
         {
-            // 隐藏其他预览
-            GoodsImage.color = ColorManager.SetColorAlpha(GoodsImage.color, 0);
+            if (GoodsImage != null)
+            {
+                if (GoodsImage.sprite == null && DefaultSprite != null)
+                    GoodsImage.sprite = DefaultSprite;
+                GoodsImage.color = ColorManager.SetColorAlpha(GoodsImage.color, 1);
+            }
             if (IntroduceRawImage != null) IntroduceRawImage.gameObject.SetActive(false);
             if (playerImage != null) playerImage.gameObject.SetActive(false);
             if (PlayerButton != null) PlayerButton.gameObject.SetActive(false);

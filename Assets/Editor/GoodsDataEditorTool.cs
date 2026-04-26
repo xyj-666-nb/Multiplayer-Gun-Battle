@@ -1,101 +1,121 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEditor;
-using System;
 using System.Collections.Generic;
 using System.IO;
 
 public class GoodsDataEditorTool : EditorWindow
 {
-    // ÅäÖÃ
-    private const string GOODS_GUID_FILE_NAME = "GoodsGuidMap.bytes"; // ¼ÓÃÜÎÄ¼şºó×º
-    private const string SECRET_KEY = "MyProject_Multiplayer-Gun-Battle_2026_5people_2months_Sophomore"; // ºÍÄã¼ÓÃÜ¹ÜÀíÆ÷Ò»ÖÂ
+    private const string GOODS_GUID_FILE_NAME = "GoodsGuidMap.bytes";
+    private const string SECRET_KEY = "MyProject_Multiplayer-Gun-Battle_2026_5people_2months_Sophomore";
 
-    // ´°¿Ú²Ëµ¥
-    [MenuItem("Tools/ÉÌÆ·GUID¹ÜÀíÆ÷")]
+    [MenuItem("Tools/å•†å“GUIDç®¡ç†å™¨")]
     public static void ShowWindow()
     {
-        GetWindow<GoodsDataEditorTool>("ÉÌÆ·GUID¹ÜÀíÆ÷");
+        GetWindow<GoodsDataEditorTool>("å•†å“GUIDç®¡ç†å™¨");
     }
 
     private void OnGUI()
     {
-        GUILayout.Label("ÉÌÆ· GUID ×Ô¶¯¹ÜÀí¹¤¾ß", EditorStyles.boldLabel);
+        GUILayout.Label("å•†å“ GUID è‡ªåŠ¨ç®¡ç†å·¥å…·", EditorStyles.boldLabel);
         GUILayout.Space(10);
 
-        if (GUILayout.Button("ÊÖ¶¯É¨ÃèËùÓĞÉÌÆ·²¢Éú³ÉGUID"))
+        if (GUILayout.Button("æ‰‹åŠ¨æ‰«ææ‰€æœ‰å•†å“å¹¶ç”Ÿæˆ/ä¿®å¤GUID"))
         {
             ScanAllGoodsAndGenerateGuids();
         }
 
         GUILayout.Space(5);
 
-        if (GUILayout.Button("ÊÖ¶¯ÖØ½¨¼ÓÃÜGUIDÓ³ÉäÎÄ¼ş"))
+        if (GUILayout.Button("æ‰‹åŠ¨é‡å»ºåŠ å¯†GUIDæ˜ å°„æ–‡ä»¶"))
         {
             RebuildEncryptedGuidFile();
         }
 
         GUILayout.Space(20);
-        GUILayout.Label("ËµÃ÷£º", EditorStyles.wordWrappedLabel);
-        GUILayout.Label("1. ´´½¨/ĞŞ¸Ä/É¾³ı GoodsData Ê±£¬»á×Ô¶¯¸üĞÂ GUID ºÍ¼ÓÃÜÎÄ¼ş", EditorStyles.wordWrappedLabel);
-        GUILayout.Label("2. Ò²¿ÉÒÔÊÖ¶¯µã»÷ÉÏÃæ°´Å¥Ç¿ÖÆË¢ĞÂ", EditorStyles.wordWrappedLabel);
+        GUILayout.Label("è¯´æ˜ï¼š", EditorStyles.wordWrappedLabel);
+        GUILayout.Label("1. åˆ›å»º/ä¿®æ”¹/åˆ é™¤ GoodsData æ—¶ï¼Œä¼šè‡ªåŠ¨æ›´æ–° GUID å’ŒåŠ å¯†æ–‡ä»¶", EditorStyles.wordWrappedLabel);
+        GUILayout.Label("2. æ‰‹åŠ¨æ‰«æä¼šåŒæ—¶ä¿®å¤ç©º GUID å’Œé‡å¤ GUID", EditorStyles.wordWrappedLabel);
     }
 
-    // É¨ÃèËùÓĞ GoodsData ²¢Éú³É GUID
     public static void ScanAllGoodsAndGenerateGuids()
     {
-        string[] guids = AssetDatabase.FindAssets("t:GoodsData");
-        int generatedCount = 0;
-
-        foreach (string guid in guids)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            GoodsData goods = AssetDatabase.LoadAssetAtPath<GoodsData>(path);
-
-            if (goods != null && string.IsNullOrEmpty(goods.goodsGuid))
-            {
-                goods.goodsGuid = System.Guid.NewGuid().ToString();
-                EditorUtility.SetDirty(goods);
-                generatedCount++;
-                /* Debug.Log($"[GUID¹¤¾ß] ×Ô¶¯Éú³ÉGUID£º{goods.goodsName} -> {goods.goodsGuid}"); */
-            }
-        }
+        int fixedCount = EnsureAllGoodsHaveUniqueGuids(false);
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        // ×Ô¶¯ÖØ½¨¼ÓÃÜÎÄ¼ş
         RebuildEncryptedGuidFile();
 
-        if (generatedCount > 0)
-            EditorUtility.DisplayDialog("³É¹¦", $"ÒÑÎª {generatedCount} ¸öÉÌÆ·Éú³É GUID ²¢¸üĞÂ¼ÓÃÜÎÄ¼ş£¡", "È·¶¨");
+        if (fixedCount > 0)
+            EditorUtility.DisplayDialog("æˆåŠŸ", $"å·²ä¸º {fixedCount} ä¸ªå•†å“ç”Ÿæˆæˆ–ä¿®å¤ GUIDï¼Œå¹¶æ›´æ–°åŠ å¯†æ–‡ä»¶ï¼", "ç¡®å®š");
         else
-            EditorUtility.DisplayDialog("ÌáÊ¾", "ËùÓĞÉÌÆ·¶¼ÒÑÓĞ GUID£¬ÒÑ¸üĞÂ¼ÓÃÜÎÄ¼ş", "È·¶¨");
+            EditorUtility.DisplayDialog("æç¤º", "æ‰€æœ‰å•†å“ GUID å‡æœ‰æ•ˆä¸”å”¯ä¸€ï¼Œå·²æ›´æ–°åŠ å¯†æ–‡ä»¶", "ç¡®å®š");
     }
 
-    // ÖØ½¨¼ÓÃÜµÄ GUID Ó³ÉäÎÄ¼ş
+    public static int EnsureAllGoodsHaveUniqueGuids(bool saveAssets = true)
+    {
+        string[] assetGuids = AssetDatabase.FindAssets("t:GoodsData");
+        HashSet<string> usedGoodsGuids = new HashSet<string>();
+        int fixedCount = 0;
+
+        foreach (string assetGuid in assetGuids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(assetGuid);
+            GoodsData goods = AssetDatabase.LoadAssetAtPath<GoodsData>(path);
+            if (goods == null)
+                continue;
+
+            bool needGenerate = string.IsNullOrWhiteSpace(goods.goodsGuid) || usedGoodsGuids.Contains(goods.goodsGuid);
+            if (needGenerate)
+            {
+                goods.goodsGuid = CreateUniqueGoodsGuid(usedGoodsGuids);
+                EditorUtility.SetDirty(goods);
+                fixedCount++;
+            }
+
+            usedGoodsGuids.Add(goods.goodsGuid);
+        }
+
+        if (saveAssets && fixedCount > 0)
+        {
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        return fixedCount;
+    }
+
+    private static string CreateUniqueGoodsGuid(HashSet<string> usedGoodsGuids)
+    {
+        string newGuid;
+        do
+        {
+            newGuid = System.Guid.NewGuid().ToString();
+        }
+        while (usedGoodsGuids.Contains(newGuid));
+
+        return newGuid;
+    }
+
     public static void RebuildEncryptedGuidFile()
     {
-        // 1. ÊÕ¼¯ËùÓĞÉÌÆ·µÄ GUID
         Dictionary<string, string> guidMap = new Dictionary<string, string>();
-        string[] guids = AssetDatabase.FindAssets("t:GoodsData");
+        string[] assetGuids = AssetDatabase.FindAssets("t:GoodsData");
 
-        foreach (string assetGuid in guids)
+        foreach (string assetGuid in assetGuids)
         {
             string path = AssetDatabase.GUIDToAssetPath(assetGuid);
             GoodsData goods = AssetDatabase.LoadAssetAtPath<GoodsData>(path);
 
             if (goods != null && !string.IsNullOrEmpty(goods.goodsGuid))
             {
-                // Key: ×ÊÔ´Â·¾¶£¬Value: ÉÌÆ·GUID
                 guidMap[path] = goods.goodsGuid;
             }
         }
 
-        // 2. ĞòÁĞ»¯²¢¼ÓÃÜ
         GuidMapData data = new GuidMapData { guidDictionary = guidMap };
         string encryptedString = DataEncryptionManger.EditorEncryptionTools.GenerateEncryptedSaveString(data, SECRET_KEY);
 
-        // 3. ±£´æµ½ StreamingAssets ÎÄ¼ş¼Ğ
         string folderPath = Path.Combine(Application.dataPath, "StreamingAssets");
         if (!Directory.Exists(folderPath))
             Directory.CreateDirectory(folderPath);
@@ -104,16 +124,13 @@ public class GoodsDataEditorTool : EditorWindow
         File.WriteAllText(filePath, encryptedString);
 
         AssetDatabase.Refresh();
-        /* Debug.Log($"[GUID¹¤¾ß] ¼ÓÃÜGUIDÓ³ÉäÎÄ¼şÒÑ¸üĞÂ£º{filePath}"); */
     }
 
-    // ÔËĞĞÊ±¼ÓÔØ½âÃÜµÄ GUID Ó³Éä£¨¸ø GoodsManager ÓÃ£©
     public static Dictionary<string, string> LoadDecryptedGuidMap()
     {
         string filePath = Path.Combine(Application.streamingAssetsPath, GOODS_GUID_FILE_NAME);
         if (!File.Exists(filePath))
         {
-            /* Debug.LogError("[GUID¹¤¾ß] Î´ÕÒµ½¼ÓÃÜGUIDÓ³ÉäÎÄ¼ş£¡ÇëÏÈÔÚ±à¼­Æ÷ÀïÉú³É£¡"); */
             return new Dictionary<string, string>();
         }
 
@@ -124,7 +141,6 @@ public class GoodsDataEditorTool : EditorWindow
     }
 }
 
-// ÓÃÓÚĞòÁĞ»¯µÄ GUID Ó³ÉäÊı¾İÀà
 [System.Serializable]
 public class GuidMapData
 {

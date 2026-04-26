@@ -676,11 +676,15 @@ public class Player : Base_Entity
             return;
 
         GameObject gunObj = Instantiate(gunPrefab);
-        NetworkServer.Spawn(gunObj, connectionToClient);
-
         BaseGun gun = gunObj.GetComponent<BaseGun>();
+        if (gun == null)
+        {
+            NetworkServer.Destroy(gunObj);
+            return;
+        }
 
         gun.SetGunConfig(skinInfo.MuzzleFlashID, skinInfo.BulletID, skinInfo.HitID, skinInfo.GunSkinID, skinInfo.GunSkinAssetName);
+        NetworkServer.Spawn(gunObj, connectionToClient);
 
         ServerHandlePickUpGun(gunObj);
     }
