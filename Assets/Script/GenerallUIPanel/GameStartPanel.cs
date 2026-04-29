@@ -274,11 +274,6 @@ public class GameStartPanel : BasePanel
     {
 
     }
-
-    protected override void Update()
-    {
-        base.Update();
-    }
     #endregion
 
     #region ÂÖÅÌĞı×ªÂß¼­

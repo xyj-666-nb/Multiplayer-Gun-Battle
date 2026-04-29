@@ -13,9 +13,13 @@ public class PerformanceMonitor : MonoBehaviour
     [SerializeField] private float _panelWidth = 320f;
     [SerializeField] private float _panelHeight = 460f;
 
+    [Header("运行开关")]
+    [SerializeField] private bool EnableInReleaseBuild = false;
+
     private bool _showPanel = false;
     private Rect _windowRect;
     private const int WindowId = 12345;
+    private bool _isRuntimeEnabled;
 
     // 性能统计Recorder（修正官方正确的统计项名称）
     private ProfilerRecorder _mainThreadCPURecorder;
@@ -43,6 +47,13 @@ public class PerformanceMonitor : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
+        _isRuntimeEnabled = ShouldRun();
+        if (!_isRuntimeEnabled)
+        {
+            enabled = false;
+            return;
+        }
+
         // 初始化窗口位置（左上角按钮下方）
         _windowRect = new Rect(10, 50, _panelWidth, _panelHeight);
         // 初始化帧率采样数组
@@ -51,6 +62,11 @@ public class PerformanceMonitor : MonoBehaviour
 
     private void OnEnable()
     {
+        if (!ShouldRun())
+            return;
+
+        _isRuntimeEnabled = true;
+
         // 初始化所有性能Recorder（正确的Unity官方统计项名称，兼容Unity 2020+）
         _mainThreadCPURecorder = ProfilerRecorder.StartNew(ProfilerCategory.Internal, "Main Thread", 1);
         _totalMemoryRecorder = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Total Used Memory", 1);
@@ -61,10 +77,10 @@ public class PerformanceMonitor : MonoBehaviour
     private void OnDisable()
     {
         // 安全释放Recorder资源
-        _mainThreadCPURecorder.Dispose();
-        _totalMemoryRecorder.Dispose();
-        _gcPerFrameRecorder.Dispose();
-        _gpuFrameTimeRecorder.Dispose();
+        if (_mainThreadCPURecorder.Valid) _mainThreadCPURecorder.Dispose();
+        if (_totalMemoryRecorder.Valid) _totalMemoryRecorder.Dispose();
+        if (_gcPerFrameRecorder.Valid) _gcPerFrameRecorder.Dispose();
+        if (_gpuFrameTimeRecorder.Valid) _gpuFrameTimeRecorder.Dispose();
     }
 
     private void OnDestroy()
@@ -74,6 +90,9 @@ public class PerformanceMonitor : MonoBehaviour
 
     private void Update()
     {
+        if (!_isRuntimeEnabled)
+            return;
+
         // 计算平滑帧率与平均帧时间
         _frameTimeSamples[_frameSampleIndex] = Time.unscaledDeltaTime;
         _frameSampleIndex = (_frameSampleIndex + 1) % FrameSampleCount;
@@ -89,6 +108,9 @@ public class PerformanceMonitor : MonoBehaviour
 
     private void OnGUI()
     {
+        if (!_isRuntimeEnabled)
+            return;
+
         // 绘制展开/收起按钮（固定左上角）
         GUIStyle buttonStyle = new GUIStyle(GUI.skin.button)
         {
@@ -108,6 +130,10 @@ public class PerformanceMonitor : MonoBehaviour
         {
             _windowRect = GUI.Window(WindowId, _windowRect, DrawPerformanceWindow, "性能监控面板");
         }
+    }
+    private bool ShouldRun()
+    {
+        return EnableInReleaseBuild || Debug.isDebugBuild || Application.isEditor;
     }
     #endregion
 

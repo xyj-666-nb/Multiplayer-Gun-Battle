@@ -33,7 +33,7 @@ public class KeepWorldScale : MonoBehaviour
     }
 
     /// <summary>
-    /// 核心逻辑：固定缩放大小，保留父对象的正负方向
+    /// 固定缩放大小，保留父对象的正负方向
     /// </summary>
     private void UpdateLocalScale()
     {
@@ -70,7 +70,7 @@ public class KeepWorldScale : MonoBehaviour
     }
 
     /// <summary>
-    /// 获取父物体的世界缩放（无父物体返回Vector3.one）
+    /// 获取父物体的世界缩放
     /// </summary>
     private Vector3 GetParentLossyScale()
     {
@@ -78,7 +78,7 @@ public class KeepWorldScale : MonoBehaviour
     }
 
     /// <summary>
-    /// 比较两个缩放是否相等（避免浮点精度问题）
+    /// 比较两个缩放是否相等
     /// </summary>
     private bool IsScaleEqual(Vector3 a, Vector3 b)
     {
@@ -95,7 +95,7 @@ public class KeepWorldScale : MonoBehaviour
         _lastParentScale = GetParentLossyScale();
     }
 
-    // 可选：编辑器下实时预览效果（不用运行游戏就能看到）
+    // 编辑器下实时预览效果
     private void OnValidate()
     {
         if (_transform == null) _transform = transform;

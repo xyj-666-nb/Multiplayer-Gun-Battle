@@ -6,8 +6,8 @@ public class MissingScriptFinder
     [MenuItem("Tools/清理 Missing Script (仅在编辑器使用)")]
     private static void FindAndCleanMissingScripts()
     {
-        // 1. 扫描当前打开的场景
-        /* Debug.Log("开始扫描当前场景..."); */
+        //  扫描当前打开的场景
+         Debug.Log("开始扫描当前场景...");
         GameObject[] allObjects = Object.FindObjectsOfType<GameObject>(includeInactive: true);
         int cleanedCount = 0;
 
@@ -23,7 +23,7 @@ public class MissingScriptFinder
             {
                 if (components[j] == null)
                 {
-                    /* Debug.LogWarning($"发现 Missing Script！物体名：{obj.name}，路径：{GetGameObjectPath(obj)}"); */
+                     Debug.LogWarning($"发现 Missing Script！物体名：{obj.name}，路径：{GetGameObjectPath(obj)}"); 
                     prop.DeleteArrayElementAtIndex(j - r);
                     r++;
                     cleanedCount++;
@@ -32,7 +32,7 @@ public class MissingScriptFinder
             serializedObject.ApplyModifiedProperties();
         }
 
-        /* Debug.Log($"场景扫描完成！共清理了 {cleanedCount} 个 Missing Script。记得保存场景！"); */
+         Debug.Log($"场景扫描完成！共清理了 {cleanedCount} 个 Missing Script。记得保存场景！"); 
     }
 
     // 获取物体在 Hierarchy 中的完整路径

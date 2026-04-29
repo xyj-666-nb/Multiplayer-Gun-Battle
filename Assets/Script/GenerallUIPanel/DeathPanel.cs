@@ -20,9 +20,8 @@ public class DeathPanel : BasePanel
     public PlayableDirector TimeLine;
 
     #region ÉúÃüÖÜÆÚ
-    protected override void Update()
+    private void Update()
     {
-        base.Update();
         if (IsStartCountDown && CountDownTime != 0)
         {
             CurrentTime -= Time.deltaTime;

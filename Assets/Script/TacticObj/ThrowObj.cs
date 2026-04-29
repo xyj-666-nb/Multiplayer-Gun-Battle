@@ -36,9 +36,11 @@ public class ThrowObj : NetworkBehaviour
 
     private double _serverStartTime;
     private bool _isDestroyed = false;
+    private bool _serverEffectStarted = false;
 
     [Header("预制体引用")]
     public GameObject ExplosionPrefab;
+    [SyncVar]
     public TacticType tacticType;
 
     #region 网络同步回调
@@ -66,15 +68,7 @@ public class ThrowObj : NetworkBehaviour
         {
             if (isServer)
             {
-                _serverStartTime = NetworkTime.time;
-                if (tacticType == TacticType.Grenade)
-                {
-                    StartCoroutine(ServerGrenadeExplodeCoroutine());
-                }
-                else if (tacticType == TacticType.Smoke)
-                {
-                    StartCoroutine(ServerSmokeEffectCoroutine());
-                }
+                StartServerThrownEffect();
             }
 
             _rb.isKinematic = false;
@@ -108,7 +102,34 @@ public class ThrowObj : NetworkBehaviour
         {
             /* Debug.LogError("[ThrowObj] 手雷的 ExplosionPrefab 未赋值！", this); */
         }
-        CountDownManager.Instance.CreateTimer(false, 100, () => { MyMonster = HandControl.ownerPlayer.myStats; });
+        CountDownManager.Instance?.CreateTimer(false, 100, CacheOwnerStats);
+    }
+
+
+    private void CacheOwnerStats()
+    {
+        if (HandControl != null && HandControl.ownerPlayer != null)
+            MyMonster = HandControl.ownerPlayer.myStats;
+    }
+
+    [Server]
+    private void StartServerThrownEffect()
+    {
+        if (_serverEffectStarted || _isDestroyed)
+            return;
+
+        _serverEffectStarted = true;
+        _serverStartTime = NetworkTime.time;
+
+        if (tacticType == TacticType.Grenade)
+        {
+            StartCoroutine(ServerGrenadeExplodeCoroutine());
+        }
+        else if (tacticType == TacticType.Smoke)
+        {
+            _smokeSoundPlayed = false;
+            StartCoroutine(ServerSmokeEffectCoroutine());
+        }
     }
 
     private void Update()
@@ -205,7 +226,7 @@ public class ThrowObj : NetworkBehaviour
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(explosionPos, explosionRadius, LayerMask.GetMask("Player"));
 
         CharacterStats attackerStats = null;
-          attackerStats = HandControl.ownerPlayer.myStats;
+          attackerStats = MyMonster != null ? MyMonster : HandControl?.ownerPlayer?.myStats;
 
         foreach (Collider2D col in hitColliders)
         {
@@ -352,21 +373,38 @@ public class ThrowObj : NetworkBehaviour
     }
     #endregion
 
-    [ClientRpc]
+    [Server]
     public void ServerLaunch(Vector2 velocity)
     {
-        if (_isDestroyed) return;
+        if (_isDestroyed || !isServer)
+            return;
 
-        IsThrown = true;
+        CacheOwnerStats();
         _serverStartTime = NetworkTime.time;
+        IsThrown = true;
+        ApplyLaunchVelocity(velocity);
+        StartServerThrownEffect();
+        RpcApplyLaunchVelocity(velocity, _serverStartTime);
+    }
 
-        if (_rb != null)
-        {
-            _rb.isKinematic = false;
-            _rb.simulated = true;
-            _rb.velocity = velocity;
-        }
-        
+    [ClientRpc]
+    private void RpcApplyLaunchVelocity(Vector2 velocity, double serverStartTime)
+    {
+        if (_isDestroyed)
+            return;
+
+        _serverStartTime = serverStartTime;
+        ApplyLaunchVelocity(velocity);
+    }
+
+    private void ApplyLaunchVelocity(Vector2 velocity)
+    {
+        if (_rb == null)
+            return;
+
+        _rb.isKinematic = false;
+        _rb.simulated = true;
+        _rb.velocity = velocity;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)

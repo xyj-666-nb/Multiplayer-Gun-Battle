@@ -51,11 +51,10 @@ public class SendMessagePanel : BasePanel
         base.Start();
     }
 
-    protected override void Update()
+    private void Update()
     {
         // 核心防护：面板无效时直接返回，不执行任何逻辑
         if (_isPanelInvalid) return;
-        base.Update();
     }
 
     protected override void OnDestroy()

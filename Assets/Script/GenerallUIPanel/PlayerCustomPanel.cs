@@ -76,12 +76,6 @@ public class PlayerCustomPanel : BasePanel
     {
         base.Start();
     }
-
-    protected override void Update()
-    {
-        base.Update();
-    }
-
     protected override void OnDestroy()
     {
         base.OnDestroy();

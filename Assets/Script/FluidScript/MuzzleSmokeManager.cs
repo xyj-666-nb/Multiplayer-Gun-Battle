@@ -29,6 +29,8 @@ public class MuzzleSmokeManager : SingleMonoAutoBehavior<MuzzleSmokeManager>
     // 全局默认速度缩放（可在Inspector调整）
     [Header("全局烟雾配置")]
     public float defaultSpeedScale = 5f;
+    private const float FirstSmokeFrameElapsedSeconds = 1f / 60f;
+    private const float MaxSmokeDrawRadius = 3f;
 
     private void Update()
     {
@@ -132,10 +134,16 @@ public class MuzzleSmokeManager : SingleMonoAutoBehavior<MuzzleSmokeManager>
     private void SpawnDynamicSmoke(SmokeInstance smoke)
     {
         // 计算剩余时长比例（用于烟雾衰减）
-        float elapsedTime = Time.time - smoke.startTime;
-        float remainingRatio = Mathf.Max(1 - (elapsedTime / smoke.duration), 0f);
-        float sizeFactor = remainingRatio * smoke.decaySpeed;
+        if (smoke.duration <= 0f)
+            return;
 
+        // Avoid drawing the zero-elapsed RPC frame at the full decay multiplier.
+        float minElapsedTime = Mathf.Min(Mathf.Max(Time.deltaTime, FirstSmokeFrameElapsedSeconds), smoke.duration * 0.95f);
+        float elapsedTime = Mathf.Max(Time.time - smoke.startTime, minElapsedTime);
+        float remainingRatio = Mathf.Clamp01(1 - (elapsedTime / smoke.duration));
+        float sizeFactor = remainingRatio * smoke.decaySpeed;
+        float colorRadius = Mathf.Clamp(smoke.sizeMin * sizeFactor, 0f, MaxSmokeDrawRadius);
+        float velocityRadius = Mathf.Clamp(smoke.sizeMax * sizeFactor, 0f, MaxSmokeDrawRadius);
 
         Vector3 localRightDir = smoke.firePoint.TransformDirection(Vector3.right).normalized;
         // 转2D向量（忽略Z轴）
@@ -146,8 +154,8 @@ public class MuzzleSmokeManager : SingleMonoAutoBehavior<MuzzleSmokeManager>
             smoke.firePoint.position,       // 烟雾位置（射击点实时位置）
             smoke.color,                    // 烟雾颜色
             smokeDir,                       // 喷射方向（射击点本地红色轴）
-            smoke.sizeMin * sizeFactor,     // 动态最小尺寸
-            smoke.sizeMax * sizeFactor,     // 动态最大尺寸
+            colorRadius,                    // 动态最小尺寸
+            velocityRadius,                 // 动态最大尺寸
             FluidController.VelocityType.Direct
         );
     }

@@ -467,10 +467,8 @@ public class DialoguePanel : BasePanel
         }
     }
 
-    protected override void Update()
+    private void Update()
     {
-        base.Update();
-
         /* Debug.Log(IsInDialoguePlay && IsCanSkipDialogue && !IsSkippingComplete); */
 
         if (IsInDialoguePlay && IsCanSkipDialogue && !IsSkippingComplete)

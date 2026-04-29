@@ -22,12 +22,6 @@ public class ScreenSettingPanel : BasePanel
         base.Start();
         RefreshAllButtonStates();
     }
-
-    protected override void Update()
-    {
-        base.Update();
-    }
-
     protected override void OnDestroy()
     {
         base.OnDestroy();

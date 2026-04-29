@@ -255,11 +255,6 @@ public class PlayerPanel : BasePanel
         base.Start();
         RefreshCustomUILayout();
     }
-
-    protected override void Update()
-    {
-        base.Update();
-    }
     protected override void OnDestroy()
     {
         base.OnDestroy();

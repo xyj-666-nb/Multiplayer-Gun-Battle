@@ -1,0 +1,301 @@
+<p align="center">
+  <h1 align="center">Funplay MCP for Unity</h1>
+  <p align="center">
+    <strong>The Most Advanced MCP Server for Unity Editor</strong>
+  </p>
+  <p align="center">
+    <a href="#"><img src="https://img.shields.io/badge/Unity-2022.3%2B-black?logo=unity" alt="Unity 6000.0+"></a>
+    <a href="#"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+    <a href="#"><img src="https://img.shields.io/badge/MCP-Compatible-green" alt="MCP Compatible"></a>
+    <a href="#"><img src="https://img.shields.io/badge/Platform-Editor%20Only-orange" alt="Editor Only"></a>
+  </p>
+  <p align="center">
+    <a href="./README_CN.md">中文</a> | English
+  </p>
+  <p align="center">
+    <img src="./Documentation~/Text%2BLogo.png" alt="The Most Advanced MCP Server for Unity" width="100%">
+  </p>
+</p>
+
+> 💖 If you find this project useful, please consider giving it a Star. It helps more Unity developers discover it and supports ongoing development.
+
+---
+
+Funplay MCP for Unity is an MIT-licensed Unity Editor MCP server that lets AI assistants like Claude Code, Cursor, Windsurf, Codex, and VS Code Copilot operate directly inside your running Unity project.
+
+Describe your game in one sentence — your AI assistant builds it in Unity through Funplay MCP for Unity's 79 built-in tools for scene creation, script generation, runtime validation, input simulation, performance analysis, and editor automation.
+
+> *"Build a snake game with a 10x10 grid, food spawning, score UI, and game-over screen"*
+>
+> Your AI assistant handles it through Funplay MCP for Unity: creates the scene, generates all scripts, sets up the UI, and configures the game logic — all from a single prompt.
+
+## Quick Start
+
+If you just want to get connected fast, do these three things:
+
+- Install the Unity package from the Git URL
+- Start `Funplay > MCP Server`
+- Use the built-in one-click client configuration
+
+### 1. Install via UPM (Git URL)
+
+In Unity, go to **Window → Package Manager → + → Add package from git URL**:
+
+```
+https://github.com/FunplayAI/funplay-unity-mcp.git
+```
+
+> 💡 Before you clone or install, a quick ⭐ on GitHub would be greatly appreciated.
+
+### 2. Start the MCP Server
+
+**Menu: Funplay → MCP Server** to start the server.
+
+The server starts on `http://127.0.0.1:8765/` by default.
+
+### 3. Configure Your AI Client
+
+Use the built-in **One-Click MCP Configuration** in the `Funplay > MCP Server` window first.
+
+Select your target client, click **Configure**, and the package writes the recommended MCP config entry for you.
+
+If you want project-specific AI guidance for the current Unity project, open **Funplay → Project Skills (Experimental)** to choose supported platforms and install built-in plus optional skills.
+
+If you prefer to edit config files manually, use the examples below as fallback references:
+
+<details>
+<summary>Claude Code / Claude Desktop</summary>
+
+```json
+{
+  "mcpServers": {
+    "funplay": {
+      "type": "http",
+      "url": "http://127.0.0.1:8765/"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>Cursor</summary>
+
+```json
+{
+  "mcpServers": {
+    "funplay": {
+      "url": "http://127.0.0.1:8765/"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>VS Code</summary>
+
+```json
+{
+  "servers": {
+    "funplay": {
+      "type": "http",
+      "url": "http://127.0.0.1:8765/"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>Trae</summary>
+
+```json
+{
+  "mcpServers": {
+    "funplay": {
+      "url": "http://127.0.0.1:8765/"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>Kiro</summary>
+
+```json
+{
+  "mcpServers": {
+    "funplay": {
+      "type": "http",
+      "url": "http://127.0.0.1:8765/"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>Codex</summary>
+
+```toml
+[mcp_servers.funplay]
+url = "http://127.0.0.1:8765/"
+```
+
+</details>
+
+<details>
+<summary>Windsurf</summary>
+
+Use the same JSON structure as Cursor unless your local Windsurf version requires a different MCP config format.
+
+</details>
+
+### 4. Verify the Connection
+
+Open your AI client and try a few safe requests first:
+
+- "Call `get_scene_info` and tell me what scene is open."
+- "Read `unity://project/context` and summarize the current editor state."
+- "Use `execute_code` to return the active scene name."
+
+If those work, the MCP server, resources, and primary execution tool are connected correctly.
+
+### 5. Start Building
+
+Open your AI client and try: *"Create a 3D platformer level with 5 floating platforms"*
+
+## Before You Start
+
+- This package is **Editor-only**. It does not add runtime components to your built game.
+- The MCP server starts on `http://127.0.0.1:8765/` by default.
+- Local MCP server settings are stored in `UserSettings/FunplayMcpSettings.json`.
+- The package defaults to the `core` MCP tool profile to reduce tool-list noise for AI clients. `core` currently exposes 19 high-signal tools centered on `execute_code`, play mode control, input simulation, screenshots, performance inspection, logs, and compilation checks. Switch to `full` in the MCP Server window if you want all 79 tools exposed.
+- All exposed MCP tools run directly. There is no extra approval toggle.
+- **Menu: `Funplay > Check for Updates`** can refresh Git installs in place or download and import the latest `unitypackage` automatically.
+
+## Why This Project
+
+- **`execute_code` First** — The package is optimized around one high-flexibility C# execution tool for rich editor/runtime orchestration when many small tools would be noisy
+- **Play Mode Automation** — Enter play mode, simulate keyboard/mouse input, capture screenshots, inspect logs, and validate behavior from the same MCP session
+- **Project Context Built In** — Exposes live resources for project state, active scene, selection, compilation, console output, and MCP interaction history
+- **Focused by Default, Full When Needed** — `core` exposes a compact high-signal toolset; `full` exposes all 79 tools
+- **Single Unity Package** — No extra approval UI, no external daemon to click through, and no Python requirement for the Unity-side plugin itself
+- **Extensible** — Add custom tools with attribute-based discovery, or connect Unity to external MCP services when needed
+
+## Highlights
+
+- **79 Built-in Tools** — Scene editing, assets, scripts, play mode control, screenshots, performance analysis, prompts, resources, and editor automation across 19 modules
+- **Resources & Prompts** — Live project context, scene/selection/error resources, resource templates, and reusable workflow prompts
+- **Input Simulation + Screenshots** — Drive play mode with keyboard/mouse simulation and verify results with game/scene captures
+- **Built-in Updating** — Check for updates from the Unity menu and either re-pull the Git package or auto-import the latest `unitypackage`
+- **One-Click Client Configuration** — Generate MCP config entries for Claude Code, Cursor, VS Code, Kiro, Trae, Codex, and similar clients directly from the Unity window
+- **Project Skills Manager (Experimental)** — Configure project-level skills for supported AI clients, with built-in skills plus optional installable skills
+- **Vendor Agnostic** — Works with any AI client that supports MCP: Claude Code, Cursor, Windsurf, Codex, VS Code Copilot, etc.
+
+## Comparison With Coplay
+
+The table below compares this repository with the publicly documented behavior of Coplay's open-source `unity-mcp` repository on GitHub.
+
+| Area | Funplay MCP for Unity | Coplay `unity-mcp` |
+|------|--------------------------|--------------------|
+| Unity-side architecture | Embedded Unity Editor package with built-in HTTP MCP server | Unity bridge plus local Python MCP server |
+| Extra local prerequisites | Unity package only for core workflows | Unity + Python 3.10+ + `uv` according to the public quick start |
+| Primary workflow style | `execute_code` first, then focused helper tools | Broad `manage_*` tool families exposed through the bridge |
+| Default tool exposure | Compact `core` profile with optional `full` expansion | Public docs emphasize a broad always-available tool surface |
+| Built-in context model | Project resources, resource templates, workflow prompts, interaction history | Public README emphasizes tool families and bridge/server workflow |
+| Play mode validation | Built-in play mode control, screenshots, logs, and input simulation in the package | Public README emphasizes broad Unity management and automation tools |
+| Positioning | Lightweight, direct, MIT-licensed Unity MCP server for AI-driven editor control | Full-featured Unity bridge maintained by Coplay with Python-backed server setup |
+
+Source for Coplay column: [CoplayDev/unity-mcp](https://github.com/CoplayDev/unity-mcp)
+
+## MCP Capabilities
+
+The current open-source package exposes four high-value capability layers:
+
+- **Tools** — 79 total tools in `full`, 19 focused tools in `core`
+- **Primary execution** — `execute_code` for rich editor/runtime orchestration
+- **Prompts** — workflow prompts like `fix_compile_errors`, `runtime_validation`, and `create_playable_prototype`
+- **Resources** — project context, scene summaries, selection state, compile errors, console errors, MCP interaction history, plus resource templates for scene objects, components, and asset paths
+
+## Built-in Tools
+
+Funplay MCP for Unity currently ships with **79 tool functions** across 19 modules:
+
+| Category | Tools |
+|----------|-------|
+| **GameObject** | `create_primitive`, `create_game_object`, `delete_game_object`, `find_game_objects`, `get_game_object_info`, `set_transform`, `duplicate_game_object`, `rename_game_object`, `set_parent`, `add_component`, `set_tag_and_layer`, `set_active` |
+| **Hierarchy** | `get_hierarchy` |
+| **Components** | `get_component_properties`, `list_components`, `set_component_property`, `set_component_properties` |
+| **Scripts** | `create_script`, `edit_script`, `patch_script` |
+| **Assets** | `create_material`, `assign_material`, `find_assets`, `delete_asset`, `rename_asset`, `copy_asset` |
+| **Files** | `read_file`, `write_file`, `search_files`, `list_directory`, `exists` |
+| **Scene** | `get_scene_info`, `list_scenes`, `save_scene`, `open_scene`, `create_new_scene`, `enter_play_mode`, `exit_play_mode`, `set_time_scale`, `get_time_scale` |
+| **Prefabs** | `create_prefab`, `instantiate_prefab`, `unpack_prefab` |
+| **UI** | `create_canvas`, `create_button`, `create_text`, `create_image` |
+| **Animation** | `create_animation_clip`, `create_animator_controller`, `assign_animator` |
+| **Camera** | `get_camera_properties`, `set_camera_projection`, `set_camera_settings`, `set_camera_culling_mask` |
+| **Screenshot** | `capture_game_view`, `capture_scene_view` |
+| **Script Execution** | `execute_code` |
+| **Input Simulation** | `simulate_key_press`, `simulate_key_combo`, `simulate_mouse_click`, `simulate_mouse_drag` |
+| **Performance** | `get_performance_snapshot`, `analyze_scene_complexity` |
+| **Packages** | `install_package`, `remove_package`, `list_packages` |
+| **Compilation** | `wait_for_compilation`, `request_recompile`, `get_compilation_errors`, `get_reload_recovery_status` |
+| **Visual Feedback** | `select_object`, `focus_on_object`, `ping_asset`, `log_message`, `show_dialog`, `get_console_logs` |
+
+## Adding Custom Tools
+
+Create your own tools with simple attribute annotations:
+
+```csharp
+using System.ComponentModel;
+
+[ToolProvider("MyTools")]
+public static class MyCustomTools
+{
+    [Description("Spawns enemies at random positions in the scene")]
+    public static string SpawnEnemies(
+        [ToolParam("Number of enemies to spawn", Required = true)] int count,
+        [ToolParam("Prefab path in Assets")] string prefabPath)
+    {
+        // Your implementation here
+        return $"Spawned {count} enemies";
+    }
+}
+```
+
+Methods are automatically discovered, converted to snake_case (`spawn_enemies`), and exposed via MCP with JSON Schema definitions.
+
+## Architecture
+
+```
+MCP Server (HTTP JSON-RPC 2.0)
+    └─ MCPRequestHandler (protocol handling)
+        └─ MCPExecutionBridge
+            └─ FunctionInvokerController (reflection-based invocation)
+                └─ Tool Functions (79 built-in tools across 19 modules)
+```
+
+```
+External AI Client → HTTP Request → MCPRequestHandler → MCPExecutionBridge → FunctionInvokerController → tool method
+```
+
+## Requirements
+
+- Unity 2022.3 or later
+- .NET / Mono with `Newtonsoft.Json`
+
+## Contributing
+
+Contributions are welcome! Please read the [Contributing Guide](CONTRIBUTING.md) before submitting a PR.
+
+## License
+
+[MIT](LICENSE) — Free to use, modify, distribute, and integrate into commercial or open-source projects.

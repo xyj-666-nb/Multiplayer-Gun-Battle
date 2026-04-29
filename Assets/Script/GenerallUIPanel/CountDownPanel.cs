@@ -1,13 +1,13 @@
-ï»¿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using DG.Tweening;
 
 public class CountDownPanel : BasePanel
 {
-    private const string CountdownSound = "Music/update415/å€’è®¡æ—¶";
+    private const string CountdownSound = "Music/update415/µ¹¼ÆÊ±";
 
-    [Header("UIå¼•ç”¨")]
+    [Header("UIÒýÓÃ")]
     public TextMeshProUGUI TopicText;
     public TextMeshProUGUI CountDownText;
 
@@ -50,11 +50,9 @@ public class CountDownPanel : BasePanel
         _colorTweenSequence.SetAutoKill(false);
     }
 
-    #region ç”Ÿå‘½å‘¨æœŸ
-    protected override void Update()
+    #region ÉúÃüÖÜÆÚ
+    private void Update()
     {
-        base.Update();
-
         if (_isCounting)
         {
             CurrentTime -= Time.deltaTime;
@@ -78,7 +76,7 @@ public class CountDownPanel : BasePanel
     }
     #endregion
 
-    #region å…¶ä»–é€»è¾‘
+    #region ÆäËûÂß¼­
     public override void ClickButton(string controlName) { base.ClickButton(controlName); }
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true) { base.HideMe(callback, isNeedDefaultAnimator); }
     public override void ShowMe(bool isNeedDefaultAnimator = true) { base.ShowMe(isNeedDefaultAnimator); }
@@ -86,7 +84,7 @@ public class CountDownPanel : BasePanel
     protected override void SpecialAnimator_Show() { }
     #endregion
 
-    #region å€’è®¡æ—¶æ ¸å¿ƒé€»è¾‘
+    #region µ¹¼ÆÊ±ºËÐÄÂß¼­
     private void UpdateCountDownText()
     {
         CountDownText.text = CurrentTime.ToString("F2");

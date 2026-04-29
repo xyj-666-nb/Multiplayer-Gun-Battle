@@ -279,11 +279,6 @@ public class RoomPanel : BasePanel
     {
 
     }
-
-    protected override void Update()
-    {
-        base.Update();
-    }
 }
 
 // 网络模式枚举（无修改，保持兼容）

@@ -39,6 +39,10 @@ public class playerHandControl : NetworkBehaviour
     public float RecoilPower = 1.2f;         // 后坐力强度
     public float MaxRecoilAngle = 25f;        // 最大向上抬枪角度
 
+    [Header("Network rotation sync optimization")]
+    [SerializeField] private float RotationSyncSendInterval = 0.05f;
+    [SerializeField] private float RotationSyncMinDelta = 0.5f;
+
     [Header("依赖引用")]
     public Camera mainCamera;
     public Player ownerPlayer;
@@ -59,6 +63,8 @@ public class playerHandControl : NetworkBehaviour
 
     // 后坐力核心变量
     private float _recoilOffsetZ;
+    private float _lastRotationSyncSendTime = -999f;
+    private float _lastSentRotationValueZ = float.NaN;
     #endregion
 
     #region 网络同步状态（SyncVar）
@@ -234,6 +240,17 @@ public class playerHandControl : NetworkBehaviour
         }
     }
 
+    private void AttachInjectionToHand(GameObject injectionObj)
+    {
+        if (injectionObj == null || TacticRootTransform == null)
+            return;
+
+        injectionObj.transform.DOKill(true);
+        injectionObj.transform.SetParent(TacticRootTransform, false);
+        injectionObj.transform.localPosition = Vector3.zero;
+        injectionObj.transform.localRotation = Quaternion.identity;
+        injectionObj.transform.SetAsLastSibling();
+    }
     private void OnChangeInjection(GameObject OldInjection, GameObject NewInjection)
     {
         if (!isClient)
@@ -251,10 +268,7 @@ public class playerHandControl : NetworkBehaviour
 
         if (NewInjection != null && NewInjection != OldInjection)
         {
-            NewInjection.transform.DOKill(true);
-            NewInjection.transform.SetParent(TacticRootTransform, false);
-            NewInjection.transform.localPosition = new Vector3(0f, 0f, 0f);
-            NewInjection.transform.SetAsLastSibling();
+            AttachInjectionToHand(NewInjection);
             var injectionScript = NewInjection.GetComponent<Injection>();
             if (injectionScript != null)
             {
@@ -349,10 +363,7 @@ public class playerHandControl : NetworkBehaviour
 
         if (isOwned && CurrentInjection != null && TacticRootTransform != null)
         {
-            CurrentInjection.transform.SetParent(TacticRootTransform, false);
-            CurrentInjection.transform.localPosition = Vector3.zero;
-            CurrentInjection.transform.localRotation = Quaternion.identity;
-            CurrentInjection.transform.localScale = Vector3.one;
+            AttachInjectionToHand(CurrentInjection);
         }
 
         if (isClient)
@@ -477,16 +488,43 @@ public class playerHandControl : NetworkBehaviour
         _selfTransform.DOKill();
         _selfTransform.DOLocalRotate(new Vector3(0, 0, DefaultRotationZ), ReloadResetRotateDuration)
                  .SetEase(Ease.OutCubic)
-                 .OnComplete(() => SetRotationZ(DefaultRotationZ));
+                 .OnComplete(() => SetRotationZ(DefaultRotationZ, true));
     }
 
-    public void SetRotationZ(float targetZ)
+    public void SetRotationZ(float targetZ, bool forceSync = false)
     {
         if (IsHolsterGun || _isHolsterAnimaPlaying) return;
+        if (!forceSync && !ShouldSendRotationSync(targetZ)) return;
+
         if (isServer)
+        {
             _currentRotationValue_Z = targetZ;
+            MarkRotationSyncSent(targetZ);
+        }
         else if (isClient && isOwned)
+        {
+            MarkRotationSyncSent(targetZ);
             CmdSetRotationZ(targetZ);
+        }
+    }
+
+    private bool ShouldSendRotationSync(float targetZ)
+    {
+        if (float.IsNaN(_lastSentRotationValueZ))
+            return true;
+
+        float minDelta = Mathf.Max(0f, RotationSyncMinDelta);
+        if (Mathf.Abs(Mathf.DeltaAngle(_lastSentRotationValueZ, targetZ)) < minDelta)
+            return false;
+
+        float sendInterval = Mathf.Max(0f, RotationSyncSendInterval);
+        return Time.time - _lastRotationSyncSendTime >= sendInterval;
+    }
+
+    private void MarkRotationSyncSent(float targetZ)
+    {
+        _lastSentRotationValueZ = targetZ;
+        _lastRotationSyncSendTime = Time.time;
     }
 
     [Command(requiresAuthority = true)]
@@ -582,6 +620,7 @@ public class playerHandControl : NetworkBehaviour
         if (injectionScript != null)
         {
             injectionScript.BindToPlayer(connectionToClient.identity);
+            NetworkServer.Spawn(spawnedObj, connectionToClient);
             CurrentInjection = spawnedObj;
             injectionScript.ServerTriggerInjection();
         }
@@ -609,10 +648,13 @@ public class playerHandControl : NetworkBehaviour
         { /* Debug.LogError($"[CmdCreateThrowObj] 预制体缺少 ThrowObj 脚本！", this); */ return; }
 
         GameObject spawnedThrowObj = Instantiate(throwObjPrefab);
+        ThrowObj throwScript = spawnedThrowObj.GetComponent<ThrowObj>();
+        throwScript.HandControl = this;
+        throwScript.tacticType = Type;
+        throwScript.MyMonster = ownerPlayer != null ? ownerPlayer.myStats : null;
         NetworkServer.Spawn(spawnedThrowObj, connectionToClient);
         CurrentThrowObj = spawnedThrowObj;
 
-        CurrentThrowObj.GetComponent<ThrowObj>().HandControl = this;
     }
 
     public void TriggerThrowObj(TacticType Type)
@@ -644,7 +686,6 @@ public class playerHandControl : NetworkBehaviour
         if (Obj == null) { /* Debug.LogError($"[CreateTactic] GetTactic({Type}) 返回 null", this); */ return null; }
 
         GameObject spawnedObj = Instantiate(Obj);
-        NetworkServer.Spawn(spawnedObj, connectionToClient);
         return spawnedObj;
     }
     #endregion

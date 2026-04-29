@@ -70,12 +70,6 @@ public class DeveloperSponsorPanel : BasePanel
     protected override void SpecialAnimator_Show()
     {
     }
-
-    protected override void Update()
-    {
-        base.Update();
-    }
-
     private void WatchRewardAd()
     {
         if (_isWaitingRewardAd)

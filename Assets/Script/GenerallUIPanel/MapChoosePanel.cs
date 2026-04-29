@@ -269,7 +269,6 @@ public class MapChoosePanel : BasePanel
     }
 
     public override void Start() { base.Start(); }
-    protected override void Update() { base.Update(); }
     protected override void OnDestroy()
     {
         base.OnDestroy();

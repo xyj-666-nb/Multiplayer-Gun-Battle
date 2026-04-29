@@ -2780,6 +2780,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 2515247395860143507}
   - {fileID: 4531617620368420489}
   - {fileID: 8467674694486864812}
   - {fileID: 2026622087886038145}
@@ -4028,12 +4029,12 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5324030912981924676}
-  m_Father: {fileID: 4531617620368420489}
+  m_Father: {fileID: 1868177039607562457}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.8696518, y: 0.8733803}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.000038146973}
-  m_SizeDelta: {x: 287.0398, y: 128.66}
+  m_AnchoredPosition: {x: -0.00002670288, y: -0.19003296}
+  m_SizeDelta: {x: -2.9599915, y: 2.6600037}
   m_Pivot: {x: 1, y: 1}
 --- !u!222 &2633617018328479262
 CanvasRenderer:
@@ -4148,14 +4149,13 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2515247395860143507}
   - {fileID: 2342374923696050149}
   m_Father: {fileID: 1868177039607562457}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.87100005}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.022094727, y: -0.19003296}
-  m_SizeDelta: {x: 0.60009766, y: -0.33996582}
+  m_AnchorMin: {x: 0.078898825, y: 0.8528838}
+  m_AnchorMax: {x: 0.85400003, y: 1}
+  m_AnchoredPosition: {x: -0.9897461, y: -0.19003296}
+  m_SizeDelta: {x: 3.0177917, y: 0.24700165}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &3642494293850605239
 CanvasRenderer:
@@ -4230,10 +4230,10 @@ RectTransform:
   - {fileID: 5253803255186193912}
   m_Father: {fileID: 1868177039607562457}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5111012, y: 0.021000002}
-  m_AnchorMax: {x: 0.63275295, y: 0.17600001}
-  m_AnchoredPosition: {x: -0.5, y: 2.000061}
-  m_SizeDelta: {x: -1.032196, y: -4.7609863}
+  m_AnchorMin: {x: 0.51914597, y: 0.028}
+  m_AnchorMax: {x: 0.615, y: 0.14400001}
+  m_AnchoredPosition: {x: 2, y: -1.5}
+  m_SizeDelta: {x: -0.7318001, y: -1.1500015}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4828262099301138689
 CanvasRenderer:
@@ -4256,7 +4256,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.81960785}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

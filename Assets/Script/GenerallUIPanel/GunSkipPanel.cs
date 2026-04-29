@@ -126,12 +126,6 @@ public class GunSkipPanel : BasePanel
         base.Start();
         SetGunSkinEquipButtonActive(false);
     }
-
-    protected override void Update()
-    {
-        base.Update();
-    }
-
     protected override void OnDestroy()
     {
         base.OnDestroy();

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 
 public class InGameLogViewer : MonoBehaviour
@@ -17,12 +18,17 @@ public class InGameLogViewer : MonoBehaviour
     [Tooltip("最多显示多少条日志")]
     public int MaxLogCount = 50; // 【修改】默认最多50条
 
+    [Header("运行开关")]
+    [SerializeField] private bool EnableInReleaseBuild = false;
+
     // 内部变量
     private string _logText = "";
     private Queue<string> _logQueue = new Queue<string>();
+    private readonly StringBuilder _logBuilder = new StringBuilder(4096);
     private Vector2 _scrollPosition;
     private Rect _windowRect;
-    private bool _isWindowVisible = true;
+    private bool _isWindowVisible = false;
+    private bool _logTextDirty = true;
 
     private void Awake()
     {
@@ -33,6 +39,12 @@ public class InGameLogViewer : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        if (!ShouldRun())
+        {
+            enabled = false;
+            return;
+        }
 
         // 初始化悬浮窗位置和大小（更大）
         float windowWidth = Screen.width * WindowWidthRatio;
@@ -47,6 +59,9 @@ public class InGameLogViewer : MonoBehaviour
 
     private void OnEnable()
     {
+        if (!ShouldRun())
+            return;
+
         // 监听Unity所有日志输出
         Application.logMessageReceived += OnLogMessageReceived;
     }
@@ -78,13 +93,15 @@ public class InGameLogViewer : MonoBehaviour
             _logQueue.Dequeue();
         }
 
-        // 更新日志文本
-        _logText = string.Join("\n\n", _logQueue.ToArray());
+        _logTextDirty = true;
     }
 
     // 绘制GUI
     private void OnGUI()
     {
+        if (!ShouldRun())
+            return;
+
         // 1. 绘制顶部控制按钮（显示/隐藏、清空、复制）
         GUILayout.BeginArea(new Rect(20, 20, Screen.width - 40, 100));
         GUILayout.BeginHorizontal();
@@ -100,6 +117,7 @@ public class InGameLogViewer : MonoBehaviour
         {
             _logQueue.Clear();
             _logText = "";
+            _logTextDirty = false;
         }
 
         // 【新增】一键复制日志按钮
@@ -121,6 +139,8 @@ public class InGameLogViewer : MonoBehaviour
     // 绘制日志窗口内容
     private void DrawLogWindow(int windowID)
     {
+        RebuildLogTextIfDirty();
+
         // 绘制滚动视图
         _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
 
@@ -142,6 +162,8 @@ public class InGameLogViewer : MonoBehaviour
     // 【新增】一键复制所有日志到剪贴板（安卓/PC通用）
     private void CopyAllLogsToClipboard()
     {
+        RebuildLogTextIfDirty();
+
         if (string.IsNullOrEmpty(_logText))
         {
             /* Debug.Log("【日志查看器】没有日志可复制"); */
@@ -180,6 +202,31 @@ public class InGameLogViewer : MonoBehaviour
             _logQueue.Dequeue();
         }
 
-        _logText = string.Join("\n\n", _logQueue.ToArray());
+        _logTextDirty = true;
+    }
+
+    private bool ShouldRun()
+    {
+        return EnableInReleaseBuild || Debug.isDebugBuild || Application.isEditor;
+    }
+
+    private void RebuildLogTextIfDirty()
+    {
+        if (!_logTextDirty)
+            return;
+
+        _logBuilder.Clear();
+        bool isFirst = true;
+        foreach (string log in _logQueue)
+        {
+            if (!isFirst)
+                _logBuilder.Append("\n\n");
+
+            _logBuilder.Append(log);
+            isFirst = false;
+        }
+
+        _logText = _logBuilder.ToString();
+        _logTextDirty = false;
     }
 }

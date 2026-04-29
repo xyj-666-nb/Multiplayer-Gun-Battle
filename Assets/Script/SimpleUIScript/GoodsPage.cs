@@ -81,6 +81,10 @@ public class GoodsPage : MonoBehaviour
     public CanvasGroup ExpressionCanvasGroup;//表情面板
     private Sequence expressionSeq;
 
+    [Header("广告交互组")]
+    public CanvasGroup ADCanvasGroup;
+    public Button ADButton;//广告按钮
+
     void Start()
     {
         if (GoldBackGround != null)
@@ -166,7 +170,7 @@ public class GoodsPage : MonoBehaviour
         }
     }
 
-    // 【新增】清空表情图片列表
+    // 清空表情图片列表
     private void ClearExpressionImages()
     {
         if (ExpressionImageList == null || ExpressionImageList.Count == 0) return;
@@ -676,7 +680,7 @@ public class GoodsPage : MonoBehaviour
         }
     }
 
-    // 【新增】设置表情图片列表
+    // 设置表情图片列表
     private void SetupExpressionImages()
     {
         if (ExpressionImageList == null || goodsData.expressionPacks == null) return;

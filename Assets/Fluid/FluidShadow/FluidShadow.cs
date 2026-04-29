@@ -19,7 +19,11 @@ public class FluidShadow : MonoBehaviour
     [SerializeField] private bool castsShadows = true;
     [SerializeField] private bool selfShadows = true;
     [SerializeField] private bool simulation = true;
-    [SerializeField] private int frequency = 30;
+    [SerializeField] private int frequency = 15;
+
+    [Header("Shadow performance")]
+    [SerializeField] private bool pauseWhenFluidIdle = true;
+    [SerializeField] private float fluidIdleTimeout = 30f;
     [SerializeField] private int MaxExistShadowEntity = 8;
 
     private List<GameObject> contourObjects = new List<GameObject>();
@@ -29,7 +33,7 @@ public class FluidShadow : MonoBehaviour
     private Queue<Mesh> meshPool = new Queue<Mesh>();
     private List<Mesh> activeMeshes = new List<Mesh>();
 
-    // 替代反射的委托（性能提升核心）
+    // 替代反射的委托（性能提升核心�?
     private static Action<ShadowCaster2D, int[]> setApplyToSortingLayers;
     private static Action<ShadowCaster2D, Vector3[]> setShapePath;
     private static Action<ShadowCaster2D, int> setShapePathHash;
@@ -43,6 +47,7 @@ public class FluidShadow : MonoBehaviour
     List<List<Vector3>> lastFrameContours;
     bool hasRequest = false;
     float lastTime = 0;
+    private float lastDetectedFluidActivityTime = -999f;
 
     void Start()
     {
@@ -90,6 +95,9 @@ public class FluidShadow : MonoBehaviour
 
     void Update()
     {
+        if (rt == null || cs == null || followObject == null)
+            return;
+
         Mesh[] meshs = null;
         Bounds[] bounds = null;
         int meshArrayLength = 0;
@@ -149,15 +157,14 @@ public class FluidShadow : MonoBehaviour
             }
         }
 
-        if (!hasReq && simulation && lastTime >= 1.0f / (float)frequency)
+        int safeFrequency = Mathf.Max(1, frequency);
+        float requestInterval = 1.0f / safeFrequency;
+
+        if (!hasReq && simulation && ShouldUpdateShadow() && lastTime >= requestInterval)
         {
             this.transform.position = followObject.transform.position;
             req = Stage0(rt);
             hasReq = true;
-        }
-
-        if (lastTime >= (1.0f / (float)frequency))
-        {
             lastTime = 0;
         }
 
@@ -165,12 +172,29 @@ public class FluidShadow : MonoBehaviour
     }
 
     // 核心优化：从对象池获取Mesh
+    private bool ShouldUpdateShadow()
+    {
+        if (!pauseWhenFluidIdle)
+            return true;
+
+        FluidController fluidController = FluidController.Instance;
+        if (fluidController == null)
+            return true;
+
+        if (fluidController.HasRecentActivity(Mathf.Max(0f, fluidIdleTimeout)))
+        {
+            lastDetectedFluidActivityTime = Time.time;
+            return true;
+        }
+
+        return Time.time - lastDetectedFluidActivityTime <= Mathf.Max(0f, fluidIdleTimeout);
+    }
     private Mesh GetMeshFromPool()
     {
         if (meshPool.Count > 0)
         {
             Mesh mesh = meshPool.Dequeue();
-            mesh.Clear(); // 清空旧数据
+            mesh.Clear(); // 清空旧数�?
             return mesh;
         }
         return new Mesh();

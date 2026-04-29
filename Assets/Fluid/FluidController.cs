@@ -17,6 +17,12 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
     public Shader velocityFieldShader;
     public Shader offsetTextureShader;
     public bool simulation = true;
+
+    [Header("Fluid performance")]
+    [SerializeField, Range(1, 3)] private int velocityIterations = 2;
+    [SerializeField] private float obstacleUpdateInterval = 0.033f;
+    [SerializeField] private float offsetUpdateThreshold = 0.000001f;
+    [SerializeField] private float simulationIdleTimeout = 30f;
     private Vector2 FluidDomainOffset = new Vector2(0.0f, 0.0f);
     private Material drawMaterial;
     private Material colorFieldMaterial;
@@ -28,6 +34,9 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
     private Bounds objectBounds;
     [SerializeField] private GameObject followObject;
     private Vector3 previousPosition;
+    private float lastFluidActivityTime = -999f;
+    private float nextObstacleUpdateTime;
+    private bool hasObstacleTexture;
 
     private class DrawRequest
     {
@@ -39,7 +48,7 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
         public VelocityType velocityType;
     }
 
-    // 优化：初始化容量避免动态扩容
+    // 优化：初始化容量避免动态扩�?
     private List<DrawRequest> drawRequests = new List<DrawRequest>(1000);
     private RenderTexture tempColorRT;
     private RenderTexture tempVelocityRT;
@@ -201,15 +210,13 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
 
     void Update()
     {
-        // 完全还原原始Update逻辑，不做任何改动
         if (followObject == null)
         {
             followObject = GameObject.Find("Main Camera");
             return;
         }
 
-        rend = GetComponent<Renderer>();
-        if (rend != null && rend.material != null)
+        if (rend != null)
         {
             objectBounds = rend.bounds;
         }
@@ -224,24 +231,39 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
         );
         previousPosition = this.transform.position;
 
-        UpdateObstacleTexture();
-        UpdateOffsetField(colorTexture, FluidDomainOffset);
-        UpdateOffsetField(velocityTexture, FluidDomainOffset);
+        bool hasRecentActivity = drawRequests.Count > 0 || Time.time - lastFluidActivityTime <= Mathf.Max(0f, simulationIdleTimeout);
+        if (!hasRecentActivity)
+            return;
+
+        float offsetThreshold = Mathf.Max(0f, offsetUpdateThreshold);
+        if (FluidDomainOffset.sqrMagnitude > offsetThreshold * offsetThreshold)
+        {
+            UpdateOffsetField(colorTexture, FluidDomainOffset);
+            UpdateOffsetField(velocityTexture, FluidDomainOffset);
+        }
+
+        bool obstacleUpdated = UpdateObstacleTextureIfNeeded();
 
         if (simulation)
         {
             UpdateColorField();
-            UpdateVelocityField();
-            UpdateVelocityField();
-            UpdateVelocityField();
+
+            int iterationCount = Mathf.Clamp(velocityIterations, 1, 3);
+            for (int i = 0; i < iterationCount; i++)
+            {
+                UpdateVelocityField();
+            }
         }
 
-        if (simulation)
+        if (simulation && obstacleUpdated)
         {
             Graphics.Blit(obstacleTexture, obstacleTexturePre);
         }
     }
-
+    public bool HasRecentActivity(float timeout)
+    {
+        return drawRequests.Count > 0 || Time.time - lastFluidActivityTime <= Mathf.Max(0f, timeout);
+    }
     private Vector2? GetMouseWorldPoint()
     {
         Vector3 mousePos = Input.mousePosition;
@@ -265,6 +287,7 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
 
     public void QueueDrawAtPoint(Vector2 worldPos, Color color, Vector2 initialVelocity, float colorRadius, float velocityRadius, VelocityType velocityType = VelocityType.Direct)
     {
+        lastFluidActivityTime = Time.time;
         drawRequests.Add(new DrawRequest
         {
             worldPos = worldPos,
@@ -275,12 +298,11 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
             velocityType = velocityType
         });
     }
-
     private void LateUpdate()
     {
         if (drawRequests.Count > 0)
         {
-            // 保留原始时间记录（注释掉的也保留原样）
+            // 保留原始时间记录（注释掉的也保留原样�?
             float startTime = Time.realtimeSinceStartup;
 
             if (useCommandBuffer)
@@ -342,12 +364,23 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
 
     private void InitTemporaryTextures()
     {
-        if (tempColorRT == null)
-            tempColorRT = RenderTexture.GetTemporary(colorTexture.width, colorTexture.height, 0, colorTexture.format);
-        if (tempVelocityRT == null)
-            tempVelocityRT = RenderTexture.GetTemporary(velocityTexture.width, velocityTexture.height, 0, velocityTexture.format);
+        EnsureTemporaryTexture(ref tempColorRT, colorTexture);
+        EnsureTemporaryTexture(ref tempVelocityRT, velocityTexture);
     }
 
+    private void EnsureTemporaryTexture(ref RenderTexture tempRT, RenderTexture source)
+    {
+        if (source == null)
+            return;
+
+        if (tempRT != null && tempRT.width == source.width && tempRT.height == source.height && tempRT.format == source.format)
+            return;
+
+        if (tempRT != null)
+            RenderTexture.ReleaseTemporary(tempRT);
+
+        tempRT = RenderTexture.GetTemporary(source.width, source.height, 0, source.format);
+    }
     private void ReleaseTemporaryTextures()
     {
         if (tempColorRT != null)
@@ -393,23 +426,22 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
     // 完全还原原始UpdateColorField逻辑
     private void UpdateColorField()
     {
-        RenderTexture tempRT = RenderTexture.GetTemporary(colorTexture.width, colorTexture.height, 0, colorTexture.format);
-        Graphics.Blit(colorTexture, tempRT);
+        InitTemporaryTextures();
+        if (tempColorRT == null) return;
 
-        // 保留原始代码，即使offset是0
+        Graphics.Blit(colorTexture, tempColorRT);
+
+        // Keep the original zero-offset behavior.
         Vector2 offset = (this.transform.position - previousPosition) * 0.0f;
 
-        colorFieldMaterial.SetTexture("_MainTex", tempRT);
+        colorFieldMaterial.SetTexture("_MainTex", tempColorRT);
         colorFieldMaterial.SetTexture("_VelocityTex", velocityTexture);
         colorFieldMaterial.SetTexture("_ObstacleTex", obstacleTexture);
         colorFieldMaterial.SetColor("_Velocity", new Vector4(offset.x, offset.y, 0, 0));
         colorFieldMaterial.SetVector("_FluidDomainOffset", new Vector4(FluidDomainOffset.x, FluidDomainOffset.y, 0, 0));
 
-        Graphics.Blit(tempRT, colorTexture, colorFieldMaterial);
-        RenderTexture.ReleaseTemporary(tempRT);
+        Graphics.Blit(tempColorRT, colorTexture, colorFieldMaterial);
     }
-
-    // 完全还原原始UpdateVelocityField逻辑
     private void UpdateVelocityField()
     {
         float dt = 0;
@@ -417,31 +449,48 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
 
         Vector2 offset = (this.transform.position - previousPosition) * dt;
 
-        RenderTexture tempRT = RenderTexture.GetTemporary(velocityTexture.width, velocityTexture.height, 0, velocityTexture.format);
-        Graphics.Blit(velocityTexture, tempRT);
+        InitTemporaryTextures();
+        if (tempVelocityRT == null) return;
 
-        velocityFieldMaterial.SetTexture("_MainTex", tempRT);
+        Graphics.Blit(velocityTexture, tempVelocityRT);
+
+        velocityFieldMaterial.SetTexture("_MainTex", tempVelocityRT);
         velocityFieldMaterial.SetTexture("_ObstacleTex", obstacleTexture);
         velocityFieldMaterial.SetTexture("_ObstacleTexPre", obstacleTexturePre);
         velocityFieldMaterial.SetFloat("_ObstacleForceStrength", obstacleForceStrength);
         velocityFieldMaterial.SetVector("_Velocity", new Vector4(offset.x, offset.y, 0, 0));
         velocityFieldMaterial.SetVector("_FluidDomainOffset", new Vector4(FluidDomainOffset.x, FluidDomainOffset.y, 0, 0));
 
-        Graphics.Blit(tempRT, velocityTexture, velocityFieldMaterial);
-        RenderTexture.ReleaseTemporary(tempRT);
+        Graphics.Blit(tempVelocityRT, velocityTexture, velocityFieldMaterial);
 
         float endTime = Time.realtimeSinceStartup;
-        //Debug.Log("速度场更新耗时: " + ((endTime - startTime) * 1000f) + "ms");
+        //Debug.Log("Velocity field update cost: " + ((endTime - startTime) * 1000f) + "ms");
     }
-
     private void UpdateOffsetField(RenderTexture Texture, Vector2 offset)
     {
-        RenderTexture tempRT = RenderTexture.GetTemporary(Texture.width, Texture.height, 0, Texture.format);
+        if (Texture == null) return;
+
+        InitTemporaryTextures();
+        RenderTexture tempRT = Texture == colorTexture ? tempColorRT : tempVelocityRT;
+        if (tempRT == null) return;
+
         Graphics.Blit(Texture, tempRT);
         offsetTextureMaterial.SetTexture("_MainTex", tempRT);
         offsetTextureMaterial.SetVector("_Offset", new Vector4(offset.x, offset.y, 0, 0));
         Graphics.Blit(tempRT, Texture, offsetTextureMaterial);
-        RenderTexture.ReleaseTemporary(tempRT);
+    }
+    private bool UpdateObstacleTextureIfNeeded(bool force = false)
+    {
+        if (obstacleCamera == null) return false;
+
+        float interval = Mathf.Max(0f, obstacleUpdateInterval);
+        if (!force && hasObstacleTexture && interval > 0f && Time.time < nextObstacleUpdateTime)
+            return false;
+
+        UpdateObstacleTexture();
+        hasObstacleTexture = true;
+        nextObstacleUpdateTime = Time.time + interval;
+        return true;
     }
 
     private void UpdateObstacleTexture()
@@ -452,11 +501,10 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
         obstacleCamera.targetTexture = obstacleTexture;
         obstacleCamera.Render();
 
-        // 保留原始的无用代码
+        // 保留原始的无用代�?
         RenderTexture.active = obstacleTexture;
         RenderTexture.active = null;
     }
-
     public void ClearTexture()
     {
         RenderTexture rt1 = RenderTexture.active;
@@ -468,6 +516,9 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
         RenderTexture.active = velocityTexture;
         GL.Clear(true, true, new Color(0.5f, 0.5f, 0.515f, 0.5f));
         RenderTexture.active = rt2;
+
+        lastFluidActivityTime = -999f;
+        hasObstacleTexture = false;
     }
 
     private void InitCommandBufferResources()
@@ -525,7 +576,7 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
             velocityTypesBuffer = new ComputeBuffer(bufSize, sizeof(int));
         }
 
-        // 填充数据（逻辑完全不变，只是用了预分配数组）
+        // 填充数据（逻辑完全不变，只是用了预分配数组�?
         for (int i = 0; i < count; i++)
         {
             tempPositionsArray[i] = WorldToUV(drawRequests[i].worldPos) - FluidDomainOffset;
@@ -536,7 +587,7 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
             tempVelocityTypesArray[i] = (int)drawRequests[i].velocityType;
         }
 
-        // 更新缓冲区
+        // 更新缓冲�?
         positionsBuffer.SetData(tempPositionsArray, 0, 0, count);
         velocitiesBuffer.SetData(tempVelocitiesArray, 0, 0, count);
         radiiBuffer.SetData(tempColorRadiiArray, 0, 0, count);
@@ -567,7 +618,7 @@ public class FluidController : SingleMonoAutoBehavior<FluidController>
 
         cachedCmdBuffer.Blit(tempVelocityRT, velocityTexture, batchDrawMaterial, 1);
 
-        // 还原原始重复设置的代码
+        // 还原原始重复设置的代�?
         batchDrawMaterial.SetBuffer("_VelocityTypes", velocityTypesBuffer);
 
         Graphics.ExecuteCommandBuffer(cachedCmdBuffer);

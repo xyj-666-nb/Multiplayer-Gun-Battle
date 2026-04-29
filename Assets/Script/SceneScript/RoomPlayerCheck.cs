@@ -20,17 +20,12 @@ public class RoomPlayerCheck : BaseSceneInteract
     public int EnterDir = 1;//内部方向
 
     private bool IsEnterRoom = false;//更语义化的命名：是否进入房间
+    private RoomPlayerCheck[] _roomGroupChecks;
 
     public override void Awake()
     {
         base.Awake();
-        SetFalseAllInnerDoors();
-        SetAllOutsideDoorsCanUse();
-
-        // 碰撞体初始化
-        if (InterCollider != null) InterCollider.isTrigger = true;
-        if (OutsideCollider1 != null) OutsideCollider1.isTrigger = false;
-        if (OutsideCollider2 != null) OutsideCollider2.isTrigger = false;
+        ApplyExitState(false);
     }
 
     /// <summary>
@@ -38,20 +33,93 @@ public class RoomPlayerCheck : BaseSceneInteract
     /// </summary>
     public override void TriggerEffect()
     {
-        if (SpriteGroup != null) SpriteGroup.FadeOut();//快速淡出房子外围
+        CacheRoomGroupChecks();
 
-        // 门状态切换：内部门可用，外部门禁用
+        foreach (RoomPlayerCheck check in _roomGroupChecks)
+        {
+            if (check != null)
+                check.ApplyEnterState();
+        }
+
+        if (Player.LocalPlayer != null)
+            Player.LocalPlayer.CmdChangeEnterRoomState(true);
+
+        /* Debug.Log("Player entered room group"); */
+    }
+
+    private void ApplyEnterState()
+    {
+        if (SpriteGroup != null) SpriteGroup.FadeOut();
+
         SetAllInnerDoorsCanUse();
         SetFalseAllOutsideDoors();
 
         if (InterCollider != null) InterCollider.isTrigger = false;
+        if (InterCollider2 != null) InterCollider2.isTrigger = false;
         if (OutsideCollider1 != null) OutsideCollider1.isTrigger = true;
-        if (OutsideCollider2 != null) OutsideCollider2.isTrigger = true; 
+        if (OutsideCollider2 != null) OutsideCollider2.isTrigger = true;
 
-        IsEnterRoom = true;//标记已进入房间
-                           //设置玩家进入房间
-        Player.LocalPlayer.CmdChangeEnterRoomState(true);
-        /* Debug.Log("玩家进入房间：内部门启用，外部门禁用，房子外围隐藏"); */
+        IsEnterRoom = true;
+    }
+
+    private void ApplyExitState(bool isNeedFade)
+    {
+        if (isNeedFade && SpriteGroup != null)
+            SpriteGroup.FadeIn();
+
+        SetFalseAllInnerDoors();
+        SetAllOutsideDoorsCanUse();
+
+        if (InterCollider != null)
+            InterCollider.isTrigger = true;
+        if (InterCollider2 != null)
+            InterCollider2.isTrigger = true;
+        if (OutsideCollider1 != null)
+            OutsideCollider1.isTrigger = false;
+        if (OutsideCollider2 != null)
+            OutsideCollider2.isTrigger = false;
+
+        IsEnterRoom = false;
+    }
+
+    private void CacheRoomGroupChecks()
+    {
+        if (_roomGroupChecks != null && _roomGroupChecks.Length > 0)
+            return;
+
+        Transform root = GetRoomGroupRoot();
+        _roomGroupChecks = root != null ? root.GetComponentsInChildren<RoomPlayerCheck>(true) : null;
+
+        if (_roomGroupChecks == null || _roomGroupChecks.Length == 0)
+            _roomGroupChecks = new[] { this };
+    }
+
+    private Transform GetRoomGroupRoot()
+    {
+        Transform current = transform;
+
+        while (current != null)
+        {
+            if (current.name.StartsWith("map") || current.name.StartsWith("Map"))
+                return current;
+
+            current = current.parent;
+        }
+
+        return transform.root;
+    }
+
+    private bool IsAnyRoomGroupEntered()
+    {
+        CacheRoomGroupChecks();
+
+        foreach (RoomPlayerCheck check in _roomGroupChecks)
+        {
+            if (check != null && check.IsEnterRoom)
+                return true;
+        }
+
+        return false;
     }
 
     #region 内部门控制方法（加判空保护）
@@ -126,7 +194,7 @@ public class RoomPlayerCheck : BaseSceneInteract
             return;
 
         // 未进入房间则无需处理离开逻辑
-        if (!IsEnterRoom)
+        if (!IsAnyRoomGroupEntered())
             return;
 
         float playerPosX = Player.LocalPlayer.transform.position.x;
@@ -147,22 +215,15 @@ public class RoomPlayerCheck : BaseSceneInteract
         // 只有真正离开时，才执行恢复逻辑
         if (isPlayerReallyLeave)
         {
-            if (SpriteGroup != null)
-                SpriteGroup.FadeIn();//恢复房子外围显示
-            SetFalseAllInnerDoors();//禁用内部门
-            SetAllOutsideDoorsCanUse();//启用外部门
+            CacheRoomGroupChecks();
 
-            // 恢复碰撞体状态
-            if (InterCollider != null)
-                InterCollider.isTrigger = true;
-            if (OutsideCollider1 != null)
-                OutsideCollider1.isTrigger = false;
-            if (OutsideCollider2 != null)
-                OutsideCollider2.isTrigger = false;
+            foreach (RoomPlayerCheck check in _roomGroupChecks)
+            {
+                if (check != null)
+                    check.ApplyExitState(true);
+            }
 
-            IsEnterRoom = false;
-
-            /* Debug.Log("玩家真正离开房间：恢复房子外围，禁用内部门，启用外部门"); */
+            /* Debug.Log("Player left room group"); */
             Player.LocalPlayer.CmdChangeEnterRoomState(false);
         }
     }

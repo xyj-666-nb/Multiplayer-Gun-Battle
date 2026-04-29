@@ -641,19 +641,49 @@ public class Player : Base_Entity
 
         LocalPlayer.CmdSpawnAndPickGun(gunName, skinInfo);
 
-        _countDownManager?.CreateTimer(false, 100, () => {
-            if (currentGun != null)
-                currentGun.TriggerReload();
+        StartCoroutine(AutoReloadAndShowTacticWhenGunReady(showTacticAfterPick));
+    }
 
-            if (showTacticAfterPick)
+    private System.Collections.IEnumerator AutoReloadAndShowTacticWhenGunReady(bool showTacticAfterPick)
+    {
+        const float timeoutSeconds = 2f;
+        float timeoutAt = Time.time + timeoutSeconds;
+        BaseGun readyGun = null;
+
+        while (Time.time < timeoutAt)
+        {
+            readyGun = currentGun;
+            if (readyGun != null
+                && readyGun.isOwned
+                && readyGun.ownerPlayer == this
+                && readyGun.gunInfo != null)
             {
-                PlayerAndGameInfoManger.Instance.ShowTactic();
+                if (readyGun.IsCanReload() || readyGun.IsInReload || readyGun.AllReserveBulletCount <= 0)
+                    break;
             }
-            else if (PlayerTacticControl.Instance != null)
-            {
-                PlayerTacticControl.Instance.SetTacticControl(false);
-            }
-        });
+
+            yield return null;
+        }
+
+        if (readyGun != null && readyGun.isOwned && readyGun.ownerPlayer == this && readyGun.IsCanReload())
+        {
+            readyGun.TriggerReload();
+
+            PlayerPanel panel = _playerPanel;
+            if (panel == null && UImanager.Instance != null)
+                panel = UImanager.Instance.GetPanel<PlayerPanel>();
+
+            panel?.EnterReloadPrompt(readyGun.gunInfo.ReloadTime);
+        }
+
+        if (showTacticAfterPick)
+        {
+            PlayerAndGameInfoManger.Instance.ShowTactic();
+        }
+        else if (PlayerTacticControl.Instance != null)
+        {
+            PlayerTacticControl.Instance.SetTacticControl(false);
+        }
     }
 
     public struct GunSkinInfo

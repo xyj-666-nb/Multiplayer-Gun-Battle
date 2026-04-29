@@ -15,14 +15,6 @@ public class Injection : NetworkBehaviour
     private bool _isDestroyed = false;
 
     #region 生命周期 & 初始化
-    private void Awake()
-    {
-        // 空引用防护
-        if (TimeLine_Inject == null)
-        {
-            /* Debug.LogWarning($"[Injection] {gameObject.name} 的TimeLine_Inject未赋值！", this); */
-        }
-    }
 
     // 注射器生成时绑定所属玩家
     [Server]
@@ -30,7 +22,6 @@ public class Injection : NetworkBehaviour
     {
         if (playerIdentity == null)
         {
-            /* Debug.LogError("[Injection] 绑定玩家失败：playerIdentity为空", this); */
             return;
         }
         _ownerPlayerIdentity = playerIdentity;
@@ -85,6 +76,35 @@ public class Injection : NetworkBehaviour
                _playerHand;
     }
 
+    private void AttachToOwnerHandClient()
+    {
+        playerHandControl ownerHand = GetOwnerHandControlClient();
+        if (ownerHand == null || ownerHand.TacticRootTransform == null)
+            return;
+
+        _playerHand = ownerHand;
+        transform.SetParent(ownerHand.TacticRootTransform, false);
+        transform.localPosition = Vector3.zero;
+        transform.localRotation = Quaternion.identity;
+        transform.SetAsLastSibling();
+    }
+
+    private playerHandControl GetOwnerHandControlClient()
+    {
+        if (_ownerPlayerIdentity != null)
+        {
+            Player ownerPlayer = _ownerPlayerIdentity.GetComponent<Player>();
+            if (ownerPlayer != null && ownerPlayer.MyHandControl != null)
+                return ownerPlayer.MyHandControl;
+
+            playerHandControl hand = _ownerPlayerIdentity.GetComponent<playerHandControl>() ??
+                                     _ownerPlayerIdentity.GetComponentInChildren<playerHandControl>();
+            if (hand != null)
+                return hand;
+        }
+
+        return _playerHand;
+    }
     [ClientRpc]//都进行执行
     public void RpcTriggerTHolsterStateFalse()
     {
@@ -123,7 +143,6 @@ public class Injection : NetworkBehaviour
     {
         if (_ownerPlayerIdentity == null)
         {
-            /* Debug.LogError("[Injection] 触发效果失败：未绑定所属玩家", this); */
             return;
         }
 
@@ -131,7 +150,6 @@ public class Injection : NetworkBehaviour
         var playerStats = _ownerPlayerIdentity.GetComponent<playerStats>();
         if (playerStats == null)
         {
-            /* Debug.LogError($"[Injection] 所属玩家 {_ownerPlayerIdentity.name} 缺少playerStats组件", this); */
             return;
         }
 
@@ -146,7 +164,6 @@ public class Injection : NetworkBehaviour
     }
 
 
-    // 【Timeline回调专用】请求销毁自身
     public void RequestSelfDestruction()
     {
         if (_isDestroyed) return;
@@ -182,13 +199,11 @@ public class Injection : NetworkBehaviour
         if (_isDestroyed) 
             return;
 
+        AttachToOwnerHandClient();
+
         if (TimeLine_Inject != null)
         {
             TimeLine_Inject.Play();
-        }
-        else if (TimeLine_Inject == null && !_isDestroyed)
-        {
-            /* Debug.LogWarning("[Injection] TimeLine_Inject为空，无法播放注射动画", this); */
         }
     }
 }

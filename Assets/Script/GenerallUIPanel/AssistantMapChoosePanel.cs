@@ -61,11 +61,6 @@ public class AssistantMapChoosePanel : BasePanel
     {
         base.OnDestroy();
     }
-
-    protected override void Update()
-    {
-        base.Update();
-    }
     #endregion
 
     public override void ClickButton(string controlName)

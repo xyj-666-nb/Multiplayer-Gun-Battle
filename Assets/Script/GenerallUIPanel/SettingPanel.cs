@@ -264,9 +264,4 @@ public class SettingPanel : BasePanel
     protected override void SpecialAnimator_Show()
     {
     }
-
-    protected override void Update()
-    {
-        base.Update();
-    }
 }

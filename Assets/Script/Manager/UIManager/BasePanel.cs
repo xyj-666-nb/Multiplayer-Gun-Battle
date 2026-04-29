@@ -445,18 +445,6 @@ public abstract class BasePanel : MonoBehaviour
     #endregion
 
     #region 帧更新与工具方法
-    private float deltaTime;
-    /// <summary>
-    /// Update仅保留必要逻辑，移除渐变判断
-    /// </summary>
-    protected virtual void Update()
-    {
-        // 仅保留动画状态标记的deltaTime计算
-        if (IsInAnimator)
-            deltaTime = IsUseRealTime ? Time.unscaledDeltaTime : Time.deltaTime;
-
-    }
-
     /// <summary>
     /// 取消按钮选中状态
     /// </summary>

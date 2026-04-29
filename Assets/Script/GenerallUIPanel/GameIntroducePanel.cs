@@ -37,14 +37,13 @@ public class GameIntroducePanel : BasePanel
 
     private const string UI_SELECT_SOUND = "Music/update415/ui\u9009\u62e9";
     private const string UI_BACK_SOUND = "Music/update415/ui\u8fd4\u56de";
-
-    [Header("训练场介绍")]
+    [Header("Training Intro")]
     public TextMeshProUGUI _topicText;
     public TextMeshProUGUI _contentText;
     public Image _topicImage;
     public Image _showImage;
     public CanvasGroup TrainPanelCanvas;
-    [Header("玩家操作面板")]
+    [Header("\u8bad\u7ec3\u573a\u4ecb\u7ecd")]
     public CanvasGroup TrainPanelCanvasGroup;
     [Header("联机说明面板")]
     public CanvasGroup OnlinePanelCanvasGroup;
@@ -76,12 +75,6 @@ public class GameIntroducePanel : BasePanel
         RefreshCurrentPage(false);
         SetTrainPanelVisible(true, false);
     }
-
-    protected override void Update()
-    {
-        base.Update();
-    }
-
     protected override void OnDestroy()
     {
         StopAllTypingTasks();

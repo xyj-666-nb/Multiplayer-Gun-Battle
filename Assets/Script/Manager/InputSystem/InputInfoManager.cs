@@ -14,6 +14,7 @@ public class InputInfoManager : SingleMonoAutoBehavior<InputInfoManager>
     private const string FILENAME = "GameInputInfo";
     public PlayerInput playerInput;
     private Dictionary<string, List<ActionEventCallbacks>> actionEventMapDic = new Dictionary<string, List<ActionEventCallbacks>>();//在这里进行按键的一个逻辑注册
+    private readonly Dictionary<string, InputAction> actionCache = new Dictionary<string, InputAction>();
 
     public string CurrentTriggerKey;//当前按下的按钮
     public string currentTriggerKeyState;//当前触发按钮的状态
@@ -240,11 +241,13 @@ public class InputInfoManager : SingleMonoAutoBehavior<InputInfoManager>
             if (eventPackList == null || eventPackList.Count == 0)
                 continue;
 
-            // 找到对应的 InputAction
-            InputAction action = playerInput.actions.FindAction(actionName);
-            if (action == null || !action.enabled)
+            if (!HasContinuousCallback(eventPackList))
                 continue;
 
+            // 找到对应的 InputAction
+            InputAction action = GetCachedAction(actionName);
+            if (action == null || !action.enabled)
+                continue;
             // 检测按键按住状态，触发持续回调
             if (action.phase == InputActionPhase.Started || action.phase == InputActionPhase.Performed)
             {
@@ -264,6 +267,31 @@ public class InputInfoManager : SingleMonoAutoBehavior<InputInfoManager>
         }
     }
 
+    private InputAction GetCachedAction(string actionName)
+    {
+        if (string.IsNullOrEmpty(actionName) || playerInput == null || playerInput.actions == null)
+            return null;
+
+        if (actionCache.TryGetValue(actionName, out InputAction cachedAction))
+            return cachedAction;
+
+        InputAction action = playerInput.actions.FindAction(actionName);
+        if (action != null)
+            actionCache[actionName] = action;
+
+        return action;
+    }
+
+    private bool HasContinuousCallback(List<ActionEventCallbacks> eventPackList)
+    {
+        for (int i = 0; i < eventPackList.Count; i++)
+        {
+            if (eventPackList[i]?.OnPerformedContinuous != null)
+                return true;
+        }
+
+        return false;
+    }
     #endregion
 
     #region 改变按键
@@ -297,6 +325,7 @@ public class InputInfoManager : SingleMonoAutoBehavior<InputInfoManager>
             // 重新加载动作集并启用
             playerInput.actions = InputActionAsset.FromJson(str);
             playerInput.actions.Enable();
+            actionCache.Clear();
             /* Debug.Log("InputInfoManager.ChangeKey：按键配置替换成功，动作集已刷新并启用！"); */
         }
         catch (Exception e)

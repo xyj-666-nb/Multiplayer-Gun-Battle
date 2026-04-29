@@ -177,9 +177,8 @@ public class SceneLoadProgressPanel : BasePanel
         EventCenter.Instance.AddEventLister<float>(E_EventType.E_LoadSceneChange, UpdateInfo);
     }
 
-    protected override void Update()
+    private void Update()
     {
-        base.Update();
         // 每帧更新平滑显示进度
         UpdateDisplayProgress();
     }

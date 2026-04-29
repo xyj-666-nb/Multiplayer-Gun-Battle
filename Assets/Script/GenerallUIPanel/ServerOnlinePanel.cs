@@ -130,12 +130,6 @@ public class ServerOnlinePanel : BasePanel
         OnSuccessAction = null;
         StopTextLoop();
     }
-
-    protected override void Update()
-    {
-        base.Update();
-    }
-
     protected override void SpecialAnimator_Show()
     {
 

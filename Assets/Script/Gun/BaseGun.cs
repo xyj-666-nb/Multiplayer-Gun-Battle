@@ -650,11 +650,6 @@ public class BaseGun : NetworkBehaviour
 
         fly.Init(lr, startPos, targetPos, shootDir, applyLength, applySpeed, applyDuration, template);
 
-        float totalDuration = Vector2.Distance(startPos, targetPos) / applySpeed + applyDuration;
-        _countDownManager?.CreateTimer(false, (int)(totalDuration * 500), () =>
-        {
-            if (bulletObj != null) _poolManage.PushObj(template, bulletObj);
-        });
     }
     #endregion
 
@@ -1451,6 +1446,7 @@ public class BulletSegmentFly : MonoBehaviour
     private Vector2 _currentCenterPos;
     private float _elapsedTime;
     private bool _isReachTarget;
+    private bool _hasReturnedToPool;
     private GameObject _prefab;
 
     public void Init(LineRenderer lr, Vector2 startPos, Vector2 targetPos, Vector2 shootDir,
@@ -1458,6 +1454,7 @@ public class BulletSegmentFly : MonoBehaviour
     {
         _elapsedTime = 0f;
         _isReachTarget = false;
+        _hasReturnedToPool = false;
         _prefab = prefab;
         _lr = lr;
         _startPos = startPos;
@@ -1472,6 +1469,9 @@ public class BulletSegmentFly : MonoBehaviour
 
     private void Update()
     {
+        if (_hasReturnedToPool)
+            return;
+
         if (_isReachTarget)
         {
             FadeOutBullet();
@@ -1492,6 +1492,7 @@ public class BulletSegmentFly : MonoBehaviour
     {
         _elapsedTime = 0f;
         _isReachTarget = false;
+        _hasReturnedToPool = false;
         _currentCenterPos = Vector2.zero;
         if (_lr != null)
         {
@@ -1513,11 +1514,37 @@ public class BulletSegmentFly : MonoBehaviour
     private void FadeOutBullet()
     {
         _elapsedTime += Time.deltaTime;
-        float fadeProgress = Mathf.Clamp01(_elapsedTime / _fadeDuration);
+        float safeFadeDuration = Mathf.Max(0.0001f, _fadeDuration);
+        float fadeProgress = Mathf.Clamp01(_elapsedTime / safeFadeDuration);
         Color currentColor = _lr.startColor;
         currentColor.a = Mathf.Lerp(1f, 0f, fadeProgress);
         _lr.startColor = currentColor;
         _lr.endColor = currentColor;
+
+        if (fadeProgress >= 1f)
+        {
+            ReturnToPool();
+        }
+    }
+
+    private void ReturnToPool()
+    {
+        if (_hasReturnedToPool)
+            return;
+
+        _hasReturnedToPool = true;
+        if (_lr != null)
+            _lr.enabled = false;
+
+        PoolManage poolManage = PoolManage.Instance;
+        if (poolManage != null && _prefab != null)
+        {
+            poolManage.PushObj(_prefab, gameObject);
+        }
+        else
+        {
+            gameObject.SetActive(false);
+        }
     }
 }
 #endregion

@@ -46,9 +46,8 @@ public class UnderageTimePromptPanel : BasePanel
         }
     }
 
-    protected override void Update()
+    private void Update()
     {
-        base.Update();
         RefreshPanelVisibleState(false);
 
         if (!_isPanelVisible)
@@ -221,7 +220,6 @@ public class UnderageTimePromptPanel : BasePanel
         {
             return $"{hours:00}:{minutes:00}";
         }
-
-        return $"{minutes:00}分";
+        return $"{minutes:00}\u5206";
     }
 }

@@ -225,12 +225,6 @@ public class SinglePlayerPanel : BasePanel
             SimpleAnimatorTool.Instance.RemoveTypingTask(typingWritingTask1);
         typingWritingTask1 = SimpleAnimatorTool.Instance.AddTypingTask(IsSelectTrain ? "单人训练场" : "单人战役", TopicText);
     }
-
-    protected override void Update()
-    {
-        base.Update();
-    }
-
     protected override void OnDestroy()
     {
         base.OnDestroy();

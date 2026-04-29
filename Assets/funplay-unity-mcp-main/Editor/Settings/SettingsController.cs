@@ -1,0 +1,197 @@
+// Copyright (C) Funplay. Licensed under MIT.
+
+using System;
+using System.IO;
+using Funplay.Editor.Services;
+using UnityEngine;
+
+namespace Funplay.Editor.Settings
+{
+    internal class SettingsController : ISettingsController
+    {
+        private const string SettingsDirectoryName = "UserSettings";
+        private const string SettingsFileName = "FunplayMcpSettings.json";
+        private const int DefaultPort = 8765;
+        private const string DefaultToolExportProfile = "core";
+        private const string DefaultSelectedConfigTarget = "Claude Code";
+
+        private readonly string _settingsPath;
+        private readonly object _lock = new object();
+        private SettingsData _settings;
+
+        public SettingsController(IApplicationPaths applicationPaths)
+        {
+            if (applicationPaths == null) throw new ArgumentNullException(nameof(applicationPaths));
+
+            _settingsPath = Path.Combine(
+                applicationPaths.ProjectPath,
+                SettingsDirectoryName,
+                SettingsFileName);
+            _settings = LoadSettings();
+        }
+
+        public event Action OnSettingsChanged;
+
+        public bool MCPServerEnabled
+        {
+            get
+            {
+                lock (_lock)
+                    return _settings.enabled;
+            }
+            set
+            {
+                UpdateSettings(data => data.enabled = value);
+            }
+        }
+
+        public int MCPServerPort
+        {
+            get
+            {
+                lock (_lock)
+                    return _settings.port;
+            }
+            set
+            {
+                var normalized = value > 0 ? value : DefaultPort;
+                UpdateSettings(data => data.port = normalized);
+            }
+        }
+
+        public string MCPToolExportProfile
+        {
+            get
+            {
+                lock (_lock)
+                    return _settings.toolExportProfile;
+            }
+            set
+            {
+                var normalized = NormalizeToolExportProfile(value);
+                UpdateSettings(data => data.toolExportProfile = normalized);
+            }
+        }
+
+        public string MCPSelectedConfigTarget
+        {
+            get
+            {
+                lock (_lock)
+                    return _settings.selectedConfigTarget;
+            }
+            set
+            {
+                var normalized = NormalizeSelectedConfigTarget(value);
+                UpdateSettings(data => data.selectedConfigTarget = normalized);
+            }
+        }
+
+        private void UpdateSettings(Action<SettingsData> apply)
+        {
+            if (apply == null) return;
+
+            var changed = false;
+            lock (_lock)
+            {
+                var beforeJson = JsonUtility.ToJson(_settings);
+                apply(_settings);
+                NormalizeInPlace(_settings);
+                var afterJson = JsonUtility.ToJson(_settings);
+                if (string.Equals(beforeJson, afterJson, StringComparison.Ordinal))
+                    return;
+
+                SaveSettings(_settings);
+                changed = true;
+            }
+
+            if (changed)
+                OnSettingsChanged?.Invoke();
+        }
+
+        private SettingsData LoadSettings()
+        {
+            try
+            {
+                if (File.Exists(_settingsPath))
+                {
+                    var json = File.ReadAllText(_settingsPath);
+                    if (!string.IsNullOrWhiteSpace(json))
+                    {
+                        var loaded = JsonUtility.FromJson<SettingsData>(json);
+                        if (loaded != null)
+                        {
+                            NormalizeInPlace(loaded);
+                            return loaded;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[Funplay] Failed to read MCP settings file '{_settingsPath}': {ex.Message}");
+            }
+
+            var defaults = CreateDefaultSettings();
+            SaveSettings(defaults);
+            return defaults;
+        }
+
+        private void SaveSettings(SettingsData settings)
+        {
+            try
+            {
+                var directory = Path.GetDirectoryName(_settingsPath);
+                if (!string.IsNullOrEmpty(directory))
+                    Directory.CreateDirectory(directory);
+
+                var json = JsonUtility.ToJson(settings, true);
+                File.WriteAllText(_settingsPath, json);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[Funplay] Failed to write MCP settings file '{_settingsPath}': {ex.Message}");
+            }
+        }
+
+        private static SettingsData CreateDefaultSettings()
+        {
+            return new SettingsData
+            {
+                enabled = false,
+                port = DefaultPort,
+                toolExportProfile = DefaultToolExportProfile,
+                selectedConfigTarget = DefaultSelectedConfigTarget
+            };
+        }
+
+        private static void NormalizeInPlace(SettingsData settings)
+        {
+            if (settings == null)
+                return;
+
+            settings.port = settings.port > 0 ? settings.port : DefaultPort;
+            settings.toolExportProfile = NormalizeToolExportProfile(settings.toolExportProfile);
+            settings.selectedConfigTarget = NormalizeSelectedConfigTarget(settings.selectedConfigTarget);
+        }
+
+        private static string NormalizeToolExportProfile(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? DefaultToolExportProfile : value.Trim().ToLowerInvariant();
+        }
+
+        private static string NormalizeSelectedConfigTarget(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? DefaultSelectedConfigTarget : value.Trim();
+        }
+
+        [Serializable]
+        private class SettingsData
+        {
+            public bool enabled = false;
+            public int port = DefaultPort;
+            public string toolExportProfile = DefaultToolExportProfile;
+            public string selectedConfigTarget = DefaultSelectedConfigTarget;
+        }
+    }
+}
