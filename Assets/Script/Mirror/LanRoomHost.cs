@@ -6,7 +6,8 @@ public class LanRoomHost : MonoBehaviour
     private CustomNetworkDiscovery discovery;
     [Header("更新房间信息的频率，单位毫秒")]
     public int UpdateAdvertiseServerTime = 200;
-    private int CurrentTimerIndex;
+    private int CurrentTimerIndex = -1;
+    private bool _isAdvertising;
 
     private void Awake()
     {
@@ -22,7 +23,7 @@ public class LanRoomHost : MonoBehaviour
         }
     }
 
-    public void CreateRoom(string roomName, string playerName, int GameTime, int GoalScore, int maxPlayers = 8)
+    public void CreateRoom(string roomName, string playerName, int GameTime, int GoalScore, int maxPlayers = CustomNetworkManager.DefaultRoomPlayerLimit)
     {
         /* Debug.Log("HOST: StartHost + AdvertiseServer()"); */
 
@@ -53,6 +54,7 @@ public class LanRoomHost : MonoBehaviour
             discovery.playerName = string.IsNullOrWhiteSpace(playerName) ? "房主" : playerName;
 
             discovery.SetPort(port);
+            maxPlayers = nm.ApplyRoomPlayerLimit(maxPlayers);
 
             discovery.maxPlayers = maxPlayers;
             discovery.playerCount = 1;
@@ -62,7 +64,7 @@ public class LanRoomHost : MonoBehaviour
             nm.maxConnections = maxPlayers;
             nm.StartHost();
 
-            discovery.AdvertiseServer();
+            StartAdvertisingIfNeeded();
 
             /* Debug.Log($"成功创建房间（端口：{port}），开始广播"); */
 
@@ -71,7 +73,7 @@ public class LanRoomHost : MonoBehaviour
                 /* Debug.LogError("[LanRoomHost] CountDownManager.Instance 为空！"); */
                 return;
             }
-            CurrentTimerIndex = CountDownManager.Instance.CreateTimer_Permanent(false, 200, UpdateAdvertiseServer);
+            CurrentTimerIndex = CountDownManager.Instance.CreateTimer_Permanent(false, UpdateAdvertiseServerTime, UpdateAdvertiseServer);
         }
         catch (System.Exception e)
         {
@@ -83,28 +85,65 @@ public class LanRoomHost : MonoBehaviour
     {
         if (!NetworkServer.active || discovery == null)
         {
-            /* Debug.LogWarning("[LanRoomHost] 服务器未激活或discovery为空，跳过房间信息更新"); */
             return;
         }
 
+        CustomNetworkManager nm = CustomNetworkManager.Instance != null
+            ? CustomNetworkManager.Instance
+            : NetworkManager.singleton as CustomNetworkManager;
+
+        int players = nm != null ? nm.GetCurrentPlayerCount() : CountAuthenticatedConnections();
+        discovery.playerCount = Mathf.Max(1, players);
+
+        bool canJoin = nm == null || !nm.IsRoomClosedToNewPlayers();
+        bool hasSpace = discovery.maxPlayers <= 0 || discovery.playerCount < discovery.maxPlayers;
+
+        if (canJoin && hasSpace)
+            StartAdvertisingIfNeeded();
+        else
+            StopAdvertisingIfNeeded();
+    }
+
+    private int CountAuthenticatedConnections()
+    {
         int players = 0;
         foreach (var kv in NetworkServer.connections)
         {
             if (kv.Value != null && kv.Value.isAuthenticated)
                 players++;
         }
-        discovery.playerCount = Mathf.Max(1, players);
+        return players;
+    }
+
+    private void StartAdvertisingIfNeeded()
+    {
+        if (_isAdvertising || discovery == null)
+            return;
+
+        discovery.AdvertiseServer();
+        _isAdvertising = true;
+    }
+
+    private void StopAdvertisingIfNeeded()
+    {
+        if (!_isAdvertising || discovery == null)
+            return;
+
+        discovery.StopDiscovery();
+        _isAdvertising = false;
     }
 
     public void StopRoom()
     {
-        if (CountDownManager.Instance != null)
+        if (CountDownManager.Instance != null && CurrentTimerIndex != -1)
         {
             CountDownManager.Instance.StopTimer(CurrentTimerIndex);
+            CurrentTimerIndex = -1;
         }
         if (discovery != null)
         {
             discovery.StopDiscovery();
+            _isAdvertising = false;
         }
         if (CustomNetworkManager.Instance != null)
         {

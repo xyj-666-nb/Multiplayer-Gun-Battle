@@ -47,7 +47,7 @@ public abstract class CharacterStats : NetworkBehaviour
     private const string STR_UNKNOWN_GUN = "¦Ä??§Ö";
     private const string STR_BARE_HAND = "???";
     private const string STR_GRENADE = "????";
-    private const string SOUND_PLAYER_HIT = "Music/\u6B63\u5F0F/\u4EA4\u4E92/\u51FB\u4E2D\u9776\u5B501";
+    private const string SOUND_PLAYER_HIT = "Music/\u6B63\u5F0F/\u4EA4\u4E92/\u51FB\u4E2D\u654C\u4EBA";
     private const string SOUND_PLAYER_WOUND = "Music/\u6B63\u5F0F/\u4EA4\u4E92/\u53D7\u51FB";
     private const string SOUND_PLAYER_KILL = "Music/\u6B63\u5F0F/\u4EA4\u4E92/\u51FB\u6740";
     private const string LOG_RB_NULL = "[{0}] CharacterStats ??? Rigidbody2D ?????";

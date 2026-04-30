@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -15,6 +16,7 @@ public class CountDownPanel : BasePanel
     private float CurrentTime = 0;
     private bool _isCounting = false;
     private bool _hasPlayedCountdownSound = false;
+    private Coroutine _countdownSoundCoroutine;
 
     private Sequence _colorTweenSequence;
 
@@ -100,8 +102,19 @@ public class CountDownPanel : BasePanel
         if (CurrentTime <= 5f && CurrentTime > 0f)
         {
             _hasPlayedCountdownSound = true;
-            MusicManager.Instance?.PlayEffect(CountdownSound);
+            if (_countdownSoundCoroutine != null)
+            {
+                StopCoroutine(_countdownSoundCoroutine);
+            }
+            _countdownSoundCoroutine = StartCoroutine(PlayCountdownSoundNextFrame());
         }
+    }
+
+    private IEnumerator PlayCountdownSoundNextFrame()
+    {
+        yield return null;
+        MusicManager.Instance?.PlayEffect(CountdownSound);
+        _countdownSoundCoroutine = null;
     }
 
     private void OnCountDownFinish()

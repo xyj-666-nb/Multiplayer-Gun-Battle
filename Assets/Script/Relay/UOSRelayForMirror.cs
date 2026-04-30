@@ -19,11 +19,16 @@ public class UOSRelaySimple : MonoBehaviour
     public RelayTransportMirror relayTransport;
 
     [Header("设置")]
-    public int maxPlayers = 4;
+    public int maxPlayers = CustomNetworkManager.DefaultRoomPlayerLimit;
     public string currentRoomCode;
+    public string currentRoomUuid;
 
     private const string MATCH_ROOM_NAME_PREFIX = "PUBLIC_MATCH_";
+    private const string ROOM_FULL_MESSAGE = "房间人数已满";
+    private const string ROOM_STARTED_MESSAGE = "游戏已开始，无法加入";
     private const float MATCH_QUERY_TIMEOUT = 3f;
+
+    private LobbyRoomStatus _lastPublishedStatus = LobbyRoomStatus.Unknown;
 
     private string playerUuid;
     public string playerName;
@@ -92,12 +97,14 @@ public class UOSRelaySimple : MonoBehaviour
 
         customManager.transport = relayTransport;
         Transport.active = relayTransport;
+        int roomMaxPlayers = GetEffectiveMaxPlayers();
+        customManager.ApplyRoomPlayerLimit(roomMaxPlayers);
         OnRelayConnecting?.Invoke();
 
         StartCoroutine(LobbyService.AsyncCreateRoom(new CreateRoomRequest()
         {
             Name = "游戏房间",
-            MaxPlayers = maxPlayers,
+            MaxPlayers = roomMaxPlayers,
             OwnerId = playerUuid,
             Visibility = LobbyRoomVisibility.Public
         }, OnCreateRoomComplete));
@@ -115,12 +122,14 @@ public class UOSRelaySimple : MonoBehaviour
 
         customManager.transport = relayTransport;
         Transport.active = relayTransport;
+        int roomMaxPlayers = GetEffectiveMaxPlayers();
+        customManager.ApplyRoomPlayerLimit(roomMaxPlayers);
         OnRelayConnecting?.Invoke();
 
         StartCoroutine(LobbyService.AsyncCreateRoom(new CreateRoomRequest()
         {
             Name = roomName,
-            MaxPlayers = maxPlayers,
+            MaxPlayers = roomMaxPlayers,
             OwnerId = playerUuid,
             Visibility = LobbyRoomVisibility.Public
         }, OnCreateRoomComplete));
@@ -219,8 +228,51 @@ public class UOSRelaySimple : MonoBehaviour
         }
         else
         {
-            callback?.Invoke(false, null, "未找到可加入的公共房间");
+            callback?.Invoke(false, null, GetMatchRoomFailureMessage(listedRooms));
         }
+    }
+
+    private string GetMatchRoomFailureMessage(List<LobbyRoom> rooms)
+    {
+        if (rooms == null || rooms.Count == 0)
+        {
+            return "未找到可加入的公共房间";
+        }
+
+        bool hasMatchRoom = false;
+        bool hasFullRoom = false;
+        bool hasStartedRoom = false;
+
+        foreach (var room in rooms)
+        {
+            if (room == null || string.IsNullOrEmpty(room.Name) || !room.Name.StartsWith(MATCH_ROOM_NAME_PREFIX, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            hasMatchRoom = true;
+            if (room.MaxPlayers > 0 && room.PlayerCount >= (uint)room.MaxPlayers)
+            {
+                hasFullRoom = true;
+            }
+
+            if (room.Status != LobbyRoomStatus.Ready && room.Status != LobbyRoomStatus.ServerAllocated)
+            {
+                hasStartedRoom = true;
+            }
+        }
+
+        if (hasFullRoom)
+        {
+            return ROOM_FULL_MESSAGE;
+        }
+
+        if (hasStartedRoom)
+        {
+            return ROOM_STARTED_MESSAGE;
+        }
+
+        return hasMatchRoom ? "当前没有可加入房间" : "未找到可加入的公共房间";
     }
 
     private LobbyRoom SelectBestMatchRoom(List<LobbyRoom> rooms)
@@ -259,7 +311,7 @@ public class UOSRelaySimple : MonoBehaviour
             return false;
         }
 
-        if (room.MaxPlayers > 0 && room.PlayerCount >= room.MaxPlayers)
+        if (room.MaxPlayers > 0 && room.PlayerCount >= (uint)room.MaxPlayers)
         {
             return false;
         }
@@ -274,16 +326,22 @@ public class UOSRelaySimple : MonoBehaviour
 
     private void OnCreateRoomComplete(CreateRoomResponse resp)
     {
-        if (resp.Code == (uint)RelayCode.OK && resp.Status == LobbyRoomStatus.ServerAllocated)
+        if (resp != null && resp.Code == (uint)RelayCode.OK && resp.Status == LobbyRoomStatus.ServerAllocated)
         {
             currentRoomCode = resp.RoomCode;
+            currentRoomUuid = resp.RoomUuid;
+            _lastPublishedStatus = LobbyRoomStatus.Unknown;
+
+            int roomMaxPlayers = resp.MaxPlayers > 0 ? resp.MaxPlayers : GetEffectiveMaxPlayers();
+            customManager.ApplyRoomPlayerLimit(roomMaxPlayers);
             relayTransport.SetRoomData(resp);
             customManager.StartHost();
+            RefreshRoomJoinState();
             OnRelaySuccess?.Invoke(currentRoomCode);
         }
         else
         {
-            string err = $"创建房间失败：{resp.Code}";
+            string err = $"创建房间失败：{(resp != null ? resp.Code : 0)}";
             /* Debug.LogError(err); */
             OnRelayFailed?.Invoke(err);
         }
@@ -320,12 +378,13 @@ public class UOSRelaySimple : MonoBehaviour
         {
             if (resp.Code == (uint)RelayCode.OK)
             {
-                if (resp.Status != LobbyRoomStatus.ServerAllocated && resp.Status != LobbyRoomStatus.Ready)
+                if (!IsRelayRoomJoinable(resp, out string failureReason))
                 {
-                    OnRelayFailed?.Invoke($"房间状态不可用：{resp.Status}");
+                    OnRelayFailed?.Invoke(failureReason);
                     return;
                 }
 
+                customManager.ApplyRoomPlayerLimit(resp.MaxPlayers);
                 relayTransport.SetRoomData(resp);
                 customManager.StartClient();
                 OnRelaySuccess?.Invoke(resp.RoomCode);
@@ -353,6 +412,13 @@ public class UOSRelaySimple : MonoBehaviour
         {
             if (resp.Code == (uint)RelayCode.OK)
             {
+                if (!IsRelayRoomJoinable(resp, out string failureReason))
+                {
+                    OnRelayFailed?.Invoke(failureReason);
+                    return;
+                }
+
+                customManager.ApplyRoomPlayerLimit(resp.MaxPlayers);
                 relayTransport.SetRoomData(resp);
                 customManager.StartClient();
                 OnRelaySuccess?.Invoke(resp.RoomCode);
@@ -375,9 +441,76 @@ public class UOSRelaySimple : MonoBehaviour
         StartCoroutine(LobbyService.AsyncQueryRoomByRoomCode(roomCode, resp =>
         {
             if (resp.Code == (uint)RelayCode.OK)
+            {
+                if (!IsRelayRoomJoinable(resp, out string failureReason))
+                {
+                    OnQueryFailed?.Invoke(failureReason);
+                    return;
+                }
+
                 OnQuerySuccess?.Invoke(resp.RoomCode);
+            }
             else
                 OnQueryFailed?.Invoke("未找到房间");
+        }));
+    }
+
+    private int GetEffectiveMaxPlayers()
+    {
+        int hardLimit = customManager != null ? customManager.RoomPlayerLimit : CustomNetworkManager.DefaultRoomPlayerLimit;
+        int requested = maxPlayers > 0 ? maxPlayers : hardLimit;
+        return Mathf.Clamp(requested, 1, hardLimit);
+    }
+
+    private bool IsRelayRoomJoinable(QueryRoomResponse room, out string reason)
+    {
+        reason = null;
+        if (room == null)
+        {
+            reason = "房间不存在或已关闭";
+            return false;
+        }
+
+        if (room.MaxPlayers > 0 && room.PlayerCount >= (uint)room.MaxPlayers)
+        {
+            reason = ROOM_FULL_MESSAGE;
+            return false;
+        }
+
+        if (room.Status != LobbyRoomStatus.Ready && room.Status != LobbyRoomStatus.ServerAllocated)
+        {
+            reason = ROOM_STARTED_MESSAGE;
+            return false;
+        }
+
+        return true;
+    }
+
+    public void RefreshRoomJoinState()
+    {
+        if (!isActiveAndEnabled || customManager == null || !NetworkServer.active || string.IsNullOrEmpty(currentRoomUuid))
+        {
+            return;
+        }
+
+        bool isOpen = !customManager.IsRoomClosedToNewPlayers() && customManager.GetCurrentPlayerCount() < GetEffectiveMaxPlayers();
+        PublishRoomStatus(isOpen ? LobbyRoomStatus.Ready : LobbyRoomStatus.Running);
+    }
+
+    private void PublishRoomStatus(LobbyRoomStatus status)
+    {
+        if (string.IsNullOrEmpty(currentRoomUuid) || _lastPublishedStatus == status)
+        {
+            return;
+        }
+
+        _lastPublishedStatus = status;
+        StartCoroutine(LobbyService.ChangeRoomStatus(currentRoomUuid, status, resp =>
+        {
+            if (resp == null || resp.Code != (uint)RelayCode.OK)
+            {
+                _lastPublishedStatus = LobbyRoomStatus.Unknown;
+            }
         }));
     }
 
@@ -405,6 +538,8 @@ public class UOSRelaySimple : MonoBehaviour
         }
         catch { }
         currentRoomCode = "";
+        currentRoomUuid = "";
+        _lastPublishedStatus = LobbyRoomStatus.Unknown;
         StopAllCoroutines();
     }
 

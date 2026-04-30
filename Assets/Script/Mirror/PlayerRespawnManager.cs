@@ -153,6 +153,7 @@ public class PlayerRespawnManager : NetworkBehaviour
         IsGameStart = true;
         IsGameRealStart = false;
         _isGameEnded = false;
+        UOSRelaySimple.Instance?.RefreshRoomJoinState();
         RemainGameTime = GameTime * 60;
 
         // 初始化完成后同步一次空数据给客户端，确保UI干净

@@ -11,7 +11,7 @@ public class GoodsDataEditor : Editor
 
     // UI×Ö¶Î
     private SerializedProperty goodsIcon;
-    private SerializedProperty goodsName;d
+    private SerializedProperty goodsName;
     private SerializedProperty goodsDescription;
     private SerializedProperty quality;
 

@@ -34,7 +34,7 @@ public class CustomNetworkDiscovery : NetworkDiscoveryBase<ServerRequest, Server
     [Header("Custom Room Info")]
     public string roomName = "Room";
     public int playerCount = 1;
-    public int maxPlayers = 8;
+    public int maxPlayers = CustomNetworkManager.DefaultRoomPlayerLimit;
     public string playerName = "Host";
     public int gameTime = 0;
     public int GoldScore = 0;

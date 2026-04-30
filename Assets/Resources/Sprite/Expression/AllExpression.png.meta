@@ -1,0 +1,2270 @@
+fileFormatVersion: 2
+guid: DSxM4yz8Bn0D1MvH5AOLJb8HioSGN9rVv/ohgh50pJDlNPtAKp+0NY0=
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  webStreaming: 0
+  priorityLevel: 0
+  uploadedMode: 2
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 4096
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Server
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: WeixinMiniGame
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: HMIAndroid
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: OpenHarmony
+    maxTextureSize: 2048
+    maxPlaceholderSize: 32
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: AllExpression_0
+      rect:
+        serializedVersion: 2
+        x: 59
+        y: 774
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 54fc967ed0e7ad7468801ac8bc7a1ba0
+      internalID: 1762504089
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_1
+      rect:
+        serializedVersion: 2
+        x: 548
+        y: 767
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c570ece0bb38353418036314c4beb279
+      internalID: -1112368786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_2
+      rect:
+        serializedVersion: 2
+        x: 808
+        y: 777
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3bff9ba7f2a243144bb82e76f296bed6
+      internalID: 528675027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_3
+      rect:
+        serializedVersion: 2
+        x: 1044
+        y: 774
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 39eca9df8f6d8f6499b869d2f3fe0800
+      internalID: 1737687085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_7
+      rect:
+        serializedVersion: 2
+        x: 1554
+        y: 794
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: be0a5ec6ef6b3c34aa411742686dc58a
+      internalID: -1907027955
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_8
+      rect:
+        serializedVersion: 2
+        x: 1786
+        y: 786
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: de003afdb1524234d847a881ad9a8279
+      internalID: 1498177505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_9
+      rect:
+        serializedVersion: 2
+        x: 2029
+        y: 782
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9f9bc469a25a3704a9c06373e8a271b2
+      internalID: -937852149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_10
+      rect:
+        serializedVersion: 2
+        x: 2267
+        y: 781
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ca949d651d7dfa44ba1e772ecc977cbb
+      internalID: -607374602
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_11
+      rect:
+        serializedVersion: 2
+        x: 2519
+        y: 794
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a3e7d2e9cdbc4245a4dab0988764c90
+      internalID: 841165646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_12
+      rect:
+        serializedVersion: 2
+        x: 2746
+        y: 795
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3e86d01cf43e3e6478bb1858947bc619
+      internalID: 84786858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_13
+      rect:
+        serializedVersion: 2
+        x: 3775
+        y: 773
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a00aa18217a1be6489b6a983616cb03c
+      internalID: -873164139
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_14
+      rect:
+        serializedVersion: 2
+        x: 4008
+        y: 771
+        width: 210
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 883eec8f5a89d784ba208ad356bd6285
+      internalID: 694116799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_16
+      rect:
+        serializedVersion: 2
+        x: 299
+        y: 776
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0a4f53332b4af114ea4ff16a5a57bfd6
+      internalID: -2042425263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_17
+      rect:
+        serializedVersion: 2
+        x: 1291
+        y: 778
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 08177d3aa8c3241448082658f2bbd8b3
+      internalID: 1847056481
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_20
+      rect:
+        serializedVersion: 2
+        x: 3034
+        y: 752
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8c8bc14f1a67afe43a4f478101473191
+      internalID: -302155826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_21
+      rect:
+        serializedVersion: 2
+        x: 3286
+        y: 758
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 399499b457327b949b0173581ad58568
+      internalID: -1943014426
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_22
+      rect:
+        serializedVersion: 2
+        x: 3526
+        y: 752
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 54ab4070445ff794cb17540a22f937b6
+      internalID: 1258266683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_23
+      rect:
+        serializedVersion: 2
+        x: 4264
+        y: 767
+        width: 220
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7fe44750b067f5d40ac12c84341f0354
+      internalID: 468256355
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_25
+      rect:
+        serializedVersion: 2
+        x: 4552
+        y: 764
+        width: 210
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c7098cd593dc8fa47b06991af6deeb9b
+      internalID: -2061368223
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_26
+      rect:
+        serializedVersion: 2
+        x: 4819
+        y: 788
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1b8754e08f3f65740b9831064d7efd16
+      internalID: -2060689303
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_27
+      rect:
+        serializedVersion: 2
+        x: 5077
+        y: 786
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7a6ac452a85b40847bca915cb573d50e
+      internalID: 947320153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_28
+      rect:
+        serializedVersion: 2
+        x: 5355
+        y: 788
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ed7210ee3040883448bac71e3a889ff4
+      internalID: 1503145954
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_29
+      rect:
+        serializedVersion: 2
+        x: 5594
+        y: 784
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d39e6ff6e1851ea459c9da579c3d2976
+      internalID: -655968065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_31
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 548
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 02614421716ca0e48b9f2a8bc3ba96be
+      internalID: -1170002837
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_36
+      rect:
+        serializedVersion: 2
+        x: 1042
+        y: 556
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4949511f92d4df14dba1f5b02786cebe
+      internalID: 1942635542
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_37
+      rect:
+        serializedVersion: 2
+        x: 1561
+        y: 551
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 82ad17585afcf52409cb0d73243280ed
+      internalID: -836062009
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_41
+      rect:
+        serializedVersion: 2
+        x: 3536
+        y: 530
+        width: 192
+        height: 204
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eec3f233b0ecef9499b018c1f4638dbd
+      internalID: -1456239953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_42
+      rect:
+        serializedVersion: 2
+        x: 5080
+        y: 526
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7fbda352efc74d4478b30c707a8bb9cb
+      internalID: -2028858279
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_43
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 547
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4c4e8e683d37cc540b5f0131281cc4ae
+      internalID: -151486899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_45
+      rect:
+        serializedVersion: 2
+        x: 543
+        y: 544
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e8a62f8ace89abf4dbc419005e93f5e3
+      internalID: 1969951366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_46
+      rect:
+        serializedVersion: 2
+        x: 806
+        y: 555
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 156711d43e71f2341a86b83b43e6ee2f
+      internalID: -1918209617
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_47
+      rect:
+        serializedVersion: 2
+        x: 1303
+        y: 556
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b692f1f216666cf40806980627803e1d
+      internalID: -971052468
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_48
+      rect:
+        serializedVersion: 2
+        x: 1789
+        y: 555
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 86e154262eae7d141929876a91b91778
+      internalID: -61550066
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_49
+      rect:
+        serializedVersion: 2
+        x: 2033
+        y: 556
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5e1951f57ff0feb4aa4b3515c03bb274
+      internalID: -230009112
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_50
+      rect:
+        serializedVersion: 2
+        x: 2257
+        y: 548
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 69a2445ca17eeeb4797e1784239ae962
+      internalID: 1925704053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_52
+      rect:
+        serializedVersion: 2
+        x: 2516
+        y: 550
+        width: 200
+        height: 200
+      alignment: 9
+      pivot: {x: 0.53563476, y: 0.10799408}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e835048820fc49747a59da38a636d080
+      internalID: 920763085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_53
+      rect:
+        serializedVersion: 2
+        x: 2758
+        y: 547
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c93ae7561fc3e614cbbf08e0272b23c4
+      internalID: 799668339
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_54
+      rect:
+        serializedVersion: 2
+        x: 3296
+        y: 533
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 62ce04899a31b9548ae54c8f43fa6187
+      internalID: 161570211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_55
+      rect:
+        serializedVersion: 2
+        x: 3783
+        y: 530
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ad32e982e9dc6d446bbda9e0c3e9e2ff
+      internalID: 173181854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_56
+      rect:
+        serializedVersion: 2
+        x: 4022
+        y: 530
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6652f3b0ed2a16a45aadfecdee5052e0
+      internalID: -1506838529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_57
+      rect:
+        serializedVersion: 2
+        x: 4267
+        y: 537
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 22de6957d61118e4ea79fdb025b89077
+      internalID: 386448595
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_58
+      rect:
+        serializedVersion: 2
+        x: 4586
+        y: 547
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9626785467bc7d74391b1cc87276fa17
+      internalID: 33064803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_59
+      rect:
+        serializedVersion: 2
+        x: 4811
+        y: 564
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4d3acfe9b2d93f3478401d2a3bd00bef
+      internalID: 153363047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_60
+      rect:
+        serializedVersion: 2
+        x: 5317
+        y: 520
+        width: 225
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bca9fff4cb8a38e418354de85dc52ffb
+      internalID: 1827029003
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_61
+      rect:
+        serializedVersion: 2
+        x: 5589
+        y: 532
+        width: 205
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ec0fb772769127142968bb0c08812e3f
+      internalID: 775839619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_62
+      rect:
+        serializedVersion: 2
+        x: 3041
+        y: 530
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d8613983dbc93a647a9872c119dc1be8
+      internalID: -873290922
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_63
+      rect:
+        serializedVersion: 2
+        x: 3518
+        y: 642
+        width: 20
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 090607bc4a20ff04799072f4204343cd
+      internalID: -971538731
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_64
+      rect:
+        serializedVersion: 2
+        x: 3524
+        y: 601
+        width: 17
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b41308d8b07cf484198365e8eb5e9ef3
+      internalID: -431287393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_65
+      rect:
+        serializedVersion: 2
+        x: 45
+        y: 299
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a257d56cb456b8344a555011605750b5
+      internalID: -579972549
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_66
+      rect:
+        serializedVersion: 2
+        x: 275
+        y: 294
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a8e601ba50076f144943ccf61263e4ef
+      internalID: -1143938398
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_69
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 313
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1431fd4315123ef40918c4ecc58592b1
+      internalID: -785833456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_70
+      rect:
+        serializedVersion: 2
+        x: 1265
+        y: 291
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f082b83c1813c1b43b6fea246fbbc040
+      internalID: 1116683555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_72
+      rect:
+        serializedVersion: 2
+        x: 1544
+        y: 316
+        width: 210
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6659b65cb0d03fc4a8e7cb17ed014a4a
+      internalID: 2010219953
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_74
+      rect:
+        serializedVersion: 2
+        x: 1787
+        y: 315
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7c4eeb8a4d3a9ba4ca6dbb93d69f8440
+      internalID: -1129807218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_75
+      rect:
+        serializedVersion: 2
+        x: 2024
+        y: 314
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d9f055c9261c97d42bfd3b3bfa643739
+      internalID: -976593242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_76
+      rect:
+        serializedVersion: 2
+        x: 2260
+        y: 316
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c68e9847e601ee9419df0f8267068735
+      internalID: 1674442185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_77
+      rect:
+        serializedVersion: 2
+        x: 2508
+        y: 318
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b38ce967496669844ae23b2b039f1dd7
+      internalID: -377554689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_78
+      rect:
+        serializedVersion: 2
+        x: 2751
+        y: 306
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b4e4ee8e22b131042ae14ee083180354
+      internalID: 1313087511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_79
+      rect:
+        serializedVersion: 2
+        x: 3045
+        y: 299
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cced406a78829544bba7cde15ac1ca92
+      internalID: -1207835023
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_80
+      rect:
+        serializedVersion: 2
+        x: 3536
+        y: 299
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 98707c5844d86d34882473ddda2e1e89
+      internalID: 486093532
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_83
+      rect:
+        serializedVersion: 2
+        x: 774
+        y: 322
+        width: 210
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 93a5ac77275f8a442ac0d95bc6261c5a
+      internalID: 787783065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_85
+      rect:
+        serializedVersion: 2
+        x: 3296
+        y: 300
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 31c304ffe0123ee4cb6b8ae9faf7cf8f
+      internalID: -1921365910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_86
+      rect:
+        serializedVersion: 2
+        x: 3775
+        y: 300
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d16edcafb03f6dd4681bb3a8ab911872
+      internalID: 1208241382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_87
+      rect:
+        serializedVersion: 2
+        x: 4031
+        y: 299
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aacac1dfbc7e73a42bc23954bea26b03
+      internalID: -2092098736
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_88
+      rect:
+        serializedVersion: 2
+        x: 4270
+        y: 299
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3a406fb02530fcd4c8cf465ac63837d9
+      internalID: -888762859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_89
+      rect:
+        serializedVersion: 2
+        x: 4586
+        y: 327
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fef8d6019f78c5946b586a5d7114969a
+      internalID: -2022291773
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_90
+      rect:
+        serializedVersion: 2
+        x: 4819
+        y: 327
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 375638ce08cceb8499a3abcdc03ed2fc
+      internalID: -781751738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_91
+      rect:
+        serializedVersion: 2
+        x: 5067
+        y: 299
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dca77c350d7d0de438dc19fe388e5131
+      internalID: 1988089133
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_92
+      rect:
+        serializedVersion: 2
+        x: 5342
+        y: 288
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e392eb1599c239440a61bd4fcbd4cf59
+      internalID: -1269125301
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_93
+      rect:
+        serializedVersion: 2
+        x: 5589
+        y: 294
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6463c3eb9a970ec45b00031aa4a42830
+      internalID: -1184342980
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_94
+      rect:
+        serializedVersion: 2
+        x: 524
+        y: 292
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5050e8bbb822ca941ae472f027a41e65
+      internalID: -978673163
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_102
+      rect:
+        serializedVersion: 2
+        x: 43
+        y: 89
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 74e9b537ffe9871499d693333d93051e
+      internalID: -1506520070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_103
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 81
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a58df3ced0ba8645b81ac2ceff38037
+      internalID: 561445631
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_104
+      rect:
+        serializedVersion: 2
+        x: 516
+        y: 80
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3ac277a962cc00442a1aacb156525093
+      internalID: -504970522
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_105
+      rect:
+        serializedVersion: 2
+        x: 749
+        y: 85
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ac9f7626e27fa1c4b9acbdf978fe4d45
+      internalID: 1519487932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_106
+      rect:
+        serializedVersion: 2
+        x: 1019
+        y: 76
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a1be6f98e18de954294f1935d7c49a9e
+      internalID: 129980555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_110
+      rect:
+        serializedVersion: 2
+        x: 1554
+        y: 81
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2df9d1557450cad438a9873d6fb382a5
+      internalID: 2135433844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_111
+      rect:
+        serializedVersion: 2
+        x: 1780
+        y: 80
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9f998d47783aa9940b0f4a5054726b23
+      internalID: -1327600057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_112
+      rect:
+        serializedVersion: 2
+        x: 2027
+        y: 89
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3d560fe0a4eeda44af03976eb18a9ce
+      internalID: 127354246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_113
+      rect:
+        serializedVersion: 2
+        x: 2272
+        y: 101
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 75595ee03913e4b4cbfb449163bd70f0
+      internalID: -811011486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_114
+      rect:
+        serializedVersion: 2
+        x: 2511
+        y: 87
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 66a7b67ac93b5d546a428a986f074690
+      internalID: 2033208650
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_115
+      rect:
+        serializedVersion: 2
+        x: 2750
+        y: 89
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 63653a349adb85044ae37105a3e6f264
+      internalID: 259672697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_116
+      rect:
+        serializedVersion: 2
+        x: 3040
+        y: 85
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 024836f2894fb524487a71d3f862eb50
+      internalID: -2071022557
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_117
+      rect:
+        serializedVersion: 2
+        x: 3288
+        y: 85
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3a4bb2d428bba3944a9c88774af71965
+      internalID: -1295787707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_118
+      rect:
+        serializedVersion: 2
+        x: 3518
+        y: 86
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 36f863073f86edd439b3f98e1db709e0
+      internalID: -1495511206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_119
+      rect:
+        serializedVersion: 2
+        x: 3776
+        y: 93
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f34e37a2d07a43b49b9c93f0f676696f
+      internalID: 1717047932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_120
+      rect:
+        serializedVersion: 2
+        x: 4031
+        y: 87
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8141f4647fc74c14187a4140bb6a02ad
+      internalID: -1254826975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_121
+      rect:
+        serializedVersion: 2
+        x: 4269
+        y: 85
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4f191e3956991f743ac3c20ce91dd8e2
+      internalID: -2027665464
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_122
+      rect:
+        serializedVersion: 2
+        x: 4560
+        y: 75
+        width: 210
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ea778b07bf118654993e5c2a7d170772
+      internalID: 1583804615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_123
+      rect:
+        serializedVersion: 2
+        x: 4815
+        y: 59
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8084ffa9f53283d4f8750ea550f5e694
+      internalID: 232048113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_124
+      rect:
+        serializedVersion: 2
+        x: 5130
+        y: 56
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3202a321770b3404abd14338ffb86315
+      internalID: 1684623805
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_125
+      rect:
+        serializedVersion: 2
+        x: 5330
+        y: 54
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: be1aee42f2d511f4d95e5c62ff4dbcb2
+      internalID: 1774269510
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AllExpression_126
+      rect:
+        serializedVersion: 2
+        x: 5588
+        y: 57
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fe8b6217c8087b74aa016d47db5a114b
+      internalID: -1100126584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      AllExpression_0: 1762504089
+      AllExpression_1: -1112368786
+      AllExpression_10: -607374602
+      AllExpression_100: 1907117948
+      AllExpression_101: -967662975
+      AllExpression_102: -1506520070
+      AllExpression_103: 561445631
+      AllExpression_104: -504970522
+      AllExpression_105: 1519487932
+      AllExpression_106: 129980555
+      AllExpression_107: 874786801
+      AllExpression_108: -2011007125
+      AllExpression_109: 1450469654
+      AllExpression_11: 841165646
+      AllExpression_110: 2135433844
+      AllExpression_111: -1327600057
+      AllExpression_112: 127354246
+      AllExpression_113: -811011486
+      AllExpression_114: 2033208650
+      AllExpression_115: 259672697
+      AllExpression_116: -2071022557
+      AllExpression_117: -1295787707
+      AllExpression_118: -1495511206
+      AllExpression_119: 1717047932
+      AllExpression_12: 84786858
+      AllExpression_120: -1254826975
+      AllExpression_121: -2027665464
+      AllExpression_122: 1583804615
+      AllExpression_123: 232048113
+      AllExpression_124: 1684623805
+      AllExpression_125: 1774269510
+      AllExpression_126: -1100126584
+      AllExpression_127: 54507622
+      AllExpression_13: -873164139
+      AllExpression_14: 694116799
+      AllExpression_15: 934432784
+      AllExpression_16: -2042425263
+      AllExpression_17: 1847056481
+      AllExpression_18: -1087054026
+      AllExpression_19: 172530261
+      AllExpression_2: 528675027
+      AllExpression_20: -302155826
+      AllExpression_21: -1943014426
+      AllExpression_22: 1258266683
+      AllExpression_23: 468256355
+      AllExpression_24: 426407002
+      AllExpression_25: -2061368223
+      AllExpression_26: -2060689303
+      AllExpression_27: 947320153
+      AllExpression_28: 1503145954
+      AllExpression_29: -655968065
+      AllExpression_3: 1737687085
+      AllExpression_30: 594016603
+      AllExpression_31: -1170002837
+      AllExpression_32: 995366273
+      AllExpression_33: 1658189639
+      AllExpression_34: 1729544411
+      AllExpression_35: -1312534134
+      AllExpression_36: 1942635542
+      AllExpression_37: -836062009
+      AllExpression_38: 322216365
+      AllExpression_39: -2014069398
+      AllExpression_4: 1837692942
+      AllExpression_40: -1137782971
+      AllExpression_41: -1456239953
+      AllExpression_42: -2028858279
+      AllExpression_43: -151486899
+      AllExpression_44: 934130088
+      AllExpression_45: 1969951366
+      AllExpression_46: -1918209617
+      AllExpression_47: -971052468
+      AllExpression_48: -61550066
+      AllExpression_49: -230009112
+      AllExpression_5: 532696395
+      AllExpression_50: 1925704053
+      AllExpression_51: 397168035
+      AllExpression_52: 920763085
+      AllExpression_53: 799668339
+      AllExpression_54: 161570211
+      AllExpression_55: 173181854
+      AllExpression_56: -1506838529
+      AllExpression_57: 386448595
+      AllExpression_58: 33064803
+      AllExpression_59: 153363047
+      AllExpression_6: 668122267
+      AllExpression_60: 1827029003
+      AllExpression_61: 775839619
+      AllExpression_62: -873290922
+      AllExpression_63: -971538731
+      AllExpression_64: -431287393
+      AllExpression_65: -579972549
+      AllExpression_66: -1143938398
+      AllExpression_67: -666466058
+      AllExpression_68: -622986926
+      AllExpression_69: -785833456
+      AllExpression_7: -1907027955
+      AllExpression_70: 1116683555
+      AllExpression_71: -1048981501
+      AllExpression_72: 2010219953
+      AllExpression_73: 1499823980
+      AllExpression_74: -1129807218
+      AllExpression_75: -976593242
+      AllExpression_76: 1674442185
+      AllExpression_77: -377554689
+      AllExpression_78: 1313087511
+      AllExpression_79: -1207835023
+      AllExpression_8: 1498177505
+      AllExpression_80: 486093532
+      AllExpression_81: 235352502
+      AllExpression_82: -489194884
+      AllExpression_83: 787783065
+      AllExpression_84: -462770710
+      AllExpression_85: -1921365910
+      AllExpression_86: 1208241382
+      AllExpression_87: -2092098736
+      AllExpression_88: -888762859
+      AllExpression_89: -2022291773
+      AllExpression_9: -937852149
+      AllExpression_90: -781751738
+      AllExpression_91: 1988089133
+      AllExpression_92: -1269125301
+      AllExpression_93: -1184342980
+      AllExpression_94: -978673163
+      AllExpression_95: 1880952532
+      AllExpression_96: -225249100
+      AllExpression_97: -2065016568
+      AllExpression_98: -988749421
+      AllExpression_99: -1231596342
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

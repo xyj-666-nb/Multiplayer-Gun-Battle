@@ -140,7 +140,7 @@ public class Match_EnterRoomPanel : BasePanel
         {
             if (statusText != null)
             {
-                statusText.text = shouldJoinWhenFound ? "当前没有可加入房间，请先创建房间" : "当前没有可加入房间";
+                statusText.text = !string.IsNullOrEmpty(message) ? message : (shouldJoinWhenFound ? "当前没有可加入房间，请先创建房间" : "当前没有可加入房间");
                 statusText.DOKill();
                 statusText.DOColor(Color.red, 0.2f).OnComplete(() =>
                 {

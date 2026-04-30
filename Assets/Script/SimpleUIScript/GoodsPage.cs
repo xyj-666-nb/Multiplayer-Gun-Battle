@@ -84,6 +84,7 @@ public class GoodsPage : MonoBehaviour
     [Header("广告交互组")]
     public CanvasGroup ADCanvasGroup;
     public Button ADButton;//广告按钮
+    private bool _isWaitingTrialAd = false;
 
     void Start()
     {
@@ -101,6 +102,12 @@ public class GoodsPage : MonoBehaviour
         }
 
         PurchaseButton.onClick.AddListener(JudgePurchaseState);
+
+        if (ADButton != null)
+        {
+            ADButton.onClick.RemoveAllListeners();
+            ADButton.onClick.AddListener(WatchAdForTrialGood);
+        }
 
         if (IntroduceCanvasGroup != null)
         {
@@ -168,6 +175,8 @@ public class GoodsPage : MonoBehaviour
             PlayerButton.interactable = false;
             PlayerButton.gameObject.SetActive(false);
         }
+
+        SetAdButtonActive(false);
     }
 
     // 清空表情图片列表
@@ -505,6 +514,8 @@ public class GoodsPage : MonoBehaviour
             RefreshDiscountUI();
             PlayGoldNumberAnimation();
         }
+
+        RefreshAdButtonState();
     }
 
     // 折扣UI逻辑
@@ -734,6 +745,8 @@ public class GoodsPage : MonoBehaviour
         }
 
         InitBulletUI();
+        _isWaitingTrialAd = false;
+        SetAdButtonActive(false);
 
         GoodsImage.color = ColorManager.SetColorAlpha(GoodsImage.color, 0);
         GoldNumber.text = "0";
@@ -852,8 +865,68 @@ public class GoodsPage : MonoBehaviour
     }
 
     // 设置已购买状态
+    private void RefreshAdButtonState()
+    {
+        bool canShow = GoodDataManager.Instance != null && GoodDataManager.Instance.CanGrantTrialGood(goodsData);
+        SetAdButtonActive(canShow);
+    }
+
+    private void SetAdButtonActive(bool isActive)
+    {
+        if (ADCanvasGroup != null)
+        {
+            ADCanvasGroup.alpha = isActive ? 1f : 0f;
+            ADCanvasGroup.blocksRaycasts = isActive;
+            ADCanvasGroup.interactable = isActive;
+        }
+
+        if (ADButton != null)
+        {
+            ADButton.interactable = isActive && !_isWaitingTrialAd;
+        }
+    }
+
+    private void WatchAdForTrialGood()
+    {
+        if (_isWaitingTrialAd || goodsData == null || GoodDataManager.Instance == null)
+            return;
+
+        if (!GoodDataManager.Instance.CanGrantTrialGood(goodsData))
+        {
+            RefreshAdButtonState();
+            return;
+        }
+
+        _isWaitingTrialAd = true;
+        SetAdButtonActive(true);
+        if (ADButton != null)
+        {
+            ADButton.interactable = false;
+        }
+
+        TapAdManager.Instance.ShowRewardAd(
+            onRewarded: OnTrialAdRewarded,
+            onFailed: OnTrialAdFailed
+        );
+    }
+
+    private void OnTrialAdRewarded()
+    {
+        _isWaitingTrialAd = false;
+        GoodDataManager.Instance?.GrantTrialGood(goodsData);
+        RefreshAdButtonState();
+        WarnTriggerManager.Instance?.TriggerNoInteractionWarn(1f, "\u5df2\u6210\u529f\u83b7\u53d624\u5c0f\u65f6\u4f53\u9a8c\u6743");
+    }
+
+    private void OnTrialAdFailed()
+    {
+        _isWaitingTrialAd = false;
+        RefreshAdButtonState();
+        WarnTriggerManager.Instance?.TriggerNoInteractionWarn(1f, "\u5e7f\u544a\u64ad\u653e\u5931\u8d25");
+    }
     public void SetAlreadyPurchase()
     {
+        SetAdButtonActive(false);
         GoldBackGround.DOColor(ColorManager.EmeraldGreen, 1);
         GoldNumber.text = "已购买";
         GoldNumber.fontSize = 40;

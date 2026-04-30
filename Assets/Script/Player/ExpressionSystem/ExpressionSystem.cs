@@ -123,7 +123,7 @@ public class ExpressionSystem : SingleMonoAutoBehavior<ExpressionSystem>
     /// <summary>
     ///保存装备列表到本地
     /// </summary>
-    private void SaveEquipmentList()
+    public void SaveEquipmentList()
     {
         if (EquipmentExpressionList == null)
         {

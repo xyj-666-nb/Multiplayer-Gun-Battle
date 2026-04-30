@@ -67,18 +67,11 @@ public class Main : SingleMonoAutoBehavior<Main>
         customNetworkManager = customNetworkManager ?? FindObjectOfType<CustomNetworkManager>();
 
         MusicManager.Instance.PlayBgm("Music/局内BGM/demo2");//播放局内BGM
-        UImanager.Instance.ShowPanel<StartPanel>();//打开开始界面
+        PrivacyConsentGate.RequireConsent(ShowInitialUiAfterPrivacyConsent);
         CustomNetworkManager.OnServerStartedEvent += OnServerStarted;
         CustomNetworkManager.OnServerStoppedEvent += OnServerStopped;
 
         CustomNetworkManager.OnClientConnectedSuccess += OnClientConnectedSuccess;
-
-        AllMapManager.Instance.TriggerMap(MapType.StartCG, true);
-        if(IsUseTapTapServer)
-            UImanager.Instance.ShowPanel<TapTapLoginPanel>();
-    
-        // 正式包关闭测试版发币逻辑
-         GoldSystem.Instance.AddGold(10000, "测试版初始赠送");
 
 #if UNITY_ANDROID && !UNITY_EDITOR
         try
@@ -114,6 +107,17 @@ public class Main : SingleMonoAutoBehavior<Main>
 
 
 
+    }
+
+    private void ShowInitialUiAfterPrivacyConsent()
+    {
+        UImanager.Instance.ShowPanel<StartPanel>();//打开开始界面
+        AllMapManager.Instance.TriggerMap(MapType.StartCG, true);
+        if(IsUseTapTapServer)
+            UImanager.Instance.ShowPanel<TapTapLoginPanel>();
+
+        // 正式包关闭测试版发币逻辑
+         GoldSystem.Instance.AddGold(10000, "测试版初始赠送");
     }
     /// <summary>
     /// 服务端启动时，自动生成全局重生管理器

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
@@ -60,6 +61,12 @@ public class PlayerSkipPanel : BasePanel
     private string LEFTBUTTOSTRING = "LeftButton";
     private string RIGHTBUTTONSTRING = "RightButton";
 
+    [Header("玩家皮肤体验时间管理")]
+    public CanvasGroup PlayerSkinRemainTimeCanvasGroup;
+    public TextMeshProUGUI PlayerSkinRemainTimeText;//剩余时间
+    private const float TRIAL_TIME_REFRESH_INTERVAL = 15f;
+    private float _nextTrialTimeRefreshTime;
+
     public void SetQuality(GoodsQuality Quality)
     {
         QualityImage.DOKill();
@@ -101,11 +108,20 @@ public class PlayerSkipPanel : BasePanel
         base.Awake();
         // 初始化功能按钮状态
         InitFunctionButtons();
+        SetPlayerSkinTrialTimeDisplay(false);
     }
 
     public override void Start()
     {
         base.Start();
+        SetPlayerSkinTrialTimeDisplay(false);
+    }
+    private void Update()
+    {
+        if (PlayerSkinRemainTimeCanvasGroup != null && PlayerSkinRemainTimeCanvasGroup.alpha > 0.01f && Time.unscaledTime >= _nextTrialTimeRefreshTime)
+        {
+            RefreshPlayerSkinTrialTime();
+        }
     }
     protected override void OnDestroy()
     {
@@ -389,6 +405,7 @@ public void ClearAllButton()
     SkinButtonToDataMap.Clear();
     _skinButtonNames.Clear(); 
     _currentSelectedIndex = 0;
+    SetPlayerSkinTrialTimeDisplay(false);
 }
 
 public void ReturnButtonColor(string Name)
@@ -506,17 +523,54 @@ public void UpdatePanelInfo()
             SimpleSpritePlayer.PlayLoop(PlayerShowImage, playerSkinPack.AnimaSpriteList, 0.1f);
         }
         SetQuality(playerSkinPack.SkinQuality);
+        RefreshPlayerSkinTrialTime();
+    }
+    else
+    {
+        SetPlayerSkinTrialTimeDisplay(false);
     }
 }
 #endregion
 
 #region 面板显隐以及特殊动画
+private void SetPlayerSkinTrialTimeDisplay(bool isActive)
+{
+    if (PlayerSkinRemainTimeCanvasGroup != null)
+    {
+        PlayerSkinRemainTimeCanvasGroup.alpha = isActive ? 1f : 0f;
+        PlayerSkinRemainTimeCanvasGroup.blocksRaycasts = false;
+        PlayerSkinRemainTimeCanvasGroup.interactable = false;
+    }
+
+    if (!isActive && PlayerSkinRemainTimeText != null)
+    {
+        PlayerSkinRemainTimeText.text = string.Empty;
+    }
+}
+
+private void RefreshPlayerSkinTrialTime()
+{
+    _nextTrialTimeRefreshTime = Time.unscaledTime + TRIAL_TIME_REFRESH_INTERVAL;
+
+    if (playerSkinPack != null && GoodDataManager.Instance != null &&
+        GoodDataManager.Instance.TryGetTrialRemainingTime(playerSkinPack, out TimeSpan remainingTime))
+    {
+        SetPlayerSkinTrialTimeDisplay(true);
+        if (PlayerSkinRemainTimeText != null)
+            PlayerSkinRemainTimeText.text = GoodDataManager.Instance.FormatTrialRemainingTime(remainingTime);
+    }
+    else
+    {
+        SetPlayerSkinTrialTimeDisplay(false);
+    }
+}
 public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
 {
     CleanupButtonAnimations();
     base.HideMe(callback, isNeedDefaultAnimator);
     ButtonGroupManager.Instance.DestroyRadioGroup(ButtonGroupName);
     ClearAllButton();
+    SetPlayerSkinTrialTimeDisplay(false);
 }
 
 public override void ShowMe(bool isNeedDefaultAnimator = true)

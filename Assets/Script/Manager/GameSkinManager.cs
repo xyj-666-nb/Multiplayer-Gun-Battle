@@ -452,6 +452,41 @@ public class GameSkinManager : SingleMonoAutoBehavior<GameSkinManager>
         CurrentGunSkinPackList.Add(skinPack);
     }
 
+    public void RevalidateRuntimeSkinAvailability()
+    {
+        bool changed = false;
+
+        if (PlayerOwnerSkinPackList == null)
+            PlayerOwnerSkinPackList = new List<PlayerSkinPack>();
+        if (CurrentGunSkinPackList == null)
+            CurrentGunSkinPackList = new List<GunSkinPack>();
+
+        if (CurrentPlayerSkinPack != null && !PlayerOwnerSkinPackList.Contains(CurrentPlayerSkinPack))
+        {
+            CurrentPlayerSkinPack = PlayerOwnerSkinPackList.FirstOrDefault();
+            changed = true;
+        }
+
+        if (GunEquipmentConfigList != null)
+        {
+            foreach (var config in GunEquipmentConfigList)
+            {
+                if (config != null && config.EquippedSkin != null && !CurrentGunSkinPackList.Contains(config.EquippedSkin))
+                {
+                    config.EquippedSkin = null;
+                    changed = true;
+                }
+            }
+        }
+
+        AutoSetDefaultGunSkin();
+
+        if (changed)
+        {
+            SavePlayerData();
+            DataLoadCallBack?.Invoke();
+        }
+    }
     public void UnlockAllGunSkins()
     {
         foreach (var skin in AllGunSkinPackList)

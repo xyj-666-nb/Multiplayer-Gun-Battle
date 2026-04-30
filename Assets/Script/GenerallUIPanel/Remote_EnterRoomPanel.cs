@@ -129,7 +129,7 @@ public class Remote_EnterRoomPanel : BasePanel
             UnsubscribeQuery();
             if (statusText != null)
             {
-                statusText.text = "未找到房间";
+                statusText.text = string.IsNullOrEmpty(msg) ? "未找到房间" : msg;
                 statusText.DOKill();
                 statusText.DOColor(Color.red, 0.2f).OnComplete(() => {
                     CountID1 = CountDownManager.Instance.CreateTimer(false, 1000, () => {

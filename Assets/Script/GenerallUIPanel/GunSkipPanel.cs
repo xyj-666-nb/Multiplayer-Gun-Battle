@@ -44,6 +44,12 @@ public class GunSkipPanel : BasePanel
     public CanvasGroup questionPanel;
     private Sequence questionPanelSequence;
 
+    [Header("枪械体验时间管理")]
+    public CanvasGroup GunSkinRemainTimeCanvasGroup;
+    public TextMeshProUGUI GunSkinRemainTimeText;//剩余时间
+    private const float TRIAL_TIME_REFRESH_INTERVAL = 15f;
+    private float _nextTrialTimeRefreshTime;
+
     #region 控制变量
     private GunType _currentGunType = GunType.Rifle;
     private const float GUN_FADE_DURATION = 0.15f;
@@ -119,12 +125,21 @@ public class GunSkipPanel : BasePanel
         DicObjToBulletBind = new Dictionary<GameObject, SpecialBulletBindPack>();
         DicObjToHitData = new Dictionary<GameObject, GunHitData>();
         DicObjToGunSkinPack = new Dictionary<GameObject, GunSkinPack>();
+        SetGunSkinTrialTimeDisplay(false);
     }
 
     public override void Start()
     {
         base.Start();
         SetGunSkinEquipButtonActive(false);
+        SetGunSkinTrialTimeDisplay(false);
+    }
+    private void Update()
+    {
+        if (GunSkinRemainTimeCanvasGroup != null && GunSkinRemainTimeCanvasGroup.alpha > 0.01f && Time.unscaledTime >= _nextTrialTimeRefreshTime)
+        {
+            RefreshGunSkinTrialTime();
+        }
     }
     protected override void OnDestroy()
     {
@@ -171,6 +186,7 @@ public class GunSkipPanel : BasePanel
             // ========== 返回默认：主选单开启，关闭皮肤按钮，关闭演示面板 ==========
             IsActiveButtonGroup(true);
             SetGunSkinEquipButtonActive(false);
+            SetGunSkinTrialTimeDisplay(false);
             IsActiveEffectShowCanvasGroup(false);
         }
         else if (controlName == "BulletButton")
@@ -190,6 +206,7 @@ public class GunSkipPanel : BasePanel
             // ========== 子弹配置：主选单隐藏，关闭皮肤按钮，打开演示面板 ==========
             IsActiveButtonGroup(false);
             SetGunSkinEquipButtonActive(false);
+            SetGunSkinTrialTimeDisplay(false);
             IsActiveEffectShowCanvasGroup(true);
         }
         else if (controlName == "GunSkipButton_Test")
@@ -228,6 +245,7 @@ public class GunSkipPanel : BasePanel
             // ========== 主选单隐藏，关闭皮肤按钮，打开演示面板 ==========
             IsActiveButtonGroup(false);
             SetGunSkinEquipButtonActive(false);
+            SetGunSkinTrialTimeDisplay(false);
             IsActiveEffectShowCanvasGroup(true);
         }
         else if (controlName == "EffectScreen")
@@ -783,6 +801,7 @@ public class GunSkipPanel : BasePanel
             {
                 CurrentChooseGunSkinPack = item.Value;
                 ApplySelectedGunSkinToBigImages();
+                RefreshGunSkinTrialTime();
                 break;
             }
         }
@@ -826,6 +845,7 @@ public class GunSkipPanel : BasePanel
         DicObjToGunSkinPack.Clear();
         _btnOriginalStateCache.Clear();
         CurrentChooseGunSkinPack = null;
+        SetGunSkinTrialTimeDisplay(false);
     }
     #endregion
 
@@ -866,6 +886,37 @@ public class GunSkipPanel : BasePanel
     }
 
     #region 面板显隐
+    private void SetGunSkinTrialTimeDisplay(bool isActive)
+    {
+        if (GunSkinRemainTimeCanvasGroup != null)
+        {
+            GunSkinRemainTimeCanvasGroup.alpha = isActive ? 1f : 0f;
+            GunSkinRemainTimeCanvasGroup.blocksRaycasts = false;
+            GunSkinRemainTimeCanvasGroup.interactable = false;
+        }
+
+        if (!isActive && GunSkinRemainTimeText != null)
+        {
+            GunSkinRemainTimeText.text = string.Empty;
+        }
+    }
+
+    private void RefreshGunSkinTrialTime()
+    {
+        _nextTrialTimeRefreshTime = Time.unscaledTime + TRIAL_TIME_REFRESH_INTERVAL;
+
+        if (CurrentChooseGunSkinPack != null && GoodDataManager.Instance != null &&
+            GoodDataManager.Instance.TryGetTrialRemainingTime(CurrentChooseGunSkinPack, out TimeSpan remainingTime))
+        {
+            SetGunSkinTrialTimeDisplay(true);
+            if (GunSkinRemainTimeText != null)
+                GunSkinRemainTimeText.text = GoodDataManager.Instance.FormatTrialRemainingTime(remainingTime);
+        }
+        else
+        {
+            SetGunSkinTrialTimeDisplay(false);
+        }
+    }
     public override void HideMe(UnityAction callback, bool isNeedDefaultAnimator = true)
     {
         base.HideMe(callback, isNeedDefaultAnimator);
@@ -876,6 +927,7 @@ public class GunSkipPanel : BasePanel
 
         // 隐藏面板时关闭额外组件
         SetGunSkinEquipButtonActive(false);
+        SetGunSkinTrialTimeDisplay(false);
         IsActiveEffectShowCanvasGroup(false);
     }
 

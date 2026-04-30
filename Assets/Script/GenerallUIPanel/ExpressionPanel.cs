@@ -206,6 +206,7 @@ public class ExpressionPanel : BasePanel
         if (!sys.EquipmentExpressionList.Contains(CurrentSelectExpression.ExpressionID))
         {
             sys.EquipmentExpressionList.Add(CurrentSelectExpression.ExpressionID);
+            sys.SaveEquipmentList();
             WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "装备成功！");
         }
 
@@ -222,6 +223,7 @@ public class ExpressionPanel : BasePanel
         if (sys.EquipmentExpressionList.Contains(CurrentSelectExpression.ExpressionID))
         {
             sys.EquipmentExpressionList.Remove(CurrentSelectExpression.ExpressionID);
+            sys.SaveEquipmentList();
             WarnTriggerManager.Instance.TriggerNoInteractionWarn(1f, "已卸下");
         }
 

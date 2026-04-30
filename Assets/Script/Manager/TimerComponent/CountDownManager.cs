@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq; // 必须添加，用于 ToList()
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -45,6 +44,7 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
     {
         // 【修复2】在协程内部定义局部延迟列表，每个协程独立使用
         List<TimerItem> localDelayRemoveList = new List<TimerItem>();
+        List<TimerItem> timersSnapshot = new List<TimerItem>();
 
         while (true)
         {
@@ -53,7 +53,8 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
             else
                 yield return waitForSeconds;
 
-            List<TimerItem> timersSnapshot = TimerDic.Values.ToList();
+            timersSnapshot.Clear();
+            timersSnapshot.AddRange(TimerDic.Values);
 
             foreach (var timer in timersSnapshot)
             {
@@ -167,26 +168,26 @@ public class CountDownManager : SingleMonoAutoBehavior<CountDownManager>
 
     public void StopTimer(int KeyId)
     {
-        if (TimerDic.ContainsKey(KeyId))
-            TimerDic[KeyId].IsRuning = false;
-        if (TimerDic_RealTime.ContainsKey(KeyId))
-            TimerDic_RealTime[KeyId].IsRuning = false;
+        if (TimerDic.TryGetValue(KeyId, out var timer))
+            timer.IsRuning = false;
+        if (TimerDic_RealTime.TryGetValue(KeyId, out var timerRt))
+            timerRt.IsRuning = false;
     }
 
     public void StartTimer(int KeyId)
     {
-        if (TimerDic.ContainsKey(KeyId))
-            TimerDic[KeyId].IsRuning = true;
-        if (TimerDic_RealTime.ContainsKey(KeyId))
-            TimerDic_RealTime[KeyId].IsRuning = true;
+        if (TimerDic.TryGetValue(KeyId, out var timer))
+            timer.IsRuning = true;
+        if (TimerDic_RealTime.TryGetValue(KeyId, out var timerRt))
+            timerRt.IsRuning = true;
     }
 
     public void ReSetTimer(int KeyId)
     {
-        if (TimerDic.ContainsKey(KeyId))
-            TimerDic[KeyId].ReSetTimer();
-        if (TimerDic_RealTime.ContainsKey(KeyId))
-            TimerDic_RealTime[KeyId].ReSetTimer();
+        if (TimerDic.TryGetValue(KeyId, out var timer))
+            timer.ReSetTimer();
+        if (TimerDic_RealTime.TryGetValue(KeyId, out var timerRt))
+            timerRt.ReSetTimer();
     }
     #endregion
 

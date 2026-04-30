@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fa9bf9f44b774a419ebe1fc00f1efc7, type: 3}
+  m_Name: "\u8868\u60C5\u6346\u7ED1\u530522"
+  m_EditorClassIdentifier: 
+  goodsPrice: 50
+  goodsGuid: 55d923f3-effd-4bf2-9a57-3560ae765d79
+  skinType: 4
+  goodsIcon: {fileID: -1495511206, guid: 2fcf6ae62dcfafd4188ec8b25909208a, type: 3}
+  goodsName: "\u8868\u60C5\u6346\u7ED1\u530522"
+  goodsDescription: "\u5305\u542B4\u4E2A\u7CBE\u9009\u8868\u60C5"
+  quality: 0
+  bulletPack: {fileID: 0}
+  expressionPacks:
+  - {fileID: 11400000, guid: ffd1dc89f6349c749b516066fe2ba32f, type: 2}
+  - {fileID: 11400000, guid: d4804a7bf8138384c8414daa5a7f7c78, type: 2}
+  - {fileID: 11400000, guid: 95c7c8890d589f346a3e3c17a7677c37, type: 2}
+  - {fileID: 11400000, guid: 19f5c3afd682f254e80094990a7814b2, type: 2}
+  playerSkinPack: {fileID: 0}
+  gunHitData: {fileID: 0}
+  gunSkinPack: {fileID: 0}

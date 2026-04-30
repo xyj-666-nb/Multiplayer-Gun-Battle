@@ -18,6 +18,16 @@ public class CustomNetworkManager : NetworkManager
     public GameObject BroadcasterObj;
     private bool _isRelayModeActive = false;
 
+    public const int DefaultRoomPlayerLimit = 4;
+
+    [Header("房间人数限制")]
+    [SerializeField, Min(1)]
+    private int roomPlayerLimit = DefaultRoomPlayerLimit;
+    private int _activeRoomPlayerLimit = DefaultRoomPlayerLimit;
+
+    public int RoomPlayerLimit => Mathf.Clamp(roomPlayerLimit, 1, DefaultRoomPlayerLimit);
+    public int ActiveRoomPlayerLimit => Mathf.Clamp(_activeRoomPlayerLimit, 1, RoomPlayerLimit);
+
     [Header("动态端口配置")]
     public int minPort = 7777;
     public int maxPort = 8888;
@@ -131,12 +141,14 @@ public class CustomNetworkManager : NetworkManager
     #region 生命周期
     public override void OnStartServer()
     {
+        ApplyRoomPlayerLimit();
         base.OnStartServer();
         OnServerStartedEvent?.Invoke();
 
         if (UOSRelaySimple.Instance != null)
         {
             UOSRelaySimple.Instance.TriggerRelaySuccess(UOSRelaySimple.Instance.currentRoomCode);
+            UOSRelaySimple.Instance.RefreshRoomJoinState();
         }
         //打开训练地图
         AllMapManager.Instance.TriggerMap(MapType.Training,true);//回到最开始
@@ -166,8 +178,24 @@ public class CustomNetworkManager : NetworkManager
         UImanager.Instance.HidePanel<DeathPanel>();//关闭死亡面板
     }
 
+    public override void OnServerConnect(NetworkConnectionToClient conn)
+    {
+        base.OnServerConnect(conn);
+
+        if (!CanAcceptNewPlayer(out _))
+        {
+            conn.Disconnect();
+        }
+    }
+
     public override void OnServerAddPlayer(NetworkConnectionToClient conn)
     {
+        if (!CanAcceptNewPlayer(out _))
+        {
+            conn.Disconnect();
+            return;
+        }
+
         Transform spawnPoint = GetStartPosition();
         if (PlayerRespawnManager.Instance != null)
         {
@@ -202,21 +230,27 @@ public class CustomNetworkManager : NetworkManager
         }
 
         PlayerRespawnManager.Instance?.UpdatePlayerCount();
+        UOSRelaySimple.Instance?.RefreshRoomJoinState();
     }
 
     public override void OnServerDisconnect(NetworkConnectionToClient conn)
     {
+        bool hadPlayer = conn != null && conn.identity != null;
         string exitPlayerName = "未知玩家";
-        if (conn.identity != null && conn.identity.TryGetComponent<Player>(out var player))
+        if (hadPlayer && conn.identity.TryGetComponent<Player>(out var player))
         {
             exitPlayerName = player.GetDisplayName();
         }
 
-        PlayerRespawnManager.Instance?.HandlePlayerDisconnected(conn);
-        PlayerRespawnManager.Instance?.SendGlobalMessage("玩家：" + exitPlayerName + "离开了房间", 1);
+        if (hadPlayer)
+        {
+            PlayerRespawnManager.Instance?.HandlePlayerDisconnected(conn);
+            PlayerRespawnManager.Instance?.SendGlobalMessage("玩家：" + exitPlayerName + "离开了房间", 1);
+        }
 
         base.OnServerDisconnect(conn);
         PlayerRespawnManager.Instance?.UpdatePlayerCount();
+        UOSRelaySimple.Instance?.RefreshRoomJoinState();
     }
 
     public override void OnClientConnect()
@@ -396,6 +430,7 @@ public class CustomNetworkManager : NetworkManager
     {
         base.Awake();
         Instance = this;
+        ApplyRoomPlayerLimit();
 
         // 默认局域网模式
         if (!_isRelayModeActive)
@@ -442,5 +477,59 @@ public class CustomNetworkManager : NetworkManager
             ModeChooseSystem.instance.EnterSystem_Quick();
         }
     }
+    public int ApplyRoomPlayerLimit(int requestedLimit = -1)
+    {
+        int requested = requestedLimit > 0 ? requestedLimit : ActiveRoomPlayerLimit;
+        int limit = Mathf.Clamp(requested, 1, RoomPlayerLimit);
+        _activeRoomPlayerLimit = limit;
+        maxConnections = limit;
+
+        if (NetworkServer.active)
+        {
+            NetworkServer.maxConnections = limit;
+        }
+
+        return limit;
+    }
+
+    public int GetCurrentPlayerCount()
+    {
+        int count = 0;
+        foreach (var conn in NetworkServer.connections.Values)
+        {
+            if (conn != null && conn.identity != null)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public bool IsRoomClosedToNewPlayers()
+    {
+        PlayerRespawnManager manager = PlayerRespawnManager.Instance;
+        return manager != null && (manager.IsGameStart || manager._isGameEnded);
+    }
+
+    public bool CanAcceptNewPlayer(out string reason)
+    {
+        reason = null;
+
+        if (IsRoomClosedToNewPlayers())
+        {
+            reason = "游戏已开始，无法加入";
+            return false;
+        }
+
+        int limit = ActiveRoomPlayerLimit;
+        if (GetCurrentPlayerCount() >= limit || (NetworkServer.active && NetworkServer.connections.Count > limit))
+        {
+            reason = "房间人数已满";
+            return false;
+        }
+
+        return true;
+    }
+
     public bool IsRelayModeActive() => _isRelayModeActive;
 }

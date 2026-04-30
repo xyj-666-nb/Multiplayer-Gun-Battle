@@ -73,6 +73,9 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     private const string PREF_DAILY_REFRESH = "DailyShop_RefreshCount";
     private const string PREF_DAILY_GOODS = "DailyShop_GoodsList";
     private const string PREF_DAILY_DISCOUNTS = "DailyShop_Discounts";
+    private const string PREF_TRIAL_GOODS = "TrialGoods_ExpireTicks";
+    private const double DEFAULT_TRIAL_HOURS = 24d;
+    private readonly Dictionary<string, long> _trialGoodsExpireTicks = new Dictionary<string, long>();
 
     #region 权重配置类
     [Serializable]
@@ -115,9 +118,12 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
 
     private void Start()
     {
-        //  先加载玩家已拥有的永久商品
+        // Load owned goods first, then runtime trial grants.
         LoadPlayerGood();
-        //  执行严格的每日状态校验
+        LoadTrialGoods();
+        CleanupExpiredTrialGoods();
+        ApplyActiveTrialGoodsToSkinManager();
+        // Daily shop state is still validated after local goods are ready.
         CheckAndInitDailyState();
     }
 
@@ -455,6 +461,232 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
     }
 
     public bool JudgeUserHasGood(GoodsData Data) => Data != null && !string.IsNullOrEmpty(Data.goodsGuid) && _ownedGoodsGuidSet.Contains(Data.goodsGuid);
+    #region Trial goods
+    public bool CanGrantTrialGood(GoodsData data)
+    {
+        if (data == null || string.IsNullOrEmpty(data.goodsGuid))
+            return false;
+
+        if (JudgeUserHasGood(data) || HasActiveTrialGood(data))
+            return false;
+
+        return data.quality == GoodsQuality.Epic &&
+               (data.skinType == SkinType.PlayerCharacter || data.skinType == SkinType.GunAppearance);
+    }
+
+    public void GrantTrialGood(GoodsData data)
+    {
+        GrantTrialGood(data, DEFAULT_TRIAL_HOURS);
+    }
+
+    public void GrantTrialGood(GoodsData data, double hours)
+    {
+        if (data == null || string.IsNullOrEmpty(data.goodsGuid))
+            return;
+
+        if (JudgeUserHasGood(data))
+            return;
+
+        if (!CanGrantTrialGood(data) && !HasActiveTrialGood(data))
+            return;
+
+        DateTime expireTime = DateTime.UtcNow.AddHours(Math.Max(0.1d, hours));
+        _trialGoodsExpireTicks[data.goodsGuid] = expireTime.Ticks;
+        SaveTrialGoods();
+        ApplyTrialGoodToSkinManager(data);
+    }
+
+    public bool HasActiveTrialGood(GoodsData data)
+    {
+        return TryGetTrialRemainingTime(data, out _);
+    }
+
+    public bool IsTrialPlayerSkinActive(PlayerSkinPack skinPack)
+    {
+        return TryGetTrialRemainingTime(skinPack, out _);
+    }
+
+    public bool IsTrialGunSkinActive(GunSkinPack skinPack)
+    {
+        return TryGetTrialRemainingTime(skinPack, out _);
+    }
+
+    public bool TryGetTrialRemainingTime(PlayerSkinPack skinPack, out TimeSpan remainingTime)
+    {
+        remainingTime = TimeSpan.Zero;
+        if (skinPack == null)
+            return false;
+
+        CleanupExpiredTrialGoods();
+
+        List<string> trialGuids = new List<string>(_trialGoodsExpireTicks.Keys);
+        foreach (string guid in trialGuids)
+        {
+            GoodsData goods = TryGetGoodsByGuid(guid);
+            if (goods != null && goods.skinType == SkinType.PlayerCharacter && goods.playerSkinPack == skinPack)
+                return TryGetTrialRemainingTime(goods, out remainingTime);
+        }
+
+        return false;
+    }
+
+    public bool TryGetTrialRemainingTime(GunSkinPack skinPack, out TimeSpan remainingTime)
+    {
+        remainingTime = TimeSpan.Zero;
+        if (skinPack == null)
+            return false;
+
+        CleanupExpiredTrialGoods();
+
+        List<string> trialGuids = new List<string>(_trialGoodsExpireTicks.Keys);
+        foreach (string guid in trialGuids)
+        {
+            GoodsData goods = TryGetGoodsByGuid(guid);
+            if (goods != null && goods.skinType == SkinType.GunAppearance && goods.gunSkinPack == skinPack)
+                return TryGetTrialRemainingTime(goods, out remainingTime);
+        }
+
+        return false;
+    }
+
+    public bool TryGetTrialRemainingTime(GoodsData data, out TimeSpan remainingTime)
+    {
+        remainingTime = TimeSpan.Zero;
+        if (data == null || string.IsNullOrEmpty(data.goodsGuid))
+            return false;
+
+        if (!_trialGoodsExpireTicks.TryGetValue(data.goodsGuid, out long expireTicks))
+            return false;
+
+        DateTime expireTime = new DateTime(expireTicks, DateTimeKind.Utc);
+        remainingTime = expireTime - DateTime.UtcNow;
+        if (remainingTime.TotalSeconds <= 0)
+        {
+            CleanupExpiredTrialGoods();
+            remainingTime = TimeSpan.Zero;
+            return false;
+        }
+
+        return true;
+    }
+
+    public string FormatTrialRemainingTime(TimeSpan remainingTime)
+    {
+        if (remainingTime.TotalSeconds < 0)
+            remainingTime = TimeSpan.Zero;
+
+        int totalHours = Mathf.Max(0, (int)Math.Floor(remainingTime.TotalHours));
+        int minutes = Mathf.Max(0, remainingTime.Minutes);
+        return $"{totalHours:00}\u5c0f\u65f6{minutes:00}\u5206\u949f";
+    }
+
+    public void CleanupExpiredTrialGoods()
+    {
+        if (_trialGoodsExpireTicks.Count == 0)
+            return;
+
+        long nowTicks = DateTime.UtcNow.Ticks;
+        List<string> expiredGuids = new List<string>();
+
+        foreach (var pair in _trialGoodsExpireTicks)
+        {
+            if (pair.Value <= nowTicks)
+                expiredGuids.Add(pair.Key);
+        }
+
+        if (expiredGuids.Count == 0)
+            return;
+
+        foreach (string guid in expiredGuids)
+        {
+            GoodsData expiredGoods = TryGetGoodsByGuid(guid);
+            _trialGoodsExpireTicks.Remove(guid);
+            RemoveTrialGoodFromSkinManager(expiredGoods);
+        }
+
+        SaveTrialGoods();
+        GameSkinManager.Instance?.RevalidateRuntimeSkinAvailability();
+    }
+
+    private void LoadTrialGoods()
+    {
+        _trialGoodsExpireTicks.Clear();
+
+        string trialStr = PlayerPrefs.GetString(PREF_TRIAL_GOODS, "");
+        if (string.IsNullOrEmpty(trialStr))
+            return;
+
+        string[] pairs = trialStr.Split('|');
+        foreach (string pair in pairs)
+        {
+            string[] kv = pair.Split(':');
+            if (kv.Length == 2 && long.TryParse(kv[1], out long ticks))
+                _trialGoodsExpireTicks[kv[0]] = ticks;
+        }
+    }
+
+    private void SaveTrialGoods()
+    {
+        List<string> pairs = new List<string>();
+        foreach (var pair in _trialGoodsExpireTicks)
+        {
+            pairs.Add($"{pair.Key}:{pair.Value}");
+        }
+
+        PlayerPrefs.SetString(PREF_TRIAL_GOODS, string.Join("|", pairs));
+        PlayerPrefs.Save();
+    }
+
+    private void ApplyActiveTrialGoodsToSkinManager()
+    {
+        if (GameSkinManager.Instance == null)
+            return;
+
+        List<string> trialGuids = new List<string>(_trialGoodsExpireTicks.Keys);
+        foreach (string guid in trialGuids)
+        {
+            GoodsData goods = TryGetGoodsByGuid(guid);
+            if (goods != null && TryGetTrialRemainingTime(goods, out _))
+                ApplyTrialGoodToSkinManager(goods);
+        }
+    }
+
+    private void ApplyTrialGoodToSkinManager(GoodsData data)
+    {
+        if (data == null || GameSkinManager.Instance == null)
+            return;
+
+        switch (data.skinType)
+        {
+            case SkinType.PlayerCharacter:
+                if (data.playerSkinPack != null && !GameSkinManager.Instance.PlayerOwnerSkinPackList.Contains(data.playerSkinPack))
+                    GameSkinManager.Instance.PlayerOwnerSkinPackList.Add(data.playerSkinPack);
+                break;
+            case SkinType.GunAppearance:
+                if (data.gunSkinPack != null && !GameSkinManager.Instance.CurrentGunSkinPackList.Contains(data.gunSkinPack))
+                    GameSkinManager.Instance.CurrentGunSkinPackList.Add(data.gunSkinPack);
+                break;
+        }
+    }
+
+    private void RemoveTrialGoodFromSkinManager(GoodsData data)
+    {
+        if (data == null || GameSkinManager.Instance == null || JudgeUserHasGood(data))
+            return;
+
+        switch (data.skinType)
+        {
+            case SkinType.PlayerCharacter:
+                if (data.playerSkinPack != null)
+                    GameSkinManager.Instance.PlayerOwnerSkinPackList.Remove(data.playerSkinPack);
+                break;
+            case SkinType.GunAppearance:
+                if (data.gunSkinPack != null)
+                    GameSkinManager.Instance.CurrentGunSkinPackList.Remove(data.gunSkinPack);
+                break;
+        }
+    }
+    #endregion
 
     public void SavePlayerGood()
     {
@@ -538,8 +770,10 @@ public class GoodDataManager : SingleMonoAutoBehavior<GoodDataManager>
         PlayerPrefs.DeleteKey(PREF_DAILY_REFRESH);
         PlayerPrefs.DeleteKey(PREF_DAILY_GOODS);
         PlayerPrefs.DeleteKey(PREF_DAILY_DISCOUNTS);
+        PlayerPrefs.DeleteKey(PREF_TRIAL_GOODS);
         PlayerPrefs.Save();
 
+        _trialGoodsExpireTicks.Clear();
         LoadPlayerGood();
         CheckAndInitDailyState(); // 清空后彻底重置每日状态
         /* Debug.Log("玩家商品数据 & 商店数据已全部清空！"); */
