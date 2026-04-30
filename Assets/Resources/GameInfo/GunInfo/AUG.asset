@@ -22,6 +22,8 @@ MonoBehaviour:
   RateOfFires: 0
   Accuracy: 50
   Damage: 37
+  FullDamageDistance: 2.5
+  DamageFalloffPerUnit: 1
   Range: 200
   ReloadTime: 4
   BulletSpeed: 0
@@ -41,6 +43,6 @@ MonoBehaviour:
   ShackTime_Enemy: 0.4
   smokeColor: {r: 1, g: 1, b: 1, a: 1}
   smokeSizeMin: 0.01
-  smokeSizeMax: 0.01
+  smokeSizeMax: 0.02
   smokeDuration: 0.03
-  smokeDecaySpeed: 30
+  smokeDecaySpeed: 40

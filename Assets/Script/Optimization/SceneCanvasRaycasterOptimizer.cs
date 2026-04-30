@@ -1,10 +1,10 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public static class SceneCanvasRaycasterOptimizer
 {
+    private const string SkipButtonName = "SkipButton";
     private static bool _initialized;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -32,25 +32,49 @@ public static class SceneCanvasRaycasterOptimizer
         for (int i = 0; i < canvases.Length; i++)
         {
             Canvas canvas = canvases[i];
-            if (canvas == null || canvas.renderMode != RenderMode.WorldSpace)
+            if (canvas == null || ShouldKeepUiRaycasts(canvas))
                 continue;
 
             GraphicRaycaster raycaster = canvas.GetComponent<GraphicRaycaster>();
-            if (raycaster == null || !raycaster.enabled)
-                continue;
+            if (raycaster != null)
+                raycaster.enabled = false;
 
-            if (HasInteractiveUi(canvas))
-                continue;
-
-            raycaster.enabled = false;
+            DisableGraphicRaycastTargets(canvas);
         }
     }
 
-    private static bool HasInteractiveUi(Canvas canvas)
+    private static bool ShouldKeepUiRaycasts(Canvas canvas)
     {
-        if (canvas.GetComponentsInChildren<Selectable>(true).Length > 0)
+        if (canvas.GetComponentInParent<BasePanel>(true) != null)
             return true;
 
-        return canvas.GetComponentsInChildren<IEventSystemHandler>(true).Length > 0;
+        if (HasSkipButton(canvas))
+            return true;
+
+        Scene scene = canvas.gameObject.scene;
+        return !scene.IsValid() || !scene.isLoaded || scene.name == "DontDestroyOnLoad";
+    }
+
+    private static bool HasSkipButton(Canvas canvas)
+    {
+        Selectable[] selectables = canvas.GetComponentsInChildren<Selectable>(true);
+        for (int i = 0; i < selectables.Length; i++)
+        {
+            Selectable selectable = selectables[i];
+            if (selectable != null && selectable.name == SkipButtonName)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static void DisableGraphicRaycastTargets(Canvas canvas)
+    {
+        Graphic[] graphics = canvas.GetComponentsInChildren<Graphic>(true);
+        for (int i = 0; i < graphics.Length; i++)
+        {
+            if (graphics[i] != null)
+                graphics[i].raycastTarget = false;
+        }
     }
 }

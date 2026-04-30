@@ -481,8 +481,9 @@ public class BaseGun : NetworkBehaviour
                             Debug.LogError($"{LOG_PREFIX} ??????{ownerPlayer.name} ??myStats?????");
                             return;
                         }
-                        ServerNotifyShowDamage(gunInfo.Damage, hit.point, ownerPlayer);
-                        hitTarget.ServerApplyDamage(gunInfo.Damage, hit.point, hit.normal, attackerStats);
+                        float finalDamage = gunInfo.GetDamageByDistance(hit.distance);
+                        ServerNotifyShowDamage(finalDamage, hit.point, ownerPlayer);
+                        hitTarget.ServerApplyDamage(finalDamage, hit.point, hit.normal, attackerStats);
                     }
                 }
                 else if (TryGetBulletInteract(hit.collider, out BaseBulletInteract_NetWork interactObj))
@@ -692,7 +693,8 @@ public class BaseGun : NetworkBehaviour
             Bullseye localBullseye = localHit.collider != null ? localHit.collider.GetComponentInParent<Bullseye>() : null;
             if (localBullseye != null)
             {
-                localBullseye.Wound(gunInfo.Damage);
+                float finalDamage = gunInfo.GetDamageByDistance(localHit.distance);
+                localBullseye.Wound(finalDamage);
 
                 Vector2 playerPos = ownerPlayer.transform.position;
                 Vector2 targetPos = localHit.point;

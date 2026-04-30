@@ -24,6 +24,8 @@ public class GunInfo : ScriptableObject
     [Header("伤害")]
     [Range(0, 200)] // Damage：0到200的滑动条
     public float Damage;
+    public float FullDamageDistance;
+    public float DamageFalloffPerUnit;
 
     [Header("射程")]
     [Range(100, 500)] // Range：100到500的滑动条
@@ -73,5 +75,19 @@ public class GunInfo : ScriptableObject
     public float smokeSizeMax = 1.2f; // 烟雾最大大小
     public float smokeDuration = 0.3f; // 烟雾总持续时间
     public float smokeDecaySpeed = 10f; // 烟雾衰减速度系数
+
+
+    public float GetDamageByDistance(float distance)
+    {
+        if (DamageFalloffPerUnit <= 0f)
+            return Damage;
+
+        float falloffStartDistance = Mathf.Max(0f, FullDamageDistance);
+        if (distance <= falloffStartDistance)
+            return Damage;
+
+        float falloffDamage = (distance - falloffStartDistance) * DamageFalloffPerUnit;
+        return Mathf.Max(1f, Damage - falloffDamage);
+    }
 
 }

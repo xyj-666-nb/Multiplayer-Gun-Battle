@@ -21,7 +21,9 @@ MonoBehaviour:
   AllBulletAmount: 140
   RateOfFires: 0
   Accuracy: 40
-  Damage: 25
+  Damage: 30
+  FullDamageDistance: 1
+  DamageFalloffPerUnit: 1
   Range: 206
   ReloadTime: 2.47
   BulletSpeed: 0
