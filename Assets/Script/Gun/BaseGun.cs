@@ -1047,8 +1047,8 @@ public class BaseGun : NetworkBehaviour
 
         if (gunInfo != null)
         {
-            _currentMagazineBulletCount = 0;
-            _allReserveBulletCount = gunInfo.AllBulletAmount;
+            _currentMagazineBulletCount = Mathf.Min(gunInfo.Bullet_capacity, gunInfo.AllBulletAmount);
+            _allReserveBulletCount = Mathf.Max(0, gunInfo.AllBulletAmount - _currentMagazineBulletCount);
 
         }
 

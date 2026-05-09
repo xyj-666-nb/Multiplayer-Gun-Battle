@@ -8,20 +8,23 @@ using UnityEngine.UI;
 
 public class CreateRoomPanel : BasePanel
 {
-    [SerializeField] private TMP_InputField InputField;           // ???????????
-    public static string CurrentRoomName;                         // ??????????
+    [SerializeField] private TMP_InputField InputField;
+    public static string CurrentRoomName;               
 
-    [SerializeField] private LanRoomHost Host;// ???????????(??????)
-    [SerializeField] private TMP_InputField InputField_PlayerName;// ???????????
-    public static string CurrentPlayerName;                       // ??????????
+    [SerializeField] private LanRoomHost Host;
+    [SerializeField] private TMP_InputField InputField_PlayerName;
+    public static string CurrentPlayerName;                     
 
-    private GameMode currentGameMode = GameMode.Team_Battle;     // ??????????
+    private GameMode currentGameMode = GameMode.Team_Battle; 
 
-    [Header("?????????????")]
-    public int GameTime;//?????? (5/10/15)
-    public int GameGoalScore;//????????? (10/15/30)
+    [Header("比赛信息")]
+    public int GameTime;
+    public int GameGoalScore;
 
-    // ??????
+    [Header("信息提示")]
+    public TextMeshProUGUI Timetext;
+    public TextMeshProUGUI Scoretext;
+
     private bool _isButtonGroupRegistered = false;
     private string ScoreChooseName = "CreateButton";
     private string TimeChooseName = "ExitButton";
@@ -30,9 +33,7 @@ public class CreateRoomPanel : BasePanel
     public override void Awake()
     {
         base.Awake();
-        //?????°??????
         List<Button> ButtonGroup = new List<Button>();
-        // ??????ClickButton????????????????????
         ButtonGroup.Add(controlDic["CreateButton"] as Button);
         ButtonGroup.Add(controlDic["ExitButton"] as Button);
         ButtonGroup.Add(controlDic["Button_TeamCompetition"] as Button);
@@ -50,6 +51,7 @@ public class CreateRoomPanel : BasePanel
             InputField_PlayerName.onValueChanged.AddListener(HandlePlayerNameChanged);//获取姓名
         // 安全注册按钮组
         SafeRegisterButtonGroups();
+        UpdateRoomInfoText();
     }
 
     private void HandleRoomNameChanged(string roomName)
@@ -65,11 +67,6 @@ public class CreateRoomPanel : BasePanel
         }
     }
 
-    #region ????????????λ??????
-    /// <summary>
-    /// ?? GameTime ??????λ????
-    /// 5???? -> 0 (5?????) | 10???? -> 1 | 15???? -> 2
-    /// </summary>
     private int GetTimeLevelIndex()
     {
         switch (GameTime)
@@ -81,10 +78,6 @@ public class CreateRoomPanel : BasePanel
         }
     }
 
-    /// <summary>
-    /// ?? GameGoalScore ??????λ????
-    /// 10?? -> 0 | 15?? -> 1 | 30?? -> 2
-    /// </summary>
     private int GetScoreLimitLevelIndex()
     {
         switch (GameGoalScore)
@@ -105,30 +98,22 @@ public class CreateRoomPanel : BasePanel
         {
             if (PlayerRespawnManager.Instance != null)
             {
-                // 1. ?????????????
                 PlayerRespawnManager.Instance.InitGoalScoreCount(GameGoalScore, GameTime);
 
-                // 2. ?????????λ
                 int timeLevel = GetTimeLevelIndex();
                 PlayerRespawnManager.Instance.CmdSetTimeLevel(timeLevel);
 
-                // 3. ???????????λ
                 int scoreLevel = GetScoreLimitLevelIndex();
                 PlayerRespawnManager.Instance.CmdSetScoreLimitLevel(scoreLevel);
 
-                /* Debug.Log($"[????????] ???????????????:{GameTime}??(??λ{timeLevel}) ???????:{GameGoalScore}??(??λ{scoreLevel})"); */
             }
         }
         catch (System.Exception e)
         {
-            /* Debug.LogWarning($"[????????] ??????????????: {e.Message}"); */
         }
     }
-    #endregion
 
-    /// <summary>
-    /// ?????????
-    /// </summary>
+
     private void SafeRegisterButtonGroups()
     {
         if (_isButtonGroupRegistered)
@@ -138,17 +123,17 @@ public class CreateRoomPanel : BasePanel
         {
             if (ButtonGroupManager.Instance != null && controlDic != null)
             {
-                TryAddRadio(ScoreChooseName, "Button_10Score", () => { GameGoalScore = 10; MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
-                TryAddRadio(ScoreChooseName, "Button_15Score", () => { GameGoalScore = 15; MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
-                TryAddRadio(ScoreChooseName, "Button_30Score", () => { GameGoalScore = 30; MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
+                TryAddRadio(ScoreChooseName, "Button_10Score", () => { GameGoalScore = 10; UpdateScoreText(); MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
+                TryAddRadio(ScoreChooseName, "Button_15Score", () => { GameGoalScore = 15; UpdateScoreText(); MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
+                TryAddRadio(ScoreChooseName, "Button_30Score", () => { GameGoalScore = 30; UpdateScoreText(); MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
                 SafeSelectFirst(ScoreChooseName);
             }
 
             if (ButtonGroupManager.Instance != null && controlDic != null)
             {
-                TryAddRadio(TimeChooseName, "Button_5minute", () => { GameTime = 5; MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
-                TryAddRadio(TimeChooseName, "Button_10minute", () => { GameTime = 10; MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
-                TryAddRadio(TimeChooseName, "Button_15minute", () => { GameTime = 15; MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
+                TryAddRadio(TimeChooseName, "Button_5minute", () => { GameTime = 5; UpdateTimeText(); MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
+                TryAddRadio(TimeChooseName, "Button_10minute", () => { GameTime = 10; UpdateTimeText(); MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
+                TryAddRadio(TimeChooseName, "Button_15minute", () => { GameTime = 15; UpdateTimeText(); MusicManager.Instance.PlayEffect("Music/update415/ui???"); });
                 SafeSelectFirst(TimeChooseName);
             }
 
@@ -156,10 +141,27 @@ public class CreateRoomPanel : BasePanel
         }
         catch (System.Exception e)
         {
-            /* Debug.LogWarning($"[CreateRoomPanel] ???????????: {e.Message}"); */
+          
         }
     }
 
+    private void UpdateRoomInfoText()
+    {
+        UpdateTimeText();
+        UpdateScoreText();
+    }
+
+    private void UpdateTimeText()
+    {
+        if (Timetext != null)
+            Timetext.text = $"当前时间：{GameTime}分钟";
+    }
+
+    private void UpdateScoreText()
+    {
+        if (Scoretext != null)
+            Scoretext.text = $"当前分数上限：{GameGoalScore}分";
+    }
     /// <summary>
     /// ???????????
     /// </summary>
@@ -196,7 +198,6 @@ public class CreateRoomPanel : BasePanel
         switch (controlName)
         {
             case "CreateButton":
-                // UI?????Ч
                 MusicManager.Instance.PlayEffect("Music/update415/ui???");
 
                 if (Main.Instance.CurrentMode == NetworkMode.LAN)
@@ -206,7 +207,7 @@ public class CreateRoomPanel : BasePanel
                         CustomNetworkManager.Instance.SwitchToLanMode();
                     }
                     StartCoroutine(CreateLanRoomAfterFrame());
-                    MusicManager.Instance.StopBgm();//??????????
+                    MusicManager.Instance.StopBgm();
                 }
                 else if (Main.Instance.CurrentMode == NetworkMode.Match)
                 {
@@ -220,7 +221,6 @@ public class CreateRoomPanel : BasePanel
 
                     SafeInitGameDataAndLevel();
 
-                    // ????????
                     ServerOnlinePanel onlinePanel = UImanager.Instance?.ShowPanel<ServerOnlinePanel>();
 
                     if (onlinePanel != null)
@@ -235,11 +235,9 @@ public class CreateRoomPanel : BasePanel
 
                         void HandleSuccess(string code)
                         {
-                            /* Debug.Log($"[?????] ????????????Code: {code}"); */
                             MusicManager.Instance.StopBgm();
                             UnsubscribeAll();
                             onlinePanel.HidePanel();
-                            // ????????????????????????
                             SafeInitGameDataAndLevel();
 
                             if (ModeChooseSystem.instance != null)
@@ -248,7 +246,6 @@ public class CreateRoomPanel : BasePanel
 
                         void HandleFailed(string error)
                         {
-                            /* Debug.LogError($"[?????] ???????????: {error}"); */
                             UnsubscribeAll();
                             onlinePanel.HidePanel();
                             UImanager.Instance.ShowPanel<CreateRoomPanel>();
@@ -256,7 +253,6 @@ public class CreateRoomPanel : BasePanel
 
                         void HandleCancel()
                         {
-                            /* Debug.Log("[?????] ???????????"); */
                             UOSRelaySimple.Instance.StopRelay();
                             UnsubscribeAll();
                             UImanager.Instance.ShowPanel<CreateRoomPanel>();
@@ -271,7 +267,6 @@ public class CreateRoomPanel : BasePanel
                 }
                 else
                 {
-                    // ??????????????????????????
                     if (CustomNetworkManager.Instance != null)
                     {
                         CustomNetworkManager.Instance.SwitchToRelayMode();
@@ -291,11 +286,10 @@ public class CreateRoomPanel : BasePanel
                             UOSRelaySimple.OnRelayFailed -= HandleFailed;
                             onlinePanel.OnCancelAction -= HandleCancel;
                         }
-                        onlinePanel.TriggerRemoteCheck();//???????????
+                        onlinePanel.TriggerRemoteCheck();
 
                         void HandleSuccess(string code)
                         {
-                            /* Debug.Log($"[?????] ????????????Code: {code}"); */
                             MusicManager.Instance.StopBgm();
                             UnsubscribeAll();
                             onlinePanel.HidePanel();
@@ -307,7 +301,6 @@ public class CreateRoomPanel : BasePanel
 
                         void HandleFailed(string error)
                         {
-                            /* Debug.LogError($"[?????] ???????????: {error}"); */
                             UnsubscribeAll();
                             onlinePanel.HidePanel();
                             UImanager.Instance.ShowPanel<CreateRoomPanel>();
@@ -315,7 +308,6 @@ public class CreateRoomPanel : BasePanel
 
                         void HandleCancel()
                         {
-                            /* Debug.Log("[?????] ???????????"); */
                             UOSRelaySimple.Instance.StopRelay();
                             UnsubscribeAll();
                             UImanager.Instance.ShowPanel<CreateRoomPanel>();

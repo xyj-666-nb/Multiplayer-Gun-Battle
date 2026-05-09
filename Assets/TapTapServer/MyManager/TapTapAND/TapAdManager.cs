@@ -6,11 +6,11 @@ public class TapAdManager : SingleMonoAutoBehavior<TapAdManager>
 {
     [Header("广告配置（请替换为你后台的真实数据）")]
     [Tooltip("MediaId")]
-    public long MediaId = 1000007;
+    public long MediaId = 1102336;
     [Tooltip("MediaKey")]
-    public string MediaKey = "1AjDOjD0F3SDDmgTuBQHbCRULSizYPHV17viZObHvhDjf7Pq1rlarueOX1cYBucn";
+    public string MediaKey = "rXjvAqxG6PMdtmc8hPNBrB2371dDLhicueNEOqER3bpiD9EZmDFBgpz0sespiGXP";
     [Tooltip("激励视频广告位ID")]
-    public long RewardSlotId = 1001253;
+    public long RewardSlotId = 1056099;
 
     [Header("调试设置")]
     [Tooltip("开启调试日志")]
@@ -48,7 +48,7 @@ public class TapAdManager : SingleMonoAutoBehavior<TapAdManager>
         var config = new DirichletAdConfig.Builder()
             .WithMediaId(MediaId)
             .WithMediaKey(MediaKey)
-            .WithMediaName("你的游戏名称")
+            .WithMediaName("球球战争")
             .EnableDebug(EnableDebugLog)
             .Build();
 

@@ -209,7 +209,7 @@ public class PlayerPanel : BasePanel
             controlDic[AimButtonButtonGroupName] as Button,
             chooseScale: 1.1f,
             changeDuration: 0.2f,
-            chooseColor: ColorManager.LightGreen,
+            chooseColor: new Color32(120, 255, 150, 255),
             isManualTrigger: true);
         RegisterTouchInputPassThroughButtons();
         SetActiveInteractButton(false);//¹Ø±Õ½»»¥
@@ -217,11 +217,22 @@ public class PlayerPanel : BasePanel
         UpdateMoveButton();
     }
 
+
     private void RegisterTouchInputPassThroughButtons()
     {
         RegisterTouchInputPassThrough("ShootButton", TouchInputPassThroughTarget.ShootButton);
         RegisterTouchInputPassThrough(AimButtonButtonGroupName, TouchInputPassThroughTarget.AimButton);
         RegisterTouchInputPassThrough(shootButton != null ? shootButton.GetComponentInParent<Button>() : null, TouchInputPassThroughTarget.ShootButton);
+
+        RegisterTouchInputPassThrough("ReloadButton", TouchInputPassThroughTarget.General);
+        RegisterTouchInputPassThrough("JumpButton", TouchInputPassThroughTarget.General);
+        RegisterTouchInputPassThrough("ThrowObjButton", TouchInputPassThroughTarget.General);
+        RegisterTouchInputPassThrough("ThrowObjButton2", TouchInputPassThroughTarget.General);
+        RegisterTouchInputPassThrough("PickGunButton", TouchInputPassThroughTarget.General);
+        RegisterTouchInputPassThrough("DiscardButton", TouchInputPassThroughTarget.General);
+        RegisterTouchInputPassThrough("ScreenFlipButton", TouchInputPassThroughTarget.General);
+        RegisterTouchInputPassThrough("InteractButton", TouchInputPassThroughTarget.General);
+        RegisterTouchInputPassThrough("InteractButton ", TouchInputPassThroughTarget.General);
     }
 
     private void RegisterTouchInputPassThrough(string buttonName, TouchInputPassThroughTarget targetType)

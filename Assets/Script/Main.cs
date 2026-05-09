@@ -100,7 +100,7 @@ public class Main : SingleMonoAutoBehavior<Main>
         }
         catch (System.Exception e)
         {
-            // 即使配置失败，也不影响游戏运行（仅打印警告）
+            // 即使配置失败，也不影响游戏运行（仅打印警告） 
             /* Debug.LogWarning("安卓网络配置初始化警告：" + e.Message); */
         }
 #endif
@@ -117,7 +117,7 @@ public class Main : SingleMonoAutoBehavior<Main>
             UImanager.Instance.ShowPanel<TapTapLoginPanel>();
 
         // 正式包关闭测试版发币逻辑
-         GoldSystem.Instance.AddGold(10000, "测试版初始赠送");
+       //  GoldSystem.Instance.AddGold(10000, "测试版初始赠送");
     }
     /// <summary>
     /// 服务端启动时，自动生成全局重生管理器

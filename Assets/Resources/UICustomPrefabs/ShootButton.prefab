@@ -1,17 +1,18 @@
 %YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
+%TAG !u! tag:yousandi.cn,2023:
 --- !u!1 &4024665055830176114
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 3844685122334269327}
   - component: {fileID: 1063580380326963810}
   - component: {fileID: 3284175238754706865}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -81,7 +82,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 5870766536959565591}
   - component: {fileID: 4413384878637084545}
@@ -89,6 +90,7 @@ GameObject:
   - component: {fileID: 7418306526636790226}
   - component: {fileID: 578761268891841792}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: ShootButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -111,11 +113,11 @@ RectTransform:
   - {fileID: 3844685122334269327}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 232, y: -34}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -396, y: 327}
   m_SizeDelta: {x: 270, y: 270}
-  m_Pivot: {x: 0, y: 1}
+  m_Pivot: {x: 1, y: 0}
 --- !u!222 &4413384878637084545
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -223,12 +225,13 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
+  serializedVersion: 7
   m_Component:
   - component: {fileID: 9164080513341876287}
   - component: {fileID: 4460177631028535927}
   - component: {fileID: 3599700407260983779}
   m_Layer: 5
+  m_HasEditorInfo: 1
   m_Name: Outline
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -350,7 +350,6 @@ public class GameSettlementPanel : BasePanel
 
         UImanager.Instance?.HidePanel<WarRecordPanel>(false);
         UImanager.Instance?.HidePanel<GameSettlementPanel>();
-        UImanager.Instance.ShowPanel<GameStartPanel>();
 
         if (PlayerRespawnManager.Instance != null)
         {

@@ -94,13 +94,20 @@ public class PlayerTacticControl : MonoBehaviour
 
     public void SetTacticControl(bool IsActive)
     {
-        if (IsActive)
-            MyCanvasGroup.interactable = true;
-        else
-            MyCanvasGroup.interactable = false;
+        if (MyCanvasGroup == null)
+            return;
+
+        MyCanvasGroup.interactable = IsActive;
         //是否激活当前的战术道具位
-        SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(MyCanvasGroup, ref MyCanvasGroupAnima, IsActive, () => {
-        });
+        if (SimpleAnimatorTool.Instance != null)
+        {
+            SimpleAnimatorTool.Instance.CommonFadeDefaultAnima(MyCanvasGroup, ref MyCanvasGroupAnima, IsActive, () => {
+            });
+        }
+        else
+        {
+            MyCanvasGroup.alpha = IsActive ? 1f : 0f;
+        }
     }
 
     public int CurrentMainTacticIndex => CurrentTactPack?.Index ?? 1;
@@ -223,8 +230,8 @@ public class PlayerTacticControl : MonoBehaviour
             ExtraTacticButton.onClick.RemoveListener(OnExtraTacticButtonClick);
         if (ExpendButton != null) ExpendButton.onClick.RemoveAllListeners();
 
-        IsPrepararingInjection = false;
-        IsChooseButton = false;
+        _IsPrepararingInjection = false;
+        _isChooseButton = false;
 
         SetTacticControl(false);
     }
@@ -405,7 +412,7 @@ public class PlayerTacticControl : MonoBehaviour
 
     private void UpdateButtonVisualState(bool isSelected)
     {
-        if (_currentTacticImage == null || CurrentTacticButton.transform == null) return;
+        if (_currentTacticImage == null || CurrentTacticButton == null || CurrentTacticButton.transform == null) return;
 
         if (_scaleTween != null && _scaleTween.IsPlaying())
             _scaleTween.Kill();

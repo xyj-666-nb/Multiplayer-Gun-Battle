@@ -22,12 +22,14 @@ MonoBehaviour:
   RateOfFires: 0
   Accuracy: 45
   Damage: 42
+  FullDamageDistance: 1
+  DamageFalloffPerUnit: 1
   Range: 200
   ReloadTime: 3
   BulletSpeed: 0
   Recoil: 1.8
   Recoil_Enemy: 1.5
-  ControlPower: 20
+  ControlPower: 40
   MaxPower: 5
   ViewRange: 0
   Mobility: 0.2

@@ -743,7 +743,8 @@ public class WarnPanel : BasePanel
         // 清空回调，避免内存泄漏
         ConfirmCallback = null;
         CancelCallback = null;
-        SimpleEffectButtonGroup.Instance.UnRegisterGroup("WarnPanel");
+        if (SimpleEffectButtonGroup.Instance != null)
+            SimpleEffectButtonGroup.Instance.UnRegisterGroup("WarnPanel");
     }
     #endregion
 

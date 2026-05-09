@@ -749,6 +749,7 @@ public class ToggleButton
 
         _originalScale = _rt ? _rt.localScale : Vector3.one;
         _originalColor = _buttonImage ? _buttonImage.color : Color.white;
+        _button.transition = Selectable.Transition.None;
 
         _animationSequence?.Kill();
         _animationSequence = DOTween.Sequence();
@@ -774,15 +775,24 @@ public class ToggleButton
         _animationSequence?.Kill();
         _animationSequence = DOTween.Sequence()
             .Append(_rt.DOScale(0.95f, 0.1f).SetEase(Ease.OutQuad));
+
+        if (_buttonImage != null && IsSelected)
+            _animationSequence.Join(_buttonImage.DOColor(ChooseColor, 0.1f).SetEase(Ease.OutQuad));
     }
 
     private void PlayReleaseAnima()
     {
         if (_rt == null) return;
 
+        Vector3 targetScale = IsSelected ? _originalScale * ChooseScale : _originalScale;
+        Color targetColor = IsSelected ? ChooseColor : _originalColor;
+
         _animationSequence?.Kill();
         _animationSequence = DOTween.Sequence()
-            .Append(_rt.DOScale(_originalScale, 0.1f).SetEase(Ease.OutQuad));
+            .Append(_rt.DOScale(targetScale, 0.1f).SetEase(Ease.OutQuad));
+
+        if (_buttonImage != null)
+            _animationSequence.Join(_buttonImage.DOColor(targetColor, 0.1f).SetEase(Ease.OutQuad));
     }
 
     /// <summary>切换选中状态）</summary>

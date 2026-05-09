@@ -28,6 +28,7 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
         if (!InitSDK())
         {
             /* Debug.LogError("SDK 初始化失败，无法登录"); */
+            WarnTriggerManager.Instance?.TriggerNoInteractionWarn(2f, "TapTap登录初始化失败，请检查网络或SDK配置！");
             return;
         }
 
@@ -38,7 +39,15 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
                 TapTapLogin.TAP_LOGIN_SCOPE_PUBLIC_PROFILE
             };
 
-            var userInfo = await TapTapLogin.Instance.LoginWithScopes(scopes.ToArray());
+            var loginTask = TapTapLogin.Instance.LoginWithScopes(scopes.ToArray());
+            var completedTask = await Task.WhenAny(loginTask, Task.Delay(8000));
+            if (completedTask != loginTask)
+            {
+                WarnTriggerManager.Instance?.TriggerNoInteractionWarn(2f, "TapTap登录没有响应，请确认Android依赖已解析并重新打包！");
+                return;
+            }
+
+            var userInfo = await loginTask;
 
             if (userInfo != null)
             {
@@ -59,6 +68,7 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
         catch (Exception e)
         {
             /* Debug.LogError($"登录失败：{e.Message}\n{e.StackTrace}"); */
+            WarnTriggerManager.Instance?.TriggerNoInteractionWarn(2f, "TapTap登录失败：" + e.Message);
         }
     }
 
@@ -116,6 +126,7 @@ public class TapTapGameLogin : SingleMonoAutoBehavior<TapTapGameLogin>
         catch (Exception e)
         {
             /* Debug.LogError($"SDK初始化失败：{e.Message}"); */
+            WarnTriggerManager.Instance?.TriggerNoInteractionWarn(2f, "TapTap SDK初始化失败：" + e.Message);
             isSdkInited = false;
             return false;
         }

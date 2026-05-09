@@ -385,9 +385,23 @@ public class playerHandControl : NetworkBehaviour
     // 记录当前的实际瞄准角度（包含所有后坐力）
     private float _currentAimAngle;
 
-    private void HandleTouchRotation_Bidirectional()
+    private bool TryEnsureMainCamera()
     {
         if (mainCamera == null || !mainCamera.orthographic)
+        {
+            if (MyCameraControl.Instance != null)
+                mainCamera = MyCameraControl.Instance.MainCamera != null ? MyCameraControl.Instance.MainCamera : MyCameraControl.Instance.GetComponentInChildren<Camera>();
+
+            if (mainCamera == null)
+                mainCamera = Camera.main;
+        }
+
+        return mainCamera != null && mainCamera.orthographic;
+    }
+
+    private void HandleTouchRotation_Bidirectional()
+    {
+        if (!TryEnsureMainCamera())
         {
             if (_isDebug) /* Debug.LogError("[错误] 主相机未赋值/非2D正交相机！", this); */
             return;
@@ -404,8 +418,7 @@ public class playerHandControl : NetworkBehaviour
         if (touchHandler != null && touchHandler.IsTouchActive)
         {
             // 获取这一帧手指滑动了多少像素
-            Vector2 touchDelta = touchHandler.TouchDelta;
-
+            Vector2 touchDelta = touchHandler.ConsumeTouchDelta();
             // 简单的区域判定：如果在角色左侧，可能不响应或者翻转Y轴，根据需求来
             // 这里假设只要触摸有效就响应
 
@@ -422,7 +435,6 @@ public class playerHandControl : NetworkBehaviour
             // 玩家往下滑 (touchDelta.y 为负) -> angleChange 为负 -> 角度减小 -> 枪口下压
             _currentAimAngle += angleChange;
         }
-
         // ===================== 2. 限制角度范围 =====================
         // 不管是玩家操作还是后坐力，最终角度不能太离谱
         _currentAimAngle = Mathf.Clamp(_currentAimAngle, -VerticalAngleLimit, VerticalAngleLimit);
@@ -465,7 +477,7 @@ public class playerHandControl : NetworkBehaviour
 
         // 如果你还想保留一点视觉上的额外抖动，可以保留 _recoilOffsetZ，
         // 但主要的压枪手感应该来自上面这一行。
-        // _recoilOffsetZ += recoilPower * 0.5f; 
+        // _recoilOffsetZ += recoilPower * 0.5f;
     }
     #endregion
 

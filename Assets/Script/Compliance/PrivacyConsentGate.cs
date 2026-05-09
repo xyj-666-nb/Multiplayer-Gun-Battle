@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class PrivacyConsentGate
 {
-    public const string ConsentVersion = "2026-04-30";
+    public const string ConsentVersion = "2026-05-06";
     private const string ConsentPlayerPrefsKey = "PrivacyConsentVersion";
 
     public static bool HasAccepted()

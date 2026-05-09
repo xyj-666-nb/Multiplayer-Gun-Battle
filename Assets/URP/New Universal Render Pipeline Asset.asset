@@ -26,8 +26,17 @@ MonoBehaviour:
   m_SupportsHDR: 0
   m_HDRColorBufferPrecision: 0
   m_MSAA: 1
+  m_MSAAHighQuality: 0
   m_RenderScale: 1
+  DLSSPerfQualitySetting: 0
+  DLSSUseOptimalSettings: 1
   m_UpscalingFilter: 0
+  m_AdvancedUpscalingFilterList: 
+  m_TJSRSettings:
+    tjsrQuality: 1
+    tjsrBaseBlendFactor: 0
+    m_tjsrContrastAdaptiveSharpening: 0
+  m_MetalFXMode: 0
   m_FsrOverrideSharpness: 0
   m_FsrSharpness: 0.92
   m_EnableLODCrossFade: 0
@@ -45,6 +54,7 @@ MonoBehaviour:
   m_AdditionalLightsShadowResolutionTierHigh: 1024
   m_ReflectionProbeBlending: 0
   m_ReflectionProbeBoxProjection: 0
+  m_ReflectionProbeAtlasResolution: 134219776
   m_ShadowDistance: 10
   m_ShadowCascadeCount: 1
   m_Cascade2Split: 0.25
@@ -68,6 +78,7 @@ MonoBehaviour:
   m_DebugLevel: 0
   m_StoreActionsOptimization: 0
   m_EnableRenderGraph: 0
+  m_EnableTuanjieGI: 0
   m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 0
   m_ColorGradingLutSize: 32
@@ -79,6 +90,7 @@ MonoBehaviour:
   m_GRDEnableCollectLightMap: 0
   m_GRDEnableCollectLightProbe: 0
   m_GRDEnableCollectMotionVector: 0
+  m_GRDUseTextureStoreData: 0
   m_BRGShaderVariantStorageStripType: 0
   m_ShadowType: 1
   m_LocalShadowsSupported: 0
@@ -94,7 +106,7 @@ MonoBehaviour:
   m_PrefilteringModeAdditionalLight: 4
   m_PrefilteringModeAdditionalLightShadows: 0
   m_PrefilterXRKeywords: 1
-  m_PrefilteringModeForwardPlus: 0
+  m_PrefilteringModeClusteredLighting: 0
   m_PrefilteringModeDeferredRendering: 0
   m_PrefilteringModeScreenSpaceOcclusion: 0
   m_PrefilterDebugKeywords: 1

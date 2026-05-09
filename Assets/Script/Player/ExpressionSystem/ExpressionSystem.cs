@@ -130,6 +130,9 @@ public class ExpressionSystem : SingleMonoAutoBehavior<ExpressionSystem>
             EquipmentExpressionList = new List<int>();
         }
 
+        if (DataEncryptionManger.Instance == null)
+            return;
+
         DataEncryptionManger.Instance.SaveEncryptedComplexData(EquipmentExpressionDataFileName, EquipmentExpressionList);
         /* Debug.Log($"[表情系统] 装备列表已保存，共 {EquipmentExpressionList.Count} 个装备"); */
     }

@@ -66,6 +66,8 @@ public class ModeChooseSystem : MonoBehaviour
     private void OnDestroy()
     {
         IsTriggerPromptAnima(false);
+        if (instance == this)
+            instance = null;
     }
 
     public void EnterSystem()
@@ -111,12 +113,21 @@ public class ModeChooseSystem : MonoBehaviour
 
     public void IsTriggerPromptAnima(bool IsActive)
     {
+        if (SimpleAnimatorTool.Instance == null)
+        {
+            task1 = null;
+            task2 = null;
+            task3 = null;
+            task4 = null;
+            return;
+        }
+
         if (IsActive)
         {
-            task1 = SimpleAnimatorTool.Instance.AddFadeLoopTask(LeftPromptText);
-            task2 = SimpleAnimatorTool.Instance.AddFadeLoopTask(RightPromptText);
-            task3 = SimpleAnimatorTool.Instance.AddFadeLoopTask(LeftPromptImage, waitTime: 0);
-            task4 = SimpleAnimatorTool.Instance.AddFadeLoopTask(RightPromptImage, waitTime: 0);
+            if (LeftPromptText != null) task1 = SimpleAnimatorTool.Instance.AddFadeLoopTask(LeftPromptText);
+            if (RightPromptText != null) task2 = SimpleAnimatorTool.Instance.AddFadeLoopTask(RightPromptText);
+            if (LeftPromptImage != null) task3 = SimpleAnimatorTool.Instance.AddFadeLoopTask(LeftPromptImage, waitTime: 0);
+            if (RightPromptImage != null) task4 = SimpleAnimatorTool.Instance.AddFadeLoopTask(RightPromptImage, waitTime: 0);
         }
         else
         {
@@ -124,6 +135,10 @@ public class ModeChooseSystem : MonoBehaviour
             SimpleAnimatorTool.Instance.StopFadeLoopTask(task2);
             SimpleAnimatorTool.Instance.StopFadeLoopTask(task3);
             SimpleAnimatorTool.Instance.StopFadeLoopTask(task4);
+            task1 = null;
+            task2 = null;
+            task3 = null;
+            task4 = null;
         }
     }
 

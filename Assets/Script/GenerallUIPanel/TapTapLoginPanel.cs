@@ -8,7 +8,10 @@ public class TapTapLoginPanel : BasePanel
         if(controlName== "LoginButton")
         {
             /* Debug.Log("按下登录按钮"); */
-            //TapTapGameLogin.Instance.OnTapLoginClick();//暂时不使用
+            if (TapTapGameLogin.Instance != null)
+            {
+                TapTapGameLogin.Instance.OnTapLoginClick();
+            }
         }
     }
 
